@@ -51,9 +51,7 @@ debug _ = id
 test :: JSM ()
 test = mainWidget ui
 
--- > System.Process.system "xyleap-start-tempdb"
--- > System.Process.system "../db/get-database-from-kahu.sh"
--- > XYLeap.Devel.debug 3706 XYLeap.Devel.test
+-- > Bailiwik.Devel.debug 3706 Bailwick.Devel.test
 -- try putting this into the repl to force reload of app
 -- :def! reload (const $ return "::reload\nBailiwick.Devel.debug 3705 test")
 

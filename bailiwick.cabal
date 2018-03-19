@@ -11,13 +11,13 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Bailiwick
+  exposed-modules:     Bailiwick.Devel
+                     , Bailiwick
                      , Bailiwick.Store
                      , Bailiwick.State
                      , Bailiwick.Route
                      , Bailiwick.View
                      , Bailiwick.Application
-                     , Bailiwick.Devel
 
   build-depends:       base >= 4.7 && < 5
                      , aeson
