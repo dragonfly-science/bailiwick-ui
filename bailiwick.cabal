@@ -1,0 +1,74 @@
+name:                bailiwick
+version:             0.1.0.0
+homepage:            https://github.com/dragonfly-science/bailiwick
+author:              Finlay Thompson
+maintainer:          finlay@dragonfly.co.nz
+copyright:           Dragonfly (2018)
+category:            web
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Bailiwick
+                     , Bailiwick.Devel
+                     , Bailiwick.Application
+
+  build-depends:       base >= 4.7 && < 5
+                     , aeson
+                     , bytestring
+                     , containers
+                     , data-default
+                     , directory
+                     , filepath
+                     , ghcjs-dom
+                     , http-media
+                     , http-types
+                     , jsaddle
+                     , jsaddle-warp
+                     , lens
+                     , mtl
+                     , QuickCheck
+                     , reflex
+                     , reflex-dom-contrib
+                     , reflex-dom-core
+                     , reflex-dom-nested-routing
+                     , resource-pool
+                     , text
+                     , time
+                     , transformers
+                     , unordered-containers
+                     , wai
+                     , wai-app-static
+                     , wai-extra
+                     , warp
+                     , websockets
+  default-language:    Haskell2010
+  ghc-options: -Wall
+
+executable bailiwick
+  hs-source-dirs: app
+  main-is: Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
+  build-depends:       base
+                     , aeson
+                     , bytestring
+                     , containers
+                     , directory
+                     , filepath
+                     , ghcjs-dom
+                     , http-types
+                     , jsaddle-warp
+                     , mtl
+                     , reflex-dom-core
+                     , wai
+                     , wai-app-static
+                     , warp
+                     , websockets
+                     , bailiwick
+  default-language: Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/dragonfly-science/bailiwick
