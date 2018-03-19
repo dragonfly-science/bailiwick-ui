@@ -1,11 +1,5 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE GADTs               #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RankNTypes          #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 module Bailiwick.Devel (
     test
   , debug
@@ -31,7 +25,6 @@ import qualified Network.HTTP.Types as H (status200)
 
 import Bailiwick.Application (application)
 
-
 debug :: Int -> JSM () -> IO ()
 debug prt f = do
   app <- application  "/jsaddle.js"
@@ -54,7 +47,6 @@ import Language.Javascript.JSaddle (JSM)
 debug :: Int -> JSM () -> IO ()
 debug _ = id
 #endif
-
 
 test :: JSM ()
 test = mainWidget ui
