@@ -10,7 +10,7 @@ import qualified Data.ByteString.Lazy as LB
        (fromStrict, ByteString)
 
 import qualified Network.Wai as W
-       (responseLBS, pathInfo, requestMethod, Application)
+       (responseLBS, pathInfo, requestMethod, Application, Request)
 import qualified Network.HTTP.Types as H (status200)
 import Network.Wai.Application.Static
        (staticApp, defaultWebAppSettings)
@@ -48,13 +48,24 @@ indexHtml js = do
       , "</html>"
       ]
 
+checkPath :: W.Request -> Bool
+checkPath req = 
+    let path = W.pathInfo req
+    in case path of
+        ("summary":_) -> True
+        ("theme":_)   -> True
+        _             -> False
+
 application :: LB.ByteString -> IO W.Application
 application js = do
     loadingPage <- indexHtml js
-    return $ \req sendResponse ->
-                case (W.requestMethod req, W.pathInfo req) of
-                    ("GET", []) -> sendResponse $ W.responseLBS H.status200 [("Content-Type", "text/html")] loadingPage
-                    _ -> staticApp (defaultWebAppSettings "static") req sendResponse
+    return $ \req sendResponse
+       -> case (W.requestMethod req, checkPath req) of
+            ("GET", True) -> 
+                sendResponse $ 
+                    W.responseLBS H.status200 [("Content-Type", "text/html")]
+                    loadingPage
+            _ -> staticApp (defaultWebAppSettings "static") req sendResponse
                     
 
 

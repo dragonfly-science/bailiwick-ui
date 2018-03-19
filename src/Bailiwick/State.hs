@@ -1,12 +1,16 @@
 module Bailiwick.State
 where
 
+import Data.ByteString
 
-data Message = Mesage
+-- The application has two parts of the state:
+--   1. The selected indicator, area, year, feature etc.,
+--   2. The selected presentation.
+-- The state is held in a single dynamic at the top level.
 
-data State = State
 
+data Message 
+  = SetPath ByteString
 
-update :: Message -> State -> State
-update _ st = st
+data State = State ByteString
 

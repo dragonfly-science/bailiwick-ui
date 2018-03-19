@@ -37,12 +37,11 @@ library
                      , reflex
                      , reflex-dom-contrib
                      , reflex-dom-core
-                     , reflex-dom-nested-routing
-                     , resource-pool
                      , text
                      , time
                      , transformers
                      , unordered-containers
+                     , uri-bytestring
                      , wai
                      , wai-app-static
                      , wai-extra

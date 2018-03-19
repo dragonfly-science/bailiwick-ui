@@ -1,12 +1,14 @@
 module Bailiwick.Route
 where
 
-
-import Data.Text (Text)
+import URI.ByteString
 
 import Bailiwick.State
 
 
-route :: Text -> State
-route = undefined
+encodeRoute :: URI -> Message -> URI
+encodeRoute uri (SetPath path) = uri { uriPath = path }
 
+
+decodeRoute :: URI -> State
+decodeRoute uri = State (uriPath uri)
