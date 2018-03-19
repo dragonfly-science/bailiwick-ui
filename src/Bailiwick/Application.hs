@@ -12,6 +12,8 @@ import qualified Data.ByteString.Lazy as LB
 import qualified Network.Wai as W
        (responseLBS, pathInfo, requestMethod, Application)
 import qualified Network.HTTP.Types as H (status200)
+import Network.Wai.Application.Static
+       (staticApp, defaultWebAppSettings)
 
 import Reflex.Dom.Core
 
@@ -51,6 +53,8 @@ application js = do
     loadingPage <- indexHtml js
     return $ \req sendResponse ->
                 case (W.requestMethod req, W.pathInfo req) of
-                    ("GET", _) -> sendResponse $ W.responseLBS H.status200 [("Content-Type", "text/html")] loadingPage
+                    ("GET", []) -> sendResponse $ W.responseLBS H.status200 [("Content-Type", "text/html")] loadingPage
+                    _ -> staticApp (defaultWebAppSettings "static") req sendResponse
+                    
 
 

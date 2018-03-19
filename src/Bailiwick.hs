@@ -10,8 +10,7 @@ module Bailiwick (
 ) where
 
 import Reflex.Dom.Core
-import Reflex.Dom.Routing.Nested
-       (runRouteWithPathInFragment)
+import Reflex.Dom.Routing.Nested (runRouteWithPathInFragment)
 import Reflex.Dom.Routing.Writer (runRouteWriterT)
 
 

@@ -34,14 +34,20 @@ import Bailiwick.Application (application)
 
 debug :: Int -> JSM () -> IO ()
 debug prt f = do
-    app <- application  "/jsaddle.js"
-    debugWrapper $ \withRefresh registerContext ->
-        runSettings (setPort prt (setTimeout 3600 defaultSettings)) =<<
-            jsaddleOr defaultConnectionOptions (registerContext >> f >> syncPoint) (withRefresh $ \req sendResponse ->
-                case (W.requestMethod req, W.pathInfo req) of
-                    ("GET", ["jsaddle.js"]) -> sendResponse $ W.responseLBS H.status200 [("Content-Type", "application/javascript")] $ jsaddleJs True
-                    _ -> logStdoutDev app req sendResponse)
-    putStrLn $ "<a href=\"http://localhost:" <> show prt <> "\">run</a>"
+  app <- application  "/jsaddle.js"
+  debugWrapper $ \withRefresh registerContext ->
+    runSettings (setPort prt (setTimeout 3600 defaultSettings)) =<<
+      jsaddleOr defaultConnectionOptions 
+                (registerContext >> f >> syncPoint) 
+                (withRefresh $ \req sendResponse -> 
+          case (W.requestMethod req, W.pathInfo req) of
+              ("GET", ["jsaddle.js"]) ->
+                       sendResponse
+                      $ W.responseLBS H.status200 
+                          [("Content-Type", "application/javascript")] 
+                      $ jsaddleJs True
+              _ -> logStdoutDev app req sendResponse)
+  putStrLn $ "<a href=\"http://localhost:" <> show prt <> "\">run</a>"
 #else
 import Language.Javascript.JSaddle (JSM)
 
