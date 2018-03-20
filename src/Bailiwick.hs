@@ -8,11 +8,7 @@ module Bailiwick (
 import Reflex.Dom.Core
 import Reflex.Dom.Contrib.Router
 
--- Routes are defined by maps between url and the state.
 import Bailiwick.Route (decodeRoute, encodeRoute)
-
--- Display is handled by a single function that takes the state
--- and presents the application.
 import Bailiwick.View (view)
 
 ui  :: MonadWidget t m => m ()

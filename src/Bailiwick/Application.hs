@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeOperators     #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes       #-}
 module Bailiwick.Application
   ( application
   )
@@ -8,6 +9,7 @@ where
 import Data.Monoid ((<>))
 import qualified Data.ByteString.Lazy as LB
        (fromStrict, ByteString)
+import Data.String.Interpolation
 
 import qualified Network.Wai as W
        (responseLBS, pathInfo, requestMethod, Application, Request)
@@ -30,28 +32,48 @@ uiStatic = do
 indexHtml :: LB.ByteString -> IO LB.ByteString
 indexHtml js = do
   body <- LB.fromStrict . snd <$> renderStatic uiStatic
-  return $ mconcat
-      [ "<!DOCTYPE html>"
-      , "<html lang=\"en\" class=\"has-navbar-fixed-top\">"
+  return $ [str|
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Regional economic activity report</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-      , "<head>"
-      ,   "<meta charset=\"utf-8\">"
-      ,   "<title>Bailiwick</title>"
-      ,   "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
-      , "</head>"
+    <link rel="stylesheet" href="vendor.css">
+    <link rel="stylesheet" href="teal-skua.css">
 
-      , "<body id=\"body\">"
-      ,   body
-      ,   "<script src='" <> js <> "'></script>"
-      , "</body>"
+    <script src="modernizr.custom.30140.js"></script>
+    <script src="iframeResizer.contentWindow.min.js"></script>
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-      , "</html>"
-      ]
+      ga('create', 'UA-441953-6', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+
+  </head>
+  <body>
+    $body$
+    <script src='$js$'></script>
+  </body>
+  </html>
+    
+|]
+
+
 
 checkPath :: W.Request -> Bool
 checkPath req = 
     let path = W.pathInfo req
     in case path of
+        []            -> True
         ("summary":_) -> True
         ("theme":_)   -> True
         _             -> False
