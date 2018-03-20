@@ -29,6 +29,7 @@ library
                      , ghcjs-dom
                      , http-media
                      , http-types
+                     , Interpolation
                      , jsaddle
                      , jsaddle-warp
                      , lens
