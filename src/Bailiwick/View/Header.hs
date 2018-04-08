@@ -1,8 +1,14 @@
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE RecursiveDo         #-}
 module Bailiwick.View.Header
 where
 
+import Control.Monad.Fix
 import Data.Monoid ((<>))
+import Data.Maybe (fromMaybe)
+
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -13,29 +19,37 @@ import Network.HTTP.Types.URI (urlEncode)
 import Reflex.Dom.Core
 
 import Bailiwick.State (State(..), Message(..))
-import Bailiwick.View.Widgets
 
 
-header :: (Monad m, DomBuilder t m) => State -> m (Event t Message)
-header _state = do
+header 
+    :: ( Monad m
+       , MonadFix m
+       , MonadHold t m
+       , PostBuild t m
+       , DomBuilder t m
+       )
+    => State -> m (Event t Message)
+header state = do
+  let initialRegion = case state of 
+         Summary reg -> Just reg
+         _           -> Nothing
+      
+  let start = fromMaybe "New Zealand" $ do
+                  ini <- initialRegion
+                  Map.lookup ini regions
+
   elAttr "div" ("class" =: "title" <> "data-region" =: "new-zealand") $
-    divClass "content" $ do
+    divClass "content" $ mdo
       divClass "left" $ do
         elClass "span" "block-label context-text" $ text "You're looking at"
         divClass "page-header summary-page-header" $ do
-          el "div" $ text "New Zealand"
+          el "div" $ text start
           el "div" $ return ()
-      divClass "right" $ do
-        divClass "title-menus" $ 
-          divClass "dropdown" $
-            divClass "dropdown-container" $ do
-              elClass "p" "dropdown-button" $ text "Select a region"
-              elClass "ul" "dropdown-menu dropdown-select" $ do
-                el "li" $ text "New Zealand"
-                el "li" $ text "Auckland"
-                el "li" $ text "Bay of Plenty"
-                el "li" $ text "Canterbury"
-  return never
+      region
+        <- divClass "right" $ do
+             divClass "title-menus" $ do
+               dropdownMenu start regions
+      return $ (SetRegion . slugify) <$> updated region
                 
 
 regions :: Map Text Text
@@ -43,6 +57,48 @@ regions =
   Map.fromList [ (slugify(reg), reg) |
     reg <- ["New Zealand", "Auckland", "Bay of Plenty", "Canterbury" ]]
 
+firstKey :: Map Text Text -> Text
+firstKey map =
+    if Map.size map == 0 
+        then ""
+        else snd $ head $ Map.toList map
+
+dropdownMenu
+    :: ( Monad m
+       , MonadFix m
+       , MonadHold t m
+       , PostBuild t m
+       , DomBuilder t m
+       )
+    => Text -> Map Text Text -> m (Dynamic t Text)
+dropdownMenu start regions = do
+  divClass "dropdown" $ do
+    divClass "dropdown-container" $ mdo
+    
+      currentValue :: Dynamic t Text
+        <- holdDyn start (firstKey <$> selectedRegion)
+
+      open :: Dynamic t Bool
+        <- holdDyn False $
+            leftmost [ (not <$> tag (current open) (domEvent Click p))
+                     , False <$ selectedRegion ]
+   
+      let label = ffor currentValue $ \val ->
+              if val == "New Zealand"
+                        then  "Select a region"
+                        else val
+      (p, _) <-  elClass' "p" "dropdown-button" $ dynText label
+
+      let ulClass = ffor open $ \isOpen ->
+              if isOpen then "dropdown-menu dropdown-select show-menu"
+                        else "dropdown-menu dropdown-select"
+      selectedRegion :: Event t (Map Text Text)
+        <- elDynClass "ul" ulClass $ do
+             listViewWithKey (constDyn regions) $ \k v -> do
+               (li, _) <- el' "li" $ dynText v
+               return (tag (current v) (domEvent Click li))
+
+      return currentValue
 
 
 slugify :: T.Text -> T.Text

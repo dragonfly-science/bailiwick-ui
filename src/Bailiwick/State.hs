@@ -1,7 +1,7 @@
 module Bailiwick.State
 where
 
-import Data.ByteString
+import Data.Text (Text)
 
 -- The application has two parts of the state:
 --   1. The selected indicator, area, year, feature etc.,
@@ -10,7 +10,12 @@ import Data.ByteString
 
 
 data Message 
-  = SetPath ByteString
+  = SetRegion Text
 
-data State = State ByteString
+data State 
+  = Summary
+    { region  :: Text
+    }
+  | Home
+ deriving (Eq, Show)
 

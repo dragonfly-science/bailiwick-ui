@@ -2,6 +2,7 @@
 module Bailiwick.View
 where
 
+import Control.Monad.Fix
 import Data.Monoid ((<>))
 
 import Reflex.Dom.Core
@@ -9,10 +10,14 @@ import Reflex.Dom.Core
 import Bailiwick.State (State(..), Message(..))
 import Bailiwick.View.Header
 
-view :: ( Monad m
-        , DomBuilder t m
-        )
-     => State -> m (Event t Message)
+view 
+    :: ( Monad m
+       , MonadFix m
+       , MonadHold t m
+       , PostBuild t m
+       , DomBuilder t m
+       )
+    => State -> m (Event t Message)
 view state = do
   divClass "whole-body summary-whole-body" $ do
     headerE 
