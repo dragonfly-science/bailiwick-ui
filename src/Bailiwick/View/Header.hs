@@ -15,7 +15,6 @@ import qualified Data.Text.Encoding as T
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Network.HTTP.Types.URI (urlEncode)
-
 import Reflex.Dom.Core
 
 import Bailiwick.State (State(..), Message(..))
@@ -33,12 +32,12 @@ header state = do
   let initialRegion = case state of 
          Summary reg -> Just reg
          _           -> Nothing
-      
-  let start = fromMaybe "New Zealand" $ do
+      start = fromMaybe "New Zealand" $ do
                   ini <- initialRegion
                   Map.lookup ini regions
 
-  elAttr "div" ("class" =: "title" <> "data-region" =: "new-zealand") $
+  elAttr "div" (  "class" =: "title" 
+               <> "data-region" =: fromMaybe "new-zealand" initialRegion) $
     divClass "content" $ mdo
       divClass "left" $ do
         elClass "span" "block-label context-text" $ text "You're looking at"
