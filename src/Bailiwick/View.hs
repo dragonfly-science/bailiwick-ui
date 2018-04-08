@@ -7,6 +7,7 @@ import Data.Monoid ((<>))
 import Reflex.Dom.Core
 
 import Bailiwick.State (State(..), Message(..))
+import Bailiwick.View.Header
 
 view :: ( Monad m
         , DomBuilder t m
@@ -48,27 +49,6 @@ navbar = do
           el "i" $ return ()
           el "span" $ text "share"
 
-header :: (Monad m, DomBuilder t m) => State -> m (Event t Message)
-header _state = do
-  elAttr "div" ("class" =: "title" <> "data-region" =: "new-zealand") $
-    divClass "content" $ do
-      divClass "left" $ do
-        elClass "span" "block-label context-text" $ text "You're looking at"
-        divClass "page-header summary-page-header" $ do
-          el "div" $ text "New Zealand"
-          el "div" $ return ()
-      divClass "right" $ do
-        divClass "title-menus" $ 
-          divClass "dropdown" $
-            divClass "dropdown-container" $ do
-              elClass "p" "dropdown-button" $ text "Select a region"
-              elClass "ul" "dropdown-menu dropdown-select" $ do
-                el "li" $ text "New Zealand"
-                el "li" $ text "Auckland"
-                el "li" $ text "Bay of Plenty"
-                el "li" $ text "Canterbury"
-  return never
-                
 
 maincontent :: ( Monad m , DomBuilder t m) => State -> m (Event t Message)
 maincontent _state = return never
