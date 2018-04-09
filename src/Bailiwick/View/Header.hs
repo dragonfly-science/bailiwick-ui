@@ -103,11 +103,11 @@ dropdownMenu urlRegion regionsD = do
                 regions <- regionsD
                 return $ fromMaybe "not found ?" $ Map.lookup val regions
 
-      (p, _) <-  elClass' "p" "dropdown-button" $ dynText label
-
-      let ulClass = ffor open $ \isOpen ->
+          ulClass = ffor open $ \isOpen ->
               if isOpen then "dropdown-menu dropdown-select show-menu"
                         else "dropdown-menu dropdown-select"
+
+      (p, _) <-  elClass' "p" "dropdown-button" $ dynText label
       selectedRegion :: Event t (Map Text Text)
         <- elDynClass "ul" ulClass $ do
              listViewWithKey regionsD $ \_k v -> do
