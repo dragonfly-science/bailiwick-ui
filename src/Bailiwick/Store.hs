@@ -1,8 +1,31 @@
+{-# LANGUAGE OverloadedStrings       #-}
+{-# LANGUAGE RankNTypes              #-}
+{-# LANGUAGE DataKinds               #-}
+{-# LANGUAGE TypeOperators           #-}
+{-# LANGUAGE FlexibleContexts        #-}
+{-# LANGUAGE ScopedTypeVariables     #-}
 module Bailiwick.Store
+    ( getAreas
+    )
 where
 
--- A single store object stores all data.
--- Anything not yet collected results in a fetch to the API.
--- The store provides a dynamic variable to demonstrate ready or not.
+import Data.Proxy
+
+import Servant.API
+import Servant.Reflex
+import Reflex.Dom.Core
+
+import Bailiwick.Types
+
+
+type GetAreas = "data" :> "areas-1b7549470.json" :> Get '[JSON] Areas
+
+
+
+getAreas
+    :: forall t m . SupportsServantReflex t m => Client t m GetAreas ()
+getAreas
+    = client (Proxy :: Proxy GetAreas) (Proxy :: Proxy m)
+        (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
 

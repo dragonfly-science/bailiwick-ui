@@ -14,11 +14,11 @@ library
   exposed-modules:     Bailiwick.Devel
                      , Bailiwick
                      , Bailiwick.Store
+                     , Bailiwick.Types
                      , Bailiwick.State
                      , Bailiwick.Route
                      , Bailiwick.View
                      , Bailiwick.View.Header
-                     , Bailiwick.View.Widgets
                      , Bailiwick.Application
 
   build-depends:       base >= 4.7 && < 5
@@ -42,6 +42,8 @@ library
                      , reflex
                      , reflex-dom-contrib
                      , reflex-dom-core
+                     , servant
+                     , servant-reflex
                      , text
                      , time
                      , transformers

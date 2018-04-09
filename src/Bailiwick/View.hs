@@ -1,10 +1,12 @@
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE FlexibleContexts    #-}
 module Bailiwick.View
 where
 
 import Control.Monad.Fix
 import Data.Monoid ((<>))
 
+import Servant.Reflex
 import Reflex.Dom.Core
 
 import Bailiwick.State (State(..), Message(..))
@@ -16,6 +18,7 @@ view
        , MonadHold t m
        , PostBuild t m
        , DomBuilder t m
+       , SupportsServantReflex t m
        )
     => State -> m (Event t Message)
 view state = do
