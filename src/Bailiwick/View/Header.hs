@@ -29,8 +29,8 @@ header
        , DomBuilder t m
        , SupportsServantReflex t m
        )
-    => State -> m (Event t Message)
-header state = do
+    => Dynamic t State -> m (Event t Message)
+header state = mdo
 
   ready <- getPostBuild
   areasE <- getAreas ready
@@ -40,29 +40,34 @@ header state = do
       mkRegions as = Map.fromList [ (Bailiwick.Types.id a, name a) 
                                   | a <- as
                                   , level a == "reg" ]  
-  let regionsD = mkRegions <$>  areasD
+  let regionsD = mkRegions <$> areasD
 
-  let initialRegion = case state of 
+  let urlRegion = ffor state $ \case
          Summary reg -> Just reg
          _           -> Nothing
-      lookupReg :: Map Text Text -> Text
-      lookupReg regs = fromMaybe "New Zealand" $ do
-                         ini <- initialRegion
-                         Map.lookup ini regs
+  let background =
+        ffor urlRegion $ \mir ->
+                    (  "class" =: "title" 
+                    <> "data-region" =: fromMaybe "new-zealand" mir)
 
-  elAttr "div" (  "class" =: "title" 
-               <> "data-region" =: fromMaybe "new-zealand" initialRegion) $
-    divClass "content" $ mdo
-      divClass "left" $ do
-        elClass "span" "block-label context-text" $ text "You're looking at"
-        divClass "page-header summary-page-header" $ do
-          el "div" $ dynText (lookupReg <$> regionsD)
-          el "div" $ return ()
-      region
-        <- divClass "right" $ do
-             divClass "title-menus" $ do
-               dropdownMenu initialRegion  regionsD
-      return $ SetRegion <$> updated region
+  let dispRegion = do 
+        this <- region
+        regions <- regionsD
+        return $ fromMaybe "New Zealand" $ Map.lookup this regions
+
+  region <- 
+    elDynAttr "div" background $
+      divClass "content" $ mdo
+        divClass "left" $ do
+          elClass "span" "block-label context-text" $ text "You're looking at"
+          divClass "page-header summary-page-header" $ do
+            el "div" $ dynText dispRegion
+            el "div" $ return ()
+          divClass "right" $ do
+            divClass "title-menus" $ do
+              dropdownMenu regionsD
+
+  return $ SetRegion <$> updated region
                 
 
 firstKey :: Map Text Text -> Text
@@ -75,13 +80,13 @@ dropdownMenu
        , PostBuild t m
        , DomBuilder t m
        )
-    => Maybe Text -> Dynamic t (Map Text Text) -> m (Dynamic t Text)
-dropdownMenu start regionsD = do
+    => Dynamic t (Map Text Text) -> m (Dynamic t Text)
+dropdownMenu regionsD = do
   divClass "dropdown" $ do
     divClass "dropdown-container" $ mdo
     
       currentValue :: Dynamic t Text
-        <- holdDyn (fromMaybe "new-zealand" start) (firstKey <$> selectedRegion)
+        <- holdDyn "new-zealand" (firstKey <$> selectedRegion)
 
       open :: Dynamic t Bool
         <- holdDyn False $

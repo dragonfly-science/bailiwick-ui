@@ -20,7 +20,7 @@ view
        , DomBuilder t m
        , SupportsServantReflex t m
        )
-    => State -> m (Event t Message)
+    => Dynamic t State -> m (Event t Message)
 view state = do
   divClass "whole-body summary-whole-body" $ do
     headerE 
@@ -58,14 +58,18 @@ navbar = do
           el "span" $ text "share"
 
 
-maincontent :: ( Monad m , DomBuilder t m) => State -> m (Event t Message)
+maincontent
+    :: ( Monad m , DomBuilder t m)
+    => Dynamic t State -> m (Event t Message)
 maincontent _state = do
   divClass "content main-content" $ do
     divClass "central-content summary" $ do
       elAttr "div" ("style" =: "height: 550px") $ text ""
   return never
 
-indicators :: ( Monad m , DomBuilder t m) => State -> m (Event t Message)
+indicators
+    :: ( Monad m , DomBuilder t m)
+    => Dynamic t State -> m (Event t Message)
 indicators _state = return never
 
 footer :: (Monad m, DomBuilder t m) => m ()

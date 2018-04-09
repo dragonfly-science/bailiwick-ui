@@ -14,7 +14,7 @@ data Message
 
 data State 
   = Summary
-    { region  :: Text
+    { summaryRegion  :: Text
     }
   | Home
  deriving (Eq, Show)
