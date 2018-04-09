@@ -9,7 +9,6 @@ import Reflex.Dom.Core
 import Reflex.Dom.Contrib.Router
 
 import Bailiwick.Route (decodeRoute, encodeRoute)
-import Bailiwick.State (Message)
 import Bailiwick.View (view)
 
 ui  :: MonadWidget t m => m ()

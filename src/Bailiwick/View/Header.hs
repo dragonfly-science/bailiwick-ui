@@ -36,22 +36,15 @@ header state = mdo
   areasE <- getAreas ready
   areasD <- holdDyn [] $ fmap areas $ fmapMaybe reqSuccess areasE
 
-  let mkRegions :: [Area] -> Map Text Text
-      mkRegions as = Map.fromList [ (Bailiwick.Types.id a, name a) 
-                                  | a <- as
-                                  , level a == "reg" ]  
   let regionsD = mkRegions <$> areasD
+      urlRegion = getRegion <$> state
 
-  let urlRegion = ffor state $ \case
-         Summary reg -> Just reg
-         _           -> Nothing
-  let background =
-        ffor urlRegion $ \mir ->
-                    (  "class" =: "title" 
-                    <> "data-region" =: fromMaybe "new-zealand" mir)
+      background = do
+        reg <- urlRegion
+        return $ (  "class" =: "title" <> "data-region" =: reg)
 
-  let dispRegion = do 
-        this <- region
+      dispRegion = do 
+        this <- urlRegion
         regions <- regionsD
         return $ fromMaybe "New Zealand" $ Map.lookup this regions
 
@@ -63,15 +56,24 @@ header state = mdo
           divClass "page-header summary-page-header" $ do
             el "div" $ dynText dispRegion
             el "div" $ return ()
-          divClass "right" $ do
-            divClass "title-menus" $ do
-              dropdownMenu regionsD
+        divClass "right" $ do
+          divClass "title-menus" $ do
+            dropdownMenu urlRegion regionsD
 
   return $ SetRegion <$> updated region
-                
 
-firstKey :: Map Text Text -> Text
-firstKey = fromMaybe "" . fmap fst . listToMaybe . Map.toList
+  where
+
+    mkRegions :: [Area] -> Map Text Text
+    mkRegions as = Map.fromList [ (Bailiwick.Types.id a, name a) 
+                                | a <- as
+                                , level a == "reg" ]  
+
+    getRegion :: State -> Text
+    getRegion (Summary reg) = reg
+    getRegion _ = "new-zealand"
+      
+                
 
 dropdownMenu
     :: ( Monad m
@@ -80,8 +82,8 @@ dropdownMenu
        , PostBuild t m
        , DomBuilder t m
        )
-    => Dynamic t (Map Text Text) -> m (Dynamic t Text)
-dropdownMenu regionsD = do
+    => Dynamic t Text -> Dynamic t (Map Text Text) -> m (Dynamic t Text)
+dropdownMenu urlRegion regionsD = do
   divClass "dropdown" $ do
     divClass "dropdown-container" $ mdo
     
@@ -94,12 +96,12 @@ dropdownMenu regionsD = do
                      , False <$ selectedRegion ]
    
       let label = do 
-            val <- currentValue
+            val <- urlRegion
             if val == "new-zealand"
-                 then return "Select a region"
-                 else do
-                     regions <- regionsD
-                     return $ fromMaybe "not found ?" $ Map.lookup val regions
+              then return "Select a region"
+              else do
+                regions <- regionsD
+                return $ fromMaybe "not found ?" $ Map.lookup val regions
 
       (p, _) <-  elClass' "p" "dropdown-button" $ dynText label
 
@@ -113,5 +115,9 @@ dropdownMenu regionsD = do
                return (tag (current v) (domEvent Click li))
 
       return currentValue
+
+  where
+    firstKey :: Map Text Text -> Text
+    firstKey = fromMaybe "" . fmap fst . listToMaybe . Map.toList
 
 
