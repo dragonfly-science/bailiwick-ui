@@ -59,7 +59,11 @@ navbar = do
 
 
 maincontent :: ( Monad m , DomBuilder t m) => State -> m (Event t Message)
-maincontent _state = return never
+maincontent _state = do
+  divClass "content main-content" $ do
+    divClass "central-content summary" $ do
+      elAttr "div" ("style" =: "height: 550px") $ text ""
+  return never
 
 indicators :: ( Monad m , DomBuilder t m) => State -> m (Event t Message)
 indicators _state = return never
