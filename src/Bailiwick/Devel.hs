@@ -25,19 +25,26 @@ import qualified Network.HTTP.Types as H (status200)
 
 import Bailiwick.Application (application)
 
+#if MIN_VERSION_ghcjs_dom(0,9,4)
+import GHCJS.DOM.Debug (addDebugMenu)
+#else
+addDebugMenu :: JSM ()
+addDebugMenu = return ()
+#endif
+
 debug :: Int -> JSM () -> IO ()
 debug prt f = do
   app <- application  "/jsaddle.js"
   debugWrapper $ \withRefresh registerContext ->
     runSettings (setPort prt (setTimeout 3600 defaultSettings)) =<<
-      jsaddleOr defaultConnectionOptions 
-                (registerContext >> f >> syncPoint) 
-                (withRefresh $ \req sendResponse -> 
+      jsaddleOr defaultConnectionOptions
+                (registerContext >> addDebugMenu >> f >> syncPoint)
+                (withRefresh $ \req sendResponse ->
           case (W.requestMethod req, W.pathInfo req) of
               ("GET", ["jsaddle.js"]) ->
                        sendResponse
-                      $ W.responseLBS H.status200 
-                          [("Content-Type", "application/javascript")] 
+                      $ W.responseLBS H.status200
+                          [("Content-Type", "application/javascript")]
                       $ jsaddleJs True
               _ -> logStdoutDev app req sendResponse)
   putStrLn $ "<a href=\"http://localhost:" <> show prt <> "\">run</a>"
