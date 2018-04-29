@@ -11,6 +11,7 @@ import Reflex.Dom.Core
 
 import Bailiwick.State (State(..), Message(..))
 import Bailiwick.View.Header
+import Bailiwick.View.Map
 
 view 
     :: ( Monad m
@@ -64,7 +65,21 @@ maincontent
 maincontent _state = do
   divClass "content main-content" $ do
     divClass "central-content summary" $ do
-      elAttr "div" ("style" =: "height: 550px") $ text ""
+      divClass "navigation-map base-map" $ do
+        divClass "text-wrapper" $ do
+          divClass "background-wrapper" $ do
+            divClass "intro-paragraph" $ do
+              text "Welcome to the interactive Regional Economic Activity Web Tool."
+            elClass "p" "body-paragraph" $ do
+              text "This tool allows you to compare regions' economic performance, distinguish their attributes and specialisations, and understand the different roles they play in the New Zealand economy."
+            elClass "p" "body-paragraph" $ do
+              text "Click on regions to compare, or go straight into the detail by exploring the themed indicators. All data sets are annualised in order to make comparison easier and maximise the data available."
+            elClass "p" "body-paragraph" $ do
+              text "The tool is updated regularly, but more recent data may be available at its source, especially if it is frequently updated. Where possible, we include a link back to the source so you can check if more recent data is available."
+        divClass "svg-wrapper" $ do
+          nzmap _state
+      divClass "area-summary" $ do
+        text ""
   return never
 
 indicators
