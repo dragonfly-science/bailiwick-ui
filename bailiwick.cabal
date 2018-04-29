@@ -49,6 +49,7 @@ library
                      , transformers
                      , unordered-containers
                      , uri-bytestring
+                     , vector
                      , wai
                      , wai-app-static
                      , wai-extra
@@ -81,4 +82,4 @@ executable bailiwick
 
 source-repository head
   type:     git
-  location: https://github.com/dragonfly-science/bailiwick
+  location: https://github.com/dragonfly-science/bailiwick-ui

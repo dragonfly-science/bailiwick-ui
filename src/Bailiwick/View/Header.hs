@@ -7,7 +7,6 @@ module Bailiwick.View.Header
 where
 
 import Control.Monad.Fix
-import Control.Applicative ((<|>))
 import Data.Monoid ((<>))
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.List (find)
@@ -39,7 +38,7 @@ header state = mdo
 
   ready <- getPostBuild
   areasE <- getAreas ready
-  areasD <- holdDyn [] $ fmap areas $ fmapMaybe reqSuccess areasE
+  areasD <- holdDyn [] $ fmapMaybe reqSuccess areasE
 
   let urlArea = getArea <$> state
 
@@ -47,14 +46,14 @@ header state = mdo
         area <- urlArea
         areas <- areasD
         return $ do
-            thisArea <- findArea area areas
-            if level thisArea  == "reg"
-                then return (BT.id thisArea)
-                else do 
-                    let isRegion p = fromMaybe False $ do
-                            pa <- findArea p areas
-                            return $ level pa == "reg"
-                    find isRegion $ parents thisArea
+          thisArea <- findArea area areas
+          if areaLevel thisArea  == "reg"
+            then return (areaId thisArea)
+            else do 
+              let isRegion p = fromMaybe False $ do
+                      pa <- findArea p areas
+                      return $ areaLevel pa == "reg"
+              find isRegion $ areaParents thisArea
 
       urlTa = zipDynWith selectTa urlArea areasD
       regionsD  = mkRegions <$> areasD
@@ -72,8 +71,8 @@ header state = mdo
                         this <- mthis
                         thisReg <- findArea this areas
                         if mta == Nothing
-                            then return $ name thisReg
-                            else return $ name thisReg <> ":"
+                            then return $ areaName thisReg
+                            else return $ areaName thisReg <> ":"
 
       dispSubArea = do
         mta <- urlTa
@@ -81,7 +80,7 @@ header state = mdo
         return $ fromMaybe "" $ do
                     ta <- mta
                     thisTa <- findArea ta areas
-                    return (name thisTa)
+                    return (areaName thisTa)
 
       showSubareaD = not . (==[]) <$> tasD
 
@@ -105,35 +104,35 @@ header state = mdo
                          (constDyn True) urlRegion regionsD
           (subarea, _) <-
             dropdownMenu subAreaMessage
-                         (() <$ (ffilter Prelude.id $ updated regionOpen))
+                         (() <$ (ffilter id $ updated regionOpen))
                          showSubareaD urlTa tasD
 
           uniqRegion <- holdUniqDyn region
           uniqSubarea <- holdUniqDyn subarea
 
-          return $ SetRegion <$> leftmost [ fmapMaybe Prelude.id $ updated uniqSubarea
-                                          , fmapMaybe Prelude.id $ updated uniqRegion
+          return $ SetRegion <$> leftmost [ fmapMaybe id $ updated uniqSubarea
+                                          , fmapMaybe id $ updated uniqRegion
                                           ]
 
   where
 
     mkRegions :: [Area] -> [(Text,Text)]
     mkRegions as = ("new-zealand", "New Zealand") :
-                   [ (BT.id a, name a) 
+                   [ (areaId a, areaName a) 
                    | a <- as
-                   , level a == "reg" ]  
+                   , areaLevel a == "reg" ]  
     getArea :: State -> Text
     getArea (Summary area) = area
     getArea _ = "new-zealand"
 
     findArea :: Text -> [Area] -> Maybe Area
-    findArea area areas = find ((area ==) . BT.id) areas
+    findArea area areas = find ((area ==) . areaId) areas
       
 
     selectTa :: Text -> [Area] -> Maybe Text
     selectTa area areas = do
         thisArea <- findArea area areas
-        if level thisArea `elem` ["ta", "ward"]
+        if areaLevel thisArea `elem` ["ta", "ward"]
             then Just area
             else Nothing
    
@@ -141,9 +140,9 @@ header state = mdo
     mkTas maybeReg areas = fromMaybe [] $ do
         reg <- maybeReg
         thisArea <- findArea reg areas
-        return $ [ (BT.id a, name a)
+        return $ [ (areaId a, areaName a)
                  | a <- areas
-                 , BT.id a `elem` children thisArea ]
+                 , areaId a `elem` areaChildren thisArea ]
         
         
                 

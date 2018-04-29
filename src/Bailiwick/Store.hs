@@ -18,7 +18,7 @@ import Reflex.Dom.Core
 import Bailiwick.Types
 
 
-type GetAreas = "data" :> "areas-1b7549470.json" :> Get '[JSON] Areas
+type GetAreas = "data" :> "areas-1b7549470.json" :> Get '[JSON] [Area]
 
 
 

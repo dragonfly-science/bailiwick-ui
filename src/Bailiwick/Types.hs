@@ -4,24 +4,30 @@ module Bailiwick.Types where
 
 
 import GHC.Generics
+import Data.Char
 
+import qualified Data.Vector as V
 import Data.Text (Text)
 import Data.Aeson
 
-
-data Areas
-  = Areas
-    { areas :: [Area]
-    } deriving (Eq, Show, Generic)
-instance FromJSON Areas
-
 data Area
   = Area
-    { id       :: Text
-    , name     :: Text
-    , level    :: Text
-    , children :: [ Text ]
-    , parents  :: [ Text ]
+    { areaId       :: Text
+    , areaName     :: Text
+    , areaLevel    :: Text
+    , areaChildren :: [ Text ]
+    , areaParents  :: [ Text ]
     } deriving (Eq, Show, Generic)
-instance FromJSON Area
+
+areaOptions :: Options
+areaOptions = defaultOptions
+    { fieldLabelModifier = map toLower . drop 4 }
+
+instance FromJSON Area where
+    parseJSON = genericParseJSON areaOptions
+    parseJSONList = withObject "Areas" $ \v -> do
+      Array as <- v .: "areas"
+      mapM parseJSON $ V.toList as
+        
+        
 
