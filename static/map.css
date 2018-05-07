@@ -1,0 +1,54 @@
+div.map {
+}
+
+div.map svg > g {
+    transform: translate(0px, 639.6px) scale(0.75, -0.75);
+}
+
+div#auckland svg > g {
+    transform: translate(-800px, 2089.6px) scale(2.95, -2.95);
+}
+
+
+div.map g.region_centre > circle {
+    stroke-opacity: 0;
+}
+
+div.map g.ta_centre > circle {
+    stroke-opacity: 0;
+}
+
+div.map g.inbound > polyline {
+    stroke: none;
+    stroke-opacity: 0;
+    stroke-width: 0;
+}
+
+
+div.map g[same_reg=FALSE].inbound > polyline {
+    stroke: rgb(255, 255, 255);
+    stroke-opacity: 1;
+    stroke-width: 0.75px;
+}
+
+div.map g[same_reg=TRUE].inbound > polyline {
+    stroke: rgb(41, 101, 117);
+    stroke-opacity: 1;
+    stroke-width: 0.75px;
+}
+
+div.map g.coastline > polyline {
+    stroke: none;
+    stroke-opacity: 0;
+    stroke-width: 0;
+}
+
+div.map g.area > path {
+    stroke: none;
+    cursor: pointer;
+    fill: rgb(41, 101, 117);
+}
+
+div.map g.area > path:hover {
+    fill: rgb(0, 189, 233);
+}

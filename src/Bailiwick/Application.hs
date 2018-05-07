@@ -44,6 +44,7 @@ indexHtml js = do
 
     <link rel="stylesheet" href="/vendor.css">
     <link rel="stylesheet" href="/teal-skua.css">
+    <link rel="stylesheet" href="/map.css">
 
     <script src="/modernizr.custom.30140.js"></script>
     <script src="/iframeResizer.contentWindow.min.js"></script>

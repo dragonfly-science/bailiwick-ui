@@ -3,9 +3,12 @@
 module Bailiwick.View
 where
 
+import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Fix
 import Data.Monoid ((<>))
 
+import qualified GHCJS.DOM.Element as DOM
+import Language.Javascript.JSaddle.Types (MonadJSM)
 import Servant.Reflex
 import Reflex.Dom.Core
 
@@ -20,6 +23,8 @@ view
        , PostBuild t m
        , DomBuilder t m
        , SupportsServantReflex t m
+       , MonadIO m
+       , DOM.IsElement (RawElement (DomBuilderSpace m))
        )
     => Dynamic t State -> m (Event t Message)
 view state = do
@@ -60,7 +65,17 @@ navbar = do
 
 
 maincontent
-    :: ( Monad m , DomBuilder t m)
+    :: ( Monad m
+       , DomBuilder t m
+       , PostBuild t m
+       , TriggerEvent t m
+       , HasJSContext (Performable m)
+       , PerformEvent t m
+       , MonadJSM (Performable m)
+       , MonadIO m
+       , DOM.IsElement (RawElement (DomBuilderSpace m))
+       , MonadHold t m
+       ) 
     => Dynamic t State -> m (Event t Message)
 maincontent _state = do
   divClass "content main-content" $ do
