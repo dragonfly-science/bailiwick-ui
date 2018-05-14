@@ -15,42 +15,42 @@ div#auckland.zoom svg > g {
     transform: translate(-800px, 2089.6px) scale(2.95, -2.95);
 }
 
-div#tasman.map g.area[reg="Tasman"] > path,
-div#bay-of-plenty.map g.area[reg="Bay of Plenty"] > path,
-div#taranaki.map g.area[reg="Taranaki"] > path,
-div#nelson.map g.area[reg="Nelson"] > path,
-div#marlborough.map g.area[reg="Marlborough"] > path,
-div#wellington.map g.area[reg="Wellington"] > path,
-div#manawatu-wanganui.map g.area[reg="Manawatu-Wanganui"] > path,
-div#waikato.map g.area[reg="Waikato"] > path,
-div#southland.map g.area[reg="Southland"] > path,
-div#gisborne.map g.area[reg="Gisborne"] > path,
-div#northland.map g.area[reg="Northland"] > path,
-div#otago.map g.area[reg="Otago"] > path,
-div#hawkes-bay.map g.area[reg="Hawke's Bay"] > path,
-div#west-coast.map g.area[reg="West Coast"] > path,
-div#auckland.map g.area[reg="Auckland"] > path,
-div#canterbury.map g.area[reg="Canterbury"] > path
+div.tasman.map g.area[reg="Tasman"] > path,
+div.bay-of-plenty.map g.area[reg="Bay of Plenty"] > path,
+div.taranaki.map g.area[reg="Taranaki"] > path,
+div.nelson.map g.area[reg="Nelson"] > path,
+div.marlborough.map g.area[reg="Marlborough"] > path,
+div.wellington.map g.area[reg="Wellington"] > path,
+div.manawatu-wanganui.map g.area[reg="Manawatu-Wanganui"] > path,
+div.waikato.map g.area[reg="Waikato"] > path,
+div.southland.map g.area[reg="Southland"] > path,
+div.gisborne.map g.area[reg="Gisborne"] > path,
+div.northland.map g.area[reg="Northland"] > path,
+div.otago.map g.area[reg="Otago"] > path,
+div.hawkes-bay.map g.area[reg="Hawke's Bay"] > path,
+div.west-coast.map g.area[reg="West Coast"] > path,
+div.auckland.map g.area[reg="Auckland"] > path,
+div.canterbury.map g.area[reg="Canterbury"] > path
 {
     fill: rgb(0, 189, 233);
 }
 
-div#tasman.map g.inbound[same_reg=TRUE][reg1="Tasman"] > polyline,
-div#bay-of-plenty.map g.inbound[same_reg=TRUE][reg1="Bay of Plenty"] > polyline,
-div#taranaki.map g.inbound[same_reg=TRUE][reg1="Taranaki"] > polyline,
-div#nelson.map g.inbound[same_reg=TRUE][reg1="Nelson"] > polyline,
-div#marlborough.map g.inbound[same_reg=TRUE][reg1="Marlborough"] > polyline,
-div#wellington.map g.inbound[same_reg=TRUE][reg1="Wellington"] > polyline,
-div#manawatu-wanganui.map g.inbound[same_reg=TRUE][reg1="Manawatu-Wanganui"] > polyline,
-div#waikato.map g.inbound[same_reg=TRUE][reg1="Waikato"] > polyline,
-div#southland.map g.inbound[same_reg=TRUE][reg1="Southland"] > polyline,
-div#gisborne.map g.inbound[same_reg=TRUE][reg1="Gisborne"] > polyline,
-div#northland.map g.inbound[same_reg=TRUE][reg1="Northland"] > polyline,
-div#otago.map g.inbound[same_reg=TRUE][reg1="Otago"] > polyline,
-div#hawkes-bay.map g.inbound[same_reg=TRUE][reg1="Hawke's Bay"] > polyline,
-div#west-coast.map g.inbound[same_reg=TRUE][reg1="West Coast"] > polyline,
-div#auckland.map g.inbound[same_reg=TRUE][reg1="Auckland"] > polyline,
-div#canterbury.map g.inbound[same_reg=TRUE][reg1="Canterbury"] > polyline
+div.tasman.map g.inbound[same_reg=TRUE][reg1="Tasman"] > polyline,
+div.bay-of-plenty.map g.inbound[same_reg=TRUE][reg1="Bay of Plenty"] > polyline,
+div.taranaki.map g.inbound[same_reg=TRUE][reg1="Taranaki"] > polyline,
+div.nelson.map g.inbound[same_reg=TRUE][reg1="Nelson"] > polyline,
+div.marlborough.map g.inbound[same_reg=TRUE][reg1="Marlborough"] > polyline,
+div.wellington.map g.inbound[same_reg=TRUE][reg1="Wellington"] > polyline,
+div.manawatu-wanganui.map g.inbound[same_reg=TRUE][reg1="Manawatu-Wanganui"] > polyline,
+div.waikato.map g.inbound[same_reg=TRUE][reg1="Waikato"] > polyline,
+div.southland.map g.inbound[same_reg=TRUE][reg1="Southland"] > polyline,
+div.gisborne.map g.inbound[same_reg=TRUE][reg1="Gisborne"] > polyline,
+div.northland.map g.inbound[same_reg=TRUE][reg1="Northland"] > polyline,
+div.otago.map g.inbound[same_reg=TRUE][reg1="Otago"] > polyline,
+div.hawkes-bay.map g.inbound[same_reg=TRUE][reg1="Hawke's Bay"] > polyline,
+div.west-coast.map g.inbound[same_reg=TRUE][reg1="West Coast"] > polyline,
+div.auckland.map g.inbound[same_reg=TRUE][reg1="Auckland"] > polyline,
+div.canterbury.map g.inbound[same_reg=TRUE][reg1="Canterbury"] > polyline
 {
     stroke: rgb(0, 189, 233);
 }

@@ -7,9 +7,11 @@
 module Bailiwick.View.Map
 where
 
+import Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
+import Control.Monad (mzero)
+import Control.Applicative ((<|>))
 import Control.Monad.Fix
-import Control.Applicative
-import Data.Monoid ((<>), mempty)
+import Data.Monoid ((<>))
 import Data.Text (Text)
 import qualified Data.Text as Text
 
@@ -49,14 +51,14 @@ nzmap stateD = mdo
 
   let attrD = do 
         state <- stateD
-        mouseReg <- maybe mempty (("id" =:) . slugify) <$> mouseOverRegD
-        return $ "class" =: "map" <> mouseReg <>  
-            case state of
-                Summary r -> "rid" =: r
-                _         -> "rid" =: "new-zealand"
-  (mapContainer, _) <-  elDynAttr' "div" attrD $ return ()
+        let regs = case state of
+                    Summary r -> r
+                    _         -> "new-zealand"
+        mouse_over_reg <- (fmap slugify) <$> mouseOverRegD
+        let regname = maybe regs (\mo -> regs <> " " <> mo) mouse_over_reg
+        return $ "class" =: ("map " <> regname)
 
-  display attrD
+  (mapContainer, _) <-  elDynAttr' "div" attrD $ return ()
 
   ready <- getPostBuild
   let req = xhrRequest "GET" "/assets/map.svg" def
@@ -65,26 +67,24 @@ nzmap stateD = mdo
   performEvent_ $ fforMaybe svgE $ (fmap $ DOM.setInnerHTML (_element_raw mapContainer))
 
   let divElement = DOM.uncheckedCastTo DOM.HTMLElement (_element_raw mapContainer)
-  moveE :: Event t (Maybe Text)
-    <- wrapDomEvent divElement (`DOM.on` DOM.mouseMove) $ do
-                    DOM.eventTarget >>= \case
-                      Nothing -> return Nothing
-                      Just t ->
-                        DOM.castTo DOM.SVGElement t >>= \case
-                            Nothing -> return $ Nothing
-                            Just sel -> do
-                              mp <- DOM.getParentElement sel   
-                              case mp of
-                                Nothing -> return Nothing
-                                Just p -> do
-                                  mreg <- DOM.getAttribute p ("reg"::Text)
-                                  mreg1 <- DOM.getAttribute p ("reg1"::Text)
-                                  return (mreg <|> mreg1)  
+  moveE :: Event t (Maybe Text) 
+    <- wrapDomEvent divElement (`DOM.on` DOM.mouseMove) getRegion
 
+  clickE :: Event t (Maybe Text) 
+    <- wrapDomEvent divElement (`DOM.on` DOM.click) getRegion
 
   mouseOverRegD <- holdDyn Nothing moveE
+  return $ fmapCheap (SetRegion . maybe "new-zealand" slugify) clickE
 
-  return never
 
-
---                    
+getRegion :: DOM.IsEvent ev => DOM.EventM e ev (Maybe Text)
+getRegion = runMaybeT $ do
+  target     <- MaybeT DOM.eventTarget
+  svgelement <- MaybeT (DOM.castTo DOM.SVGElement target)
+  parentg    <- MaybeT (DOM.getParentElement svgelement)
+  let getAttr a = do
+         val <- MaybeT (DOM.getAttribute parentg a)
+         if val == "null"
+            then mzero
+            else return val
+  getAttr ("reg" :: Text) <|> getAttr "reg1"

@@ -8,37 +8,29 @@ where
 
 import Control.Monad.Fix
 import Data.Monoid ((<>))
-import Data.Maybe (fromMaybe, listToMaybe)
 import Data.List (find)
+import Data.Maybe (fromMaybe, listToMaybe)
 
 import Data.Text (Text)
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Servant.Reflex
-import Reflex.Dom.Core
+import Reflex.Dom.Core hiding (Home)
 
-import Bailiwick.State (State(..), Message(..))
+import Bailiwick.State (State(..), Message(..), mkRegions, getArea, findArea, selectTa, mkTas)
 import Bailiwick.Types as BT
-import Bailiwick.Store (getAreas)
 
 
 type AreaSlug = Text
 
 
 header 
-    :: ( Monad m
-       , MonadFix m
+    :: ( MonadFix m
        , MonadHold t m
        , PostBuild t m
        , DomBuilder t m
-       , SupportsServantReflex t m
        )
-    => Dynamic t State -> m (Event t Message)
-header state = mdo
-
-  ready <- getPostBuild
-  areasE <- getAreas ready
-  areasD <- holdDyn [] $ fmapMaybe reqSuccess areasE
+    => Dynamic t State -> Dynamic t [Area] -> m (Event t Message)
+header state areasD = mdo
 
   let urlArea = getArea <$> state
 
@@ -114,42 +106,8 @@ header state = mdo
                                           , fmapMaybe id $ updated uniqRegion
                                           ]
 
-  where
-
-    mkRegions :: [Area] -> [(Text,Text)]
-    mkRegions as = ("new-zealand", "New Zealand") :
-                   [ (areaId a, areaName a) 
-                   | a <- as
-                   , areaLevel a == "reg" ]  
-    getArea :: State -> Text
-    getArea (Summary area) = area
-    getArea _ = "new-zealand"
-
-    findArea :: Text -> [Area] -> Maybe Area
-    findArea area areas = find ((area ==) . areaId) areas
-      
-
-    selectTa :: Text -> [Area] -> Maybe Text
-    selectTa area areas = do
-        thisArea <- findArea area areas
-        if areaLevel thisArea `elem` ["ta", "ward"]
-            then Just area
-            else Nothing
-   
-    mkTas :: Maybe Text -> [Area] -> [(Text, Text)]
-    mkTas maybeReg areas = fromMaybe [] $ do
-        reg <- maybeReg
-        thisArea <- findArea reg areas
-        return $ [ (areaId a, areaName a)
-                 | a <- areas
-                 , areaId a `elem` areaChildren thisArea ]
-        
-        
-                
-
 dropdownMenu
-    :: ( Monad m
-       , MonadFix m
+    :: ( MonadFix m
        , MonadHold t m
        , PostBuild t m
        , DomBuilder t m
