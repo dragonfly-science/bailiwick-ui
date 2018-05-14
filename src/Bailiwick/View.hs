@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE TypeFamilies        #-}
 module Bailiwick.View
 where
 
@@ -7,7 +8,6 @@ import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Fix
 import Data.Monoid ((<>))
 
-import qualified GHCJS.DOM.Element as DOM
 import Language.Javascript.JSaddle.Types (MonadJSM)
 import Servant.Reflex
 import Reflex.Dom.Core
@@ -18,13 +18,14 @@ import Bailiwick.View.Map
 
 view 
     :: ( Monad m
+       , MonadJSM m
        , MonadFix m
        , MonadHold t m
        , PostBuild t m
        , DomBuilder t m
        , SupportsServantReflex t m
        , MonadIO m
-       , DOM.IsElement (RawElement (DomBuilderSpace m))
+       , DomBuilderSpace m ~ GhcjsDomSpace
        )
     => Dynamic t State -> m (Event t Message)
 view state = do
@@ -66,15 +67,17 @@ navbar = do
 
 maincontent
     :: ( Monad m
+       , MonadJSM m
        , DomBuilder t m
+       , MonadFix m
        , PostBuild t m
        , TriggerEvent t m
-       , HasJSContext (Performable m)
        , PerformEvent t m
+       , HasJSContext (Performable m)
        , MonadJSM (Performable m)
        , MonadIO m
-       , DOM.IsElement (RawElement (DomBuilderSpace m))
        , MonadHold t m
+       , DomBuilderSpace m ~ GhcjsDomSpace
        ) 
     => Dynamic t State -> m (Event t Message)
 maincontent _state = do
