@@ -2,8 +2,6 @@
 module Bailiwick.State
 where
 
-import Data.List (find)
-import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 
 import Bailiwick.Types
@@ -17,41 +15,25 @@ import Bailiwick.Types
 data Message 
   = SetRegion Text
 
-data State 
-  = Summary
-    { summaryRegion  :: Text
-    }
-  | Home
+data State
+ = State Page Adapters 
  deriving (Eq, Show)
+data Page 
+  = Summary [Area]
+  | Home
+  deriving (Eq, Show)
+data Adapters
+  = Adapters
+  deriving (Eq, Show)
 
 
-mkRegions :: [Area] -> [(Text,Text)]
-mkRegions as = ("new-zealand", "New Zealand") :
-               [ (areaId a, areaName a) 
-               | a <- as
-               , areaLevel a == "reg" ]  
-getArea :: State -> Text
-getArea (Summary area) = area
-getArea Home = "new-zealand"
+getPage :: State -> Page
+getPage (State page _) = page
 
-findArea :: Text -> [Area] -> Maybe Area
-findArea area areas = find ((area ==) . areaId) areas
+getArea :: State -> Maybe Area
+getArea (State (Summary []) _)    = Nothing
+getArea (State (Summary areas) _) = Just $ last areas
+getArea (State Home _          )  = Nothing
+
   
 
-selectTa :: Text -> [Area] -> Maybe Text
-selectTa area areas = do
-    thisArea <- findArea area areas
-    if areaLevel thisArea `elem` ["ta", "ward"]
-        then Just area
-        else Nothing
-
-mkTas :: Maybe Text -> [Area] -> [(Text, Text)]
-mkTas maybeReg areas = fromMaybe [] $ do
-    reg <- maybeReg
-    thisArea <- findArea reg areas
-    return $ [ (areaId a, areaName a)
-             | a <- areas
-             , areaId a `elem` areaChildren thisArea ]
-    
-    
-                

@@ -25,7 +25,8 @@ import Language.Javascript.JSaddle.Types (MonadJSM)
 import Reflex.Dom.Core
 import Reflex.Dom.Builder.Immediate (wrapDomEvent)
 
-import Bailiwick.State (State(..), Message(..))
+import Bailiwick.State (State(..), Page(..), Message(..))
+import Bailiwick.Types
 
 
 slugify :: Text -> Text
@@ -49,11 +50,14 @@ nzmap
     => Dynamic t State -> m (Event t Message)
 nzmap stateD = mdo
 
-  let attrD = do 
-        state <- stateD
-        let regs = case state of
-                    Summary r -> r
-                    _         -> "new-zealand"
+  let regD = do
+        State page _ <- stateD
+        case page of
+            Summary (r:_) -> return $ areaId r
+            _             -> "new-zealand"
+
+      attrD = do 
+        regs <- regD
         mouse_over_reg <- (fmap slugify) <$> mouseOverRegD
         let regname = maybe regs (\mo -> regs <> " " <> mo) mouse_over_reg
         return $ "class" =: ("map " <> regname)

@@ -39,6 +39,7 @@ library
                      , jsaddle-warp
                      , lens
                      , mtl
+                     , ordered-containers
                      , QuickCheck
                      , reflex
                      , reflex-dom-contrib

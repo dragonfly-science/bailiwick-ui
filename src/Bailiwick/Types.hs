@@ -8,6 +8,8 @@ import Data.Char
 
 import qualified Data.Vector as V
 import Data.Text (Text)
+import Data.Map.Ordered (OMap)
+import qualified Data.Map.Ordered as OMap
 import Data.Aeson
 
 data Area
@@ -28,6 +30,10 @@ instance FromJSON Area where
     parseJSONList = withObject "Areas" $ \v -> do
       Array as <- v .: "areas"
       mapM parseJSON $ V.toList as
+
+type Areas = OMap Text Area
         
-        
+mkAreas :: [ Area ] -> Areas
+mkAreas areas = OMap.fromList [(areaId a, a) | a <- areas]
+
 

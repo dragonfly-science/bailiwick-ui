@@ -8,16 +8,17 @@ where
 
 import Control.Monad.Fix
 import Data.Monoid ((<>))
-import Data.List (find)
 import Data.Maybe (fromMaybe, listToMaybe)
 
 import Data.Text (Text)
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Data.Map.Ordered (OMap, (<|))
+import qualified Data.Map.Ordered as OMap
 import Reflex.Dom.Core hiding (Home)
 
-import Bailiwick.State (State(..), Message(..), mkRegions, getArea, findArea, selectTa, mkTas)
-import Bailiwick.Types as BT
+import Bailiwick.State
+import Bailiwick.Types
 
 
 type AreaSlug = Text
@@ -29,52 +30,57 @@ header
        , PostBuild t m
        , DomBuilder t m
        )
-    => Dynamic t State -> Dynamic t [Area] -> m (Event t Message)
-header state areasD = mdo
+    => Areas -> Dynamic t State -> m (Event t Message)
+header areas state = mdo
 
-  let urlArea = getArea <$> state
+  let urlRegion = do
+        State page _ <- state
+        case page of
+          Summary (reg:_) -> return $ Just (areaId reg)
+          _               -> return Nothing
+        
+      urlTa = do
+        State page _ <- state
+        case page of
+          Summary (_:ta:_) -> return $ Just (areaId ta)
+          _                  -> return Nothing
+        
+      regionsD = do
+        let regions = OMap.filter (\_ a -> areaLevel a == "reg") areas
+        return $
+           case OMap.lookup "new-zealand" areas of
+              Just nz -> ("new-zealand", nz) <| regions
+              Nothing -> regions
 
-      urlRegion = do
-        area <- urlArea
-        areas <- areasD
-        return $ do
-          thisArea <- findArea area areas
-          if areaLevel thisArea  == "reg"
-            then return (areaId thisArea)
-            else do 
-              let isRegion p = fromMaybe False $ do
-                      pa <- findArea p areas
-                      return $ areaLevel pa == "reg"
-              find isRegion $ areaParents thisArea
-
-      urlTa = zipDynWith selectTa urlArea areasD
-      regionsD  = mkRegions <$> areasD
-      tasD = zipDynWith mkTas urlRegion areasD
+      tasD = do
+        mreg <- urlRegion
+        return $ fromMaybe OMap.empty $ do
+          reg <- mreg  
+          thisArea <- OMap.lookup reg areas
+          return $ OMap.filter (\_ a -> areaId a `elem` areaChildren thisArea) areas
       
       background = do
         reg <- (fromMaybe "new-zealand" <$> urlRegion)
         return $ (  "class" =: "title" <> "data-region" =: reg)
 
       dispRegion = do 
-        mthis <- urlRegion
-        areas <- areasD
+        State page _ <- state
+        let thisReg 
+             = case page of
+                 Summary (reg:_) -> (areaName reg)
+                 _               -> "New Zealand"
         mta <- urlTa
-        return $ fromMaybe "New Zealand" $ do
-                        this <- mthis
-                        thisReg <- findArea this areas
-                        if mta == Nothing
-                            then return $ areaName thisReg
-                            else return $ areaName thisReg <> ":"
+        if mta == Nothing
+          then return $ thisReg
+          else return $ thisReg <> ":"
 
       dispSubArea = do
-        mta <- urlTa
-        areas <- areasD
-        return $ fromMaybe "" $ do
-                    ta <- mta
-                    thisTa <- findArea ta areas
-                    return (areaName thisTa)
+        State page _ <- state
+        case page of
+          Summary (_:ta:_) -> return $ areaName ta
+          _                  -> return ""
 
-      showSubareaD = not . (==[]) <$> tasD
+      showSubareaD = not . (==OMap.empty) <$> tasD
 
       subAreaMessage = do
         reg <- urlRegion
@@ -116,7 +122,7 @@ dropdownMenu
     -> Event t ()                  -- Close event
     -> Dynamic t Bool              -- Is hidden or not
     -> Dynamic t (Maybe Text)      -- Initial value
-    -> Dynamic t [(Text, Text)]    -- Options (ordered)
+    -> Dynamic t (OMap Text Area)    -- Options (ordered)
     -> m (Dynamic t (Maybe Text), Dynamic t Bool)
 dropdownMenu emptyPresentD closeE seenD initialD valuesD = do
 
@@ -144,14 +150,14 @@ dropdownMenu emptyPresentD closeE seenD initialD valuesD = do
               Nothing -> emptyPresentD
               Just val -> do
                 values <- valuesD
-                return $ fromMaybe "" $ lookup val values
+                return $ maybe "" areaName $ OMap.lookup val values
 
           ulClass = ffor open $ \isOpen ->
               if isOpen then "dropdown-menu dropdown-select show-menu"
                         else "dropdown-menu dropdown-select"
 
-          shuffle (i, (k, v)) = ((i,k), v)
-          optionsD = Map.fromList . map shuffle . zip [1..] <$> valuesD
+          shuffle (i, (k, v)) = ((i,k), areaName v)
+          optionsD = Map.fromList . map shuffle . zip [1..] . OMap.assocs <$> valuesD
 
       (p, _) <-  elClass' "p" "dropdown-button" $ dynText label
       selectedValue :: Event t (Map (Int, Text) Text)

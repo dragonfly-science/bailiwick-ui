@@ -8,15 +8,12 @@ where
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Fix
 import Data.Monoid ((<>))
-import Data.List (find)
-import Data.Maybe (fromMaybe)
 
 import Language.Javascript.JSaddle.Types (MonadJSM)
 import Servant.Reflex
 import Reflex.Dom.Core hiding (Home)
 
-import Bailiwick.State (State(..), Message(..), getArea, findArea, selectTa)
-import Bailiwick.Store (getAreas)
+import Bailiwick.State
 import Bailiwick.Types
 import Bailiwick.View.Header
 import Bailiwick.View.Map
@@ -32,20 +29,16 @@ view
        , MonadIO m
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
-    => Dynamic t State -> m (Event t Message)
-view state = do
-
-  ready <- getPostBuild
-  areasE <- getAreas ready
-  areasD <- holdDyn [] $ fmapMaybe reqSuccess areasE
+    => Areas -> Dynamic t State -> m (Event t Message)
+view areas state = do
 
   divClass "whole-body summary-whole-body" $ do
     headerE 
       <-  divClass "main-header-area" $ do
             elClass "header" "main-header closed" $ do
               navbar
-              header state areasD
-    mainE <- maincontent state areasD
+              header areas state
+    mainE <- maincontent state
     indicatorsE <- indicators state
     footer
     return $ leftmost [headerE, mainE, indicatorsE]
@@ -90,15 +83,14 @@ maincontent
        , DomBuilderSpace m ~ GhcjsDomSpace
        ) 
     => Dynamic t State 
-    -> Dynamic t [Area]
     -> m (Event t Message)
-maincontent state areasD = do
+maincontent state = do
   divClass "content main-content" $ do
     divClass "central-content summary" $ do
       messages
        <- 
          divClass "navigation-map base-map" $ do
-           summaryText state areasD
+           summaryText state
            divClass "svg-wrapper" $ do
              nzmap state
       divClass "area-summary" $ do
@@ -109,44 +101,17 @@ summaryText
   :: ( DomBuilder t m
      , PostBuild t m )
   => Dynamic t State
-  -> Dynamic t [Area]
   -> m ()
-summaryText state areasD = do
-  let homeAttr = state >>= \case
+summaryText state = do
+  let page = getPage <$> state
+      homeAttr = page >>= \case
             Home -> return ("class" =: "text-wrapper" <> "style" =: "display: block")
             _    -> return ("class" =: "text-wrapper" <> "style" =: "display: none")
-      summaryAttr = state >>= \case
+      summaryAttr = page >>= \case
             Home -> return ("class" =: "text-wrapper" <> "style" =: "display: none")
             _    -> return ("class" =: "text-wrapper" <> "style" =: "display: block")
 
-      urlArea = getArea <$> state
-
-      urlRegion = do
-        area <- urlArea
-        areas <- areasD
-        return $ do
-          thisArea <- findArea area areas
-          if areaLevel thisArea  == "reg"
-            then return (areaId thisArea)
-            else do 
-              let isRegion p = fromMaybe False $ do
-                      pa <- findArea p areas
-                      return $ areaLevel pa == "reg"
-              find isRegion $ areaParents thisArea
-
-      urlTa = zipDynWith selectTa urlArea areasD
-      
-      dispRegion = do 
-        mthis <- urlRegion
-        areas <- areasD
-        mta <- urlTa
-        return $ fromMaybe "New Zealand" $ do
-                        this <- mthis
-                        thisReg <- findArea this areas
-                        if mta == Nothing
-                            then return $ areaName thisReg
-                            else return $ areaName thisReg <> ":"
-
+      dispArea = (maybe "" areaName . getArea) <$> state
 
   elDynAttr "div" homeAttr $ do
     divClass "background-wrapper" $ do
@@ -161,10 +126,10 @@ summaryText state areasD = do
   elDynAttr "div" summaryAttr $ do
     divClass "background-wrapper" $ do
       divClass "intro-paragraph" $ do
-        dynText dispRegion
+        dynText dispArea
       elClass "p" "body-paragraph" $ do
         text "Zoom in to compare different areas of "
-        dynText dispRegion
+        dynText dispArea
       elClass "p" "body-paragraph" $ do
         text "You can go into more detail by exploring the indicators below"
     divClass "map-zoom" $ do
