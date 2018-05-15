@@ -16,14 +16,14 @@ data Message
   = SetRegion Text
 
 data State
- = State Page Adapters 
+ = State Page [Adapter]
  deriving (Eq, Show)
 data Page 
   = Summary [Area]
   | Home
   deriving (Eq, Show)
-data Adapters
-  = Adapters
+data Adapter
+  = Mapzoom
   deriving (Eq, Show)
 
 getPage :: State -> Page

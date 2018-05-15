@@ -7,7 +7,7 @@ import Data.Maybe (listToMaybe, mapMaybe)
 
 import qualified Data.ByteString.Lazy as B
 import Data.Binary.Builder (toLazyByteString)
-import Network.HTTP.Types (encodePath, decodePath)
+import Network.HTTP.Types (encodePath, decodePathSegments)
 import URI.ByteString
 import qualified Data.Map.Ordered as OMap
 
@@ -17,19 +17,24 @@ import Bailiwick.Types
 
 encodeRoute :: URI -> Message -> URI
 encodeRoute uri message = 
-  let (segments, query) = decodePath (uriPath uri) 
+  let segments = decodePathSegments (uriPath uri) 
       segments' = 
           case (segments, message) of
               (["summary", _], SetRegion reg) -> ["summary", reg]
               ([],             SetRegion reg) -> ["summary", reg]
               _                               -> segments
-      builder = encodePath segments' query
+      builder = encodePath segments' []
   in  uri { uriPath = B.toStrict $ toLazyByteString builder }
 
 
 decodeRoute :: Areas -> URI -> State
 decodeRoute areas uri =
-  let (segments, query) = decodePath (uriPath uri) 
+  let segments = decodePathSegments (uriPath uri) 
+      Query flags = uriQuery uri
+      adapters = mapMaybe mkAdapter flags  
+      mkAdapter ("mapzoom", "1") = Just Mapzoom
+      mkAdapter _ = Nothing
+
       path = case segments of
                 ["summary", a] -> a
                 _              -> "new-zealand"
@@ -41,10 +46,10 @@ decodeRoute areas uri =
                     | parentArea <- mapMaybe (flip OMap.lookup areas) (areaParents a)
                     , areaLevel parentArea == "reg" ]
 
-      page = case (area, parent) of
-                (Just a, Just b)  -> Summary [b, a]
-                (Just a, Nothing) -> Summary [a]
-                _                 -> Home
-  in if path == "new-zealand" 
-        then State Home Adapters
-        else State page Adapters
+      page = if path == "new-zealand"
+                then Home
+                else case (area, parent) of
+                        (Just a, Just b)  -> Summary [b, a]
+                        (Just a, Nothing) -> Summary [a]
+                        _                 -> Home
+  in  State page adapters
