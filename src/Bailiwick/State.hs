@@ -26,9 +26,16 @@ data Adapters
   = Adapters
   deriving (Eq, Show)
 
-
 getPage :: State -> Page
 getPage (State page _) = page
+
+getRegion :: State -> Maybe Area
+getRegion (State (Summary (reg:_)) _) = Just reg
+getRegion _ = Nothing
+
+getSubArea :: State -> Maybe Area
+getSubArea (State (Summary (_:subarea:_)) _) = Just subarea
+getSubArea _ = Nothing
 
 getArea :: State -> Maybe Area
 getArea (State (Summary []) _)    = Nothing

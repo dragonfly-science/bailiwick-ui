@@ -33,54 +33,29 @@ header
     => Areas -> Dynamic t State -> m (Event t Message)
 header areas state = mdo
 
-  let urlRegion = do
-        State page _ <- state
-        case page of
-          Summary (reg:_) -> return $ Just (areaId reg)
-          _               -> return Nothing
-        
-      urlTa = do
-        State page _ <- state
-        case page of
-          Summary (_:ta:_) -> return $ Just (areaId ta)
-          _                  -> return Nothing
-        
+  let urlRegion = (fmap areaId) . getRegion <$> state
+      urlTa = (fmap areaId) . getSubArea <$> state
       regionsD = do
         let regions = OMap.filter (\_ a -> areaLevel a == "reg") areas
         return $
            case OMap.lookup "new-zealand" areas of
               Just nz -> ("new-zealand", nz) <| regions
               Nothing -> regions
-
       tasD = do
         mreg <- urlRegion
         return $ fromMaybe OMap.empty $ do
           reg <- mreg  
           thisArea <- OMap.lookup reg areas
           return $ OMap.filter (\_ a -> areaId a `elem` areaChildren thisArea) areas
-      
       background = do
         reg <- (fromMaybe "new-zealand" <$> urlRegion)
         return $ (  "class" =: "title" <> "data-region" =: reg)
 
-      dispRegion = do 
-        State page _ <- state
-        let thisReg 
-             = case page of
-                 Summary (reg:_) -> (areaName reg)
-                 _               -> "New Zealand"
-        mta <- urlTa
-        if mta == Nothing
-          then return $ thisReg
-          else return $ thisReg <> ":"
+      dispRegion = maybe "New Zealand" areaName . getRegion <$> state
+      dispConnect = maybe "" (const ":") . getSubArea <$> state
+      dispSubArea = maybe "" areaName . getSubArea <$> state
 
-      dispSubArea = do
-        State page _ <- state
-        case page of
-          Summary (_:ta:_) -> return $ areaName ta
-          _                  -> return ""
-
-      showSubareaD = not . (==OMap.empty) <$> tasD
+      showSubareaD = not . ( == OMap.empty) <$> tasD
 
       subAreaMessage = do
         reg <- urlRegion
@@ -93,7 +68,9 @@ header areas state = mdo
       divClass "left" $ do
         elClass "span" "block-label context-text" $ text "You're looking at"
         divClass "page-header summary-page-header" $ do
-          el "div" $ dynText dispRegion
+          el "div" $ do
+            dynText dispRegion
+            dynText dispConnect
           el "div" $ dynText dispSubArea
       divClass "right" $ do
         divClass "title-menus" $ do

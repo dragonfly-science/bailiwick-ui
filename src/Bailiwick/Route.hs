@@ -2,7 +2,8 @@
 module Bailiwick.Route
 where
 
-import Data.Maybe (listToMaybe)
+-- import Debug.Trace 
+import Data.Maybe (listToMaybe, mapMaybe)
 
 import qualified Data.ByteString.Lazy as B
 import Data.Binary.Builder (toLazyByteString)
@@ -35,13 +36,13 @@ decodeRoute areas uri =
       area = OMap.lookup path areas
       parent = do
         a <- area  
-        p <- listToMaybe $ areaParents a  -- TODO: handle accessedvia
-        parentArea <- OMap.lookup p areas
-        if areaLevel parentArea == "reg"
-            then Just parentArea
-            else Nothing
+        -- TODO: handle accessedvia
+        listToMaybe [ parentArea
+                    | parentArea <- mapMaybe (flip OMap.lookup areas) (areaParents a)
+                    , areaLevel parentArea == "reg" ]
+
       page = case (area, parent) of
-                (Just a, Just b)  -> Summary [a,b]
+                (Just a, Just b)  -> Summary [b, a]
                 (Just a, Nothing) -> Summary [a]
                 _                 -> Home
   in if path == "new-zealand" 
