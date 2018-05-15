@@ -163,7 +163,8 @@ summaryText state areasD = do
       divClass "intro-paragraph" $ do
         dynText dispRegion
       elClass "p" "body-paragraph" $ do
-        text "Zoom in to compare different areas of West Coast."
+        text "Zoom in to compare different areas of "
+        dynText dispRegion
       elClass "p" "body-paragraph" $ do
         text "You can go into more detail by exploring the indicators below"
     divClass "map-zoom" $ do

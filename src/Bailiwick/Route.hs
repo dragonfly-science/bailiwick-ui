@@ -17,7 +17,7 @@ encodeRoute uri message =
           case (segments, message) of
               (["summary", _], SetRegion reg) -> ["summary", reg]
               ([],             SetRegion reg) -> ["summary", reg]
-              _ -> segments
+              _                               -> segments
       builder = encodePath segments' query
   in  uri { uriPath = B.toStrict $ toLazyByteString builder }
 
@@ -26,5 +26,6 @@ decodeRoute :: URI -> State
 decodeRoute uri =
   let (segments, query) = decodePath (uriPath uri) 
   in  case segments of
-        ["summary", reg] -> Summary reg
-        _                -> Home
+        ["summary", "new-zealand"] -> Home
+        ["summary", reg]           -> Summary reg
+        _                          -> Home
