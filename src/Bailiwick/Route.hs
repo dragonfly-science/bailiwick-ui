@@ -35,6 +35,7 @@ encodeRoute uri message =
         if ("mapzoom", "1") `elem` flags
             then flags \\ [("mapzoom", "1")]
             else flags ++ [("mapzoom", "1")]
+    updateFlag _ flags = flags
 
 
 decodeRoute :: Areas -> URI -> State

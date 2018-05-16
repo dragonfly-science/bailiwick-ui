@@ -7,11 +7,13 @@
 module Bailiwick.View.Map
 where
 
+import Debug.Trace
+
 import Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
 import Control.Monad (mzero)
 import Control.Applicative ((<|>))
 import Control.Monad.Fix
-import Data.Monoid ((<>))
+import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as Text
 
@@ -25,7 +27,7 @@ import Language.Javascript.JSaddle.Types (MonadJSM)
 import Reflex.Dom.Core
 import Reflex.Dom.Builder.Immediate (wrapDomEvent)
 
-import Bailiwick.State (State(..), Page(..), Message(..))
+import Bailiwick.State
 import Bailiwick.Types
 
 
@@ -48,19 +50,21 @@ nzmap
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
     => Dynamic t State -> m (Event t Message)
-nzmap stateD = mdo
+nzmap state = mdo
 
-  let regD = do
-        State page _ <- stateD
-        case page of
+  let page = getPage <$> state
+      zoomed = hasAdapter Mapzoom <$> state  
+      regD = page >>= \case
             Summary (r:_) -> return $ areaId r
             _             -> "new-zealand"
 
       attrD = do 
-        regs <- regD
+        reg <- regD
+        zoom <- zoomed
+        let zoomclass = if zoom then Just "zoom" else Nothing
         mouse_over_reg <- (fmap slugify) <$> mouseOverRegD
-        let regname = maybe regs (\mo -> regs <> " " <> mo) mouse_over_reg
-        return $ "class" =: ("map " <> regname)
+        let classes = catMaybes [Just "map", Just reg, mouse_over_reg, zoomclass]
+        return $ "class" =: (Text.intercalate " " classes)
 
   (mapContainer, _) <-  elDynAttr' "div" attrD $ return ()
 
@@ -72,17 +76,17 @@ nzmap stateD = mdo
 
   let divElement = DOM.uncheckedCastTo DOM.HTMLElement (_element_raw mapContainer)
   moveE :: Event t (Maybe Text) 
-    <- wrapDomEvent divElement (`DOM.on` DOM.mouseMove) getRegion
+    <- wrapDomEvent divElement (`DOM.on` DOM.mouseMove) getRegionFromSvg
 
   clickE :: Event t (Maybe Text) 
-    <- wrapDomEvent divElement (`DOM.on` DOM.click) getRegion
+    <- wrapDomEvent divElement (`DOM.on` DOM.click) getRegionFromSvg
 
   mouseOverRegD <- holdDyn Nothing moveE
   return $ fmapCheap (SetRegion . maybe "new-zealand" slugify) clickE
 
 
-getRegion :: DOM.IsEvent ev => DOM.EventM e ev (Maybe Text)
-getRegion = runMaybeT $ do
+getRegionFromSvg :: DOM.IsEvent ev => DOM.EventM e ev (Maybe Text)
+getRegionFromSvg = runMaybeT $ do
   target     <- MaybeT DOM.eventTarget
   svgelement <- MaybeT (DOM.castTo DOM.SVGElement target)
   parentg    <- MaybeT (DOM.getParentElement svgelement)
