@@ -11,55 +11,55 @@ div.map svg > g {
   transition: all 0.5s ease-in-out;
 }
 
-div.auckland.zoom svg > g {
+div.auckland-zoom svg > g {
     transform: translate(-3250px,6570px) scale(10.2,-10.2);
 }
-div.bay-of-plenty.zoom svg > g {
+div.bay-of-plenty-zoom svg > g {
     transform: translate(-2100px,3300px) scale(5.5,-5.5);
 }
-div.canterbury.zoom svg > g {
+div.canterbury-zoom svg > g {
     transform: translate(-300px,8300px) scale(3,-3);
 }
-div.gisborne.zoom svg > g {
+div.gisborne-zoom svg > g {
     transform: translate(-2516px,3550px) scale(6,-6);
 }
-div.hawkes-bay.zoom svg > g {
+div.hawkes-bay-zoom svg > g {
     transform: translate(-1870px,2600px) scale(5,-5);
 }
-div.manawatu-wanganui.zoom svg > g {
+div.manawatu-wanganui-zoom svg > g {
     transform: translate(-1250px,2400px) scale(4.5,-4.5);
 }
-div.marlborough.zoom svg > g {
+div.marlborough-zoom svg > g {
     transform: translate(-1600px,2348px) scale(6,-6);
 }
-div.nelson.zoom svg > g {
+div.nelson-zoom svg > g {
     transform: translate(-2000px,3400px) scale(8,-8);
 }
-div.new-zealand.zoom svg > g {
+div.new-zealand-zoom svg > g {
     transform: translate(25px,0px) scale(1,-1);
 }
-div.northland.zoom svg > g {
+div.northland-zoom svg > g {
     transform: translate(-1100px,3750px) scale(5,-5);
 }
-div.otago.zoom svg > g {
+div.otago-zoom svg > g {
     transform: translate(-75px,8148px) scale(4,-4);
 }
-div.southland.zoom svg > g {
+div.southland-zoom svg > g {
     transform: translate(100px,8000px) scale(4,-4);
 }
-div.taranaki.zoom svg > g {
+div.taranaki-zoom svg > g {
     transform: translate(-2260px,4100px) scale(8,-8);
 }
-div.tasman.zoom svg > g {
+div.tasman-zoom svg > g {
     transform: translate(-1080px,2396px) scale(6,-6);
 }
-div.waikato.zoom svg > g {
+div.waikato-zoom svg > g {
     transform: translate(-1050px,2550px) scale(4,-4);
 }
-div.wellington.zoom svg > g {
+div.wellington-zoom svg > g {
     transform: translate(-2250px,3050px) scale(7,-7);
 }
-div.west-coast.zoom svg > g {
+div.west-coast-zoom svg > g {
     transform: translate(-210px,8450px) scale(3,-3);
 }
 
