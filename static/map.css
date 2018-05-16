@@ -35,9 +35,6 @@ div.marlborough-zoom svg > g {
 div.nelson-zoom svg > g {
     transform: translate(-2000px,3400px) scale(8,-8);
 }
-div.new-zealand-zoom svg > g {
-    transform: translate(25px,0px) scale(1,-1);
-}
 div.northland-zoom svg > g {
     transform: translate(-1100px,3750px) scale(5,-5);
 }
@@ -63,6 +60,27 @@ div.west-coast-zoom svg > g {
     transform: translate(-210px,8450px) scale(3,-3);
 }
 
+
+div.tasman.map.zoom g.area[reg="Tasman"] > path,
+div.bay-of-plenty.map.zoom g.area[reg="Bay of Plenty"] > path,
+div.taranaki.map.zoom g.area[reg="Taranaki"] > path,
+div.nelson.map.zoom g.area[reg="Nelson"] > path,
+div.marlborough.map.zoom g.area[reg="Marlborough"] > path,
+div.wellington.map.zoom g.area[reg="Wellington"] > path,
+div.manawatu-wanganui.map.zoom g.area[reg="Manawatu-Wanganui"] > path,
+div.waikato.map.zoom g.area[reg="Waikato"] > path,
+div.southland.map.zoom g.area[reg="Southland"] > path,
+div.gisborne.map.zoom g.area[reg="Gisborne"] > path,
+div.northland.map.zoom g.area[reg="Northland"] > path,
+div.otago.map.zoom g.area[reg="Otago"] > path,
+div.hawkes-bay.map.zoom g.area[reg="Hawke's Bay"] > path,
+div.west-coast.map.zoom g.area[reg="West Coast"] > path,
+div.auckland.map.zoom g.area[reg="Auckland"] > path,
+div.canterbury.map.zoom g.area[reg="Canterbury"] > path
+{
+    fill: rgb(41, 101, 117);
+    fill-opacity: 1;
+}
 
 div.tasman.map g.area[reg="Tasman"] > path,
 div.bay-of-plenty.map g.area[reg="Bay of Plenty"] > path,
@@ -119,7 +137,29 @@ div.map g.inbound > polyline {
     stroke-width: 0;
 }
 
+div.tasman.map.zoom g.coastline[reg="Tasman"] > polyline,
+div.bay-of-plenty.map.zoom g.coastline[reg="Bay of Plenty"] > polyline,
+div.taranaki.map.zoom g.coastline[reg="Taranaki"] > polyline,
+div.nelson.map.zoom g.coastline[reg="Nelson"] > polyline,
+div.marlborough.map.zoom g.coastline[reg="Marlborough"] > polyline,
+div.wellington.map.zoom g.coastline[reg="Wellington"] > polyline,
+div.manawatu-wanganui.map.zoom g.coastline[reg="Manawatu-Wanganui"] > polyline,
+div.waikato.map.zoom g.coastline[reg="Waikato"] > polyline,
+div.southland.map.zoom g.coastline[reg="Southland"] > polyline,
+div.gisborne.map.zoom g.coastline[reg="Gisborne"] > polyline,
+div.northland.map.zoom g.coastline[reg="Northland"] > polyline,
+div.otago.map.zoom g.coastline[reg="Otago"] > polyline,
+div.hawkes-bay.map.zoom g.coastline[reg="Hawke's Bay"] > polyline,
+div.west-coast.map.zoom g.coastline[reg="West Coast"] > polyline,
+div.auckland.map.zoom g.coastline[reg="Auckland"] > polyline,
+div.canterbury.map.zoom g.coastline[reg="Canterbury"] > polyline
+{
+    stroke: none;
+    stroke-opacity: 0;
+    stroke-width: 0;
+}
 
+div.map.zoom g.coastline > polyline, 
 div.map g[same_reg=FALSE].inbound > polyline {
     stroke: rgb(255, 255, 255);
     stroke-opacity: 1;
@@ -130,6 +170,13 @@ div.map g[same_reg=TRUE].inbound > polyline {
     stroke: rgb(41, 101, 117);
     stroke-opacity: 1;
     stroke-width: 2.25px;
+}
+
+div.map.zoom g[same_reg=TRUE].inbound > polyline {
+    stroke: rgb(223, 241, 252);
+    stroke-width: 0.4;
+    stroke-opacity: 0.2;
+    fill: none;
 }
 
 div.map g.coastline > polyline {
@@ -144,6 +191,13 @@ div.map g.area > path {
     fill: rgb(41, 101, 117);
 }
 
-div.map g.area > path:hover {
-    fill: rgb(0, 189, 233);
+div.map.zoom g.area > path {
+    cursor: pointer;
+    stroke: none;
+    stroke-width: 0.38px;
+    stroke-opacity: 1;
+    fill-rule: nonzero;
+    fill: rgb(233, 241, 252);
+    fill-opacity: 0.2;
 }
+
