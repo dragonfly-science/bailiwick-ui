@@ -14,6 +14,8 @@ import Bailiwick.Types
 
 data Message 
   = SetRegion Text
+  | ToggleZoom
+  deriving (Eq, Show)
 
 data State
  = State Page [Adapter]
@@ -28,6 +30,10 @@ data Adapter
 
 getPage :: State -> Page
 getPage (State page _) = page
+
+hasAdapter :: Adapter -> State -> Bool
+hasAdapter adapter (State _ adapters) = adapter `elem` adapters
+
 
 getRegion :: State -> Maybe Area
 getRegion (State (Summary (reg:_)) _) = Just reg

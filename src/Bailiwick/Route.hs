@@ -4,6 +4,7 @@ where
 
 -- import Debug.Trace 
 import Data.Maybe (listToMaybe, mapMaybe)
+import Data.List ((\\))
 
 import qualified Data.ByteString.Lazy as B
 import Data.Binary.Builder (toLazyByteString)
@@ -18,13 +19,22 @@ import Bailiwick.Types
 encodeRoute :: URI -> Message -> URI
 encodeRoute uri message = 
   let segments = decodePathSegments (uriPath uri) 
+      Query flags = uriQuery uri
       segments' = 
           case (segments, message) of
               (["summary", _], SetRegion reg) -> ["summary", reg]
               ([],             SetRegion reg) -> ["summary", reg]
               _                               -> segments
       builder = encodePath segments' []
-  in  uri { uriPath = B.toStrict $ toLazyByteString builder }
+      flags' = updateFlag message flags
+  in  uri { uriPath = B.toStrict $ toLazyByteString builder
+          , uriQuery = Query flags'
+          }
+  where
+    updateFlag ToggleZoom flags =
+        if ("mapzoom", "1") `elem` flags
+            then flags \\ [("mapzoom", "1")]
+            else flags ++ [("mapzoom", "1")]
 
 
 decodeRoute :: Areas -> URI -> State

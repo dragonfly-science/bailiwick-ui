@@ -90,9 +90,11 @@ maincontent state = do
       messages
        <- 
          divClass "navigation-map base-map" $ do
-           summaryText state
-           divClass "svg-wrapper" $ do
-             nzmap state
+           zoomClick <- summaryText state
+           mapClicks <-
+             divClass "svg-wrapper" $ do
+               nzmap state
+           return $ leftmost [zoomClick, mapClicks]
       divClass "area-summary" $ do
         text ""
       return messages
@@ -101,8 +103,9 @@ summaryText
   :: ( DomBuilder t m
      , PostBuild t m )
   => Dynamic t State
-  -> m ()
+  -> m (Event t Message)
 summaryText state = do
+
   let page = getPage <$> state
       homeAttr = page >>= \case
             Home -> return ("class" =: "text-wrapper" <> "style" =: "display: block")
@@ -110,6 +113,15 @@ summaryText state = do
       summaryAttr = page >>= \case
             Home -> return ("class" =: "text-wrapper" <> "style" =: "display: none")
             _    -> return ("class" =: "text-wrapper" <> "style" =: "display: block")
+
+      -- Zoom in and out button
+      zoomed = hasAdapter Mapzoom <$> state
+      zoomAttr = zoomed >>= \case
+                    True -> return ( "class" =: "zoom-out-small")
+                    False -> return ( "class" =: "zoom-in-small")
+      zoomText = zoomed >>= \case
+                    True -> return "Zoom out"
+                    False -> return "Zoom in"
 
       dispArea = (maybe "" areaName . getArea) <$> state
 
@@ -132,9 +144,11 @@ summaryText state = do
         dynText dispArea
       elClass "p" "body-paragraph" $ do
         text "You can go into more detail by exploring the indicators below"
-    divClass "map-zoom" $ do
-      text "Zoom in"
-      elClass "span" "zoom-in-small" $ return ()
+    (zoom, _) 
+       <- elAttr' "div" ("class" =: "map-zoom") $ do
+           dynText zoomText
+           elDynAttr "span" zoomAttr $ return ()
+    return ( ToggleZoom <$ domEvent Click zoom)
 
 
 indicators
