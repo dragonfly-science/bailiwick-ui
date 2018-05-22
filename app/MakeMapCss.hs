@@ -5,11 +5,13 @@ module Main where
 {- Script to make the map.css file, based on the area data -}
 
 import System.Environment (getArgs)
+import Data.Foldable (for_)
 import Data.Maybe (listToMaybe)
 import Data.Aeson (eitherDecode)
 import qualified Data.ByteString.Lazy as BS
-import Data.Text(Text, unpack)
+import Data.Text(Text)
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 
 
 import Bailiwick.Types
@@ -19,30 +21,44 @@ main :: IO ()
 main = do
   
   args <- getArgs
-  let jsonfile
+  let (templatefile, areasfile)
         = case args of
-            (a:_) -> a
-            _     -> "static/data/areas-1b7549470.json"
+            (a:b:_) -> (a,b)
+            _       -> ( "static/map.css.tmpl"
+                       , "static/data/areas-1b7549470.json" )
   
   -- Read in the data json file
-  areas <- readAreas jsonfile
+  areas <- readAreas areasfile
 
-  -- Produce a list of CSS selectors for ta's when zoomed
-  putStrLn $ unpack $ T.unlines $ 
-      format "div.map.zoom.region.ta g.area[reg=\"taName\"] > path"
-          <$> filter (\a -> areaLevel a == "ta") areas
+  -- Read in the template
+  template <- T.readFile templatefile
 
--- div.canterbury.canterbury-zoom.map g.area[reg="Canterbury"] > path
+  -- Process the file 
+  for_ (T.lines template) $ \line ->
+    if "fmt" `T.isPrefixOf` line
+      then do
+        let ln = T.splitOn " " line
+            fmt = T.unwords $ drop 2 ln
+            fil = filterFunction $ T.unwords $ take 1 $ drop 1 ln
+        T.putStrLn $ T.intercalate ",\n" ( format fmt <$> filter fil areas)
+      else
+        T.putStrLn line 
+
+
+filterFunction :: Text -> Area -> Bool
+filterFunction "ta" = ("ta"==) . areaLevel
+filterFunction "reg" = ("reg"==) . areaLevel
+filterFunction _ = const False
 
 format ::  Text -> Area -> Text
 format = flip format'
   where
     format' Area{..}
-       = T.replace "ta" areaId
-       . T.replace "region" ( maybe "" id $
+       = T.replace "bAreaId" areaId
+       . T.replace "bParentId" ( maybe "nz" id $
               listToMaybe [ p | p <- areaParents 
                               , p /= "new-zealand" ])
-       . T.replace "taName" areaName
+       . T.replace "bAreaName" areaName
 
 
 

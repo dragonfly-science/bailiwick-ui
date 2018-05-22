@@ -1,0 +1,198 @@
+div.map svg {
+    height: 550px;
+    z-index: -10;
+}
+
+div.map svg > g {
+  transform: translate(-50px, 730px) scale(1, -1);
+  -moz-transition: all 0.5s ease-in-out;
+  -o-transition: all 0.5s ease-in-out;
+  -webkit-transition: all 0.5s ease-in-out;
+  transition: all 0.5s ease-in-out;
+}
+
+div.auckland-zoom svg > g {
+    transform: translate(-3250px,6570px) scale(10.2,-10.2);
+}
+div.bay-of-plenty-zoom svg > g {
+    transform: translate(-2100px,3300px) scale(5.5,-5.5);
+}
+div.canterbury-zoom svg > g {
+    transform: translate(-300px,8300px) scale(3,-3);
+}
+div.gisborne-zoom svg > g {
+    transform: translate(-2516px,3550px) scale(6,-6);
+}
+div.hawkes-bay-zoom svg > g {
+    transform: translate(-1870px,2600px) scale(5,-5);
+}
+div.manawatu-wanganui-zoom svg > g {
+    transform: translate(-1250px,2400px) scale(4.5,-4.5);
+}
+div.marlborough-zoom svg > g {
+    transform: translate(-1600px,2348px) scale(6,-6);
+}
+div.nelson-zoom svg > g {
+    transform: translate(-2000px,3400px) scale(8,-8);
+}
+div.northland-zoom svg > g {
+    transform: translate(-1100px,3750px) scale(5,-5);
+}
+div.otago-zoom svg > g {
+    transform: translate(-75px,8148px) scale(4,-4);
+}
+div.southland-zoom svg > g {
+    transform: translate(100px,8000px) scale(4,-4);
+}
+div.taranaki-zoom svg > g {
+    transform: translate(-2260px,4100px) scale(8,-8);
+}
+div.tasman-zoom svg > g {
+    transform: translate(-1080px,2396px) scale(6,-6);
+}
+div.waikato-zoom svg > g {
+    transform: translate(-1050px,2550px) scale(4,-4);
+}
+div.wellington-zoom svg > g {
+    transform: translate(-2250px,3050px) scale(7,-7);
+}
+div.west-coast-zoom svg > g {
+    transform: translate(-210px,8450px) scale(3,-3);
+}
+
+/* Turn of the circles */
+div.map g.region_centre > circle { stroke-opacity: 0; }
+div.map g.ta_centre > circle { stroke-opacity: 0; }
+
+
+/* Not zoomed */
+/* White borders around regions */
+div.map.not-zoom g[same_reg=FALSE].inbound > polyline {
+    stroke: rgb(255, 255, 255);
+    stroke-opacity: 1;
+    stroke-width: 0.75px;
+}
+
+/* Dark green boarders inside regions (hiding borders) */
+div.map.not-zoom g[same_reg=TRUE].inbound > polyline {
+    stroke: rgb(41, 101, 117);  /* dark green */
+    stroke-opacity: 1;
+    stroke-width: 2.25px;
+}
+
+/* Coastline turned off */
+div.map.not-zoom g.coastline > polyline {
+    stroke: none;
+    stroke-opacity: 0;
+    stroke-width: 0;
+}
+
+/* Most of map is dark green */
+div.map.not-zoom g.area > path {
+    fill: rgb(41, 101, 117); /* dark green */
+    stroke: none;
+    cursor: pointer;
+}
+
+/* Selected or moused over area bright blue */
+fmt reg div.map.not-zoom.bAreaId g.area[reg="bAreaName"] > path
+{
+    fill: rgb(0, 189, 233);  /* bright blue */
+}
+/* Hide internal lines by making them bright blue */
+fmt reg div.map.not-zoom.bAreaId g.inbound[same_reg=TRUE][reg1="bAreaName"] > polyline
+{
+    stroke: rgb(0, 189, 233);  /* bright blue */
+}
+
+/* Zoomed in case */
+/* Fill in the areas with light blue */
+div.map.zoom g.area > path {
+    cursor: pointer;
+    stroke: none;
+    stroke-width: 0.38px;
+    stroke-opacity: 1;
+    fill-rule: nonzero;
+    fill: rgb(233, 241, 252);
+    fill-opacity: 0.2;
+}
+
+/* The coastline is white */
+div.map.zoom g.coastline > polyline {
+    stroke: rgb(255, 255, 255);
+    stroke-opacity: 1;
+    stroke-width: 0.75px;
+}
+ 
+/* The internal lines are light blue */
+div.map.zoom g[same_reg=TRUE].inbound > polyline {
+    stroke: rgb(223, 241, 252);  /* pale blue */
+    stroke-width: 0.6;
+    stroke-opacity: 0.3;
+    fill: none;
+}
+
+
+/* Selected region is dark green */
+fmt reg div.map.bAreaId.bAreaId-zoom g.area[reg="bAreaName"] > path
+{
+    fill: rgb(41, 101, 117); /* dark green */
+    fill-opacity: 1;
+}
+/* Hide borders inside selected region, unless between TAs */
+fmt reg div.map.bAreaId.bAreaId-zoom g.inbound[same_ta=TRUE][same_reg=TRUE][reg1="bAreaName"] > polyline
+{
+    stroke: rgb(41, 101, 117); /* dark green */
+    stroke-width: 0.8;
+    stroke-opacity: 1;
+    fill: none;
+}
+/* Highlight selected TA */
+fmt ta div.map.bAreaId.bParentId.bParentId-zoom g.area[ta="bAreaName"] > path
+{
+    fill: rgb(0, 189, 233);  /* bright blue */
+    fill-opacity: 1;
+}
+/* Fill in internal lines bright blue too */
+fmt ta div.map.bAreaId.bParentId.bParentId-zoom g.inbound[same_ta=TRUE][ta1="bAreaName"] > polyline
+{
+    stroke: rgb(0, 189, 233);  /* bright blue */
+    stroke-width: 0.8;
+    stroke-opacity: 1;
+    fill: none;
+}
+
+/* Hide internal lines by making them bright blue */
+fmt reg div.map.zoom.bAreaId.bAreaId-zoom g.area:not([reg="bAreaName"]) > path
+{
+    fill: rgb(0, 189, 233);  /* bright blue */
+}
+/* Show internal lines by making them bright blue */
+fmt reg div.map.zoom.bAreaId.bAreaId-zoom g.inbound[same_ta=FALSE][same_reg=TRUE]:not([reg1="bAreaName"]) > polyline
+{
+    stroke: rgb(0, 189, 233);  /* bright blue */
+}
+fmt reg div.map.zoom.bAreaId.bAreaId-zoom g.inbound[same_ta=FALSE][same_reg=TRUE]:not([reg1="bAreaName"]) > polyline
+{
+    stroke: rgb(0, 189, 233);  /* bright blue */
+}
+
+
+
+/* turn off borders when zoomed in */
+fmt reg div.bAreaId.bAreaId-zoom.map g.coastline[reg="bAreaName"] > polyline
+,
+fmt reg div.bAreaId.bAreaId-zoom.map g.inbound[same_reg=FALSE][reg1="bAreaName"] > polyline
+,
+fmt reg div.bAreaId.bAreaId-zoom.map g.inbound[same_reg=FALSE][reg2="bAreaName"] > polyline
+,
+fmt ta div.map.bAreaId.bParentId.bParentId-zoom g.inbound[same_ta=FALSE][ta1="bAreaName"] > polyline
+,
+fmt ta div.map.bAreaId.bParentId.bParentId-zoom g.inbound[same_ta=FALSE][ta2="bAreaName"] > polyline
+{
+    stroke: none;
+    stroke-opacity: 0;
+    stroke-width: 0;
+}
+
+

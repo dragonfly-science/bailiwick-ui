@@ -65,7 +65,7 @@ nzmap state = mdo
         reg <- regD
         zoom <- zoomed
         let zoomregclass = if zoom then Just (reg <> "-zoom") else Nothing
-        let zoomclass = if zoom then Just "zoom" else Nothing
+        let zoomclass = if zoom then Just "zoom" else Just "not-zoom"
 
         mouse_over_reg <- get areaRegion <$> mouseOverD
         mouse_over_ta  <- get areaTa <$> mouseOverD
@@ -102,7 +102,7 @@ data AreaInfo
     { areaRegion :: Maybe Text
     , areaTa     :: Maybe Text
     , areaWard   :: Maybe Text
-    }
+    } deriving (Show, Eq)
 
 getAreaInfoFromSvg
     :: DOM.IsEvent ev 
@@ -110,6 +110,7 @@ getAreaInfoFromSvg
 getAreaInfoFromSvg = runMaybeT $ do
   target     <- MaybeT DOM.eventTarget
   svgelement <- MaybeT (DOM.castTo DOM.SVGElement target)
+  target_element <- DOM.getTagName svgelement
   parentg    <- MaybeT (DOM.getParentElement svgelement)
   let getAttr :: Text -> MaybeT (DOM.EventM e ev) (Maybe Text)
       getAttr a = do
@@ -117,8 +118,9 @@ getAreaInfoFromSvg = runMaybeT $ do
          if val == "null"
             then return Nothing
             else return (Just val)
-  reg <- getAttr "reg" <|> getAttr "reg1"
-  ta  <- getAttr "ta"  <|> getAttr "ta1"
-  wrd <- getAttr "wrd" <|> getAttr "wrd1"
+      isPath = target_element == ("path" :: Text)
+  reg <- getAttr (if isPath then "reg" else "reg1")
+  ta  <- getAttr (if isPath then "ta" else "ta1")
+  wrd <- getAttr (if isPath then "wrd" else "wrd")
   return $ AreaInfo reg ta wrd
 
