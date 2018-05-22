@@ -4,17 +4,17 @@
 {-# LANGUAGE RecursiveDo         #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE MultiWayIf          #-}
 module Bailiwick.View.Map
 where
 
-import Debug.Trace
+-- import Debug.Trace
 
 import Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
 import Control.Monad (join)
-import Control.Applicative ((<|>))
 import Control.Monad.Fix
 import Data.Monoid ((<>))
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, isJust, fromJust)
 import Data.List (nub)
 import Data.Text (Text)
 import qualified Data.Text as Text
@@ -94,8 +94,19 @@ nzmap state = mdo
 
   mouseOverD :: Dynamic t (Maybe AreaInfo) <- holdDyn Nothing moveE
 
-  -- Make the click event correctly depending on state
-  return $ fmapCheap (SetRegion . maybe "new-zealand" slugify . get areaRegion) clickE
+  -- The click event depends on the state
+  let makeMessages :: State -> AreaInfo -> Maybe Message
+      makeMessages st ai =
+        let region = slugify <$> areaRegion ai
+            currentRegion = areaId <$> getRegion st
+            iszoomed = hasAdapter Mapzoom st
+        in if 
+            | currentRegion == region && not iszoomed  -> Just ToggleZoom
+            | currentRegion /= region && isJust region -> Just (SetRegion $ fromJust region)
+            | region == Nothing && iszoomed            -> Just ToggleZoom
+            | otherwise                                -> Nothing
+                
+  return $ attachPromptlyDynWithMaybe makeMessages state $ fmapMaybe id clickE
 
 data AreaInfo
   = AreaInfo
