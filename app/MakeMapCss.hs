@@ -40,7 +40,7 @@ main = do
         let ln = T.splitOn " " line
             fmt = T.unwords $ drop 2 ln
             fil = filterFunction $ T.unwords $ take 1 $ drop 1 ln
-        T.putStrLn $ T.intercalate ",\n" ( format fmt <$> filter fil areas)
+        T.putStrLn $ T.intercalate ",\n" ( format areas fmt <$> filter fil areas)
       else
         T.putStrLn line 
 
@@ -50,15 +50,20 @@ filterFunction "ta" = ("ta"==) . areaLevel
 filterFunction "reg" = ("reg"==) . areaLevel
 filterFunction _ = const False
 
-format ::  Text -> Area -> Text
-format = flip format'
-  where
-    format' Area{..}
-       = T.replace "bAreaId" areaId
-       . T.replace "bParentId" ( maybe "nz" id $
+format :: [Area] -> Text -> Area -> Text
+format areas =
+  let 
+    lookupAreaName areaid = maybe "New Zealand" id $ lookup areaid [(areaId a, areaName a) | a <- areas]
+    getParentId Area{..} =  ( maybe "nz" id $
               listToMaybe [ p | p <- areaParents 
                               , p /= "new-zealand" ])
+    getParentName a = lookupAreaName (getParentId a)
+    format' a@Area{..}
+       = T.replace "bAreaId" areaId
+       . T.replace "bParentId" (getParentId a)
        . T.replace "bAreaName" areaName
+       . T.replace "bParentName" (getParentName a)
+  in  flip format'
 
 
 

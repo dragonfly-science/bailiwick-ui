@@ -64,18 +64,19 @@ nzmap state = mdo
       attrD = do 
         reg <- regD
         zoom <- zoomed
-        let zoomregclass = if zoom then Just (reg <> "-zoom") else Nothing
+        let regselected = Just (reg <> "-selected")
         let zoomclass = if zoom then Just "zoom" else Just "not-zoom"
 
         mouse_over_reg <- get areaRegion <$> mouseOverD
         mouse_over_ta  <- get areaTa <$> mouseOverD
         mouse_over_wrd <- get areaWard <$> mouseOverD
 
-        let classes = nub $ catMaybes [ Just "map", Just reg
+        let classes = nub $ catMaybes [ Just "map"
+                                      , regselected
                                       , mouse_over_reg
                                       , mouse_over_ta
                                       , mouse_over_wrd
-                                      , zoomregclass, zoomclass] 
+                                      , zoomclass] 
         return $ "class" =: (Text.intercalate " " classes)
 
   (mapContainer, _) <-  elDynAttr' "div" attrD $ return ()

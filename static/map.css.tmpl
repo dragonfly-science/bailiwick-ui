@@ -11,52 +11,52 @@ div.map svg > g {
   transition: all 0.5s ease-in-out;
 }
 
-div.auckland-zoom svg > g {
+div.map.zoom.auckland-selected svg > g {
     transform: translate(-3250px,6570px) scale(10.2,-10.2);
 }
-div.bay-of-plenty-zoom svg > g {
+div.map.zoom.bay-of-plenty-selected svg > g {
     transform: translate(-2100px,3300px) scale(5.5,-5.5);
 }
-div.canterbury-zoom svg > g {
+div.map.zoom.canterbury-selected svg > g {
     transform: translate(-300px,8300px) scale(3,-3);
 }
-div.gisborne-zoom svg > g {
+div.map.zoom.gisborne-selected svg > g {
     transform: translate(-2516px,3550px) scale(6,-6);
 }
-div.hawkes-bay-zoom svg > g {
+div.map.zoom.hawkes-bay-selected svg > g {
     transform: translate(-1870px,2600px) scale(5,-5);
 }
-div.manawatu-wanganui-zoom svg > g {
+div.map.zoom.manawatu-wanganui-selected svg > g {
     transform: translate(-1250px,2400px) scale(4.5,-4.5);
 }
-div.marlborough-zoom svg > g {
+div.map.zoom.marlborough-selected svg > g {
     transform: translate(-1600px,2348px) scale(6,-6);
 }
-div.nelson-zoom svg > g {
+div.map.zoom.nelson-selected svg > g {
     transform: translate(-2000px,3400px) scale(8,-8);
 }
-div.northland-zoom svg > g {
+div.map.zoom.northland-selected svg > g {
     transform: translate(-1100px,3750px) scale(5,-5);
 }
-div.otago-zoom svg > g {
+div.map.zoom.otago-selected svg > g {
     transform: translate(-75px,8148px) scale(4,-4);
 }
-div.southland-zoom svg > g {
+div.map.zoom.southland-selected svg > g {
     transform: translate(100px,8000px) scale(4,-4);
 }
-div.taranaki-zoom svg > g {
+div.map.zoom.taranaki-selected svg > g {
     transform: translate(-2260px,4100px) scale(8,-8);
 }
-div.tasman-zoom svg > g {
+div.map.zoom.tasman-selected svg > g {
     transform: translate(-1080px,2396px) scale(6,-6);
 }
-div.waikato-zoom svg > g {
+div.map.zoom.waikato-selected svg > g {
     transform: translate(-1050px,2550px) scale(4,-4);
 }
-div.wellington-zoom svg > g {
+div.map.zoom.wellington-selected svg > g {
     transform: translate(-2250px,3050px) scale(7,-7);
 }
-div.west-coast-zoom svg > g {
+div.map.zoom.west-coast-selected svg > g {
     transform: translate(-210px,8450px) scale(3,-3);
 }
 
@@ -95,11 +95,15 @@ div.map.not-zoom g.area > path {
 }
 
 /* Selected or moused over area bright blue */
+fmt reg div.map.not-zoom.bAreaId-selected g.area[reg="bAreaName"] > path
+,
 fmt reg div.map.not-zoom.bAreaId g.area[reg="bAreaName"] > path
 {
     fill: rgb(0, 189, 233);  /* bright blue */
 }
 /* Hide internal lines by making them bright blue */
+fmt reg div.map.not-zoom.bAreaId-selected g.inbound[same_reg=TRUE][reg1="bAreaName"] > polyline
+,
 fmt reg div.map.not-zoom.bAreaId g.inbound[same_reg=TRUE][reg1="bAreaName"] > polyline
 {
     stroke: rgb(0, 189, 233);  /* bright blue */
@@ -132,15 +136,42 @@ div.map.zoom g[same_reg=TRUE].inbound > polyline {
     fill: none;
 }
 
+/* Selected regions outside of the current selected region */
+/* Hide internal lines by making them bright blue */
+fmt reg div.map.zoom.bAreaId:not(.bAreaId-selected) g.area[reg="bAreaName"] > path
+{
+    fill: rgb(0, 189, 233);  /* bright blue */
+    fill-opacity: 0.2;
+}
+/* Show internal lines by making them bright blue */
+fmt reg div.map.zoom.bAreaId:not(.bAreaId-selected) g.inbound[same_ta=FALSE][same_reg=TRUE][reg1="bAreaName"] > polyline
+{
+    stroke: rgb(0, 189, 233);  /* bright blue */
+}
+/* Hide internal lines by making them same as area */
+fmt reg div.map.zoom.bAreaId:not(.bAreaId-selected) g.inbound[same_ta=TRUE][same_reg=TRUE][reg1="bAreaName"] > polyline
+{
+    stroke: rgb(0, 189, 233);  /* bright blue */
+    stroke-opacity: 0.01;
+    fill: none;
+}
+
+/* TA areas which overlap into other regions */
+fmt ta div.map.zoom.bParentId-selected g.area[ta="bAreaName"]:not([reg="bParentName"]) > path
+{
+    fill: rgb(41, 101, 117); /* dark green */
+    fill-opacity: 0.2;
+}
+
 
 /* Selected region is dark green */
-fmt reg div.map.bAreaId.bAreaId-zoom g.area[reg="bAreaName"] > path
+fmt reg div.map.zoom.bAreaId-selected g.area[reg="bAreaName"] > path
 {
     fill: rgb(41, 101, 117); /* dark green */
     fill-opacity: 1;
 }
 /* Hide borders inside selected region, unless between TAs */
-fmt reg div.map.bAreaId.bAreaId-zoom g.inbound[same_ta=TRUE][same_reg=TRUE][reg1="bAreaName"] > polyline
+fmt reg div.map.zoom.bAreaId-selected g.inbound[same_ta=TRUE][same_reg=TRUE][reg1="bAreaName"] > polyline
 {
     stroke: rgb(41, 101, 117); /* dark green */
     stroke-width: 0.8;
@@ -148,47 +179,40 @@ fmt reg div.map.bAreaId.bAreaId-zoom g.inbound[same_ta=TRUE][same_reg=TRUE][reg1
     fill: none;
 }
 /* Highlight selected TA */
-fmt ta div.map.bAreaId.bParentId.bParentId-zoom g.area[ta="bAreaName"] > path
+fmt ta div.map.zoom.bAreaId.bParentId-selected g.area[ta="bAreaName"][reg="bParentName"] > path
 {
     fill: rgb(0, 189, 233);  /* bright blue */
     fill-opacity: 1;
 }
 /* Fill in internal lines bright blue too */
-fmt ta div.map.bAreaId.bParentId.bParentId-zoom g.inbound[same_ta=TRUE][ta1="bAreaName"] > polyline
+fmt ta div.map.zoom.bAreaId.bParentId-selected g.inbound[same_ta=TRUE][ta1="bAreaName"] > polyline
 {
     stroke: rgb(0, 189, 233);  /* bright blue */
     stroke-width: 0.8;
     stroke-opacity: 1;
     fill: none;
 }
-
-/* Hide internal lines by making them bright blue */
-fmt reg div.map.zoom.bAreaId.bAreaId-zoom g.area:not([reg="bAreaName"]) > path
+fmt ta div.map.zoom.bAreaId:not(.bParentId-selected) g.area[ta="bAreaName"] > path
+,
+fmt ta div.map.zoom.bAreaId g.area[ta="bAreaName"]:not([reg="bParentName"]) > path
 {
     fill: rgb(0, 189, 233);  /* bright blue */
+    fill-opacity: 0.2;
 }
-/* Show internal lines by making them bright blue */
-fmt reg div.map.zoom.bAreaId.bAreaId-zoom g.inbound[same_ta=FALSE][same_reg=TRUE]:not([reg1="bAreaName"]) > polyline
-{
-    stroke: rgb(0, 189, 233);  /* bright blue */
-}
-fmt reg div.map.zoom.bAreaId.bAreaId-zoom g.inbound[same_ta=FALSE][same_reg=TRUE]:not([reg1="bAreaName"]) > polyline
-{
-    stroke: rgb(0, 189, 233);  /* bright blue */
-}
+
 
 
 
 /* turn off borders when zoomed in */
-fmt reg div.bAreaId.bAreaId-zoom.map g.coastline[reg="bAreaName"] > polyline
+fmt reg div.map.zoom.bAreaId-selected g.coastline[reg="bAreaName"] > polyline
 ,
-fmt reg div.bAreaId.bAreaId-zoom.map g.inbound[same_reg=FALSE][reg1="bAreaName"] > polyline
+fmt reg div.map.zoom.bAreaId-selected g.inbound[same_reg=FALSE][reg1="bAreaName"] > polyline
 ,
-fmt reg div.bAreaId.bAreaId-zoom.map g.inbound[same_reg=FALSE][reg2="bAreaName"] > polyline
+fmt reg div.map.zoom.bAreaId-selected g.inbound[same_reg=FALSE][reg2="bAreaName"] > polyline
 ,
-fmt ta div.map.bAreaId.bParentId.bParentId-zoom g.inbound[same_ta=FALSE][ta1="bAreaName"] > polyline
+fmt ta div.map.zoom.bAreaId.bParentId.bParentId-selected g.inbound[same_ta=FALSE][ta1="bAreaName"] > polyline
 ,
-fmt ta div.map.bAreaId.bParentId.bParentId-zoom g.inbound[same_ta=FALSE][ta2="bAreaName"] > polyline
+fmt ta div.map.zoom.bAreaId.bParentId.bParentId-selected g.inbound[same_ta=FALSE][ta2="bAreaName"] > polyline
 {
     stroke: none;
     stroke-opacity: 0;
