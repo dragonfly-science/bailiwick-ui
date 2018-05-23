@@ -11,54 +11,90 @@ div.map svg > g {
   transition: all 0.5s ease-in-out;
 }
 
+div.map svg polyline {
+    stroke-width: 0.8px;
+}
+
 div.map.zoom.auckland-selected svg > g {
     transform: translate(-3250px,6570px) scale(10.2,-10.2);
 }
+div.map.zoom.auckland-selected svg polyline { stroke-width: 0.2px; }
+
 div.map.zoom.bay-of-plenty-selected svg > g {
     transform: translate(-2100px,3300px) scale(5.5,-5.5);
 }
+div.map.zoom.bay-of-plenty-selected svg polyline { stroke-width: 0.3px; }
+
 div.map.zoom.canterbury-selected svg > g {
     transform: translate(-300px,8300px) scale(3,-3);
 }
+div.map.zoom.canterbury-selected svg polyline { stroke-width: 0.4px; }
+
 div.map.zoom.gisborne-selected svg > g {
     transform: translate(-2516px,3550px) scale(6,-6);
 }
+div.map.zoom.gisborne-selected svg polyline { stroke-width: 0.3px; }
+
 div.map.zoom.hawkes-bay-selected svg > g {
     transform: translate(-1870px,2600px) scale(5,-5);
 }
+div.map.zoom.hawkes-bay-selected svg polyline { stroke-width: 0.2px; }
+
 div.map.zoom.manawatu-wanganui-selected svg > g {
     transform: translate(-1250px,2400px) scale(4.5,-4.5);
 }
+div.map.zoom.manawatu-wanganui-selected svg polyline { stroke-width: 0.3px; }
+
 div.map.zoom.marlborough-selected svg > g {
     transform: translate(-1600px,2348px) scale(6,-6);
 }
+div.map.zoom.marlborough-selected svg polyline { stroke-width: 0.2px; }
+
 div.map.zoom.nelson-selected svg > g {
     transform: translate(-2000px,3400px) scale(8,-8);
 }
+div.map.zoom.nelson-selected svg polyline { stroke-width: 0.2px; }
+
 div.map.zoom.northland-selected svg > g {
     transform: translate(-1100px,3750px) scale(5,-5);
 }
+div.map.zoom.northland-selected svg polyline { stroke-width: 0.3px; }
+
 div.map.zoom.otago-selected svg > g {
     transform: translate(-75px,8148px) scale(4,-4);
 }
+div.map.zoom.otago-selected svg polyline { stroke-width: 0.3px; }
+
 div.map.zoom.southland-selected svg > g {
     transform: translate(100px,8000px) scale(4,-4);
 }
+div.map.zoom.southland-selected svg polyline { stroke-width: 0.3px; }
+
 div.map.zoom.taranaki-selected svg > g {
     transform: translate(-2260px,4100px) scale(8,-8);
 }
+div.map.zoom.taranaki-selected svg polyline { stroke-width: 0.2px; }
+
 div.map.zoom.tasman-selected svg > g {
     transform: translate(-1080px,2396px) scale(6,-6);
 }
+div.map.zoom.tasman-selected svg polyline { stroke-width: 0.3px; }
+
 div.map.zoom.waikato-selected svg > g {
     transform: translate(-1050px,2550px) scale(4,-4);
 }
+div.map.zoom.waikato-selected svg polyline { stroke-width: 0.4px; }
+
 div.map.zoom.wellington-selected svg > g {
     transform: translate(-2250px,3050px) scale(7,-7);
 }
+div.map.zoom.wellington-selected svg polyline { stroke-width: 0.3px; }
+
 div.map.zoom.west-coast-selected svg > g {
     transform: translate(-210px,8450px) scale(3,-3);
 }
+div.map.zoom.west-coast-selected svg polyline { stroke-width: 0.5px; }
+
 
 /* Turn of the circles */
 div.map g.region_centre > circle { stroke-opacity: 0; }
@@ -70,14 +106,13 @@ div.map g.ta_centre > circle { stroke-opacity: 0; }
 div.map.not-zoom g[same_reg=FALSE].inbound > polyline {
     stroke: rgb(255, 255, 255);
     stroke-opacity: 1;
-    stroke-width: 0.75px;
 }
 
 /* Dark green boarders inside regions (hiding borders) */
 div.map.not-zoom g[same_reg=TRUE].inbound > polyline {
     stroke: rgb(41, 101, 117);  /* dark green */
+    stroke-width: 3px;
     stroke-opacity: 1;
-    stroke-width: 2.25px;
 }
 
 /* Coastline turned off */
@@ -114,7 +149,6 @@ fmt reg div.map.not-zoom.bAreaId g.inbound[same_reg=TRUE][reg1="bAreaName"] > po
 div.map.zoom g.area > path {
     cursor: pointer;
     stroke: none;
-    stroke-width: 0.38px;
     stroke-opacity: 1;
     fill-rule: nonzero;
     fill: rgb(233, 241, 252);
@@ -125,13 +159,11 @@ div.map.zoom g.area > path {
 div.map.zoom g.coastline > polyline {
     stroke: rgb(255, 255, 255);
     stroke-opacity: 1;
-    stroke-width: 0.75px;
 }
  
 /* The internal lines are light blue */
 div.map.zoom g[same_reg=TRUE].inbound > polyline {
     stroke: rgb(223, 241, 252);  /* pale blue */
-    stroke-width: 0.6;
     stroke-opacity: 0.3;
     fill: none;
 }
@@ -171,10 +203,9 @@ fmt reg div.map.zoom.bAreaId-selected g.area[reg="bAreaName"] > path
     fill-opacity: 1;
 }
 /* Hide borders inside selected region, unless between TAs */
-fmt reg div.map.zoom.bAreaId-selected g.inbound[same_ta=TRUE][same_reg=TRUE][reg1="bAreaName"] > polyline
+div.map.zoom.auckland-selected g.inbound[same_wrd=TRUE][same_reg=TRUE][reg1="Auckland"] > polyline
 {
     stroke: rgb(41, 101, 117); /* dark green */
-    stroke-width: 0.8;
     stroke-opacity: 1;
     fill: none;
 }
@@ -188,7 +219,6 @@ fmt ta div.map.zoom.bAreaId.bParentId-selected g.area[ta="bAreaName"][reg="bPare
 fmt ta div.map.zoom.bAreaId.bParentId-selected g.inbound[same_ta=TRUE][ta1="bAreaName"] > polyline
 {
     stroke: rgb(0, 189, 233);  /* bright blue */
-    stroke-width: 0.8;
     stroke-opacity: 1;
     fill: none;
 }
@@ -200,6 +230,26 @@ fmt ta div.map.zoom.bAreaId g.area[ta="bAreaName"]:not([reg="bParentName"]) > pa
     fill-opacity: 0.2;
 }
 
+/* Highlight Auckland wards */
+fmt wrd div.map.zoom.bAreaId.auckland-selected g.area.bAreaId-ward.auckland-ta > path
+{
+    fill: rgb(0, 189, 233);  /* bright blue */
+    fill-opacity: 1;
+}
+/* Fill in internal lines bright blue too */
+fmt wrd div.map.zoom.bAreaId.auckland-selected g.inbound.bAreaId-ward[same_wrd=TRUE] > polyline
+{
+    stroke: rgb(0, 189, 233);  /* bright blue */
+    stroke-opacity: 1;
+    fill: none;
+}
+
+fmt reg div.map.zoom.bAreaId-selected:not(.auckland-selected) g.inbound[same_ta=TRUE][same_reg=TRUE][reg1="bAreaName"] > polyline
+{
+    stroke: rgb(41, 101, 117); /* dark green */
+    stroke-opacity: 1;
+    fill: none;
+}
 
 
 

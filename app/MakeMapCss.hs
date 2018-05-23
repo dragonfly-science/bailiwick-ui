@@ -48,6 +48,7 @@ main = do
 filterFunction :: Text -> Area -> Bool
 filterFunction "ta" = ("ta"==) . areaLevel
 filterFunction "reg" = ("reg"==) . areaLevel
+filterFunction "wrd" = ("ward"==) . areaLevel
 filterFunction _ = const False
 
 format :: [Area] -> Text -> Area -> Text
