@@ -14,6 +14,7 @@ import Bailiwick.Types
 
 data Message 
   = SetRegion Text
+  | SetSubArea Text
   | ToggleZoom
   deriving (Eq, Show)
 

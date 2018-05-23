@@ -23,7 +23,9 @@ encodeRoute uri message =
       segments' = 
           case (segments, message) of
               (["summary", _], SetRegion reg) -> ["summary", reg]
+              (["summary", _], SetSubArea sa) -> ["summary", sa]
               ([],             SetRegion reg) -> ["summary", reg]
+              ([],             SetSubArea sa) -> ["summary", sa]
               _                               -> segments
       builder = encodePath segments' []
       flags' = updateFlag message flags

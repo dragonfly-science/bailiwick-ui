@@ -99,13 +99,24 @@ nzmap state = mdo
   let makeMessages :: State -> AreaInfo -> Maybe Message
       makeMessages st ai =
         let region = slugify <$> areaRegion ai
+            ta = slugify <$> areaTa ai
+            ward = slugify <$> areaWard ai
             currentRegion = areaId <$> getRegion st
+            currentSubarea = areaId <$> getSubArea st
             iszoomed = hasAdapter Mapzoom st
-        in if 
-            | currentRegion == region && not iszoomed  -> Just ToggleZoom
-            | currentRegion /= region && isJust region -> Just (SetRegion $ fromJust region)
-            | region == Nothing && iszoomed            -> Just ToggleZoom
-            | otherwise                                -> Nothing
+            auckland = "auckland" :: Text
+            subarea = if region == (Just auckland) then ward else ta
+        in  if 
+            | currentRegion == region && not iszoomed
+                -> Just ToggleZoom
+            | currentRegion /= region && isJust region
+                -> Just (SetRegion $ fromJust region)
+            | currentSubarea /= subarea && iszoomed && isJust subarea 
+                -> Just (SetSubArea $ fromJust subarea)
+            | region == Nothing && iszoomed
+                -> Just ToggleZoom
+            | otherwise
+                -> Nothing
                 
   return $ attachPromptlyDynWithMaybe makeMessages state $ fmapMaybe id clickE
 
