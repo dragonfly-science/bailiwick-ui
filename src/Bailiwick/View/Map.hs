@@ -59,12 +59,15 @@ nzmap state = mdo
       regD = page >>= \case
             Summary (r:_) -> return $ areaId r
             _             -> "new-zealand"
+      subareaD = (fmap areaId . getSubArea) <$> state  
 
       get field = join . fmap (fmap slugify . field)
       attrD = do 
         reg <- regD
+        subarea <- subareaD
         zoom <- zoomed
         let regselected = Just (reg <> "-selected")
+            subareaselected = (<>"-selected") <$> subarea
         let zoomclass = if zoom then Just "zoom" else Just "not-zoom"
 
         mouse_over_reg <- get areaRegion <$> mouseOverD
@@ -73,6 +76,7 @@ nzmap state = mdo
 
         let classes = nub $ catMaybes [ Just "map"
                                       , regselected
+                                      , subareaselected
                                       , mouse_over_reg
                                       , mouse_over_ta
                                       , mouse_over_wrd

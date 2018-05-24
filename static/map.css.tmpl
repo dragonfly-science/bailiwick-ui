@@ -202,6 +202,13 @@ fmt reg div.map.zoom.bAreaId-selected g.area[reg="bAreaName"] > path
     fill: rgb(41, 101, 117); /* dark green */
     fill-opacity: 1;
 }
+fmt reg div.map.zoom.bAreaId-selected:not(.auckland-selected) g.inbound[same_ta=TRUE][same_reg=TRUE][reg1="bAreaName"] > polyline
+{
+    stroke: rgb(41, 101, 117); /* dark green */
+    stroke-opacity: 1;
+    fill: none;
+}
+
 /* Hide borders inside selected region, unless between TAs */
 div.map.zoom.auckland-selected g.inbound[same_wrd=TRUE][same_reg=TRUE][reg1="Auckland"] > polyline
 {
@@ -210,18 +217,26 @@ div.map.zoom.auckland-selected g.inbound[same_wrd=TRUE][same_reg=TRUE][reg1="Auc
     fill: none;
 }
 /* Highlight selected TA */
+fmt ta div.map.zoom.bAreaId-selected.bParentId-selected g.area[ta="bAreaName"][reg="bParentName"] > path
+,
 fmt ta div.map.zoom.bAreaId.bParentId-selected g.area[ta="bAreaName"][reg="bParentName"] > path
 {
     fill: rgb(0, 189, 233);  /* bright blue */
     fill-opacity: 1;
 }
 /* Fill in internal lines bright blue too */
-fmt ta div.map.zoom.bAreaId.bParentId-selected g.inbound[same_ta=TRUE][ta1="bAreaName"] > polyline
+fmt ta div.map.zoom.bAreaId-selected.bParentId-selected g.inbound[same_ta=TRUE][ta1="bAreaName"][same_reg=TRUE][reg1="bParentName"] > polyline
+,
+fmt ta div.map.zoom.bAreaId.bParentId-selected g.inbound[same_ta=TRUE][ta1="bAreaName"][same_reg=TRUE][reg1="bParentName"] > polyline
 {
     stroke: rgb(0, 189, 233);  /* bright blue */
     stroke-opacity: 1;
     fill: none;
 }
+fmt ta div.map.zoom.bAreaId-selected:not(.bParentId-selected) g.area[ta="bAreaName"] > path
+,
+fmt ta div.map.zoom.bAreaId-selected g.area[ta="bAreaName"]:not([reg="bParentName"]) > path
+,
 fmt ta div.map.zoom.bAreaId:not(.bParentId-selected) g.area[ta="bAreaName"] > path
 ,
 fmt ta div.map.zoom.bAreaId g.area[ta="bAreaName"]:not([reg="bParentName"]) > path
@@ -231,22 +246,19 @@ fmt ta div.map.zoom.bAreaId g.area[ta="bAreaName"]:not([reg="bParentName"]) > pa
 }
 
 /* Highlight Auckland wards */
+fmt wrd div.map.zoom.bAreaId-selected.auckland-selected g.area.bAreaId-ward.auckland-ta > path
+,
 fmt wrd div.map.zoom.bAreaId.auckland-selected g.area.bAreaId-ward.auckland-ta > path
 {
     fill: rgb(0, 189, 233);  /* bright blue */
     fill-opacity: 1;
 }
 /* Fill in internal lines bright blue too */
+fmt wrd div.map.zoom.bAreaId-selected.auckland-selected g.inbound.bAreaId-ward[same_wrd=TRUE] > polyline
+,
 fmt wrd div.map.zoom.bAreaId.auckland-selected g.inbound.bAreaId-ward[same_wrd=TRUE] > polyline
 {
     stroke: rgb(0, 189, 233);  /* bright blue */
-    stroke-opacity: 1;
-    fill: none;
-}
-
-fmt reg div.map.zoom.bAreaId-selected:not(.auckland-selected) g.inbound[same_ta=TRUE][same_reg=TRUE][reg1="bAreaName"] > polyline
-{
-    stroke: rgb(41, 101, 117); /* dark green */
     stroke-opacity: 1;
     fill: none;
 }
@@ -259,6 +271,10 @@ fmt reg div.map.zoom.bAreaId-selected g.coastline[reg="bAreaName"] > polyline
 fmt reg div.map.zoom.bAreaId-selected g.inbound[same_reg=FALSE][reg1="bAreaName"] > polyline
 ,
 fmt reg div.map.zoom.bAreaId-selected g.inbound[same_reg=FALSE][reg2="bAreaName"] > polyline
+,
+fmt ta div.map.zoom.bAreaId-selected.bParentId.bParentId-selected g.inbound[same_ta=FALSE][ta1="bAreaName"] > polyline
+,
+fmt ta div.map.zoom.bAreaId-selected.bParentId.bParentId-selected g.inbound[same_ta=FALSE][ta2="bAreaName"] > polyline
 ,
 fmt ta div.map.zoom.bAreaId.bParentId.bParentId-selected g.inbound[same_ta=FALSE][ta1="bAreaName"] > polyline
 ,
