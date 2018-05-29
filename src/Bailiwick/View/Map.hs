@@ -8,8 +8,6 @@
 module Bailiwick.View.Map
 where
 
--- import Debug.Trace
-
 import Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
 import Control.Monad (join)
 import Control.Monad.Fix
@@ -31,7 +29,6 @@ import Reflex.Dom.Builder.Immediate (wrapDomEvent)
 
 import Bailiwick.State
 import Bailiwick.Types
-
 
 slugify :: Text -> Text
 slugify = Text.replace "'" "" 
@@ -114,7 +111,7 @@ nzmap state = mdo
             | currentRegion == region && not iszoomed
                 -> Just ToggleZoom
             | currentRegion /= region && isJust region
-                -> Just (SetRegion $ fromJust region)
+                -> Just (SetRegion (fromJust region))
             | currentSubarea /= subarea && iszoomed && isJust subarea 
                 -> Just (SetSubArea $ fromJust subarea)
             | region == Nothing && iszoomed
@@ -135,19 +132,23 @@ getAreaInfoFromSvg
     :: DOM.IsEvent ev 
     => DOM.EventM e ev (Maybe AreaInfo)
 getAreaInfoFromSvg = runMaybeT $ do
-  target     <- MaybeT DOM.eventTarget
-  svgelement <- MaybeT (DOM.castTo DOM.SVGElement target)
+  target         <- MaybeT DOM.eventTarget
+  svgelement     <- MaybeT (DOM.castTo DOM.SVGElement target)
   target_element <- DOM.getTagName svgelement
-  parentg    <- MaybeT (DOM.getParentElement svgelement)
-  let getAttr :: Text -> MaybeT (DOM.EventM e ev) (Maybe Text)
-      getAttr a = do
-         val <- MaybeT (DOM.getAttribute parentg a)
-         if val == "null"
-            then return Nothing
-            else return (Just val)
-      isPath = target_element == ("path" :: Text)
-  reg <- getAttr (if isPath then "reg" else "reg1")
-  ta  <- getAttr (if isPath then "ta" else "ta1")
-  wrd <- getAttr (if isPath then "wrd" else "wrd")
-  return $ AreaInfo reg ta wrd
+  parentg        <- MaybeT (DOM.getParentElement svgelement)
+  MaybeT $ mkAreaInfo target_element parentg
+  where
+    mkAreaInfo :: Text -> DOM.Element -> DOM.EventM e ev (Maybe AreaInfo)
+    mkAreaInfo target parent = do
+      let getAttr :: Text -> DOM.EventM e ev (Maybe Text)
+          getAttr a = do
+             val <- DOM.getAttribute parent a
+             if val == Just "null"
+                then return Nothing
+                else return val
+          isPath = target == ("path" :: Text)
+      reg <- getAttr (if isPath then "reg" else "reg1")
+      ta  <- getAttr (if isPath then "ta" else "ta1")
+      wrd <- getAttr (if isPath then "wrd" else "wrd1")
+      return $ Just $ AreaInfo reg ta wrd
 
