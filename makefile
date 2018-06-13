@@ -13,4 +13,4 @@ push:
 	docker push $(IMAGE)
 
 interact:
-	docker run -it --rm $(IMAGE) bash
+	docker run -it --rm -v $$(pwd):/work -w /work $(IMAGE) bash

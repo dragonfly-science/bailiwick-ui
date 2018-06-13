@@ -11,3 +11,5 @@ COPY nix.conf /etc/nix/nix.conf
  
 RUN cd /setup/ && nix-build -j6 deploy.nix
 
+RUN nix-env -i bash
+RUN nix-env -i zip
