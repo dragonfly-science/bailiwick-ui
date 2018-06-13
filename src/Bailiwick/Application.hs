@@ -3,6 +3,7 @@
 {-# LANGUAGE QuasiQuotes       #-}
 module Bailiwick.Application
   ( application
+  , indexHtml
   )
 where
 
@@ -25,12 +26,12 @@ uiStatic
     => m ()
 uiStatic = do
   divClass "section columns" $
-    elAttr "div" ( "class" =: "container box column home-page is-half" 
+    elAttr "div" ( "class" =: "container box column home-page is-half"
                  <> "id" =: "content-wrapper") $
       text "Loading..."
 
-indexHtml :: LB.ByteString -> IO LB.ByteString
-indexHtml js = do
+indexHtml :: [LB.ByteString] -> IO LB.ByteString
+indexHtml jss = do
   body <- LB.fromStrict . snd <$> renderStatic uiStatic
   return $ [str|
 <!DOCTYPE html>
@@ -58,20 +59,22 @@ indexHtml js = do
       ga('send', 'pageview');
 
     </script>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src="/bailiwick.js"></script>
 
   </head>
   <body>
     $body$
-    <script src='$js$'></script>
+    $ mconcat (map (\js -> "<script src=\"" <> js <> "\"></script>") jss) $
   </body>
   </html>
-    
+
 |]
 
 
 
 checkPath :: W.Request -> Bool
-checkPath req = 
+checkPath req =
     let path = W.pathInfo req
     in case path of
         []            -> True
@@ -81,14 +84,14 @@ checkPath req =
 
 application :: LB.ByteString -> IO W.Application
 application js = do
-    loadingPage <- indexHtml js
+    loadingPage <- indexHtml [js]
     return $ \req sendResponse
        -> case (W.requestMethod req, checkPath req) of
-            ("GET", True) -> 
-                sendResponse $ 
+            ("GET", True) ->
+                sendResponse $
                     W.responseLBS H.status200 [("Content-Type", "text/html")]
                     loadingPage
             _ -> staticApp (defaultWebAppSettings "static") req sendResponse
-                    
+
 
 

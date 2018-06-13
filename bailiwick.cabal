@@ -18,6 +18,7 @@ library
                      , Bailiwick.State
                      , Bailiwick.Route
                      , Bailiwick.View
+                     , Bailiwick.View.AreaSummary
                      , Bailiwick.View.Header
                      , Bailiwick.View.Map
                      , Bailiwick.Application
@@ -57,29 +58,41 @@ library
                      , wai-extra
                      , warp
                      , websockets
+  if os( osx ) && !impl( ghcjs )
+    build-depends:     jsaddle-wkwebview
+  else
+    build-depends:     jsaddle-warp
   default-language:    Haskell2010
   ghc-options: -Wall
 
 executable bailiwick
   hs-source-dirs: app
   main-is: Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall -dynamic
   build-depends:       base
                      , aeson
                      , bytestring
                      , containers
+                     , data-default
                      , directory
                      , filepath
                      , ghcjs-dom
                      , http-types
-                     , jsaddle-warp
                      , mtl
                      , reflex-dom-core
+                     , text
                      , wai
                      , wai-app-static
                      , warp
                      , websockets
                      , bailiwick
+  if os( osx ) && !impl( ghcjs )
+    build-depends:     jsaddle-wkwebview
+  else
+    build-depends:     jsaddle-warp
+  if impl(ghcjs)
+    ghc-options:       -dedupe
+    cpp-options:       -DGHCJS_BROWSER
   default-language: Haskell2010
 
 executable make-map-css

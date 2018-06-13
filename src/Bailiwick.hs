@@ -14,7 +14,7 @@ import Reflex.Dom.Contrib.Router
 import Language.Javascript.JSaddle.Types (MonadJSM)
 import Servant.Reflex
 
-import Bailiwick.Store (getAreas)
+import Bailiwick.Store (getAreas, getAreaSummaries)
 import Bailiwick.Route (decodeRoute, encodeRoute)
 import Bailiwick.View (view)
 import Bailiwick.Types
@@ -30,16 +30,17 @@ ui  :: ( Monad m
        , MonadWidget t m
       )  => m ()
 ui = do
-
   ready <- getPostBuild
-  areasE <- getAreas ready
-  areasD <- holdDyn [] $ fmapMaybe reqSuccess areasE
+  let maybeGetList = holdDyn [] . fmapMaybe reqSuccess
+  areasD <- fmap (fmap mkAreas) $ maybeGetList =<< getAreas ready
+  areaSummariesD <- fmap (fmap mkAreaSummaries) $ maybeGetList =<< getAreaSummaries ready
 
   dyn_ $ do
-    areas <- mkAreas <$> areasD
+    areas <- areasD
+    areaSummaries <- areaSummariesD
     return $ mdo
       state <- route' encodeRoute (decodeRoute areas) events
-      events <- view areas state
+      events <- view areas areaSummaries state
       return ()
 
 

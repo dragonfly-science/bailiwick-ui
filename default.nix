@@ -32,6 +32,7 @@ in reflex-platform.project ({ pkgs, ... }: {
 
       overrides = self: super: {
         servant-reflex = pkgs.haskell.lib.doJailbreak super.servant-reflex;
+        jsaddle-wkwebview = null;
       };
 
       shells = {

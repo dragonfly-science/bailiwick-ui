@@ -32,8 +32,29 @@ instance FromJSON Area where
       mapM parseJSON $ V.toList as
 
 type Areas = OMap Text Area
-        
+
 mkAreas :: [ Area ] -> Areas
 mkAreas areas = OMap.fromList [(areaId a, a) | a <- areas]
+
+newtype Indicator = Indicator { indicatorName :: Text }
+
+data AreaSummary
+  = AreaSummary
+    { areaSummaryId :: Text
+    , areaSummaryIndicatorValues :: Object
+    } deriving (Eq, Show, Generic)
+
+instance FromJSON AreaSummary where
+    parseJSON = withObject "AreaSummary" $ \v -> do
+      aid <- v .: "id"
+      return $ AreaSummary aid v
+    parseJSONList = withObject "AreaSummaries" $ \v -> do
+      Array as <- v .: "areaSummaries"
+      mapM parseJSON $ V.toList as
+
+type AreaSummaries = OMap Text AreaSummary
+
+mkAreaSummaries :: [ AreaSummary ] -> AreaSummaries
+mkAreaSummaries summaries = OMap.fromList [(areaSummaryId a, a) | a <- summaries]
 
 
