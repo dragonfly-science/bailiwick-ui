@@ -1,3 +1,4 @@
+.env/
 result
 /dist/
 /dist-ghcjs/
