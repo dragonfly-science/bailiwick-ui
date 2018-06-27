@@ -115,13 +115,16 @@ transition
      , MonadHold t m
      , PerformEvent t m
      , MonadJSM (Performable m)
+     , PostBuild t m
      )
   => Event t DOMHighResTimeStamp
   -> DOMHighResTimeStamp
   -> Dynamic t Double
   -> m (Dynamic t Bool, Dynamic t Double)
 transition frame duration input = do
-  changes <- attachTime . updated =<< holdUniqDyn input
+  postBuild <- getPostBuild
+  uniqInput <- holdUniqDyn input
+  changes <- attachTime $ leftmost [ updated uniqInput, tagPromptlyDyn uniqInput postBuild ]
   let f (Right (tNew, vNew)) Nothing                       = Just (TransitionState tNew False vNew vNew vNew)
       f (Right (tNew, vNew)) (Just TransitionState{..})    = Just (TransitionState tNew True currentValue currentValue vNew)
       f (Left _)             Nothing                       = Nothing
@@ -130,7 +133,7 @@ transition frame duration input = do
         in Just ts
           { active = stillActive
           , currentValue = if stillActive
-                then startValue + ((targetValue - startValue) * (max 0 (tNew - startTime)) / duration)
+                then startValue + ((targetValue - startValue) * max 0 (tNew - startTime) / duration)
                 else targetValue
           }
 
@@ -148,13 +151,13 @@ transitions
      , MonadHold t m
      , PerformEvent t m
      , MonadJSM (Performable m)
+     , PostBuild t m
      , Traversable f
      , CommutesWithFunctor f
      )
   => Event t DOMHighResTimeStamp
   -> DOMHighResTimeStamp
   -> Dynamic t (f Double)
---  -> f (Dynamic t Double)
   -> m (Dynamic t Bool, Dynamic t (f Double))
 transitions frame duration input = do
   x :: f (Dynamic t Bool, Dynamic t Double) <- mapM (transition frame duration) (commuteWith input)
@@ -339,7 +342,7 @@ nzmap areas state = mdo
       uncheckedCastTo HTMLElement <$> querySelectorUnsafe svgDoc ("svg" :: Text)
 
   let duration = 500
-  frame <- traceEventWith show <$> animationFrame zoomAnimating
+  frame <- animationFrame zoomAnimating
   let zoomStateD = zoomState <$> zoomD <*> regD
   (zoomAnimating, zoomStateT) <- transitions frame duration zoomStateD
 
@@ -364,6 +367,9 @@ nzmap areas state = mdo
       postBuild <- getPostBuild
       performEvent_ $ postBuild $> do
         set "height" "550px" svgBody
+        forSelectionSetAttribute "path" "stroke" "none"
+        forSelectionSetAttribute "path" "stroke-width" "0.001"
+        forSelectionSetAttribute "polyline" "stroke-linecap" "butt"
 
       mapStateE <- attachPrevious (leftmost [updated mapStateD, tagDyn mapStateD postBuild])
       performEvent . ffor mapStateE $ \(old, new) -> do
@@ -386,8 +392,6 @@ nzmap areas state = mdo
 
         -- Reset the properties of the changed elements
         forSelectionSetAttribute ("g" <> changed <> " > polyline") "stroke-width" (Text.pack . show $ sw * 2)
-        forSelectionSetAttribute ("g" <> changed <> " > path") "stroke" "none"
-        forSelectionSetAttribute ("g" <> changed <> " > path") "stroke-width" "0.001"
         if _zoom new
           then
             forM_ (_region new) $ \r -> do
@@ -429,21 +433,23 @@ nzmap areas state = mdo
 
               forM_ (_regionChildren new) $ \child -> do
                 forSelectionSetAttribute ("g:not(." <> regionClass <> ")." <> slugify child <> "-" <> subareaType <> " > path") "fill" "rgb(181,209, 223)"
-                forSelectionSetAttribute ("g:not(." <> regionClass <> ")." <> slugify child <> "-" <> subareaType <> " > polyline") "stroke" "rgb(181,209, 223)"
+                forSelectionSetAttribute ("g:not(." <> regionClass <> ")." <> slugify child <> "-" <> subareaType <> "[same_" <> subareaType <> "=TRUE] > polyline") "stroke" "rgb(181,209, 223)"
               case _mouseAreaInfo new of
                 Just AreaInfo{..} | (slugify <$> areaRegion) == Just r ->
                   forM_ (mouseOverSubareaClass new) $ \cssClass -> do
                     forSelectionSetAttribute ("g." <> regionClass <> "." <> cssClass <> " > path") "fill" "rgb(0, 189, 233)"
-                    forSelectionSetAttribute ("g.inbound." <> regionClass <> "." <> cssClass <> " > polyline") "stroke" "rgb(0, 189, 233)"
+                    forSelectionSetAttribute ("g.inbound." <> regionClass <> "." <> cssClass <> "[same_" <> subareaType <> "=TRUE] > polyline") "stroke" "rgb(0, 189, 233)"
+                    forSelectionSetAttribute ("g.inbound." <> regionClass <> "." <> cssClass <> "[same_reg=FALSE] > polyline") "stroke" "rgb(0, 189, 233)"
                     forSelectionSetAttribute ("g:not(." <> regionClass <> ")." <> cssClass <> " > path") "fill" "rgb(174, 227, 248)"
-                    forSelectionSetAttribute ("g.inbound:not(." <> regionClass <> ")." <> cssClass <> " > polyline") "stroke" "rgb(174, 227, 248)"
+                    forSelectionSetAttribute ("g.inbound:not(." <> regionClass <> ")." <> cssClass <> "[same_" <> subareaType <> "=TRUE] > polyline") "stroke" "rgb(174, 227, 248)"
                 _ -> return ()
 
               forM_ (_selectedSubareaClass new) $ \cssClass -> do
                 forSelectionSetAttribute ("g." <> regionClass <> "." <> cssClass <> " > path") "fill" "rgb(0, 189, 233)"
-                forSelectionSetAttribute ("g.inbound." <> regionClass <> "." <> cssClass <> " > polyline") "stroke" "rgb(0, 189, 233)"
+                forSelectionSetAttribute ("g.inbound." <> regionClass <> "." <> cssClass <> "[same_" <> subareaType <> "=TRUE] > polyline") "stroke" "rgb(0, 189, 233)"
+                forSelectionSetAttribute ("g.inbound." <> regionClass <> "." <> cssClass <> "[same_reg=FALSE] > polyline") "stroke" "rgb(0, 189, 233)"
                 forSelectionSetAttribute ("g:not(." <> regionClass <> ")." <> cssClass <> " > path") "fill" "rgb(174, 227, 248)"
-                forSelectionSetAttribute ("g.inbound:not(." <> regionClass <> ")." <> cssClass <> " > polyline") "stroke" "rgb(174, 227, 248)"
+                forSelectionSetAttribute ("g.inbound:not(." <> regionClass <> ")." <> cssClass <> "[same_" <> subareaType <> "=TRUE] > polyline") "stroke" "rgb(174, 227, 248)"
           else do
             forM_ (_region new) $ \r -> do
               forSelectionSetAttribute ("g." <> slugify r <> "-region > path") "fill" srbg
@@ -469,18 +475,6 @@ nzmap areas state = mdo
           "visibility:visible; left:" <> show (x + 8) <> "px; top:" <> show (y + 8) <> "px;"
   elDynAttr "div" (("class" =: "tooltip" <>) . ("style" =:) . showStyle <$> tooltipAreaD) $
     el "p" $ dynText $ maybe "" (areaName . snd) <$> tooltipAreaD
-
---  ready <- getPostBuild
---  let req = xhrRequest "GET" "/assets/map.svg" def
---  reqE <- performRequestAsync (req <$ ready)
---  let svgE = ffor reqE _xhrResponse_responseText
---  performEvent_ $ fforMaybe svgE (fmap $ DOM.setInnerHTML (_element_raw mapContainer))
-
---  let divElement = DOM.uncheckedCastTo DOM.HTMLElement (_element_raw mapContainer)
---  moveE :: Event t (Maybe (AreaInfo, (Int, Int)))
---     <- wrapDomEvent divElement (`DOM.on` DOM.mouseMove) $ getAreaInfoFromSvg divElement
---  clickE :: Event t (Maybe AreaInfo)
---     <- fmap (fmap fst) <$> wrapDomEvent divElement (`DOM.on` DOM.click) (getAreaInfoFromSvg divElement)
 
   moveE :: Event t (Maybe (AreaInfo, (Int, Int))) <- switchHold never =<< dyn (ffor svgBodyD $ \case
     Just divElement ->
