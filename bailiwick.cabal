@@ -58,10 +58,10 @@ library
                      , wai-extra
                      , warp
                      , websockets
-  if os( osx ) && !impl( ghcjs )
-    build-depends:     jsaddle-wkwebview
-  else
-    build-depends:     jsaddle-warp
+--  if os( osx ) && !impl( ghcjs )
+--    build-depends:     jsaddle-wkwebview
+--  else
+  build-depends:     jsaddle-warp
   default-language:    Haskell2010
   ghc-options: -Wall
 
@@ -86,16 +86,19 @@ executable bailiwick
                      , warp
                      , websockets
                      , bailiwick
-  if os( osx ) && !impl( ghcjs )
-    build-depends:     jsaddle-wkwebview
-  else
-    build-depends:     jsaddle-warp
+--  if os( osx ) && !impl( ghcjs )
+--    build-depends:     jsaddle-wkwebview
+--  else
+  build-depends:     jsaddle-warp
   if impl(ghcjs)
     ghc-options:       -dedupe
     cpp-options:       -DGHCJS_BROWSER
+    -- -DGHCJS_GC_INTERVAL=60000 -DGHCJS_SCHED_CHECK=100000
   default-language: Haskell2010
 
 executable make-map-css
+  if impl( ghcjs )
+    buildable: False
   hs-source-dirs: app
   main-is: MakeMapCss.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
