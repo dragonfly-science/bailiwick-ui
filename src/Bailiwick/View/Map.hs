@@ -93,11 +93,11 @@ animationFrame sendEvents = do
   stateChange <- updated <$> holdUniqDyn sendEvents
   sendEventsMVar <- liftIO newEmptyMVar
   ctx <- liftJSM askJSM
-  liftIO . forkIO $ forever $ do
+  _ <- liftIO . forkIO $ forever $ do
     takeMVar sendEventsMVar
     runJSM waitForAnimationFrame ctx >>= send
   performEvent_ $ ffor
-    (leftmost [stateChange, tag (current sendEvents) e]) $ \enabled -> do
+    (leftmost [stateChange, tag (current sendEvents) e]) $ \enabled ->
       when enabled . void . liftIO $ tryPutMVar sendEventsMVar ()
   return e
 
@@ -399,7 +399,7 @@ nzmap areas state = mdo
               forSelectionSetAttribute ("g" <> changed <> "[same_reg=TRUE] > polyline") "stroke-width" (Text.pack . show $ sw)
               forSelectionSetAttribute ("g" <> changed <> ".inbound[same_reg=FALSE] > polyline") "stroke" ol
               forSelectionSetAttribute ("g" <> changed <> ".inbound[same_reg=TRUE] > polyline") "stroke" srol
-              forSelectionSetAttribute ("g" <> changed <> ".inbound[same_" <> subareaType <> "=TRUE] > polyline") "stroke-width" "1.0"
+              forSelectionSetAttribute ("g" <> changed <> ".inbound[same_reg=TRUE][same_" <> subareaType <> "=TRUE] > polyline") "stroke-width" "1.0"
           else do
             forSelectionSetAttribute ("g" <> changed <> ".inbound[same_reg=FALSE] > polyline") "stroke" ol
             forSelectionSetAttributes ("g" <> changed <> ".inbound[same_reg=TRUE] > polyline") [("stroke", srol), ("stroke-width", "1.5")]
@@ -408,6 +408,7 @@ nzmap areas state = mdo
 
         if _zoom new
           then do
+            -- Clear old mouse over subarea that is outside the selected region (and so will not be included when we clear the selected region)
             forM_ (_region =<< old) $ \r -> do
               let regionClass = slugify r <> "-region"
               case _mouseAreaInfo =<< old of
@@ -421,35 +422,45 @@ nzmap areas state = mdo
             forM_ (_region new) $ \r -> do
               let regionClass = slugify r <> "-region"
                   subareaType = if r == "auckland" then "ward" else "ta"
-              forM_ (mouseOverRegionClass new) $ \cssClass -> do
-                setColour cssClass "rgb(197, 230, 247)"
-                forSelectionSetAttribute ("g.inbound." <> cssClass <> " > polyline") "stroke" "rgb(160,214,236)"
-                forSelectionSetAttribute ("g.coastline." <> cssClass <> " > polyline") "stroke" "none"
-                forSelectionSetAttribute ("g.inbound." <> cssClass <> "[same_" <> subareaType <> "=TRUE] > polyline") "stroke" "rgb(197, 230, 247)"
+
+              -- Selected region
               forSelectionSetAttribute ("g." <> regionClass <> " > path") "fill" srbg
-              forSelectionSetAttribute ("g." <> regionClass <> " > polyline") "stroke" "rgb(106,142,156)"
               forSelectionSetAttribute ("g.coastline." <> regionClass <> " > polyline") "stroke" "none"
               forSelectionSetAttribute ("g.inbound." <> regionClass <> "[same_" <> subareaType <> "=TRUE] > polyline") "stroke" srbg
+              forSelectionSetAttribute ("g.inbound." <> regionClass <> "[same_reg=TRUE][same_" <> subareaType <> "=FALSE] > polyline") "stroke" "rgb(106,142,156)"
+              forSelectionSetAttribute ("g.inbound." <> regionClass <> "[same_reg=FALSE][same_" <> subareaType <> "=FALSE] > polyline") "stroke" "none"
 
+              -- Remainder of subareas with some part the seleced region
               forM_ (_regionChildren new) $ \child -> do
                 forSelectionSetAttribute ("g:not(." <> regionClass <> ")." <> slugify child <> "-" <> subareaType <> " > path") "fill" "rgb(181,209, 223)"
-                forSelectionSetAttribute ("g:not(." <> regionClass <> ")." <> slugify child <> "-" <> subareaType <> "[same_" <> subareaType <> "=TRUE] > polyline") "stroke" "rgb(181,209, 223)"
+                forSelectionSetAttribute ("g:not(." <> regionClass <> ")." <> slugify child <> "-" <> subareaType <> "[same_" <> subareaType <> "=TRUE][same_reg=TRUE] > polyline") "stroke" "rgb(181,209, 223)"
+                forSelectionSetAttribute ("g:not(." <> regionClass <> ")." <> slugify child <> "-" <> subareaType <> "[same_" <> subareaType <> "=TRUE][same_reg=FALSE] > polyline") "stroke" ol
+
+              -- New mouse over region
+              forM_ (mouseOverRegionClass new) $ \cssClass -> when (cssClass /= regionClass) $ do
+                let mouseOverZoomBackground = "rgb(174, 227, 248)"
+                forSelectionSetAttribute ("g." <> cssClass <> " > path") "fill" mouseOverZoomBackground
+                forSelectionSetAttribute ("g.inbound." <> cssClass <> "[same_reg=TRUE] > polyline") "stroke" "rgb(160,214,236)"
+                forSelectionSetAttribute ("g.inbound." <> cssClass <> "[same_reg=TRUE][same_" <> subareaType <> "=TRUE] > polyline") "stroke" mouseOverZoomBackground
+
+              -- Mouse over subarea
               case _mouseAreaInfo new of
                 Just AreaInfo{..} | (slugify <$> areaRegion) == Just r ->
                   forM_ (mouseOverSubareaClass new) $ \cssClass -> do
                     forSelectionSetAttribute ("g." <> regionClass <> "." <> cssClass <> " > path") "fill" "rgb(0, 189, 233)"
                     forSelectionSetAttribute ("g.inbound." <> regionClass <> "." <> cssClass <> "[same_" <> subareaType <> "=TRUE] > polyline") "stroke" "rgb(0, 189, 233)"
-                    forSelectionSetAttribute ("g.inbound." <> regionClass <> "." <> cssClass <> "[same_reg=FALSE] > polyline") "stroke" "rgb(0, 189, 233)"
                     forSelectionSetAttribute ("g:not(." <> regionClass <> ")." <> cssClass <> " > path") "fill" "rgb(174, 227, 248)"
-                    forSelectionSetAttribute ("g.inbound:not(." <> regionClass <> ")." <> cssClass <> "[same_" <> subareaType <> "=TRUE] > polyline") "stroke" "rgb(174, 227, 248)"
+                    forSelectionSetAttribute ("g.inbound:not(." <> regionClass <> ")." <> cssClass <> "[same_" <> subareaType <> "=TRUE][same_reg=TRUE] > polyline") "stroke" "rgb(174, 227, 248)"
+                    forSelectionSetAttribute ("g.inbound:not(." <> regionClass <> ")." <> cssClass <> "[same_" <> subareaType <> "=TRUE][same_reg=FALSE] > polyline") "stroke" "rgb(0, 189, 233)"
                 _ -> return ()
 
+              -- Selected subarea
               forM_ (_selectedSubareaClass new) $ \cssClass -> do
                 forSelectionSetAttribute ("g." <> regionClass <> "." <> cssClass <> " > path") "fill" "rgb(0, 189, 233)"
                 forSelectionSetAttribute ("g.inbound." <> regionClass <> "." <> cssClass <> "[same_" <> subareaType <> "=TRUE] > polyline") "stroke" "rgb(0, 189, 233)"
-                forSelectionSetAttribute ("g.inbound." <> regionClass <> "." <> cssClass <> "[same_reg=FALSE] > polyline") "stroke" "rgb(0, 189, 233)"
                 forSelectionSetAttribute ("g:not(." <> regionClass <> ")." <> cssClass <> " > path") "fill" "rgb(174, 227, 248)"
-                forSelectionSetAttribute ("g.inbound:not(." <> regionClass <> ")." <> cssClass <> "[same_" <> subareaType <> "=TRUE] > polyline") "stroke" "rgb(174, 227, 248)"
+                forSelectionSetAttribute ("g.inbound:not(." <> regionClass <> ")." <> cssClass <> "[same_" <> subareaType <> "=TRUE][same_reg=TRUE] > polyline") "stroke" "rgb(174, 227, 248)"
+                forSelectionSetAttribute ("g.inbound:not(." <> regionClass <> ")." <> cssClass <> "[same_" <> subareaType <> "=TRUE][same_reg=FALSE] > polyline") "stroke" "rgb(0, 189, 233)"
           else do
             forM_ (_region new) $ \r -> do
               forSelectionSetAttribute ("g." <> slugify r <> "-region > path") "fill" srbg
