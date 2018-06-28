@@ -12,16 +12,17 @@ import Bailiwick.Types
 -- The state is held in a single dynamic at the top level.
 
 
-data Message 
+data Message
   = SetRegion Text
   | SetSubArea Text
-  | ToggleZoom
+  | ZoomIn
+  | ZoomOut (Maybe Text)
   deriving (Eq, Show)
 
 data State
  = State Page [Adapter]
  deriving (Eq, Show)
-data Page 
+data Page
   = Summary [Area]
   | Home
   deriving (Eq, Show)
@@ -49,5 +50,5 @@ getArea (State (Summary []) _)    = Nothing
 getArea (State (Summary areas) _) = Just $ last areas
 getArea (State Home _          )  = Nothing
 
-  
+
 

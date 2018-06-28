@@ -151,8 +151,9 @@ summaryText state = do
        <- elAttr' "div" ("class" =: "map-zoom") $ do
            dynText zoomText
            elDynAttr "span" zoomAttr $ return ()
-    return ( ToggleZoom <$ domEvent Click zoom)
-
+    return $ ffor (tagPromptlyDyn state (domEvent Click zoom)) $ \case
+      s | hasAdapter Mapzoom s -> ZoomOut . fmap areaId $ getRegion s
+      _ -> ZoomIn
 
 indicators
     :: ( Monad m , DomBuilder t m)

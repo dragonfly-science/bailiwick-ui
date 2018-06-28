@@ -2,7 +2,7 @@
 module Bailiwick.Route
 where
 
--- import Debug.Trace 
+-- import Debug.Trace
 import Data.Maybe (listToMaybe, mapMaybe)
 import Data.List ((\\))
 
@@ -17,34 +17,36 @@ import Bailiwick.Types
 
 
 encodeRoute :: URI -> Message -> URI
-encodeRoute uri message = 
-  let segments = decodePathSegments (uriPath uri) 
+encodeRoute uri message =
+  let segments = decodePathSegments (uriPath uri)
       Query flags = uriQuery uri
-      segments' = 
+      segments' =
           case (segments, message) of
-              (["summary", _], SetRegion reg) -> ["summary", reg]
-              (["summary", _], SetSubArea sa) -> ["summary", sa]
-              ([],             SetRegion reg) -> ["summary", reg]
-              ([],             SetSubArea sa) -> ["summary", sa]
-              _                               -> segments
+              (["summary", _], SetRegion reg)      -> ["summary", reg]
+              (["summary", _], ZoomOut (Just reg)) -> ["summary", reg]
+              (["summary", _], SetSubArea sa)      -> ["summary", sa]
+              ([],             SetRegion reg)      -> ["summary", reg]
+              ([],             ZoomOut (Just reg)) -> ["summary", reg]
+              ([],             SetSubArea sa)      -> ["summary", sa]
+              _                                    -> segments
       builder = encodePath segments' []
       flags' = updateFlag message flags
   in  uri { uriPath = B.toStrict $ toLazyByteString builder
           , uriQuery = Query flags'
           }
   where
-    updateFlag ToggleZoom flags =
-        if ("mapzoom", "1") `elem` flags
-            then flags \\ [("mapzoom", "1")]
-            else flags ++ [("mapzoom", "1")]
+    updateFlag ZoomIn flags
+      | ("mapzoom", "1") `notElem` flags =
+                                   flags ++ [("mapzoom", "1")]
+    updateFlag (ZoomOut _) flags = flags \\ [("mapzoom", "1")]
     updateFlag _ flags = flags
 
 
 decodeRoute :: Areas -> URI -> State
 decodeRoute areas uri =
-  let segments = decodePathSegments (uriPath uri) 
+  let segments = decodePathSegments (uriPath uri)
       Query flags = uriQuery uri
-      adapters = mapMaybe mkAdapter flags  
+      adapters = mapMaybe mkAdapter flags
       mkAdapter ("mapzoom", "1") = Just Mapzoom
       mkAdapter _ = Nothing
 
@@ -53,7 +55,7 @@ decodeRoute areas uri =
                 _              -> "new-zealand"
       area = OMap.lookup path areas
       parent = do
-        a <- area  
+        a <- area
         -- TODO: handle accessedvia
         listToMaybe [ parentArea
                     | parentArea <- mapMaybe (flip OMap.lookup areas) (areaParents a)

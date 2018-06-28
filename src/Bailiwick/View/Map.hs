@@ -500,7 +500,7 @@ nzmap areas state = mdo
       fmap (fmap fst) <$> wrapDomEvent divElement (`DOM.on` DOM.click) getAreaInfoFromSvg
     _ -> return never)
 
-  mouseOverFullD :: Dynamic t (Maybe (AreaInfo, (Int, Int))) <- holdDyn Nothing moveE
+  mouseOverFullD :: Dynamic t (Maybe (AreaInfo, (Int, Int))) <- holdDyn Nothing $ leftmost [moveE , Nothing <$ clickE]
   mouseOverD :: Dynamic t (Maybe AreaInfo) <- holdUniqDyn $ fmap fst <$> mouseOverFullD
 
   -- The click event depends on the state
@@ -516,13 +516,13 @@ nzmap areas state = mdo
             subarea = if region == Just auckland then ward else ta
         in  if
             | currentRegion == region && not iszoomed
-                -> Just ToggleZoom
+                -> Just ZoomIn
             | currentRegion /= region && isJust region
                 -> Just (SetRegion (fromJust region))
             | currentSubarea /= subarea && iszoomed && isJust subarea
                 -> Just (SetSubArea $ fromJust subarea)
             | isNothing region && iszoomed
-                -> Just ToggleZoom
+                -> Just (ZoomOut region)
             | otherwise
                 -> Nothing
 
