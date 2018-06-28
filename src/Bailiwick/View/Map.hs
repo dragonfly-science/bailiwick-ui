@@ -133,9 +133,13 @@ transition frame duration input = do
         in Just ts
           { active = stillActive
           , currentValue = if stillActive
-                then startValue + ((targetValue - startValue) * max 0 (tNew - startTime) / duration)
+                then startValue + ((targetValue - startValue) * g (max 0 (tNew - startTime) / duration))
                 else targetValue
           }
+      g :: Double -> Double
+      g x = let x2 = x * x
+                x3 = x2 * x
+            in 3 * x2 - 2 * x3
 
   transitionState :: Dynamic t (Maybe TransitionState) <- foldDyn f Nothing $ leftmost [Right <$> changes, Left <$> frame]
   return ( maybe False active <$> transitionState
