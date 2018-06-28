@@ -39,6 +39,9 @@ encodeRoute uri message =
       | ("mapzoom", "1") `notElem` flags =
                                    flags ++ [("mapzoom", "1")]
     updateFlag (ZoomOut _) flags = flags \\ [("mapzoom", "1")]
+    updateFlag (SetSubArea _) flags
+      | ("mapzoom", "1") `notElem` flags =
+                                   flags ++ [("mapzoom", "1")]
     updateFlag _ flags = flags
 
 

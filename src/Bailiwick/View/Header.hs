@@ -24,7 +24,7 @@ import Bailiwick.Types
 type AreaSlug = Text
 
 
-header 
+header
     :: ( MonadFix m
        , MonadHold t m
        , PostBuild t m
@@ -44,7 +44,7 @@ header areas state = mdo
       tasD = do
         mreg <- urlRegion
         return $ fromMaybe OMap.empty $ do
-          reg <- mreg  
+          reg <- mreg
           thisArea <- OMap.lookup reg areas
           return $ OMap.filter (\_ a -> areaId a `elem` areaChildren thisArea) areas
       background = do
@@ -85,9 +85,9 @@ header areas state = mdo
           uniqRegion <- holdUniqDyn region
           uniqSubarea <- holdUniqDyn subarea
 
-          return $ SetRegion <$> leftmost [ fmapMaybe id $ updated uniqSubarea
-                                          , fmapMaybe id $ updated uniqRegion
-                                          ]
+          return $ leftmost [ SetSubArea <$> fmapMaybe id (updated uniqSubarea)
+                            , SetRegion <$> fmapMaybe id (updated uniqRegion)
+                            ]
 
 dropdownMenu
     :: ( MonadFix m
@@ -111,17 +111,17 @@ dropdownMenu emptyPresentD closeE seenD initialD valuesD = do
 
   elDynAttr "div" dropdownAttrD $ do
     divClass "dropdown-container" $ mdo
-    
+
       currentValue :: Dynamic t (Maybe Text)
         <- holdDyn Nothing (firstKey <$> selectedValue)
 
       open :: Dynamic t Bool
         <- holdDyn False $
             leftmost [ (not <$> tag (current open) (domEvent Click p))
-                     , False <$ selectedValue 
+                     , False <$ selectedValue
                      , False <$ closeE ]
-   
-      let label = do 
+
+      let label = do
             mval <- initialD
             case mval of
               Nothing -> emptyPresentD
