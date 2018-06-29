@@ -1,0 +1,14 @@
+.base-map {
+  position: relative;
+  .svg-wrapper {
+    position: relative;
+    width: 100%;
+    @include display(flex);
+    @include align-items(center);
+    @include justify-content(flex-end);
+    object {
+      height: 100%;
+      width: 100%;
+    }
+  }
+}

@@ -1,0 +1,23 @@
+/**
+ * @file _buttons.scss
+ *
+ * Buttons - all button variations.
+ * */
+@import '../bourbon/addons/hide-text';
+
+button {
+  &.close {
+    // @include hide-text;
+    @include transition(all .25s ease);
+
+    width: rem(25);
+    height: rem(25);
+    outline: none;
+    background: none;
+
+    i {
+      @include fontello-icon( $icon: close, $font-size: rem(25), $color: $rear-white );
+      display: block;
+    }
+  }
+}

@@ -1,0 +1,93 @@
+/**
+ * @file _images.scss
+ *
+ * Image styles - as used on header images for regions.
+ * */
+
+
+/**
+ * REGIONAL HEADERS - as seen in the header of each page.
+ * */
+
+/**
+ * The base path for all header images.
+ * Include trailing /.
+ * */
+$BASE_IMAGE_PATH: '/images/headers/' !default;
+
+/**
+ * Define a list of maps defining regions & backgrounds: each region may speicify a region name & bg style as follows:
+ *
+ *    ( 'name': 'region name', 'bg': 'bg style', 'type': 'image|color' )
+ *
+ * - IF USING an image, it is expected to reside in the above base image path.
+ * - bg - is expected to be a bg style - e.g. a color, or if using an image the name of the image file in the
+ *   BASE_IMAGE_PATH folder.
+ * - type - can be either image or color.
+ * - ALL regions are expected to match those found in $REGIONS. If not, the image will not be generated.
+ * */
+
+$REGION_BACKGROUNDS:
+  (
+    ( 'name': 'auckland', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'auckland'), 'type': 'color' ),
+    ( 'name': 'bay-of-plenty', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'bay-of-plenty'), 'type': 'color' ),
+    ( 'name': 'canterbury', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'canterbuty'), 'type': 'color' ),
+    ( 'name': 'gisborne', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'gisborne'), 'type': 'color' ),
+    ( 'name': 'hawkes-bay', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'hawkes-bay'), 'type': 'color' ),
+    ( 'name': 'manawatu-wanganui', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'manawatu-wanganui'), 'type': 'color' ),
+    ( 'name': 'marlborough', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'marlborough'), 'type': 'color' ),
+    ( 'name': 'nelson', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'nelson'), 'type': 'color' ),
+    ( 'name': 'new-zealand', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'new-zealand'), 'type': 'color' ),
+    ( 'name': 'northland', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'northland'), 'type': 'color' ),
+    ( 'name': 'otago', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'otago'), 'type': 'color' ),
+    ( 'name': 'southland', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'southland'), 'type': 'color' ),
+    ( 'name': 'taranaki', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'taranaki'), 'type': 'color' ),
+    ( 'name': 'tasman', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'tasman'), 'type': 'color' ),
+    ( 'name': 'waikato', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'waikato'), 'type': 'color' ),
+    ( 'name': 'wellington', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'wellington'), 'type': 'color' ),
+    ( 'name': 'west-coast', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'west-coast'), 'type': 'color' )
+  ) !default;
+
+$preloaded-images: null;
+
+@each $region in $REGION_BACKGROUNDS {
+  $name: map-get($region, 'name');
+  $bg: map-get($region, 'bg');
+  $type: map-get($region, 'type');
+  $index: index($REGIONS, $name);
+
+  @if $index {
+    .background-#{$name}-image {
+      @if $type == 'image' {
+        $preloaded-images: $preloaded-images url(#{$BASE_IMAGE_PATH}#{$bg});
+        background-image: url(#{$BASE_IMAGE_PATH}#{$bg});
+      } @else if $type == 'color' {
+        background: #{$bg};
+      }
+    }
+  }
+}
+
+// .background-header-images {
+//     &:before {
+//         display: none;
+//         content: $preloaded-images;
+//     }
+// }
+
+
+/**
+ * SUMMARY IMAGE - as seen in the footer containing indicators on the homepage.
+ * */
+$REGION_SUMMARY: ('type': 'color', 'bg': $rear-summary-panel) !default;
+
+.sumary-image-bg {
+  $type: map-get($REGION_SUMMARY, 'type');
+  $bg: map-get($REGION_SUMMARY, 'bg');
+
+  @if $type == 'image' {
+    background-image: url(#{$bg});
+  } @else if $type == 'color' {
+    background: #{$bg};
+  }
+}

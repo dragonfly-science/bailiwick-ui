@@ -1,0 +1,88 @@
+.default-timeseries,
+default-timeseries {
+
+  position: relative;
+
+  .axis {
+    font-size: 12px;
+    path,
+    line {
+      fill: none;
+      stroke: $rear-white;
+      shape-rendering: crispEdges;
+    }
+
+    &--x-hidden {
+        display: none;
+    }
+
+    &--x {
+        .tick {
+            cursor: pointer;
+
+            &:hover {
+                text {
+                    fill: $rear-alternative-highlight;
+                }
+            }
+        }
+    }
+  }
+
+  .caption {
+    font-size: 12px;
+  }
+
+  text {
+    fill: $rear-dark-gray;
+  }
+
+  .areas {
+    fill: none;
+    stroke: tint($rear-black, 70%);
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    stroke-width: 0.8px;
+    stroke-opacity: 0.6;
+
+    path.new-zealand {
+      stroke-width: 1.9px;
+      stroke: $rear-chart-color-1;
+      stroke-opacity: 1.0;
+    }
+
+    path.current-area {
+      stroke-width: 2.5px;
+      stroke: $rear-chart-color-2;
+      stroke-opacity: 1.0;
+    }
+
+    path.compare-area {
+      stroke-width: 2.5px;
+      stroke: $rear-chart-color-3;
+      stroke-opacity: 1.0;
+    }
+
+    path.area--hover {
+      stroke-width: 2.5px;
+      stroke-opacity: 1.0;
+      stroke: $rear-secondary-highlight;
+    }
+  }
+
+  .focus text {
+    text-anchor: middle;
+    text-shadow: 0 1px 0 $rear-white, 1px 0 0 $rear-white, 0 -1px 0 $rear-white, -1px 0 0 $rear-white;
+  }
+
+  .voronoi path {
+    fill: none;
+    pointer-events: all;
+  }
+
+  .voronoi--show path {
+    stroke: red;
+    stroke-opacity: .2;
+  }
+
+}

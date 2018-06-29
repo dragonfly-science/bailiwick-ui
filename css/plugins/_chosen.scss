@@ -1,0 +1,111 @@
+/**
+ * @file _chosen.scss
+ *
+ * Styles for the chosen.js controller.
+ * */
+@import '../bourbon/addons/border-radius';
+.chosen-container {
+//   height: 30px;
+
+  .chosen-single {
+    @include border-bottom-radius(0);
+    @include border-top-radius(0);
+    box-shadow: 0 0 3px $rear-white inset, 0 1px 1px rgba($rear-black, 0.1);
+    border: none;
+    background: $rear-white;
+    font-family: 'gustan-medium';
+    text-transform: capitalize;
+  }
+
+  &-active.chosen-with-drop {
+    .chosen-single {
+      box-shadow: 0 1px 0 $rear-white inset;
+    }
+  }
+
+  &-single {
+    .chosen-default,
+    .chosen-single {
+      color: $rear-medium-gray;
+    }
+
+    .chosen-single div b {
+      @include transform(translateY(-50%));
+      @include triangle(10px, $rear-main-highlight, down);
+      position: absolute;
+      top: 50%;
+    }
+  }
+
+  .chosen-drop {
+    @include border-bottom-radius(0);
+    box-shadow: none;
+    display: block;
+    border: none;
+    background: $rear-white;
+
+    .chosen-search {
+      padding: 0;
+      background-position: 94% center;
+      background-repeat: no-repeat;
+      padding: 8px 8px 8px 8px;
+
+      input {
+        @include border-bottom-radius(0);
+        @include border-top-radius(0);
+        border: 1px solid $rear-light-gray;
+        margin: 0;
+        outline: none;
+        padding: 5px 40px 5px 5px;
+        box-shadow: none;
+        font-family: 'gustan-medium';
+        background: none;
+      }
+    }
+
+    .chosen-results {
+      display: none;
+      margin: 0;
+      padding: 0;
+      max-height: 280px;
+      border-bottom: 1px solid $rear-main-highlight;
+      color: $rear-medium-gray;
+
+      li {
+        @include transition(all .25s ease);
+        text-transform: capitalize;
+
+        &.active-result.highlighted,
+        &.active-result.result-selected {
+          background: $rear-alternative-highlight;
+          color: $rear-white;
+        }
+      }
+    }
+  }
+
+  &.chosen-container-active {
+    div {
+      b {
+        @include triangle(10px, $rear-main-highlight, up);
+        border-top: none;
+      }
+    }
+
+    &.chosen-with-drop {
+      .chosen-single {
+        @include border-bottom-radius(0);
+        @include border-top-radius(0);
+        border: none;
+        background: $rear-white;
+        font-family: 'gustan-medium';
+      }
+    }
+
+    .chosen-drop {
+      .chosen-results {
+        display: block;
+      }
+    }
+  }
+}

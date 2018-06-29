@@ -1,0 +1,114 @@
+/**
+ * @file _colours.scss
+ *
+ * Theme specific colours
+ * */
+
+ $REGION_HEADER_BACKGROUNDS: (
+   'auckland' : 'auckland.jpg',
+   'bay-of-plenty' : 'bay-of-plenty.jpg',
+   'canterbury' : 'canterbury.jpg',
+   'gisborne' : 'gisborne.jpg',
+   'hawkes-bay' : 'hawkes-bay.jpg',
+   'manawatu-wanganui' : 'manawatu-wanganui.jpg',
+   'marlborough' : 'marlborough.jpg',
+   'nelson' : 'nelson.jpg',
+   'new-zealand' : 'new-zealand.jpg',
+   'northland' : 'northland.jpg',
+   'otago' : 'otago.jpg',
+   'southland' : 'southland.jpg',
+   'taranaki' : 'taranaki.jpg',
+   'tasman' : 'tasman.jpg',
+   'waikato' : 'waikato.jpg',
+   'wellington' : 'wellington.jpg',
+   'west-coast' : 'west-coast.jpg'
+ );
+
+ $REGION_BACKGROUNDS:
+   (
+     ( 'name': 'auckland', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'auckland'), 'type': 'image' ),
+     ( 'name': 'bay-of-plenty', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'bay-of-plenty'), 'type': 'image' ),
+     ( 'name': 'canterbury', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'canterbury'), 'type': 'image' ),
+     ( 'name': 'gisborne', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'gisborne'), 'type': 'image' ),
+     ( 'name': 'hawkes-bay', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'hawkes-bay'), 'type': 'image' ),
+     ( 'name': 'manawatu-wanganui', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'manawatu-wanganui'), 'type': 'image' ),
+     ( 'name': 'marlborough', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'marlborough'), 'type': 'image' ),
+     ( 'name': 'nelson', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'nelson'), 'type': 'image' ),
+     ( 'name': 'new-zealand', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'new-zealand'), 'type': 'image' ),
+     ( 'name': 'northland', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'northland'), 'type': 'image' ),
+     ( 'name': 'otago', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'otago'), 'type': 'image' ),
+     ( 'name': 'southland', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'southland'), 'type': 'image' ),
+     ( 'name': 'taranaki', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'taranaki'), 'type': 'image' ),
+     ( 'name': 'tasman', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'tasman'), 'type': 'image' ),
+     ( 'name': 'waikato', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'waikato'), 'type': 'image' ),
+     ( 'name': 'wellington', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'wellington'), 'type': 'image' ),
+     ( 'name': 'west-coast', 'bg': map-get($REGION_HEADER_BACKGROUNDS, 'west-coast'), 'type': 'image' )
+   );
+
+$REGION_SUMMARY: ('type' : 'image', 'bg' : 'images/road-in-trees-overlay.jpg' );
+
+// Global Colors
+$rear-dark-gray:                  #666666;
+$rear-medium-gray:                #999999;
+$rear-mid-gray:                   #AAAAAA;
+$rear-light-gray:                 #DDDDDD;
+$rear-white:                      #FFFFFF;
+$rear-black:                      #000000;
+
+$rear-background:                 #DFF1FC;
+$rear-main-highlight:             #296575;
+$rear-alternative-highlight:      #00BDE9;
+$rear-secondary-highlight:        #7AC82D;
+$rear-inactive:                   #BAD4E0;
+$rear-focus:                      #477DCA;
+
+// Chart Colors
+$rear-negative:                   #c4178b;
+$rear-negative-light:             #F1CBE5;
+$rear-positive:                   #296575;
+$rear-positive-light:             #C5DFE6;
+
+// Font Colors
+$rear-background-color:           $rear-white;
+$rear-font-color:                 $rear-dark-gray;
+
+// Border
+$rear-border-color:               $rear-light-gray;
+$rear-border:                     1px solid $rear-border-color;
+
+// Forms
+$rear-form-box-shadow:            inset 0 1px 3px rgba($rear-white, 0.06);
+$rear-form-box-shadow-focus:      $rear-form-box-shadow, 0 0 5px adjust-color($rear-focus, $lightness: -5%, $alpha: -0.3);
+
+$rear-header-bg:                  $rear-main-highlight;
+$rear-header-title:               $rear-main-highlight;
+$rear-default-header-background:  $rear-main-highlight;
+$rear-header-box-shadow:          $rear-main-highlight;
+
+// Toolbar
+$rear-toolbar-box-shadow:         $rear-dark-gray;
+$rear-toolbar-text:               $rear-dark-gray;
+
+// Footer
+$rear-footer-bg:                  $rear-main-highlight;
+
+// Additional colours.
+$rear-compare-panel-background:   #31c19e;
+$rear-table-row-hover:            #f7fbfe;
+$rear-default-header-background:  #3b8092;
+
+// Map.
+$rear-map-main-bg:                $rear-main-highlight;
+$rear-map-hover-bg:               $rear-alternative-highlight;
+
+
+// Summary / Indicators panel (above footer)
+$rear-summary-title:              $rear-white;
+$rear-summary-panel:              $rear-dark-gray;
+$rear-summary-active-triangle:    $rear-white;
+$rear-summary-inactive-triangle:  $rear-dark-gray;
+
+
+$rear-chart-color-1:              $rear-main-highlight;
+$rear-chart-color-2:              $rear-alternative-highlight;
+$rear-chart-color-3:              $rear-secondary-highlight;

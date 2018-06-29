@@ -1,0 +1,55 @@
+.zoom-controls {
+  @include display(flex);
+  position: absolute;
+  top: 0;
+  z-index: 1;
+
+  input {
+    display: none;
+  }
+
+  label {
+    @extend %selector-button-label;
+    width: 23px;
+    height: 23px;
+
+    span {
+      @include border-top-radius(50%);
+      @include border-bottom-radius(50%);
+      width: 23px;
+      height: 23px;
+      padding: 0;
+      font-size: 0;
+      line-height: 0;
+
+      &:before {
+        @include transform(translateX(-50%) translateY(-50%));
+        display: block;
+        left: 50%;
+        top: 50%;
+        position: absolute;
+        font-size: 20px;
+        color: $rear-background;
+        margin-top:-1px;
+      }
+    }
+  }
+
+
+  .zoom-in {
+    &:before {
+      content: '+';
+    }
+  }
+
+  .zoom-out {
+    &:before {
+      content: '-';
+    }
+  }
+}
+.zoom-controls.disabled span {
+  background-color: $rear-inactive;
+  opacity: 0.5;
+  pointer-events: none;
+}

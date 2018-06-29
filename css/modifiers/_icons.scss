@@ -1,0 +1,89 @@
+/**
+ * @file _icons.scss
+ *
+ * Generated via the ruby library sprite-factory: https://github.com/jakesgordon/sprite-factory
+ *
+ * There is a bundler setup included (with a Gemfile in the root). To re-generate run:
+ *
+ * bundler install
+ * bundle exec sf public/assets/icons/ --style scss --layout packed --selector \
+ * ".icon"- --output-style ./app/styles/modifiers/_icons.scss
+ * */
+
+// i[class^="icon-"] {
+//   display: inline-block;
+// }
+//
+// .icon-cc_icons { width: 205px; height: 100px; background: url(icons.png) 0px 0px no-repeat; }
+// .icon-cc { width: 89px; height: 72px; background: url(icons.png) 0px -100px no-repeat; }
+// .icon-linkedin { width: 79px; height: 79px; background: url(icons.png) -205px 0px no-repeat; }
+// .icon-workforce { width: 79px; height: 57px; background: url(icons.png) -205px -79px no-repeat; }
+// .icon-tertiary-education { width: 79px; height: 54px; background: url(icons.png) -89px -100px no-repeat; }
+// .icon-school-education { width: 79px; height: 53px; background: url(icons.png) 0px -172px no-repeat; }
+// .icon-income-white { width: 70px; height: 62px; background: url(icons.png) -284px 0px no-repeat; }
+// .icon-income { width: 70px; height: 62px; background: url(icons.png) -284px -62px no-repeat; }
+// .icon-tourism { width: 68px; height: 68px; background: url(icons.png) -284px -124px no-repeat; }
+// .icon-housing-white { width: 67px; height: 61px; background: url(icons.png) 0px -225px no-repeat; }
+// .icon-housing { width: 67px; height: 61px; background: url(icons.png) -67px -225px no-repeat; }
+// .icon-agriculture { width: 66px; height: 59px; background: url(icons.png) -134px -225px no-repeat; }
+// .icon-economy-white { width: 65px; height: 58px; background: url(icons.png) -200px -225px no-repeat; }
+// .icon-economy { width: 65px; height: 58px; background: url(icons.png) -265px -225px no-repeat; }
+// .icon-government { width: 63px; height: 63px; background: url(icons.png) 0px -286px no-repeat; }
+// .icon-production { width: 63px; height: 62px; background: url(icons.png) -63px -286px no-repeat; }
+// .icon-people { width: 58px; height: 58px; background: url(icons.png) -242px -286px no-repeat; }
+// .icon-people-white { width: 58px; height: 58px; background: url(icons.png) -354px 0px no-repeat; }
+// .icon-export { width: 54px; height: 54px; background: url(icons.png) -354px -116px no-repeat; }
+// .icon-export-hover { width: 53px; height: 53px; background: url(icons.png) -354px -170px no-repeat; }
+// .icon-zoom-minus { width: 52px; height: 50px; background: url(icons.png) -354px -223px no-repeat; }
+// .icon-zoom-plus { width: 52px; height: 50px; background: url(icons.png) -354px -273px no-repeat; }
+// .icon-facebook { width: 24px; height: 52px; background: url(icons.png) -168px -100px no-repeat; }
+// .icon-close-white { width: 50px; height: 50px; background: url(icons.png) -79px -172px no-repeat; }
+// .icon-close { width: 50px; height: 50px; background: url(icons.png) -129px -172px no-repeat; }
+// .icon-map-circle-icon { width: 44px; height: 44px; background: url(icons.png) -179px -172px no-repeat; }
+// .icon-inactive-tick-hover { width: 44px; height: 44px; background: url(icons.png) -223px -172px no-repeat; }
+// .icon-map-circle-icon-fill { width: 44px; height: 44px; background: url(icons.png) -300px -286px no-repeat; }
+// .icon-inactive-tick { width: 44px; height: 44px; background: url(icons.png) 0px -349px no-repeat; }
+// .icon-active-tick-hover { width: 44px; height: 44px; background: url(icons.png) -44px -349px no-repeat; }
+// .icon-map-region-icon { width: 44px; height: 44px; background: url(icons.png) -88px -349px no-repeat; }
+// .icon-active-tick { width: 44px; height: 44px; background: url(icons.png) -132px -349px no-repeat; }
+// .icon-twitter { width: 44px; height: 38px; background: url(icons.png) -176px -349px no-repeat; }
+// .icon-cog { width: 41px; height: 41px; background: url(icons.png) -412px 0px no-repeat; }
+// .icon-timeseries { width: 40px; height: 40px; background: url(icons.png) -412px -41px no-repeat; }
+// .icon-indicators-large { width: 26px; height: 39px; background: url(icons.png) -412px -81px no-repeat; }
+// .icon-chart-treemap { width: 37px; height: 37px; background: url(icons.png) -412px -120px no-repeat; }
+// .icon-chart-barchart { width: 37px; height: 37px; background: url(icons.png) -412px -157px no-repeat; }
+// .icon-chart-timeseries { width: 37px; height: 37px; background: url(icons.png) -412px -194px no-repeat; }
+// .icon-download-header-icon { width: 37px; height: 33px; background: url(icons.png) -412px -231px no-repeat; }
+// .icon-share-header-icon { width: 37px; height: 33px; background: url(icons.png) -412px -264px no-repeat; }
+// .icon-download-header-icon-over { width: 37px; height: 33px; background: url(icons.png) -412px -297px no-repeat; }
+// .icon-embed-header-icon { width: 37px; height: 33px; background: url(icons.png) -412px -330px no-repeat; }
+// .icon-embed-header-icon-over { width: 37px; height: 33px; background: url(icons.png) -284px -192px no-repeat; }
+// .icon-share-header-icon-over { width: 37px; height: 33px; background: url(icons.png) -205px -136px no-repeat; }
+// .icon-top-nav-home-icon { width: 28px; height: 34px; background: url(icons.png) -220px -349px no-repeat; }
+// .icon-top-nav-home-icon-white { width: 28px; height: 34px; background: url(icons.png) -248px -349px no-repeat; }
+// .icon-indicators-white { width: 19px; height: 32px; background: url(icons.png) -321px -192px no-repeat; }
+// .icon-indicators { width: 19px; height: 32px; background: url(icons.png) -242px -136px no-repeat; }
+// .icon-zoom-out { width: 30px; height: 30px; background: url(icons.png) -412px -363px no-repeat; }
+// .icon-zoom-in { width: 30px; height: 30px; background: url(icons.png) -276px -349px no-repeat; }
+// .icon-button-on { width: 29px; height: 30px; background: url(icons.png) -306px -349px no-repeat; }
+// .icon-button-hover { width: 29px; height: 30px; background: url(icons.png) -335px -349px no-repeat; }
+// .icon-button-off { width: 29px; height: 29px; background: url(icons.png) -364px -349px no-repeat; }
+// .icon-chart-treemap-light-blue { width: 26px; height: 26px; background: url(icons.png) -354px -323px no-repeat; }
+// .icon-chart-barchart-blue { width: 26px; height: 26px; background: url(icons.png) -380px -323px no-repeat; }
+// .icon-chart-treemap-blue { width: 26px; height: 26px; background: url(icons.png) 0px -393px no-repeat; }
+// .icon-chart-barchart-light-blue { width: 26px; height: 26px; background: url(icons.png) -26px -393px no-repeat; }
+// .icon-chart-timeseries-light-blue { width: 26px; height: 26px; background: url(icons.png) -52px -393px no-repeat; }
+// .icon-chart-timeseries-blue { width: 26px; height: 26px; background: url(icons.png) -78px -393px no-repeat; }
+// .icon-close-small-blue { width: 25px; height: 25px; background: url(icons.png) -104px -393px no-repeat; }
+// .icon-close-small-blue-over { width: 25px; height: 25px; background: url(icons.png) -129px -393px no-repeat; }
+// .icon-close-icon { width: 25px; height: 25px; background: url(icons.png) -154px -393px no-repeat; }
+// .icon-table-icon { width: 24px; height: 15px; background: url(icons.png) -89px -154px no-repeat; }
+// .icon-indicator-arrow-white { width: 12px; height: 22px; background: url(icons.png) -438px -81px no-repeat; }
+// .icon-indicator-arrow { width: 12px; height: 22px; background: url(icons.png) -340px -192px no-repeat; }
+// .icon-undo-arrow { width: 20px; height: 20px; background: url(icons.png) -261px -136px no-repeat; }
+// .icon-zoom-out-small { width: 20px; height: 20px; background: url(icons.png) -330px -225px no-repeat; }
+// .icon-zoom-in-small { width: 20px; height: 20px; background: url(icons.png) -330px -245px no-repeat; }
+// .icon-search-icon { width: 18px; height: 19px; background: url(icons.png) -393px -349px no-repeat; }
+// .icon-table-compare-ascending { width: 13px; height: 19px; background: url(icons.png) -192px -100px no-repeat; }
+// .icon-table-compare-neutral { width: 13px; height: 19px; background: url(icons.png) -192px -119px no-repeat; }
+// .icon-table-compare-descending { width: 13px; height: 19px; background: url(icons.png) -267px -172px no-repeat; }

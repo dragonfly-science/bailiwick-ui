@@ -1,0 +1,104 @@
+.export-dialog {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-color: rgba(128,128,128,0.2);
+  z-index: 100;
+  padding-top: 10%;
+
+    @include display(flex);
+    @include justify-content(center);
+    @include align-items(flex-start);
+
+
+  .export-dialog-main {
+    margin-top: 200px;
+    width: 700px;
+    padding: 6px 24px;
+    margin: 0 18px;
+    background-color: $rear-white;
+    z-index: 1000;
+    box-shadow: 3px 3px 5px 0px transparentize($rear-black, 0.8);
+
+    .export-header {
+      width: 100%;
+      border-bottom: $rear-medium-gray 1px dashed;
+      @include display(flex);
+      @include justify-content(space-between);
+
+      .export-close {
+        margin: 12px 0;
+        cursor: pointer;
+        position: relative;
+        width: rem(48);
+        height: rem(36);
+
+        @include fontello-icon( $icon: close, $font-size: rem(24), $color: $rear-alternative-highlight ) {
+            @include transform(translateX(-50%) translateY(-50%));
+            display: block;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+        }
+
+        &:hover {
+          background: $rear-alternative-highlight;
+
+          @include fontello-icon( $icon: close, $font-size: rem(24), $color: $rear-white );
+        }
+      }
+
+      .export-menu {
+        @include display(flex);
+        .export-type {
+          font-family: "gustan-light";
+          font-size: 24px;
+          padding: 0 12px;
+          margin: 12px 0;
+          color: $rear-medium-gray;
+          border-left: $rear-medium-gray 1px solid;
+          cursor: pointer;
+          &:last-child {
+          }
+          &:first-child {
+            padding-left: 0;
+            border-left: none;
+          }
+          &:hover {
+            background-color: $rear-alternative-highlight;
+            color: $rear-white;
+          }
+          &.active {
+            color: $rear-main-highlight;
+            background-color: $rear-white;
+          }
+          &.hide-small {
+            @media (max-width: 836px) {
+              display: none;
+            }
+          }
+        }
+      }
+    }
+    .export-body {
+      @include display(flex);
+      @include flex-wrap(wrap);
+      @include justify-content(space-between);
+      @include align-items(stretch);
+      @include align-content(space-between);
+      min-height: 300px;
+      padding: 25px 0;
+
+      .export-detail {
+        @include flex(1 0 300px);
+        padding-right: rem(20);
+      }
+
+      .export-controls {
+        @include flex(1 0 200px);
+      }
+    }
+  }
+}

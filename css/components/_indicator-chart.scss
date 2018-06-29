@@ -1,0 +1,98 @@
+.indicator-chart {
+  $width: 2 * $central-4col-width + $central-spacing;
+  $side-margin: $central-spacing / 2;
+  $grow: 1;
+
+  // ------------------------------------
+
+  @include flex-basis(480px);
+  @include flex-grow($grow);
+
+  margin: 0 $side-margin;
+  position: relative;
+
+  .chart-wrapper {
+    @include display(flex);
+    @include flex-wrap(wrap);
+    @include justify-content(center);
+    @include align-content(stretch);
+
+    // margin-top: rem(79);
+    position: relative;
+
+    .d3-attach {
+      height: 474px;
+      @extend %figure-width;
+    }
+  }
+
+  .product-selector {
+    margin-top: $marginF;
+    .block-label {
+
+      margin-bottom: 0;
+      padding-bottom: $marginD;
+      border-bottom: 1px dotted $rear-medium-gray;
+
+    }
+    .products {
+      @include display(flex);
+      @include flex-direction(row);
+      @include flex-wrap(wrap);
+
+      padding-top: $marginD;
+      .product-link {
+        @include flex(1 1 $central-4col-width - $marginD);
+
+        font-size: 12px;
+        overflow: hidden;
+        white-space: nowrap;
+        margin-right: $marginD;
+        padding-bottom: $marginB;
+      }
+
+      .product-accommodation {
+        // @include accommodation-icon($rear-medium-gray);
+        background-repeat: no-repeat;
+        background-position: left center;
+        padding-left: 30px;
+      }
+      .product-food-and-beverage-serving-services {
+        // @include food-icon($rear-medium-gray);
+        background-repeat: no-repeat;
+        background-position: left center;
+        padding-left: 30px;
+
+      }
+      .product-other-passenger-transport {
+        // @include travel-icon($rear-medium-gray);
+
+        background-repeat: no-repeat;
+        background-position: left center;
+        padding-left: 30px;
+      }
+      .product-other-tourism-products {
+        // @include other-icon($rear-medium-gray);
+
+        background-repeat: no-repeat;
+        background-position: left center;
+        padding-left: 30px;
+      }
+
+      .product-retail-sales---fuel-and-other-automotive {
+        // @include fuel-icon($rear-medium-gray);
+
+        background-repeat: no-repeat;
+        background-position: left center;
+        padding-left: 30px;
+      }
+      .product-retail-sales---other {
+        // @include retail-icon($rear-medium-gray);
+
+        background-repeat: no-repeat;
+        background-position: left center;
+        padding-left: 30px;
+      }
+    }
+  }
+}

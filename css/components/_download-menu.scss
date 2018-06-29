@@ -1,0 +1,98 @@
+.download-menu {
+  .extra-wrapper {
+    @include display(flex);
+    @include justify-content(space-between);
+    width: 100%;
+
+    .copyright {
+      font-size: 12px;
+      font-family: "gustan-book";
+      color: $rear-dark-gray;
+      line-height: 1.4;
+      display: block;
+
+      .icons {
+        float: left;
+        margin-right: 5px;
+      }
+
+      .cc-cc,
+      .cc-by {
+        width: rem(30);
+        height: rem(30);
+        display: inline-block;
+      }
+
+      .cc-cc {
+        @include fontello-icon( $icon: cc, $font-size: rem(30), $color: $rear-dark-gray) {
+            margin-left: -5px;
+        }
+      }
+
+      .cc-by {
+        @include fontello-icon( $icon: by, $font-size: rem(30), $color: $rear-dark-gray) {
+            margin-left: -5px;
+        }
+      }
+
+      a {
+        float: left;
+        width: rem(170);
+      }
+    }
+    .download-text {
+      span {
+        color: $rear-secondary-highlight;
+      }
+    }
+    .download-controls {
+
+      @include display(flex);
+      @include flex-direction(column);
+      @include justify-content(flex-end);
+
+      .data-labels {
+        color: $rear-medium-gray;
+      }
+
+    .embed-components {
+      input {
+        display: none;
+      }
+      .embed-component {
+        @include display(flex);
+        @include justify-content(space-between);
+        font-size: 14px;
+        margin: 4px 0;
+        cursor: pointer;
+        padding: 5px 0;
+        border-bottom: $rear-medium-gray 1px dashed;
+
+        &:first-child {
+          border-top: $rear-medium-gray 1px dashed;
+        }
+
+        @import 'embed_popup_form';
+      }
+    }
+
+      .download-button {
+        color: $rear-white;
+        font-size: 14px;
+        text-align: center;
+        height: 40px;
+        line-height: 40px;
+        cursor: pointer;
+        background-color: $rear-main-highlight;
+
+        @media #{$breakpoint_small} {
+          margin-top: 4px;
+        }
+
+        &:hover {
+          background-color: $rear-alternative-highlight;
+        }
+      }
+    }
+  }
+}

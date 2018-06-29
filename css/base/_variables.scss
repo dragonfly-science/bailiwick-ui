@@ -1,0 +1,23 @@
+// Typography
+
+$sans-serif: gustan-book, sans-serif;
+$base-font-family: $sans-serif;
+$heading-font-family: $base-font-family;
+
+// Font Sizes
+$base-font-size: 1em;
+
+// Line height
+$base-line-height: 1.5;
+$heading-line-height: 1.2;
+
+// Other Sizes
+$rear-border-radius: 3px;
+$base-spacing: $base-line-height * 1em;
+$small-spacing: $base-spacing / 2;
+$base-z-index: 0;
+
+// Logo
+$rear-logo-url: 'images/mbie-rea-logo.png' !default;
+$rear-logo-width: 133px !default;
+$rear-logo-height: 50px !default;

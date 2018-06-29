@@ -1,0 +1,11 @@
+/**
+ * @file _breakpoints.scss
+ *
+ * Global Breakpoint sizes
+ * */
+
+ $breakpoint_small: "(max-width: 768px)";
+ $breakpoint_aboveMobile: "(min-width: 768px)";
+ $breakpoint_medium: "(min-width: 769px) and (max-width: 1024px)";
+ $breakpoint_medium_tablet: "(max-width: 1024px)";
+ $breakpoint_large: "(min-width: 1025px)";

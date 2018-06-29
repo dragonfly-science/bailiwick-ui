@@ -1,0 +1,189 @@
+@import "bourbon/bourbon";
+@import "font-awesome/scss/font-awesome";
+
+@include font-face("gustan-book", "/fonts/GustanWeb-Book",  $file-formats: eot woff ttf svg);
+@include font-face("gustan-bold", "/fonts/GustanWeb-Bold",  $file-formats: eot woff ttf svg);
+@include font-face("gustan-medium", "/fonts/GustanWeb-Medium",  $file-formats: eot woff ttf svg);
+@include font-face("gustan-thin", "/fonts/GustanWeb-Thin",  $file-formats: eot woff ttf svg);
+@include font-face("gustan-light", "/fonts/GustanWeb-Light",  $file-formats: eot woff ttf svg);
+
+@include font-face('mbie-rea', '/fonts/mbie-rea', $file-formats: eot woff woff2 ttf svg);
+
+@import "base/base";
+@import "config/breakpoints";
+
+$central-height: 550px;
+$summary-height: 300px;
+$map-height: 400px;
+$content-margin: 20px;
+
+$marginA: 2px;
+$marginB: 5px;
+$marginC: 10px;
+$marginD: 15px;
+$marginE: 20px;
+$marginF: 60px;
+$marginG: 30px;
+$marginH: 35px;
+
+
+//$central-width: 885px;
+$central-width: 1045px;
+$central-content-footer-height: 120px;
+
+$central-padding: floor(7.5/885 * $central-width);
+$central-spacing: floor(25/885 * $central-width);
+
+$central-3col-width: floor(265/885 * $central-width);
+
+$central-4col-width: floor(192/885 * $central-width);
+
+
+
+@import "common";
+@import "mixins/icons";
+@import "modifiers/icons";
+@import "styles";
+
+/**
+ * Import themes before using colours.
+ * */
+@import "themes";
+
+@import "header";
+@import "footer";
+@import "mixins/dropdown";
+@import "button-group";
+@import "legend";
+@import "export";
+@import "embed";
+@import "base-map";
+@import "central-content";
+@import "tourism-splitbar";
+@import "whole-body";
+
+/**
+ * Import elements.
+ * */
+@import "elements/logo";
+
+
+/**
+ * Import components
+ * */
+@import "components/area-summary";
+@import "components/area-treemap";
+@import "components/basic-barchart";
+@import "components/border-switch";
+@import "components/chart-options";
+@import "components/compare-menu";
+@import "components/default-timeseries";
+@import "components/download-menu";
+@import "components/embed-menu";
+@import "components/export-dialog";
+@import "components/houseprice-timeseries";
+@import "components/indicators-button";
+@import "components/indicator-chart";
+@import "components/indicator-map";
+@import "components/indicator-summary";
+@import "components/navigation-map";
+@import "components/overunder-barchart";
+@import "components/share-menu";
+@import "components/table-button";
+@import "components/table-view";
+@import "components/toolbar-filter";
+@import "components/zoom-controls";
+
+/**
+ * Plugins
+ * */
+@import "plugins/perfect-scrollbar";
+
+
+html {
+  box-sizing: border-box; }
+
+*,
+*::after,
+*::before {
+  box-sizing: inherit;
+}
+
+body {
+  background-color: $rear-background;
+  margin: 0;
+}
+
+.content {
+  @include clearfix;
+  max-width: $central-width;
+  margin: 0 auto;
+}
+
+.main-content {
+    margin-top: rem(25);
+}
+
+.whole-page {
+  height: 480px;
+  overflow: auto;
+  position: relative;
+}
+
+.svg-loading {
+  display: block;
+  background: url(images/loading.svg);
+  background-repeat: no-repeat;
+  background-position: center;
+
+  object,
+  svg {
+    visibility: hidden;
+  }
+}
+
+.tooltip {
+  position: absolute;
+  padding: 14px;
+  font-family: "gustan-medium";
+  pointer-events:none;
+  background-color: $rear-white;
+  visibility: hidden;
+  z-index: 9;
+  box-shadow: 5px 5px 10px transparentize(black, 0.9);
+
+  p {
+    margin: 0;
+    line-height: 1.3;
+  }
+
+  font-size: 12px;
+  .local {
+    color: $rear-alternative-highlight;
+  }
+  .primary {
+    color: $rear-main-highlight;
+  }
+  .active {
+    color: $rear-secondary-highlight;
+  }
+  .number {
+    font-size: 26px;
+    white-space: nowrap;
+  }
+  .extra {
+    text-transform: uppercase;
+    font-size: 10px;
+  }
+
+}
+
+.svg-wrapper{
+  height: 450px;
+}
+
+.lock-title {
+  @media #{$breakpoint_large} {
+    min-height: 40px;
+  }
+}

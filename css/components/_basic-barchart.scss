@@ -1,0 +1,46 @@
+.basic-barchart{
+  .bar {
+    fill: $rear-main-highlight;
+  }
+
+  .bar.negative {
+    fill: $rear-negative;
+  }
+
+  .bar.active {
+    fill: $rear-secondary-highlight;
+  }
+
+  .bar.negative:hover,
+  .bar:hover {
+    fill: $rear-alternative-highlight;
+  }
+
+  .axis {
+    font: 10px sans-serif;
+  }
+
+  .tick line {
+    fill: none;
+    shape-rendering: crispEdges;
+    stroke-width: 1px;
+    opacity: 0.8;
+  }
+
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: $rear-white;
+    shape-rendering: crispEdges;
+  }
+
+  .axis path {
+    display: none;
+  }
+
+  text {
+    font-family: "gustan-book";
+    font-size: 12px;
+    fill: $rear-text;
+  }
+}

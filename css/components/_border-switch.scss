@@ -1,0 +1,36 @@
+.border-switch {
+  @include display(flex);
+  input {
+    display: none;
+
+    + .checkbox {
+      ellipse {
+        transition: all 0.3s ease-in-out;
+      }
+    }
+
+    + .checkbox:hover {
+      ellipse {
+        fill: lighten($rear-main-highlight, 10%);
+      }
+    }
+
+    &:checked {
+      + .checkbox {
+        ellipse {
+          //@include transform(translate(15px,0px));
+        }
+      }
+    }
+
+    &:not(:checked) {
+      + .checkbox {
+        ellipse {
+          @include transform(translate(0px,0px));
+        }
+      }
+    }
+
+
+  }
+}

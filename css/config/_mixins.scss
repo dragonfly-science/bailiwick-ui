@@ -1,0 +1,12 @@
+/**
+ * @file _mixins.scss
+ *
+ * Global/generic mixins
+ * */
+
+@mixin opacity($value: 1) {
+  $IEValue: $value*100;
+  opacity: $value;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity="+$IEValue+")";
+  filter: alpha(opacity=$IEValue);
+}

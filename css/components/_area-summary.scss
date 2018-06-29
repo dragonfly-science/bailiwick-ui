@@ -1,0 +1,172 @@
+.central-content.summary {
+  @media #{$breakpoint_medium_tablet} {
+    @include justify-content(center);
+  }
+}
+
+.area-summary {
+  $height: $central-height;
+  $width: $central-3col-width;
+  $side-margin: $central-spacing / 2;
+  $grow: 1;
+
+  $top-spacing: 25px;
+  $side-spacing: 20px;
+  $item-half-spacing: 15px;
+
+  @include flex-basis($width);
+  @include flex-grow($grow);
+
+  margin: $marginE $side-margin;
+
+  @media #{$breakpoint_large} {
+    margin: 0 $side-margin;
+  }
+
+  min-height: $height;
+  max-width: $width;
+  padding: 0 0 20px 0;
+
+  background-color: $rear-white;
+
+  .block-label {
+    color: $rear-dark-gray;
+    display: inline;
+  }
+
+  .export-wrapper {
+
+    margin-top: $top-spacing;
+    margin-bottom: $item-half-spacing;
+    padding-left: $side-spacing;
+    padding-right: $side-spacing;
+
+    .section-header {
+      line-height: 1em;
+    }
+  }
+
+  .summary-item {
+    margin: 0;
+    padding: $marginC $side-spacing;
+    cursor: pointer;
+
+    &:hover {
+      color: $rear-white;
+      background-color: $rear-alternative-highlight;
+
+      .summary-numbers {
+        color: $rear-white;
+
+        &:after {
+          @include triangle(12px 6px, $rear-white, right);
+        }
+
+        &.population-numbers {
+          i {
+            @include fontello-icon( $icon: people, $font-size: rem(20), $color: $rear-white );
+          }
+        }
+
+        &.income-numbers {
+          i {
+            @include fontello-icon( $icon: income, $font-size: rem(20), $color: $rear-white );
+          }
+        }
+
+        &.housing-numbers {
+          i {
+            @include fontello-icon( $icon: home, $font-size: rem(20), $color: $rear-white );
+          }
+        }
+
+        &.economic-numbers {
+          i {
+            @include fontello-icon( $icon: economic, $font-size: rem(20), $color: $rear-white );
+          }
+        }
+      }
+
+      .block-label {
+        color: $rear-white;
+      }
+    }
+
+    &.button {
+      padding-bottom: 0;
+
+      &:hover {
+        background: none;
+      }
+    }
+
+    .summary-numbers {
+      color: $rear-alternative-highlight;
+      min-height: rem(30);
+      position: relative;
+      padding-left: rem(30);
+
+      &.population-numbers {
+        i {
+          @include fontello-icon( $icon: people, $font-size: rem(20), $color: $rear-alternative-highlight );
+        }
+      }
+
+      &.income-numbers {
+        i {
+          @include fontello-icon( $icon: income, $font-size: rem(20), $color: $rear-alternative-highlight );
+        }
+      }
+
+      &.housing-numbers {
+        i {
+            @include fontello-icon( $icon: home, $font-size: rem(20), $color: $rear-alternative-highlight );
+        }
+      }
+
+      &.economic-numbers {
+        i {
+            @include fontello-icon( $icon: economic, $font-size: rem(20), $color: $rear-alternative-highlight );
+        }
+      }
+
+      &:after {
+        @include triangle(12px 6px, $rear-alternative-highlight, right);
+        @include transform(translateY(-50%));
+
+        position: absolute;
+        right: 0;
+        top: 50%;
+        content: '';
+        display: inline-block;
+      }
+
+      i {
+          @include transform(translateY(-50%));
+          position: absolute;
+          top: 50%;
+          left: 0;
+          height: rem(20);
+          display: inline-block;
+          line-height: 0;
+      }
+    }
+
+  }
+
+  .indicators {
+    width: 100%;
+    background: rgba($rear-background, .8);
+    color: $rear-alternative-highlight;
+    font-size: 18px;
+    line-height: 1em;
+    padding-top: 18px;
+    padding-bottom: 18px;
+
+    &:hover {
+      color: $rear-white;
+      background-color: $rear-alternative-highlight;
+    }
+  }
+
+}

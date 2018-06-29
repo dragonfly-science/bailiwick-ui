@@ -1,0 +1,193 @@
+.indicator-summary {
+  $side-margin: $central-spacing / 2;
+  $half-width: 2 * $central-4col-width + $central-spacing;
+
+  // ------------------------------------
+
+  @include display(flex);
+  @include flex-wrap(wrap);
+  @include justify-content(flex-start);
+
+  @media #{$breakpoint_small} {
+    @include justify-content(center);
+    padding: 20px;
+    max-width: 768px;
+  }
+
+  @media #{$breakpoint_large} {
+    @include justify-content(space-between);
+  }
+
+  padding: $marginE $central-padding;
+  width: 100%;
+
+  /**
+   * Table view component is open
+   * */
+  &.show-table {
+    .export-wrapper {
+      @include filter(opacity(0));
+      opacity: 0;
+    }
+  }
+
+  /**
+   * Comparison has been set.
+   * */
+  &.compare {
+    .summary {
+      .headline-number,
+      .regional-value,
+      .national-value {
+        .number {
+          padding-bottom: rem(12);
+          color: $rear-chart-color-1;
+        }
+      }
+    }
+
+    .comparison-number {
+      display: block;
+    }
+  }
+
+  .comparison-number {
+    font-size: rem(24);
+    line-height: 1em;
+    font-family: "gustan-medium";
+    color: $compare-panel-background;
+    margin-bottom: rem(22);
+    display: none;
+  }
+
+  .export-wrapper,
+  .intersection {
+    @include transition(all .5s);
+  }
+
+  .intersection-number {
+    margin-bottom: rem(20);
+  }
+
+
+  .summary {
+    background: $rear-white;
+    padding: $marginG $marginF;
+    position: relative;
+    margin: 0 auto;
+    width: 100%;
+
+    @media #{$breakpoint_medium} {
+      max-width: 1024px;
+    }
+
+    font-family: "gustan-book";
+    font-size: 12px;
+
+    .intersection {
+      @include display(flex);
+      @include flex-direction(row);
+
+      @media(max-width: 790px) {
+        @include flex-direction(column);
+      }
+
+      width: 100%;
+    }
+
+    .headline-number,
+    .regional-value,
+    .national-value {
+      width: 100%;
+    }
+
+    .number {
+      line-height: 1em;
+      padding-top: 0;
+      padding-bottom: $marginE;
+    }
+
+    .headline-number {
+      .number {
+        color: $rear-chart-color-1;
+      }
+    }
+    .regional-value {
+      .number {
+        color: $rear-chart-color-2;
+      }
+    }
+
+    .national-value {
+      .number {
+        color: $rear-chart-color-3;
+      }
+    }
+
+    .number {
+      font-size: 32px;
+    }
+
+    .caption {
+      margin-bottom: 0;
+
+      span.active {
+        color: $rear-main-highlight;
+        font-style: normal;
+      }
+
+      span.compare,
+      em {
+        color: $compare-panel-background;
+        font-style: normal;
+      }
+
+      @media #{$breakpoint_large} {
+        width: 270px;
+      }
+    }
+  }
+
+  .summary-links {
+    @include display(flex);
+    @include flex-wrap(wrap);
+    @include justify-content(space-between);
+
+    padding: $marginG $marginF;
+    font-family: "gustan-book";
+    font-size: 12px;
+    color: $rear-text;
+    width: 100%;
+
+    .source {
+      padding-right: 1em;
+    }
+
+    .source,
+    .notes {
+      width: 100%;
+    }
+
+    @media #{$breakpoint_aboveMobile} {
+      .source {
+        width: 33.3%;
+      }
+      .notes {
+        width: 66.6%;
+      }
+    }
+
+    .download {
+      background-image: url(icons/cc.png);
+      background-position: top left;
+      background-repeat: no-repeat;
+      background-size: auto 36px;
+      padding-left: 55px;
+      line-height: 1.2em;
+      p {
+        margin: 0;
+        padding: 4px 0;
+      }
+    }
+  }
+}

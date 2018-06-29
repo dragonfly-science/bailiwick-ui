@@ -1,0 +1,113 @@
+/**
+ * @file _fontello.scss
+ *
+ * Fontello icon setup
+ * */
+
+ /* Chrome hack: SVG is rendered more smooth in Windozze. 100% magic, uncomment if you need it. */
+ /* Note, that will break hinting! In other OS-es font will be not as sharp as it could be */
+ /*
+ @media screen and (-webkit-min-device-pixel-ratio:0) {
+   @font-face {
+     font-family: 'mbie-rea';
+     src: url('../fonts/mbie-rea.svg?26664120#mbie-rea') format('svg');
+   }
+ }
+ */
+
+$icons: (
+    population:         '\e803',
+    dollar:             '\e804',
+    housing:            '\e805',
+    finance:            '\e806',
+    fullscreen:         '\e807',
+    accommodation:      '\e808',
+    food:               '\e809',
+    fuel:               '\e80a',
+    travel:             '\e80b',
+    retail:             '\e80c',
+    other:              '\e80d',
+    agriculture:        '\e80e',
+    people:             '\e80f',
+    tertiary-education: '\e810',
+    barchart:           '\e811',
+    timeseries:         '\e812',
+    tree:               '\e813',
+    reset:              '\e814',
+    close:              '\e815',
+    share:              '\e816',
+    code:               '\e817',
+    nz-map:             '\e818',
+    table:              '\e819',
+    download:           '\e81a',
+    indicators:         '\e81b',
+    income:             '\e81c',
+    home:               '\e81d',
+    workforce:          '\e81e',
+    school:             '\e81f',
+    tertiary:           '\e820',
+    economic:           '\e821',
+    tourism:            '\e822',
+    zoom-plus:          '\e823',
+    zoom-minus:         '\e824',
+    cc-sa:              '\e825',
+    cc:                 '\e826',
+    by:                 '\e827',
+    nc:                 '\e828',
+    tick:               '\e829',
+    twitter:            '\e82a',
+    facebook:           '\e82b'
+ );
+
+@mixin fontello-icon($icon: code, $font-size: rem(14), $position: before, $color: $rear-black)
+{
+     &:#{$position} {
+        font-family: "mbie-rea";
+        font-style: normal;
+        font-weight: normal;
+        font-size: $font-size;
+        speak: none;
+
+        display: block;
+        text-decoration: inherit;
+        // width: 1em;
+        // height: 1em;
+        text-align: center;
+        color: $color;
+
+        // Offset to fix IE11 margin issue.
+        margin-top: .1em;
+
+        /* For safety - reset parent styles, that can break glyph codes*/
+        font-variant: normal;
+        text-transform: none;
+
+        /* fix buttons height, for twitter bootstrap */
+        line-height: 1em;
+
+        /* Animation center compensation - margins should be symmetric */
+        /* remove if not needed */
+        // margin-left: .2em;
+
+        /* you can be more comfortable with increased icons size */
+
+        /* Font smoothing. That was taken from TWBS */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+
+        /* Uncomment for 3D effect */
+        // text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3);
+
+         content: map-get($icons, $icon);
+
+         @content;
+     }
+}
+
+
+
+@each $key, $value in $icons {
+    .icon-#{$key}-icon {
+        @include fontello-icon($icon: $key);
+    }
+}

@@ -1,0 +1,55 @@
+.block-label {
+  font-size: 12px;
+  font-family: 'gustan-bold';
+  text-transform: uppercase;
+  color: $rear-dark-gray;
+}
+
+.block-label-main {
+  margin-top: 1em;
+}
+
+.indicator-page-header {
+  font-family: 'gustan-light';
+  font-size: 42px;
+  color: $rear-white;
+  line-height: 45px;
+}
+
+.summary-page-header {
+  font-family: 'gustan-light';
+  font-size: 48px;
+  color: $rear-white;
+  line-height: 45px;
+}
+
+%dropdown,
+.dropdown-invert,
+.dropdown {
+  font-family: 'gustan-bold';
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.section-header {
+  font-family: 'gustan-light';
+  font-size: 30px;
+}
+
+.body-paragraph {
+  font-family: 'gustan-book';
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.intro-paragraph {
+  font-family: 'gustan-light';
+  font-size: 24px;
+  line-height: 26px;
+}
+
+.summary-numbers {
+  font-family: 'gustan-light';
+  font-size: 30px;
+  line-height: 1em;
+}

@@ -1,0 +1,19 @@
+.logo {
+    color: $rear-white;
+    font-size: rem(15);
+    line-height: 1.1em;
+    display: block;
+    text-decoration: none;
+    background: url($rear-logo-url) no-repeat;
+    width: rem($rear-logo-width);
+    height: rem($rear-logo-height);
+
+    &:hover {
+        color: $rear-alternative-highlight;
+    }
+
+    span,
+    strong {
+        display: none;
+    }
+}

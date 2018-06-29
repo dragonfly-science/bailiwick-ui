@@ -1,0 +1,27 @@
+.central-content {
+  $width: 2 * $central-4col-width + $central-spacing;
+  $side-margin: $central-spacing / 2;
+
+
+  @include display(flex);
+  @include flex-wrap(wrap);
+  @include justify-content(center);
+
+
+  padding: 0 $central-padding;
+
+  position: relative;
+
+  @media #{$breakpoint_small} {
+    &.indicator {
+      @include flex-wrap(none);
+      display: block;
+    }
+  }
+}
+
+
+.indicator {
+    margin-top: rem(100);
+    margin-bottom: 5px;
+}

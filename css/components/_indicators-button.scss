@@ -1,0 +1,57 @@
+/**
+ * @file _indicators-button.scss
+ *
+ * Indicator button as seen on the area summary &
+ * the main nav.
+ * */
+button.indicators,
+a.indicators {
+  @include border-top-radius(0);
+  @include border-bottom-radius(0);
+  background: none;
+  cursor: pointer;
+
+  &:hover {
+    i {
+        @include fontello-icon( $icon: indicators, $font-size: rem(32), $color: $rear-white );
+    }
+  }
+
+  /**
+   * Modifiers - .right: icon on right, .left: icon on left.
+   * */
+  &.right {
+    i {
+      right: 0;
+    }
+
+    span {
+      padding-right: 40px;
+    }
+  }
+
+  &.left {
+    i {
+      left: 0;
+    }
+
+    span {
+      padding-left: 40px;
+    }
+  }
+
+  i {
+      @include fontello-icon( $icon: indicators, $font-size: rem(32), $color: $rear-alternative-highlight );
+    @include transform(translateY(-50%));
+    // width: rem(21);
+    // height: rem(32);
+    display: block;
+    position: absolute;
+    top: 50%;
+  }
+
+  span {
+    display: inline-block;
+    position: relative;
+  }
+}

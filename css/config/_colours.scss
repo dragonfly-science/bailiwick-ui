@@ -1,0 +1,160 @@
+/**
+ * @file _colours.scss
+ *
+ * All default colours used in the app.
+ *
+ * All colours follow a namespacing comnvention. In this case,
+ * all are prefixed with $rear-
+ * */
+// Colors
+
+// #FD6530 - orange
+// #FC2836 - red
+// #C62D8E - purple
+// #65144E - maroon
+
+/**
+ * Global colours.
+ * */
+$rear-dark-gray:                  #666666 !default;
+$rear-medium-gray:                #999999 !default;
+$rear-mid-gray:                   #AAAAAA !default;
+$rear-light-gray:                 #DDDDDD !default;
+$rear-white:                      #FFFFFF !default;
+$rear-black:                      #000000 !default;
+
+/**
+ * Main Colours
+ * */
+$rear-background:                 $rear-light-gray !default;
+$rear-main-highlight:             #FD6530 !default;
+$rear-alternative-highlight:      #FD6530 !default;
+$rear-secondary-highlight:        #FC2836 !default;
+$rear-inactive:                   $rear-mid-gray !default;
+$rear-focus:                      #477DCA !default;
+$rear-text:                       $rear-dark-gray !default;
+
+/**
+ * Chart colours.
+ * */
+$rear-negative:                   $rear-secondary-highlight !default;
+$rear-negative-light:             $rear-negative !default;
+$rear-positive:                   #65134d !default;
+$rear-positive-light:             tint($rear-positive, 70%) !default;
+
+$rear-chart-color-1:              $rear-main-highlight !default;
+$rear-chart-color-2:              $rear-black !default;
+$rear-chart-color-3:              $rear-secondary-highlight !default;
+
+// Font Colors
+$rear-background-color:           $rear-white !default;
+$rear-font-color:                 $rear-dark-gray !default;
+
+// Border
+$rear-border-color:               $rear-light-gray !default;
+$rear-border:                     1px solid $rear-border-color !default;
+
+// Forms
+$rear-form-box-shadow:            inset 0 1px 3px rgba($rear-white, 0.06) !default;
+$rear-form-box-shadow-focus:      $rear-form-box-shadow, 0 0 5px adjust-color($rear-focus, $lightness: -5%, $alpha: -0.3) !default;
+
+// Header
+$rear-header-bg:                  $rear-mid-gray !default;
+$rear-header-title:               $rear-dark-gray !default;
+$rear-default-header-background:  $rear-light-gray !default;
+$rear-header-box-shadow:          $rear-dark-gray !default;
+
+// Toolbar
+$rear-toolbar-box-shadow:         $rear-dark-gray !default;
+$rear-toolbar-text:               $rear-dark-gray !default;
+
+// Footer
+$rear-footer-bg:                  $rear-black !default;
+
+// Additional colours.
+$rear-compare-panel-background:   $rear-dark-gray !default;
+$rear-table-row-hover:            #f7fbfe !default;
+
+// Map.
+$rear-map-main-bg:                $rear-mid-gray !default;
+$rear-map-hover-bg:               $rear-main-highlight !default;
+
+
+// Summary / Indicators panel (above footer)
+$rear-summary-title:              $rear-white !default;
+$rear-summary-panel:              $rear-dark-gray !default;
+$rear-summary-active-triangle:    $rear-white !default;
+$rear-summary-inactive-triangle:  $rear-dark-gray !default;
+
+
+/**
+ * Generate colours
+ * */
+$COLOURS: ("rear-dark-gray",                $rear-dark-gray),
+          ("rear-medium-gray",              $rear-medium-gray),
+          ("rear-mid-gray",                 $rear-mid-gray),
+          ("rear-light-gray",               $rear-light-gray),
+          ("rear-white",                    $rear-white),
+          ("rear-black",                    $rear-black),
+          ("rear-background",               $rear-background),
+          ("rear-main-highlight",           $rear-main-highlight),
+          ("rear-alternative-highlight",    $rear-alternative-highlight),
+          ("rear-secondary-highlight",      $rear-secondary-highlight),
+          ("rear-inactive",                 $rear-inactive),
+          ("rear-focus",                    $rear-focus),
+          ("rear-negative",                 $rear-negative),
+          ("rear-negative-light",           $rear-negative-light),
+          ("rear-positive",                 $rear-positive),
+          ("rear-positive-light",           $rear-positive-light),
+          ("rear-compare-panel-background", $rear-compare-panel-background)
+          ("rear-chart-color-1",            $rear-chart-color-1),
+          ("rear-chart-color-2",            $rear-chart-color-2),
+          ("rear-chart-color-3",            $rear-chart-color-3),
+          ("rear-map-hover-bg",             $rear-map-hover-bg),
+          ("rear-map-main-bg",              $rear-map-main-bg);
+
+@each $name, $hex in $COLOURS {
+  .colour-#{$name} {
+    color: #{$hex};
+  }
+
+  .background-#{$name} {
+    background: #{$hex};
+  }
+}
+
+
+/**
+ * Deprecated aliases.
+ * */
+$skua-blue: $rear-background;
+$skua-teal: $rear-main-highlight;
+$lighter-skua-teal: $rear-main-highlight;
+$mid-skua-teal: $rear-main-highlight;
+$rear-main-highlight: $rear-main-highlight;
+$skua-inactive: $rear-inactive;
+$lighter-skua-blue: $rear-alternative-highlight;
+$skua-torquoise: $rear-alternative-highlight;
+$skua-maroon: $rear-negative;
+$action-color: $rear-focus;
+$skua-green: $rear-secondary-highlight;
+$skua-active: $rear-secondary-highlight;
+$highlight-green: $rear-secondary-highlight;
+$compare-panel-background: $rear-compare-panel-background;
+$compare-green-panel: $compare-panel-background;
+
+$dark-gray: $rear-dark-gray;
+$medium-gray: $rear-medium-gray;
+$light-gray: $rear-light-gray;
+$white: $rear-white;
+
+$base-background-color: $rear-background-color;
+$base-font-color: $rear-font-color;
+$base-border-color: $rear-border-color;
+$base-border: $rear-border;
+
+$form-box-shadow: $rear-form-box-shadow;
+$form-box-shadow-focus: $rear-form-box-shadow-focus;
+
+
+$table-row-hover: $rear-table-row-hover;

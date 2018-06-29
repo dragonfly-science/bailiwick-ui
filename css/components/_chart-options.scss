@@ -1,0 +1,133 @@
+.chart-options {
+  @include display(flex);
+  @include justify-content(space-between);
+  @include flex-wrap(nowrap);
+
+//   @extend %figure-width;
+  margin-bottom: $marginE;
+
+
+  .chart-selector {
+    @include display(flex);
+
+    input {
+      display: none;
+    }
+
+    label {
+      @extend %selector-button-label;
+
+      %select-span {
+        background-size: 4/9 * $selector-button-size;
+        background-position: center;
+        background-repeat: no-repeat;
+
+      }
+
+/*
+      span.select-treemap {
+        background-image: url(icons/chart-treemap.png);
+        @extend %select-span;
+      }
+      span.select-over-under-barchart {
+        background-image: url(icons/chart-barchart.png);
+        @extend %select-span;
+      }
+      span.select-barchart {
+        background-image: url(icons/chart-barchart.png);
+        @extend %select-span;
+      }
+      span.select-timeseries {
+        background-image: url(icons/chart-timeseries.png);
+        @extend %select-span;
+      }
+*/
+
+    }
+  }
+
+  .transform-selector {
+    @include display(flex);
+
+    input {
+      display: none;
+    }
+
+    %label-background {
+      background-position: center 15%;
+      background-size: 5/9*$selector-button-size;
+      background-repeat: no-repeat;
+    }
+
+    label {
+      @include display(flex);
+      @include flex-direction(column);
+
+      min-width: 55px;
+      margin: 0 $marginA;
+
+      div.radio-button {
+
+        height: rem(30);
+        position: relative;
+
+        &:before,
+        &:after {
+          @include transform(translate(-50%, -50%));
+          @include border-top-radius(50%);
+          @include border-bottom-radius(50%);
+          @include transition(all .25s);
+          left: 50%;
+          top: 50%;
+          display: block;
+          content: '';
+          text-align: center;
+          margin: auto;
+          position: absolute;
+        }
+
+        &:before {
+          width: rem(20);
+          height: rem(20);
+        }
+
+        &:after {
+          border: 2px solid tint($rear-main-highlight, 50%);
+          width: rem(27);
+          height: rem(27);
+          z-index: 1;
+        }
+      }
+
+      div.radio-label {
+        font-size: 10px;
+        font-family: "gustan-book";
+        white-space: nowrap;
+        text-align: center;
+        min-width: 5/9 * $selector-button-size;
+      }
+
+      input:checked + div {
+        &:before {
+          background-color: $rear-main-highlight;
+        }
+      }
+
+      input:not(:checked) + div {
+        cursor: pointer;
+        &:before {
+          background-color: none;
+        }
+      }
+
+      input:not(:checked) + div:hover {
+        &:before {
+          background-color: $rear-alternative-highlight;
+        }
+        &:after {
+          border-color: $rear-alternative-highlight;
+        }
+      }
+    }
+  }
+}

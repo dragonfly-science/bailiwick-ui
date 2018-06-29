@@ -1,0 +1,41 @@
+.overunder-barchart {
+  position: relative;
+
+  .axis {
+    font-size: 12px;
+    path,
+    line {
+      fill: none;
+      stroke: #FFF;
+      shape-rendering: crispEdges;
+    }
+
+  }
+  .caption {
+    font-size: 12px;
+  }
+
+  text {
+    fill: $rear-dark-gray;
+  }
+  .x.axis {
+    path,
+    line {
+      display: none;
+    }
+  }
+
+  rect {
+    fill: $rear-main-highlight;
+  }
+  rect.active {
+    fill: $rear-secondary-highlight;
+  }
+
+  path.zeroline {
+    stroke: $rear-white;
+    stroke-width: 2;
+  }
+
+}
+

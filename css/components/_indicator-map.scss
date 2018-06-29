@@ -1,0 +1,94 @@
+.indicator-map {
+  $height: $central-height - 100;
+  $width: 2 * $central-4col-width + $central-spacing;
+  $side-margin: $central-spacing / 2;
+  $grow: 1;
+
+  $zoom-control-size: 45px;
+  $zoom-active-color: $rear-secondary-highlight;
+  $zoom-passive-color: $rear-inactive;
+  // ------------------------------------
+
+  &:first-child:nth-last-child(1) {
+    .map-wrapper {
+      width: 100%;
+      max-width: 600px;
+    }
+  }
+
+  @include flex-basis(480px);
+  @include flex-grow($grow);
+  width: 90%;
+
+  @media #{$breakpoint_small} {
+    @include flex-basis($width);
+    width: auto;
+  }
+
+  @media #{$breakpoint_large} {
+    margin-bottom: 0;
+  }
+
+  margin: 0 $side-margin $marginF $side-margin;
+
+  .legend {
+    @include display(flex);
+    @include justify-content(center);
+  }
+  .map-wrapper {
+    @extend %figure-width;
+    margin: 0 auto;
+    position: relative;
+
+    @media #{$breakpoint_medium_tablet} {
+      margin-top: rem(120);
+    }
+
+    .map-options {
+      @include display(flex);
+      @include justify-content(space-between);
+    }
+  }
+
+  .base-map {
+    .svg-wrapper {
+      height: $map-height;
+
+      object {
+        min-height: $map-height;
+        max-height: $map-height;
+        height: $map-height;
+      }
+    }
+  }
+
+
+
+  .map-info {
+    font-size: 12px;
+    padding-top: $marginC;
+    background: $rear-background;
+    pointer-events: none;
+
+    %caption {
+      width: 50%;
+      background-repeat: no-repeat;
+      background-size: 25px 25px;
+      padding-left: 35px;
+      background-position: left center;
+      line-height: 1.1em;
+      padding-bottom: 5px;
+    }
+
+    .circle-caption {
+      background-image: url(icons/map-circle-icon.png);
+      @extend %caption;
+    }
+
+    .shading-caption {
+      background-image: url(icons/map-region-icon.png);
+      @extend %caption;
+    }
+  }
+
+}

@@ -1,0 +1,59 @@
+/**
+ * @file _embed_popup_form.scss
+ *
+ * Form embed pop up.
+ * */
+input + div {
+  position: relative;
+  padding-left: rem(30);
+
+  i {
+    @include border-top-radius(5px);
+    @include border-bottom-radius(5px);
+    border: 3px solid tint($rear-main-highlight, 50%);
+    position: absolute;
+    display: inline-block;
+    width: rem(22);
+    height: rem(22);
+    left: 0;
+
+    @include fontello-icon( $icon: tick, $font-size: rem(12), $color: $rear-secondary-highlight, $position: after ) {
+        @include transform(translateY(-50%));
+        display: none;
+        position: absolute;
+        z-index: 2;
+        left: 0;
+        top: 50%;
+        height: rem(22);
+    }
+  }
+}
+
+input:checked + div {
+  i {
+    &:after {
+      display: block;
+    }
+  }
+}
+&:hover {
+  input:not(:checked) + div {
+    i {
+      background: $rear-alternative-highlight;
+    }
+  }
+  input:checked + div {
+    i {
+        background: $rear-alternative-highlight;
+      @include fontello-icon( $icon: tick, $font-size: rem(12), $color: $rear-white, $position: after ) {
+          @include transform(translateY(-50%));
+          position: absolute;
+          z-index: 2;
+          left: 0;
+          top: 50%;
+          height: rem(22);
+      }
+    }
+  }
+
+}

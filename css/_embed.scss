@@ -1,0 +1,25 @@
+
+.embed {
+  &.content {
+    margin-top: 16px;
+  }
+  .export-target {
+    visibility: hidden;
+  }
+}
+
+.embed-info {
+  font-size: 10px;
+  color: $rear-main-highlight;
+  padding-bottom: 25px;
+
+  .mbie-link {
+    margin: 0 20px;
+    line-height: 1.4;
+    background-image: url(images/hexagon-logo.png);
+    padding-left: 50px;
+    background-repeat: no-repeat;
+    background-size: 32px;
+    background-position: left 10px center;
+  }
+}

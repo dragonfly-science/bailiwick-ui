@@ -1,0 +1,56 @@
+$selector-button-size: 45px;
+
+%selector-button-label {
+  width: $selector-button-size;
+  height: $selector-button-size;
+  margin: 0 $marginB 0 0;
+  position: relative;
+
+  &:first-child {
+    margin-left: 0;
+  }
+
+  span {
+    @include transition(all .25s);
+    background-color: $rear-main-highlight;
+    text-align: center;
+    line-height: $selector-button-size;
+    font-size: 2/3 * $selector-button-size;
+    color: $rear-white;
+    display: inline-block;
+    padding: 0 $marginC;
+    cursor: pointer;
+
+    &:hover {
+      background: $rear-alternative-highlight;
+    }
+  }
+
+  input:checked + span {
+    background-color: $rear-inactive;
+    cursor: default;
+    pointer-events: none;
+  }
+}
+
+%figure-width {
+  width: 90vw;
+
+  @media #{$breakpoint_medium_tablet} {
+    width: 100%;
+    max-width: 700px;
+  }
+
+/*
+  @media (min-width: 600px) {
+    width: 520px;
+  }
+  @media (min-width: 992px) {
+    width: 700px;
+  }
+*/
+  @media #{$breakpoint_large} {
+    width: 2 * $central-4col-width + $central-spacing;
+  }
+}
+

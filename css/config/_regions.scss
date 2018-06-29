@@ -1,0 +1,45 @@
+/**
+ * @file _regions.scss
+ *
+ * Defines the regions used throughout the styles.
+ * */
+
+$REGIONS: (
+  auckland,
+  bay-of-plenty,
+  canterbury,
+  gisborne,
+  hawkes-bay,
+  manawatu-wanganui,
+  marlborough,
+  nelson,
+  new-zealand,
+  northland,
+  otago,
+  southland,
+  taranaki,
+  tasman,
+  waikato,
+  wellington,
+  west-coast
+) !default;
+
+$REGION_HEADER_BACKGROUNDS: (
+  'auckland': $rear-default-header-background,
+  'bay-of-plenty': $rear-default-header-background,
+  'canterbury': $rear-default-header-background,
+  'gisborne': $rear-default-header-background,
+  'hawkes-bay': $rear-default-header-background,
+  'manawatu-wanganui': $rear-default-header-background,
+  'marlborough': $rear-default-header-background,
+  'nelson': $rear-default-header-background,
+  'new-zealand': $rear-default-header-background,
+  'northland': $rear-default-header-background,
+  'otago': $rear-default-header-background,
+  'southland': $rear-default-header-background,
+  'taranaki': $rear-default-header-background,
+  'tasman': $rear-default-header-background,
+  'waikato': $rear-default-header-background,
+  'wellington': $rear-default-header-background,
+  'west-coast': $rear-default-header-background
+) !default;

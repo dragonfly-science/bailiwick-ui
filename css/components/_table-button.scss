@@ -1,0 +1,52 @@
+/**
+ * @file _table-button.scss
+ *
+ * Table button component styles.
+ * */
+
+.table-button {
+  padding: 0px 8px 20px 8px;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  display: none;
+
+  button {
+    @include border-top-radius(0);
+    @include border-bottom-radius(0);
+    max-width: 340px;
+    width: 100%;
+    margin: 0 auto;
+    text-transform: uppercase;
+    display: block;
+    font-family: 'gustan-medium';
+    color: $rear-white;
+    background: $rear-main-highlight;
+
+    &:hover,
+    &:focus {
+      background: $rear-alternative-highlight;
+    }
+
+    span {
+      display: inline-block;
+      position: relative;
+      width: rem(140);
+      text-align: right;
+
+      i {
+        @include fontello-icon( $icon: table, $font-size: rem(20), $color: $rear-white );
+        @include transform(translateY(-50%));
+        position: absolute;
+        left: 0;
+        top: 50%;
+      }
+    }
+  }
+}
+
+@media #{$breakpoint_large} {
+  .table-button {
+    display: block;
+  }
+}

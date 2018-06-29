@@ -1,0 +1,51 @@
+.legend {
+  .key {
+    path {
+      display: none;
+      &.triangle-up {
+        display: inherit;
+      }
+    }
+
+    text {
+      font-size: rem(10);
+      fill: $rear-text;
+
+      &.caption {
+        font-size: rem(12);
+      }
+    }
+
+    line {
+      stroke: $rear-white;
+      shape-rendering: crispEdges;
+    }
+
+    rect {
+      &.other {
+        fill: #aaa;
+      }
+      &.nz {
+        fill: $rear-chart-color-1;
+      }
+      &.active {
+        fill: $rear-chart-color-2;
+      }
+      &.compare {
+        fill: $rear-chart-color-3;
+      }
+    }
+
+  }
+
+}
+
+.chart-wrapper .legend {
+  margin-top: -7px; // Don't know why I need this
+}
+
+@media #{$breakpoint_small} {
+  .chart-wrapper .legend {
+    display: none;
+  }
+}

@@ -1,0 +1,141 @@
+@mixin dropdown($dropdown-background,
+                $dropdown-color,
+                $dropdown-background-hover) {
+  ///////////////////////////////////////////////////////////////////////////////////
+
+  line-height: $base-line-height;
+
+  ul {
+    padding: 0;
+    margin: 0;
+  }
+
+  li {
+    list-style: none;
+  }
+  //////////////////////////////////////////////////////////////////////////////////
+
+  $dropdown-border: 1px solid $rear-light-gray;
+  $dropdown-inner-border: 1px solid $rear-light-gray;
+  $dropdown-height: 30px;
+  $dropdown-padding: 1em;
+  $dropdown-distance-from-menu: 32px;
+  $dropdown-arrow-top-distance: -2px;
+
+  .dropdown-container {
+    display: inline-block;
+    position: relative;
+    text-align: left;
+    width: 100%;
+  }
+
+  .dropdown-button {
+    background: $dropdown-background;
+    cursor: pointer;
+    float: right;
+    line-height: $dropdown-height;
+    margin: 0;
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+    min-width: $central-3col-width;
+    max-width: $central-3col-width;
+    padding: 0 1em;
+    margin-bottom: 12px;
+    width: 100%;
+    text-align: left;
+      color: $dropdown-color;
+
+    a {
+      color: $dropdown-color;
+    }
+    @media #{$breakpoint_small} {
+      min-width: initial;
+      max-width: initial;
+    }
+  }
+
+  .dropdown-button:hover:after,
+  .dropdown-button:hover {
+    background-color: $dropdown-background-hover;
+    color: $rear-white;
+  }
+
+  .dropdown-button:after {
+    color: $dropdown-color;
+    content: "\25BE";
+    display: block;
+    position: absolute;
+    right: 0;
+    top: $dropdown-arrow-top-distance;
+    font-size: 1.5em;
+    background-color: $dropdown-background;
+    padding: 0 0.75 * $dropdown-padding;
+  }
+
+  .dropdown-menu {
+    @include transition (all 0.2s ease-in-out);
+    background: $dropdown-background;
+    border-radius: $rear-border-radius;
+    border: $dropdown-border;
+    box-shadow: 0 2px 2px transparentize(black, 0.8);
+    color: $dropdown-color;
+    cursor: pointer;
+    display: none;
+    overflow: show;
+    position: absolute;
+    right: 0;
+    top: $dropdown-distance-from-menu;
+    width: 100%;
+    z-index: 99999;
+  }
+
+  .dropdown-menu li {
+    border-bottom: $dropdown-inner-border;
+    color: $dropdown-color;
+    padding: $dropdown-padding / 2;
+    a {
+      color: $dropdown-color;
+    }
+  }
+
+  .dropdown-menu li.dropdown-top:hover,
+  .dropdown-menu li:hover {
+    background: $dropdown-background-hover;
+    color: $rear-white;
+  }
+
+  .dropdown-menu li.dropdown-top {
+    border-bottom: $dropdown-inner-border;
+    background-color: $dropdown-color;
+    color: $dropdown-background;
+    padding: $dropdown-padding / 2;
+    a {
+      color: $dropdown-background;
+    }
+  }
+
+  .dropdown-menu li:first-child {
+    border-top-left-radius: $rear-border-radius;
+    border-top-right-radius: $rear-border-radius;
+  }
+
+  .dropdown-menu li:last-child {
+    border: none;
+    border-bottom-left-radius: $rear-border-radius;
+    border-bottom-right-radius: $rear-border-radius;
+  }
+
+  .show-menu {
+    display: block;
+  }
+}
+// Inspired by code by www.HUSAMUI.com
+
+.dropdown {
+  @include dropdown($rear-white, $rear-main-highlight, $rear-alternative-highlight);
+}
+
+.dropdown-invert {
+  @include dropdown($rear-main-highlight, $rear-white, $rear-alternative-highlight);
+}

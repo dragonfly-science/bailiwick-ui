@@ -1,0 +1,552 @@
+header {
+  $topbar-height: rem(70);
+  $topbar-nav-height: rem(50);
+  $topbar-nav-width: rem(40);
+  $header-margin: $content-margin;
+
+  $banner-image-height: rem(200);
+
+  $header-dropdown-width: 30%;
+
+  $title-height: $central-height;
+  $title-width: 2 * $central-3col-width + $central-spacing;
+  $title-side-margin: $central-spacing / 2;
+  $title-grow: 2;
+
+  $nav-height: $central-height;
+  $nav-width: $central-3col-width;
+  $nav-side-margin: $central-spacing / 2;
+  $nav-grow: 1;
+
+  // -------------------------------------------------------------- //
+
+  background-color: $rear-header-bg;
+  position: relative;
+  z-index: 10;
+
+  nav {
+    @include display(flex);
+    @include flex-wrap(wrap);
+    @include justify-content(left);
+    @include align-items(center);
+
+    height: $topbar-height;
+    padding: 0 $header-margin;
+    position: relative;
+    z-index: 2;
+
+    button {
+      outline: none;
+      background-color: $rear-header-bg;
+    }
+
+    .links {
+      float: left;
+
+      a,
+      button {
+        float: left;
+        height: $topbar-height;
+        position: relative;
+        display: block;
+        padding: rem(5) rem(26);
+
+        &:after,
+        &:before {
+          @include linear-gradient(
+            to bottom,
+            rgba($rear-white, .3) 0%,
+            rgba($rear-white, .3) 2px,
+            rgba($rear-header-bg, 1) 2px,
+            rgba($rear-header-bg, 1) 6px,
+            rgba($rear-header-bg, 1) 100%
+          );
+
+          display: block;
+          content: '';
+          width: 2px;
+          height: rem(42);
+          position: absolute;
+          top: rem(14);
+          background-repeat: repeat-y;
+          background-size: 100% 4px;
+        }
+
+        &:after {
+          right: 0;
+        }
+
+        &:before {
+          left: 0;
+        }
+
+        &:last-child {
+          &:after,
+          &:before {
+            display: none;
+          }
+        }
+
+        span,
+        i {
+          @include transform(translateY(-50%));
+          position: absolute;
+          top: 50%;
+        }
+
+        i {
+          display: block;
+          height: rem(34);
+        }
+      }
+
+      a {
+        box-sizing: border-box;
+        color: $rear-white;
+        position: relative;
+        min-width: rem(140);
+      }
+
+      button {
+        span {
+          display: inline;
+        }
+      }
+    }
+
+    a.logo {
+      @include flex-basis(153px);
+      @include flex-grow(0);
+      position: relative;
+      display: block;
+      padding: 0 8px 0 4px;
+    }
+
+    .home {
+
+      &:hover {
+        i {
+            @include fontello-icon( $icon: nz-map, $font-size: rem(32), $color: $rear-alternative-highlight );
+        }
+      }
+
+      i {
+        @include fontello-icon( $icon: nz-map, $font-size: rem(32), $color: $rear-white );
+        display: block;
+      }
+
+      span {
+        padding-left: 40px;
+        display: inline-block;
+        position: relative;
+      }
+    }
+
+    a.indicators {
+
+      &:hover {
+        i {
+          @include fontello-icon( $icon: indicators, $font-size: rem(32), $color: $rear-alternative-highlight );
+        }
+      }
+
+      i {
+        @include fontello-icon( $icon: indicators, $font-size: rem(32), $color: $rear-white );
+      }
+    }
+
+
+
+    .menu-buttons {
+      float: right;
+
+      button {
+        @include border-top-radius(0);
+        @include border-bottom-radius(0);
+        @include transition(all .25s);
+        padding: 0;
+        margin-top: rem(15);
+        background-color: $rear-header-bg;
+
+        &.download {
+          margin-right: rem(5);
+
+          i {
+              @include fontello-icon( $icon: download, $font-size: rem(15), $color: $rear-white );
+          }
+
+          &:hover {
+            i {
+                @include fontello-icon( $icon: download, $font-size: rem(15), $color: $rear-alternative-highlight );
+            }
+          }
+        }
+
+        &.embed {
+          margin-right: rem(8);
+
+          i {
+              @include fontello-icon( $icon: code, $font-size: rem(15), $color: $rear-white );
+          }
+
+          &:hover {
+            i {
+                @include fontello-icon( $icon: code, $font-size: rem(15), $color: $rear-alternative-highlight );
+            }
+          }
+        }
+
+        &.share {
+          i {
+              @include fontello-icon( $icon: share, $font-size: rem(15), $color: $rear-white );
+          }
+
+          &:hover {
+            i {
+                @include fontello-icon( $icon: share, $font-size: rem(15), $color: $rear-alternative-highlight );
+            }
+          }
+        }
+
+        i {
+            @include transition(all .25s);
+          box-sizing: content-box;
+          margin: rem(0) auto rem(5) auto;
+          display: table;
+        }
+
+        span {
+          font-size: rem(10);
+          line-height: 1em;
+          font-family: 'gustan-medium';
+        }
+      }
+    }
+  }
+
+  .menu {
+    @include transform(translateY(-50%));
+    @include hide-text;
+    font-size: 0;
+    background: transparent;
+    border: none;
+    position: absolute;
+    right: rem(10);
+    top: 50%;
+    padding: rem(10);
+    display: none;
+
+    &:before {
+      display: block;
+      text-indent: 0;
+      font-size: rem(14);
+    }
+  }
+
+  @each $region in $REGIONS {
+    .title[data-region=#{$region}] {
+      @extend .background-#{$region}-image !optional;
+    }
+  }
+
+  .title {
+    @include transition(background-image 0.5s ease-in-out, height 2s, background-position 0.5s ease-in-out);
+    background-size: cover;
+    background-position: center top;
+    color: $rear-white;
+
+    &:after {
+      @include linear-gradient(to top, rgba($rear-header-box-shadow, .8), rgba($rear-header-box-shadow, 0));
+      background-color: transparent;
+      display: block;
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 150px;
+      z-index: 0;
+    }
+
+    .content {
+      @include clearfix;
+      @include display(flex);
+      @include flex-wrap(wrap);
+      @include justify-content(space-between);
+
+      padding: 1.25em $central-padding;
+      position: relative;
+      z-index: 2;
+
+      @media #{$breakpoint_small} {
+        display: block;
+      }
+
+      .context-text {
+        margin: 0 $title-side-margin 0 0;
+        width: 100%;
+        color: $rear-white;
+        font-family: "gustan-bold";
+        font-size: 12px;
+        padding-bottom: 1em;
+        text-transform: uppercase;
+
+        a {
+          text-decoration: none;
+        }
+      }
+
+      .page-header {
+        @include flex-basis($title-width);
+        @include flex-grow($title-grow);
+        margin: 0 $title-side-margin $title-side-margin 0;
+        div {
+          width: 100%;
+        }
+      }
+
+      .title-menus {
+        @include flex-basis($nav-width);
+        @include flex-grow($nav-grow);
+        position: relative;
+      }
+    }
+
+    $side-margin: $central-spacing / 2;
+
+    .left {
+      $width: 2 * $central-3col-width + $central-spacing;
+      $grow: 2;
+
+      // ------------------------------------
+
+      @include flex-grow($grow);
+      @include flex-basis(250px);
+
+      @media #{$breakpoint_small} {
+        @include flex-basis($width);
+        display: block;
+        margin: 0;
+        padding: 0 $side-margin;
+      }
+
+      margin: 0 $side-margin;
+      position: relative;
+    }
+
+    .right {
+      $width: $central-3col-width;
+      $grow: 1;
+
+      @media #{$breakpoint_small} {
+        @include flex-basis(100%);
+        @include flex-grow(0);
+
+        margin-left: 0;
+        margin-right: 0;
+        padding: 0 $side-margin;
+        width: 100%;
+      }
+
+      @include flex-basis($width);
+      @include flex-grow($grow);
+
+      margin: 0 $nav-side-margin rem(50) $nav-side-margin;
+    }
+  }
+
+  .menu-items {
+    @include transition(all .5s);
+    @include transform(translate3d(0, 0, 0));
+    @include flex-grow(1);
+  }
+
+
+  /**
+   * Header / toolbar sizes
+   * */
+  &.small,
+  &.large {
+    margin-bottom: rem(70);
+  }
+
+  /**
+   * Fixed navigation - user scrolls past the nav bar,
+   * lock the header.
+   * */
+
+
+  .background-click {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+}
+
+
+.theme-whole-body {
+    header {
+        &.fixed {
+            margin-bottom: rem(300);
+        }
+    }
+}
+
+/**
+ * Responsive menu
+ * */
+@media #{$breakpoint_small} {
+  header {
+    margin-bottom: 0;
+    position: relative;
+    z-index: 3;
+
+    .title {
+      margin-top: rem(68);
+      position: relative;
+      z-index: 3;
+      background-position: center center;
+    }
+
+    &.fixed {
+
+      nav {
+        @include display(flex);
+        position: fixed;
+      }
+
+      .title {
+        z-index: 1;
+
+        .content {
+          @include flex-direction(row);
+
+          .left {
+            margin: 0 rem(20) rem(14) rem(20);
+            padding: 0;
+          }
+
+          .page-header {
+            font-size: rem(14);
+            font-family: 'gustan-bold';
+            margin: 0;
+
+            &.indicator-page-header {
+              font-size: rem(14);
+              font-family: 'gustan-bold';
+            }
+          }
+        }
+      }
+
+      .compare-menu {
+        @include flex-basis(270px);
+        position: relative;
+        right: auto;
+        bottom: auto;
+        width: auto;
+        margin-left: rem(20);
+      }
+    }
+
+    nav {
+      position: fixed;
+      width: 100%;
+      z-index: 2;
+      left: 0;
+      top: 0;
+      background: $rear-main-highlight;
+
+      a.logo {
+        @include flex-basis(160px);
+        width: 160px;
+        display: inline-block;
+        padding: {
+          top: rem(10);
+          bottom: rem(10);
+          left: 0;
+        }
+        z-index: 2;
+      }
+    }
+
+    .menu {
+      display: block;
+      z-index: 2;
+
+      &.fa-close {
+        + .menu-items {
+          top: 0;
+          margin-top: rem(70);
+        }
+      }
+    }
+
+    .menu-items {
+      padding: 0;
+      background: $rear-main-highlight;
+      position: relative;
+
+      .menu-buttons {
+        @include transform(translateY(-50%));
+        float: none;
+        position: absolute;
+        right: 0;
+        top: 50%;
+
+        span {
+          display: none;
+        }
+      }
+
+      .links {
+        display: none;
+      }
+
+      .menu-buttons {
+        padding: 0;
+        text-align: right;
+
+        button {
+          margin-top: 0;
+          margin-right: 0;
+        }
+      }
+    }
+  }
+}
+
+@media #{$breakpoint_small} {
+  header {
+    .title {
+      .content {
+        padding-right: rem(20);
+        padding-left: rem(20);
+      }
+
+      .left,
+      .right {
+        padding: 0;
+      }
+    }
+
+    &.fixed {
+      margin-bottom: rem(370);
+
+      .title {
+        .content {
+          .left {
+            margin-bottom: 0;
+          }
+
+          .compare-menu {
+            display: none;
+          }
+        }
+      }
+    }
+  }
+}

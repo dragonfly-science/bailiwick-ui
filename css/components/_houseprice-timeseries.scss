@@ -1,0 +1,80 @@
+.houseprice-timeseries,
+houseprice-timeseries {
+
+  .time-series-legend {
+    width: 225px;
+    span {
+      font-size: 10px;
+    }
+  }
+
+  font-size: 10px;
+
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: $rear-font-color;
+  }
+
+  g.y.axis {
+    text {
+      line-height: 15px;
+    }
+    path {
+      display: none;
+    }
+    g:nth-child(2) {
+      line {
+        display: none;
+      }
+    }
+    .tick line {
+      stroke-dasharray: 2,2;
+      opacity: 0.6;
+    }
+  }
+
+
+  text {
+    fill: $rear-main-highlight;
+  }
+
+  .line {
+    fill: none;
+    stroke: $rear-main-highlight;
+    stroke-width: 1.5px;
+    shape-rendering: auto;
+  }
+
+  .active {
+    stroke: $rear-secondary-highlight;
+  }
+  .time-series-legend {
+    padding-right: 18px;
+  }
+
+  .time-series-legend {
+    color: $rear-secondary-highlight;
+    span:nth-child(2) {
+      color: $rear-main-highlight;
+    }
+  }
+}
+
+.summary-item:hover {
+  text {
+    fill: $rear-white;
+  }
+    path,
+   line {
+     stroke: $rear-white;
+  }
+  .time-series-legend {
+    color: $rear-white;
+    span:nth-child(2) {
+      color: $rear-white;
+    }
+  }
+}
+
+

@@ -1,0 +1,98 @@
+@font-face {
+  font-family: 'mbie-rea';
+  src: url('../font/mbie-rea.eot?81274554');
+  src: url('../font/mbie-rea.eot?81274554#iefix') format('embedded-opentype'),
+       url('../font/mbie-rea.woff2?81274554') format('woff2'),
+       url('../font/mbie-rea.woff?81274554') format('woff'),
+       url('../font/mbie-rea.ttf?81274554') format('truetype'),
+       url('../font/mbie-rea.svg?81274554#mbie-rea') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+/* Chrome hack: SVG is rendered more smooth in Windozze. 100% magic, uncomment if you need it. */
+/* Note, that will break hinting! In other OS-es font will be not as sharp as it could be */
+/*
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  @font-face {
+    font-family: 'mbie-rea';
+    src: url('../font/mbie-rea.svg?81274554#mbie-rea') format('svg');
+  }
+}
+*/
+ 
+ [class^="icon-"]:before, [class*=" icon-"]:before {
+  font-family: "mbie-rea";
+  font-style: normal;
+  font-weight: normal;
+  speak: none;
+ 
+  display: inline-block;
+  text-decoration: inherit;
+  width: 1em;
+  margin-right: .2em;
+  text-align: center;
+  /* opacity: .8; */
+ 
+  /* For safety - reset parent styles, that can break glyph codes*/
+  font-variant: normal;
+  text-transform: none;
+ 
+  /* fix buttons height, for twitter bootstrap */
+  line-height: 1em;
+ 
+  /* Animation center compensation - margins should be symmetric */
+  /* remove if not needed */
+  margin-left: .2em;
+ 
+  /* you can be more comfortable with increased icons size */
+  /* font-size: 120%; */
+ 
+  /* Font smoothing. That was taken from TWBS */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+ 
+  /* Uncomment for 3D effect */
+  /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
+}
+ 
+.icon-population-icon:before { content: '\e803'; } /* '' */
+.icon-dollar-icon:before { content: '\e804'; } /* '' */
+.icon-housing-icon:before { content: '\e805'; } /* '' */
+.icon-finance-icon:before { content: '\e806'; } /* '' */
+.icon-fullscreen-icon:before { content: '\e807'; } /* '' */
+.icon-accommodation-icon:before { content: '\e808'; } /* '' */
+.icon-food-icon:before { content: '\e809'; } /* '' */
+.icon-fuel-icon:before { content: '\e80a'; } /* '' */
+.icon-travel-icon:before { content: '\e80b'; } /* '' */
+.icon-retail-icon:before { content: '\e80c'; } /* '' */
+.icon-other-icon:before { content: '\e80d'; } /* '' */
+.icon-agriculture-icon:before { content: '\e80e'; } /* '' */
+.icon-people-icon:before { content: '\e80f'; } /* '' */
+.icon-tertiary-education-icon:before { content: '\e810'; } /* '' */
+.icon-barchart-icon:before { content: '\e811'; } /* '' */
+.icon-timeseries-icon:before { content: '\e812'; } /* '' */
+.icon-tree-icon:before { content: '\e813'; } /* '' */
+.icon-reset-icon:before { content: '\e814'; } /* '' */
+.icon-close-icon:before { content: '\e815'; } /* '' */
+.icon-share-icon:before { content: '\e816'; } /* '' */
+.icon-code-icon:before { content: '\e817'; } /* '' */
+.icon-nz-map-icon:before { content: '\e818'; } /* '' */
+.icon-table-icon:before { content: '\e819'; } /* '' */
+.icon-download-icon:before { content: '\e81a'; } /* '' */
+.icon-indicators-icon:before { content: '\e81b'; } /* '' */
+.icon-income-icon:before { content: '\e81c'; } /* '' */
+.icon-home-icon:before { content: '\e81d'; } /* '' */
+.icon-workforce-icon:before { content: '\e81e'; } /* '' */
+.icon-school-icon:before { content: '\e81f'; } /* '' */
+.icon-tertiary-icon:before { content: '\e820'; } /* '' */
+.icon-economic-icon:before { content: '\e821'; } /* '' */
+.icon-tourism-icon:before { content: '\e822'; } /* '' */
+.icon-zoom-plus-icon:before { content: '\e823'; } /* '' */
+.icon-zoom-minus-icon:before { content: '\e824'; } /* '' */
+.icon-cc-sa-icon:before { content: '\e825'; } /* '' */
+.icon-cc-icon:before { content: '\e826'; } /* '' */
+.icon-by-icon:before { content: '\e827'; } /* '' */
+.icon-nc-icon:before { content: '\e828'; } /* '' */
+.icon-tick-icon:before { content: '\e829'; } /* '' */
+.icon-twitter-icon:before { content: '\e82a'; } /* '' */
+.icon-facebook-icon:before { content: '\e82b'; } /* '' */

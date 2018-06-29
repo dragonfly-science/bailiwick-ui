@@ -1,0 +1,50 @@
+.area-treemap {
+  .svg-wrapper {
+
+  }
+  .cell {
+    rect {
+      fill: none;
+      stroke: #FFF;
+      &:hover {
+        fill: $rear-alternative-highlight;
+      }
+      &.active {
+        fill: $rear-secondary-highlight;
+      }
+    }
+  }
+  rect.border-rect {
+    fill: none;
+    stroke: none;
+  }
+
+
+
+  .cell text {
+    font-size: 9px;
+    text-transform: uppercase;
+    font-family: "gustan-book";
+    fill: #222;
+  }
+
+  .treemap-legend {
+
+    margin-top: $marginE;
+    .title {
+      font-size: 12px;
+      color: #222;
+      display: inline;
+    }
+    .item {
+      display: inline;
+      font-family: "gustan-book";
+      font-size: 9px;
+      text-transform: uppercase;
+      color: #222;
+      padding: 2px 4px;
+      border: 1px solid #FFF;
+      margin-left: 10px;
+    }
+  }
+}

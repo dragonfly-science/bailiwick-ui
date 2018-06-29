@@ -1,0 +1,250 @@
+.themes-outer {
+
+  @extend .sumary-image-bg;
+
+  $margin: 22px;
+  $theme-header-height: 28px;
+
+
+  background-size: cover;
+  background-repeat: no-repeat;
+  width: 100%;
+  margin: $margin 0 0 0;
+  padding: $margin 0;
+
+
+  .themes {
+    ///////////////////////////////////////////////////////////////////////////////////
+    $base-spacing: 10px;
+    $card-title-color: $rear-alternative-highlight;
+    //////////////////////////////////////////////////////////////////////////////////
+
+    $card-margin: $central-padding;
+    $card-width: $central-3col-width;
+    $double-width: 2 * $central-3col-width + $central-spacing;
+
+    .theme-top {
+      @include display(flex);
+      @include flex-wrap(wrap);
+      @include justify-content(space-between);
+
+      padding: 0 $central-padding 0 rem(24);
+      margin-bottom: $margin;
+      margin-top: $margin;
+      color: $rear-white;
+
+      p {
+        margin-bottom: 0.25em;
+        line-height: 1em;
+      }
+
+      i {
+        @include transform(translateY(2px));
+        @include fontello-icon( $icon: indicators, $font-size: rem(40), $color: $rear-white );
+
+        margin-right: rem(20);
+        display: inline-block;
+      }
+
+      .section-header {
+        @include flex-basis($card-width);
+        @include flex-grow(1);
+        margin: 0 $card-margin;
+        font-family: "gustan-light";
+        font-size: 40px;
+      }
+
+      .body-paragraph {
+        @include flex-basis($double-width);
+        @include flex-grow(2);
+        margin: 0 $card-margin;
+        color: $rear-white;
+      }
+    }
+
+    .theme-cards {
+      @include display(flex);
+      @include flex-wrap(wrap);
+      @include justify-content(flex-start);
+
+      @media(min-width: 600px) {
+        @include justify-content(space-around);
+      }
+
+      @media(min-width: 999px) {
+        @include justify-content(flex-start);
+      }
+      padding: 0 $card-margin;
+    }
+
+    .theme-card {
+
+      @include flex-basis($card-width);
+      @include transition (all 0.2s ease-in-out);
+      margin: $margin $card-margin;
+      position: relative;
+
+      .card-header {
+        @include transition (all 0.2s ease-in-out);
+        text-transform: uppercase;
+        color: $rear-summary-title;
+        font-family: "gustan-medium";
+        font-size: 18px;
+        line-height: $theme-header-height;
+        margin-left: $base-spacing + $card-margin;
+        margin-bottom: $card-margin;
+      }
+
+      i {
+        @include transform(translate(0px, 5px));
+        @include transform-origin(0 0);
+        margin-right: rem(10);
+        display: inline-block;
+        width: rem(33);
+        height: rem(30);
+      }
+
+      .card-header {
+        &-social-and-income {
+          i {
+              @include transform(translate(0px, 0px));
+            @include fontello-icon( $icon: income, $font-size: rem(30), $color: $rear-white );
+          }
+        }
+
+        &-economic {
+          i {
+            @include fontello-icon( $icon: economic, $font-size: rem(24), $color: $rear-white );
+            @include transform(translate(0px, 2px));
+            height: rem(24);
+            width: rem(24);
+          }
+        }
+
+        &-tourism {
+          i {
+            @include transform(translate(0px, 4px));
+            @include fontello-icon( $icon: tourism, $font-size: rem(28), $color: $rear-white );
+            width: rem(30);
+          }
+        }
+
+        &-population {
+          i {
+              @include fontello-icon( $icon: people, $font-size: rem(24), $color: $rear-white );
+              @include transform(translate(0px, 2px));
+            width: rem(28);
+            height: rem(28);
+          }
+        }
+
+        &-agriculture {
+          i {
+              @include fontello-icon( $icon: agriculture, $font-size: rem(25), $color: $rear-white );
+              @include transform(translate(0px, 2px));
+            height: rem(25);
+            width: rem(29);
+          }
+        }
+
+        &-housing {
+          i {
+            @include fontello-icon( $icon: home, $font-size: rem(24), $color: $rear-white );
+            @include transform(translate(0px, 0px));
+            height: rem(24);
+            width: rem(26);
+          }
+        }
+
+        &-workforce {
+          i {
+             @include fontello-icon( $icon: workforce, $font-size: rem(24), $color: $rear-white );
+             @include transform(translate(0px, 2px));
+             height: rem(24);
+             width: rem(32);
+          }
+        }
+
+        &-education,
+        &-school-education {
+          i {
+              @include fontello-icon( $icon: school, $font-size: rem(24), $color: $rear-white );
+              @include transform(translate(0px, 4px));
+                height: rem(24);
+          }
+        }
+
+        &-tertiary-education {
+          i {
+              @include fontello-icon( $icon: tertiary, $font-size: rem(22), $color: $rear-white );
+              @include transform(translate(0px, 4px));
+            height: rem(22);
+          }
+        }
+      }
+
+      .card-copy {
+        font-size: 0.9em;
+        line-height: 1.5em;
+        padding: ($base-spacing / 2) ($base-spacing / 2);
+
+        ul {
+          overflow: auto;
+
+          li {
+            position: relative;
+            background-color: $rear-white;
+            font-family: "gustan-book";
+            display: table;
+            font-size: rem(14);
+            line-height: rem(22);
+            padding: rem(7) rem(36) rem(7) rem(12);
+            margin: 0 0 ($base-spacing / 2) ($base-spacing / 2);
+            cursor: pointer;
+
+            &.selected {
+              color: $rear-white;
+              background-color: $rear-main-highlight;
+
+              &:after {
+                 @include triangle(12px 6px, $rear-summary-active-triangle, right);
+              }
+            }
+
+            &:after {
+              @include triangle(12px 6px, $rear-summary-inactive-triangle, right);
+              @include transform(translateY(-50%));
+
+              position: absolute;
+              right: rem(12);
+              top: 50%;
+              content: '';
+              display: inline-block;
+            }
+
+            &:hover {
+              color: $rear-white;
+              background-color: $rear-alternative-highlight;
+
+              &:after {
+                @include triangle(12px 6px, $rear-summary-active-triangle, right);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+body.inside-iframe {
+  .themes-outer {
+    position: absolute;
+    bottom: 300px;
+  }
+  footer {
+      position: absolute;
+      bottom:0;
+      height: 300px;
+  }
+}

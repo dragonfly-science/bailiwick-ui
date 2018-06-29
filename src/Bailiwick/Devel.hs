@@ -29,8 +29,8 @@ import qualified Data.Text as T (pack)
 import qualified Data.Text.Encoding as T (encodeUtf8)
 import Network.Wai.Application.Static
        (defaultFileServerSettings, staticApp)
---import System.Process (system)
---import System.Directory (copyFile)
+import System.Process (system)
+import System.Directory (copyFile)
 
 #if MIN_VERSION_ghcjs_dom(0,9,4)
 import GHCJS.DOM.Debug (addDebugMenu)
@@ -41,8 +41,8 @@ addDebugMenu = return ()
 
 debug :: Int -> JSM () -> IO ()
 debug prt f = do
---  system "nix-build ./css"
---  copyFile "result/bailiwick-pre.css" "static/teal-skua.css"
+  system "nix-build ./css"
+  copyFile "result/bailiwick-pre.css" "static/teal-skua.css"
   app <- application "/jsaddle.js"
   let ghcjsFiles = ["rts.js", "lib.js", "out.js", "runmain.js"]
   debugWrapper $ \withRefresh registerContext ->
