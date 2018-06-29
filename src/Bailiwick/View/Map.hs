@@ -504,11 +504,11 @@ nzmap areas state = mdo
   mouseOverD :: Dynamic t (Maybe AreaInfo) <- holdUniqDyn $ fmap fst <$> mouseOverFullD
 
   -- The click event depends on the state
-  let makeMessages :: State -> AreaInfo -> Maybe Message
+  let makeMessages :: State -> Maybe AreaInfo -> Maybe Message
       makeMessages st ai =
-        let region = slugify <$> areaRegion ai
-            ta = slugify <$> areaTa ai
-            ward = slugify <$> areaWard ai
+        let region = slugify <$> (areaRegion =<< ai)
+            ta = slugify <$> (areaTa =<< ai)
+            ward = slugify <$> (areaWard =<< ai)
             currentRegion = areaId <$> getRegion st
             currentSubarea = areaId <$> getSubArea st
             iszoomed = hasAdapter Mapzoom st
@@ -519,6 +519,8 @@ nzmap areas state = mdo
                 -> Just ZoomIn
             | currentRegion /= region && isJust region
                 -> Just (SetRegion (fromJust region))
+            | currentRegion /= region && isJust currentRegion && isJust currentSubarea
+                -> Just (SetRegion (fromJust currentRegion))
             | currentSubarea /= subarea && iszoomed && isJust subarea
                 -> Just (SetSubArea $ fromJust subarea)
             | isNothing region && iszoomed
@@ -526,7 +528,7 @@ nzmap areas state = mdo
             | otherwise
                 -> Nothing
 
-  return $ attachPromptlyDynWithMaybe makeMessages state $ fmapMaybe id clickE
+  return $ attachPromptlyDynWithMaybe makeMessages state clickE
 
 data AreaInfo
   = AreaInfo
