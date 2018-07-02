@@ -528,8 +528,12 @@ nzmap areas state = mdo
     Just divElement ->
       fmap (fmap fst) <$> wrapDomEvent divElement (`DOM.on` DOM.click) getAreaInfoFromSvg
     _ -> return never)
+  outE <- switchHold never =<< dyn (ffor svgBodyD $ \case
+    Just divElement ->
+      wrapDomEvent divElement (`DOM.onSync` DOM.mouseOut) $ return ()
+    _ -> return never)
 
-  mouseOverFullD :: Dynamic t (Maybe (AreaInfo, (Int, Int))) <- holdDyn Nothing $ leftmost [moveE , Nothing <$ clickE]
+  mouseOverFullD :: Dynamic t (Maybe (AreaInfo, (Int, Int))) <- holdDyn Nothing $ leftmost [moveE , Nothing <$ clickE, Nothing <$ outE]
   mouseOverD :: Dynamic t (Maybe AreaInfo) <- holdUniqDyn $ fmap fst <$> mouseOverFullD
 
   -- The click event depends on the state
