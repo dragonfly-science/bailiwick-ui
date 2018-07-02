@@ -46,15 +46,15 @@ import GHCJS.DOM.CSSStyleSheet (deleteRule, insertRule_)
 import GHCJS.DOM.Types
        (HTMLStyleElement(..), CSSStyleSheet(..), uncheckedCastTo)
 import GHCJS.DOM.HTMLStyleElement (getSheet)
-import Control.Monad (foldM, forever, void, unless, when)
+import Control.Monad ((>=>), foldM, forever, void, unless, when)
 import Control.Lens ((^.))
 import Language.Javascript.JSaddle
        (call, eval, ToJSString, runJSM, askJSM, waitForAnimationFrame,
         liftJSM, js2)
 import GHCJS.DOM.Types
-       (NodeList(..), DOMHighResTimeStamp, IsElement, IsParentNode,
-        HTMLElement(..), HTMLObjectElement(..), SVGElement(..),
-        ToJSVal(..))
+       (MediaQueryList(..), NodeList(..), DOMHighResTimeStamp, IsElement,
+        IsParentNode, HTMLElement(..), HTMLObjectElement(..),
+        SVGElement(..), ToJSVal(..))
 import GHCJS.DOM
        (currentWindowUnchecked, inAnimationFrame',
         currentDocumentUnchecked)
@@ -72,6 +72,12 @@ import qualified GHCJS.DOM.Performance as Performance (now)
 import GHCJS.DOM.GlobalPerformance (getPerformance)
 import Control.Concurrent
        (threadDelay, tryPutMVar, takeMVar, forkIO, newEmptyMVar)
+import qualified GHCJS.DOM.MediaQueryList as MQ
+       (removeListener, addListener)
+import GHCJS.DOM.Window (matchMedia)
+import GHCJS.DOM.MediaQueryList (getMatches, removeListener)
+import GHCJS.DOM.MediaQueryListListener
+       (newMediaQueryListListenerAsync)
 
 slugify :: Text -> Text
 slugify = Text.replace "'" ""
@@ -237,8 +243,8 @@ instance CommutesWithFunctor ZoomState where
                     (commuteWith $ _scale <$> i)
                     (_strokeWidth <$> i)
 
-zoomState :: Bool -> Maybe Text -> ZoomState Double
-zoomState z selectedRegion = ZoomState
+zoomState :: Bool -> Bool -> Maybe Text -> ZoomState Double
+zoomState wide z selectedRegion = ZoomState
     { _defaultBackground = if z then RGB 223 241 252 else RGB 41 101 117
     , _selectedRegionBackground = if z then RGB 41 101 117 else RGB 0 189 233
     , _defaultOutline    = if z then RGB 255 255 255 else RGB 255 255 255
@@ -253,7 +259,7 @@ zoomState z selectedRegion = ZoomState
       case selectedRegion of
         Just r | z -> regionTransform $ slugify r
         _ -> transform 0 727.5 1 (-1) 0.8
-    transform x y sx sy sw = (Translate x y, Scale sx sy, if z then 1.2/sx else 0.6)
+    transform x y sx sy sw = (Translate (x + if wide then 113 else 0) y, Scale sx sy, if z then 1.2/sx else 0.6)
     regionTransform "auckland"          = transform (-3080) 6370 10 (-10) 0.3
     regionTransform "bay-of-plenty"     = transform (-2050) 3240 5.5 (-5.5) 0.3
     regionTransform "canterbury"        = transform (-350) 1000 3 (-3) 0.55
@@ -305,6 +311,27 @@ forNodesSetAttribute nodeList name val = liftJSM $ do
   f <- eval ("(function(list, name, value) { for (var i = 0; i < list.length; i++) { list[i].setAttribute(name, value); }})" :: Text)
   void $ call f f (nodeList, name, val)
 
+onMediaQueryChange
+  :: (Monad m, MonadJSM m, TriggerEvent t m)
+  => MediaQueryList
+  -> m (Event t Bool)
+onMediaQueryChange mediaQueryList = do
+  ctx <- askJSM
+  newEventWithLazyTriggerWithOnComplete $ \trigger -> (`runJSM` ctx) $ do
+    listener <- newMediaQueryListListenerAsync . mapM_ $ getMatches >=> \m -> liftIO $ trigger m (return ())
+    MQ.addListener mediaQueryList (Just listener)
+    return . (`runJSM` ctx) $ MQ.removeListener mediaQueryList (Just listener)
+
+mediaQueryDyn
+  :: (Monad m, MonadJSM m, TriggerEvent t m, MonadHold t m, DOM.ToJSString queryString)
+  => queryString
+  -> m (Dynamic t Bool)
+mediaQueryDyn queryString = do
+  window <- currentWindowUnchecked
+  mediaQueryList <- matchMedia window queryString
+  initiallyMatches <- getMatches mediaQueryList
+  holdDyn initiallyMatches =<< onMediaQueryChange mediaQueryList
+
 nzmap
     :: forall m t.
        ( Monad m
@@ -345,9 +372,11 @@ nzmap areas state = mdo
       svgDoc <- getContentDocument svgObject
       uncheckedCastTo HTMLElement <$> querySelectorUnsafe svgDoc ("svg" :: Text)
 
+  wide <- mediaQueryDyn ("(min-width: 1025px)" :: Text)
+
   let duration = 500
   frame <- animationFrame zoomAnimating
-  let zoomStateD = zoomState <$> zoomD <*> regD
+  let zoomStateD = zoomState <$> wide <*> zoomD <*> regD
   (zoomAnimating, zoomStateT) <- transitions frame duration zoomStateD
 
   svgBodyD <- holdDyn Nothing (Just <$> svgBodyE)

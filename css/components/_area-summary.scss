@@ -17,10 +17,10 @@
   @include flex-basis($width);
   @include flex-grow($grow);
 
-  margin: $marginE $side-margin;
+  margin: $marginE 0;
 
   @media #{$breakpoint_large} {
-    margin: 0 $side-margin;
+    margin: 0 0;
   }
 
   min-height: $height;

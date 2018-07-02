@@ -2931,8 +2931,8 @@ footer .bottombar .statement p:last-child { margin-top: 20px; }
 /** Import components */
 @media (max-width: 1024px) { .central-content.summary { -webkit-box-pack: center; -moz-box-pack: center; box-pack: center; -webkit-justify-content: center; -moz-justify-content: center; -ms-justify-content: center; -o-justify-content: center; justify-content: center; -ms-flex-pack: center; } }
 
-.area-summary { -webkit-flex-basis: 312px; -moz-flex-basis: 312px; flex-basis: 312px; -ms-flex-preferred-size: 312px; -webkit-flex-grow: 1; -moz-flex-grow: 1; flex-grow: 1; -ms-flex-positive: 1; margin: 20px 14.5px; min-height: 550px; max-width: 312px; padding: 0 0 20px 0; background-color: #FFFFFF; }
-@media (min-width: 1025px) { .area-summary { margin: 0 14.5px; } }
+.area-summary { -webkit-flex-basis: 312px; -moz-flex-basis: 312px; flex-basis: 312px; -ms-flex-preferred-size: 312px; -webkit-flex-grow: 1; -moz-flex-grow: 1; flex-grow: 1; -ms-flex-positive: 1; margin: 20px 0; min-height: 550px; max-width: 312px; padding: 0 0 20px 0; background-color: #FFFFFF; }
+@media (min-width: 1025px) { .area-summary { margin: 0 0; } }
 .area-summary .block-label { color: #666666; display: inline; }
 .area-summary .export-wrapper { margin-top: 25px; margin-bottom: 15px; padding-left: 20px; padding-right: 20px; }
 .area-summary .export-wrapper .section-header { line-height: 1em; }
@@ -3262,9 +3262,9 @@ button.indicators span, a.indicators span { display: inline-block; position: rel
 .indicator-summary .summary-links .download { background-image: url(icons/cc.png); background-position: top left; background-repeat: no-repeat; background-size: auto 36px; padding-left: 55px; line-height: 1.2em; }
 .indicator-summary .summary-links .download p { margin: 0; padding: 4px 0; }
 
-.navigation-map { -webkit-flex-grow: 2; -moz-flex-grow: 2; flex-grow: 2; -ms-flex-positive: 2; -webkit-flex-basis: 250px; -moz-flex-basis: 250px; flex-basis: 250px; -ms-flex-preferred-size: 250px; margin: 0 14.5px 0 14.5px; position: relative; z-index: 0; }
+.navigation-map { -webkit-flex-grow: 2; -moz-flex-grow: 2; flex-grow: 2; -ms-flex-positive: 2; -webkit-flex-basis: 250px; -moz-flex-basis: 250px; flex-basis: 250px; -ms-flex-preferred-size: 250px; margin: 0 0 0 0; position: relative; z-index: 0; }
 @media (min-width: 1025px) { .navigation-map { -webkit-flex-basis: 653px; -moz-flex-basis: 653px; flex-basis: 653px; -ms-flex-preferred-size: 653px; height: 550px; }
-  .navigation-map .svg-wrapper { position: absolute; left: 113px; } }
+  .navigation-map .svg-wrapper { position: absolute; } }
 .navigation-map .map-zoom { background: #FFFFFF; color: #296575; text-transform: uppercase; font-family: 'gustan-light'; font-size: 22px; line-height: 22px; padding: 20px 52px 20px 20px; cursor: pointer; z-index: 100; position: relative; display: inline-block; white-space: nowrap; }
 .navigation-map .map-zoom span { -webkit-transform: translateY(-50%); -moz-transform: translateY(-50%); -ms-transform: translateY(-50%); -o-transform: translateY(-50%); transform: translateY(-50%); top: 50%; position: absolute; margin-left: 12px; display: inline-block; }
 .navigation-map .map-zoom span.zoom-in-small:before { font-family: "mbie-rea"; font-style: normal; font-weight: normal; font-size: 1.25rem; speak: none; display: block; text-decoration: inherit; text-align: center; color: #296575; margin-top: .1em; /* For safety - reset parent styles, that can break glyph codes*/ font-variant: normal; text-transform: none; /* fix buttons height, for twitter bootstrap */ line-height: 1em; /* Animation center compensation - margins should be symmetric */ /* remove if not needed */ /* you can be more comfortable with increased icons size */ /* Font smoothing. That was taken from TWBS */ -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; /* Uncomment for 3D effect */ content: ""; }
