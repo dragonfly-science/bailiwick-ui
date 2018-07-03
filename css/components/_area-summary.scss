@@ -17,7 +17,7 @@
   @include flex-basis($width);
   @include flex-grow($grow);
 
-  margin: $marginE 0;
+  margin: 0 0;
 
   @media #{$breakpoint_large} {
     margin: 0 0;

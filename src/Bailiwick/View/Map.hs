@@ -311,11 +311,11 @@ forNodesSetAttribute nodeList name val = liftJSM $ do
   f <- eval ("(function(list, name, value) { for (var i = 0; i < list.length; i++) { list[i].setAttribute(name, value); }})" :: Text)
   void $ call f f (nodeList, name, val)
 
-onMediaQueryChange
+mediaQueryChange
   :: (Monad m, MonadJSM m, TriggerEvent t m)
   => MediaQueryList
   -> m (Event t Bool)
-onMediaQueryChange mediaQueryList = do
+mediaQueryChange mediaQueryList = do
   ctx <- askJSM
   newEventWithLazyTriggerWithOnComplete $ \trigger -> (`runJSM` ctx) $ do
     listener <- newMediaQueryListListenerAsync . mapM_ $ getMatches >=> \m -> liftIO $ trigger m (return ())
@@ -330,7 +330,7 @@ mediaQueryDyn queryString = do
   window <- currentWindowUnchecked
   mediaQueryList <- matchMedia window queryString
   initiallyMatches <- getMatches mediaQueryList
-  holdDyn initiallyMatches =<< onMediaQueryChange mediaQueryList
+  holdDyn initiallyMatches =<< mediaQueryChange mediaQueryList
 
 nzmap
     :: forall m t.

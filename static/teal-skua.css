@@ -2931,7 +2931,7 @@ footer .bottombar .statement p:last-child { margin-top: 20px; }
 /** Import components */
 @media (max-width: 1024px) { .central-content.summary { -webkit-box-pack: center; -moz-box-pack: center; box-pack: center; -webkit-justify-content: center; -moz-justify-content: center; -ms-justify-content: center; -o-justify-content: center; justify-content: center; -ms-flex-pack: center; } }
 
-.area-summary { -webkit-flex-basis: 312px; -moz-flex-basis: 312px; flex-basis: 312px; -ms-flex-preferred-size: 312px; -webkit-flex-grow: 1; -moz-flex-grow: 1; flex-grow: 1; -ms-flex-positive: 1; margin: 20px 0; min-height: 550px; max-width: 312px; padding: 0 0 20px 0; background-color: #FFFFFF; }
+.area-summary { -webkit-flex-basis: 312px; -moz-flex-basis: 312px; flex-basis: 312px; -ms-flex-preferred-size: 312px; -webkit-flex-grow: 1; -moz-flex-grow: 1; flex-grow: 1; -ms-flex-positive: 1; margin: 0 0; min-height: 550px; max-width: 312px; padding: 0 0 20px 0; background-color: #FFFFFF; }
 @media (min-width: 1025px) { .area-summary { margin: 0 0; } }
 .area-summary .block-label { color: #666666; display: inline; }
 .area-summary .export-wrapper { margin-top: 25px; margin-bottom: 15px; padding-left: 20px; padding-right: 20px; }

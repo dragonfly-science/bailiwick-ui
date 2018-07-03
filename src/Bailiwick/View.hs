@@ -18,6 +18,28 @@ import Bailiwick.Types
 import Bailiwick.View.Header
 import Bailiwick.View.Map
 import Bailiwick.View.AreaSummary (areaSummary)
+import Bailiwick.View.Indicators (indicators)
+import qualified GHCJS.DOM.GlobalEventHandlers as Events (scroll)
+import GHCJS.DOM (currentDocumentUnchecked, currentWindowUnchecked)
+import GHCJS.DOM.Document (getBodyUnchecked)
+import GHCJS.DOM.EventM (on)
+import GHCJS.DOM.Element (getScrollTop)
+import GHCJS.DOM.Window (getPageYOffset)
+import Data.Bool (bool)
+
+windowScrolled
+  :: (Monad m, MonadJSM m, TriggerEvent t m)
+  => m (Event t Double)
+windowScrolled = do
+  window <- currentWindowUnchecked
+  wrapDomEvent window (`on` Events.scroll) $ getPageYOffset window
+
+windowScrollDyn
+  :: (Monad m, MonadJSM m, TriggerEvent t m, MonadHold t m)
+  => m (Dynamic t Double)
+windowScrollDyn = do
+  initialPos <- currentWindowUnchecked >>= getPageYOffset
+  holdDyn initialPos =<< windowScrolled
 
 view
     :: ( Monad m
@@ -30,17 +52,19 @@ view
        , MonadIO m
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
-    => Areas -> AreaSummaries -> Dynamic t State -> m (Event t Message)
-view areas areaSummaries state =
-
-  divClass "whole-body summary-whole-body" $ do
+    => Areas -> AreaSummaries -> Themes -> Indicators -> Dynamic t State -> m (Event t Message)
+view areas areaSummaries themes inds state = do
+  isScrolledD <- fmap (>137) <$> windowScrollDyn
+  elDynAttr "div" (("class" =:) . ("whole-body summary-whole-body" <>) . bool "" " fixed" <$> isScrolledD)  $ do
     headerE
       <-  divClass "main-header-area" $
             elClass "header" "main-header closed" $ do
               navbar
               header areas state
-    mainE <- maincontent areas areaSummaries state
-    indicatorsE <- indicators state
+    mainE <-
+      elDynAttr "div" (("class" =: "content main-content" <>) . bool mempty ("style" =: "margin-top: 279px") <$> isScrolledD) $
+        maincontent areas areaSummaries state
+    indicatorsE <- indicators themes inds state
     footer
     return $ leftmost [headerE, mainE, indicatorsE]
 
@@ -88,7 +112,6 @@ maincontent
     -> Dynamic t State
     -> m (Event t Message)
 maincontent areas areaSummaries state =
-  divClass "content main-content" $
     divClass "central-content summary" $ do
       messages
        <-
@@ -99,7 +122,7 @@ maincontent areas areaSummaries state =
                nzmap areas state
            return $ leftmost [zoomClick, mapClicks]
       divClass "area-summary" $
-        areaSummary areas areaSummaries state "median-house-price"
+        areaSummary areas areaSummaries state
       return messages
 
 summaryText
@@ -154,11 +177,6 @@ summaryText state = do
     return $ ffor (tagPromptlyDyn state (domEvent Click zoom)) $ \case
       s | hasAdapter Mapzoom s -> ZoomOut . fmap areaId $ getRegion s
       _ -> ZoomIn
-
-indicators
-    :: ( Monad m , DomBuilder t m)
-    => Dynamic t State -> m (Event t Message)
-indicators _state = return never
 
 footer :: (Monad m, DomBuilder t m) => m ()
 footer =

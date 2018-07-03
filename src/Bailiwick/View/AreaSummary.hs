@@ -22,7 +22,7 @@ import Data.Map (Map)
 import qualified Data.Text as T (pack)
 
 import Bailiwick.Types
-       (Areas, AreaSummary(..), Area(..), Indicator(..),
+       (Areas, AreaSummary(..), Area(..), IndicatorID(..),
         AreaSummaries(..))
 import Bailiwick.State (getArea, State(..))
 import qualified Data.Map.Ordered as OM (lookup)
@@ -40,11 +40,11 @@ import Control.Applicative (liftA2)
 indicatorSummary
   :: (Monad m, PostBuild t m, DomBuilder t m)
   => Text
-  -> Indicator
+  -> IndicatorID
   -> Dynamic t Text
   -> m ()
   -> m ()
-indicatorSummary cssClass Indicator{..} label content =
+indicatorSummary cssClass indicatorId label content =
   divClass ("summary-item " <> cssClass <> "-item") $ do
       divClass "block-label" $ dynText label
       content
@@ -52,7 +52,7 @@ indicatorSummary cssClass Indicator{..} label content =
 indicatorLatestYearSummary
   :: (Monad m, PostBuild t m, DomBuilder t m)
   => Text
-  -> Indicator
+  -> IndicatorID
   -> Text
   -> Dynamic t (Maybe Text)
   -> m ()
@@ -76,9 +76,8 @@ areaSummary
   => Areas
   -> AreaSummaries
   -> Dynamic t State
-  -> Text
   -> m ()
-areaSummary areas areaSummaries state housePriceIndicator = do
+areaSummary areas areaSummaries state = do
   let areaIdD = maybe "new-zealand" areaId . getArea <$> state
       areaD :: Dynamic t (Maybe Area)
       areaD = (`OM.lookup` areas) <$> areaIdD
@@ -92,31 +91,31 @@ areaSummary areas areaSummaries state housePriceIndicator = do
       textValue n = dynText $ fromMaybe "" <$> lookupValue n
   indicatorLatestYearSummary
     "population"
-    (Indicator "population-estimates")
+    "population-estimates"
     "Population estimate"
     (lookupValue "populationEstimateYear")
     (textValue "populationEstimate")
   indicatorLatestYearSummary
     "income"
-    (Indicator "household-income")
+    "household-income"
     "Average household income"
     (lookupValue "averageHouseholdIncomeYear")
     (textValue "averageHouseholdIncome")
   indicatorLatestYearSummary
     "housing"
-    (Indicator "mean-weekly-rent")
+    "mean-weekly-rent"
     "Mean weekly rent"
     (lookupValue "meanWeeklyRentYear")
     (textValue "meanWeeklyRent")
   indicatorLatestYearSummary
     "economic"
-    (Indicator "gdp-per-capita")
+    "gdp-per-capita"
     "GDP per capita"
     (lookupValue "gdpPerCapitaYear")
     (textValue "gdpPerCapita")
   indicatorSummary
     "house-price"
-    (Indicator housePriceIndicator)
+    "mean-house-value"
     "Mean house value"
     (housePriceTimeSeries areaD $ lookupValue "housePriceSeries")
   divClass "summary-item button" $
