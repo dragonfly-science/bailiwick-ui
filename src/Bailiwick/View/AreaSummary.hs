@@ -119,7 +119,7 @@ areaSummary areas areaSummaries state = do
     "Mean house value"
     (housePriceTimeSeries areaD $ lookupValue "housePriceSeries")
   divClass "summary-item button" $
-    elAttr "button" ("class" =: "indicators right") $
+    elAttr "a" ("class" =: "indicators right" <> "href" =: "#indicators") $
       el "span" $ do
         text "All indicators"
         el "i" $ return ()

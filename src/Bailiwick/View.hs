@@ -83,7 +83,7 @@ navbar =
                  <>"class" =: "home button") $ do
           el "i" $ return ()
           el "span" $ text "Home"
-        elAttr "a" ("class" =: "indicators left") $
+        elAttr "a" ("class" =: "indicators left" <> "href" =: "#indicators") $
           el "span" $ do
             text "Indicators"
             el "i" $ return ()

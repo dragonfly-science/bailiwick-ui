@@ -54,3 +54,11 @@ $selector-button-size: 45px;
   }
 }
 
+*[id]:before {
+  content:" ";
+  display:block;
+  height:62px;
+  margin-top:-62px;
+  visibility:hidden;
+}
+

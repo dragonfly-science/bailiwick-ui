@@ -402,9 +402,11 @@ nzmap areas state = mdo
         set "height" "550px" svgBody
         forSelectionSetAttribute "path" "stroke" "none"
         forSelectionSetAttribute "path" "stroke-width" "0.001"
+        forSelectionSetAttribute "path" "cursor" "pointer"
         forSelectionSetAttribute "polyline" "stroke-linecap" "butt"
+        forSelectionSetAttribute "polyline" "cursor" "pointer"
 
-      mapStateE <- attachPrevious (leftmost [updated mapStateD, tagDyn mapStateD postBuild])
+      mapStateE <- attachPrevious (leftmost [updated mapStateD, tagPromptlyDyn mapStateD postBuild])
       performEvent . ffor mapStateE $ \(old, new) -> do
         -- Update the transform, but only if it has changed
         when ((_zoomState <$> old) /= Just (_zoomState new)) $ do
@@ -528,12 +530,12 @@ nzmap areas state = mdo
     Just divElement ->
       fmap (fmap fst) <$> wrapDomEvent divElement (`DOM.on` DOM.click) getAreaInfoFromSvg
     _ -> return never)
-  outE <- switchHold never =<< dyn (ffor svgBodyD $ \case
+  leaveE <- switchHold never =<< dyn (ffor svgBodyD $ \case
     Just divElement ->
-      wrapDomEvent divElement (`DOM.onSync` DOM.mouseOut) $ return ()
+      wrapDomEvent divElement (`DOM.onSync` DOM.mouseLeave) $ return ()
     _ -> return never)
 
-  mouseOverFullD :: Dynamic t (Maybe (AreaInfo, (Int, Int))) <- holdDyn Nothing $ leftmost [moveE , Nothing <$ clickE, Nothing <$ outE]
+  mouseOverFullD :: Dynamic t (Maybe (AreaInfo, (Int, Int))) <- holdDyn Nothing $ leftmost [moveE , Nothing <$ clickE, Nothing <$ leaveE]
   mouseOverD :: Dynamic t (Maybe AreaInfo) <- holdUniqDyn $ fmap fst <$> mouseOverFullD
 
   -- The click event depends on the state

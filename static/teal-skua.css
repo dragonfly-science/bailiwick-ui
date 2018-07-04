@@ -1657,9 +1657,9 @@
 
 .icon-facebook-icon:before { font-family: "mbie-rea"; font-style: normal; font-weight: normal; font-size: 0.875rem; speak: none; display: block; text-decoration: inherit; text-align: center; color: #000000; margin-top: .1em; /* For safety - reset parent styles, that can break glyph codes*/ font-variant: normal; text-transform: none; /* fix buttons height, for twitter bootstrap */ line-height: 1em; /* Animation center compensation - margins should be symmetric */ /* remove if not needed */ /* you can be more comfortable with increased icons size */ /* Font smoothing. That was taken from TWBS */ -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; /* Uncomment for 3D effect */ content: ""; }
 
-button, input[type="button"], input[type="reset"], input[type="submit"], button { -webkit-appearance: none; -moz-appearance: none; -ms-appearance: none; -o-appearance: none; appearance: none; -webkit-font-smoothing: antialiased; background-color: #477DCA; border-radius: 3px; border: none; color: #FFFFFF; cursor: pointer; display: inline-block; font-family: gustan-book, sans-serif; font-size: 1em; font-weight: 600; line-height: 1; padding: 0.75em 1em; text-decoration: none; user-select: none; vertical-align: middle; white-space: nowrap; }
-button:hover, button:focus, input[type="button"]:hover, input[type="button"]:focus, input[type="reset"]:hover, input[type="reset"]:focus, input[type="submit"]:hover, input[type="submit"]:focus, button:hover, button:focus { background-color: #2c5999; color: #FFFFFF; }
-button:disabled, input[type="button"]:disabled, input[type="reset"]:disabled, input[type="submit"]:disabled, button:disabled { cursor: not-allowed; opacity: 0.5; }
+button, input[type="button"], input[type="reset"], input[type="submit"], .button > a, button { -webkit-appearance: none; -moz-appearance: none; -ms-appearance: none; -o-appearance: none; appearance: none; -webkit-font-smoothing: antialiased; background-color: #477DCA; border-radius: 3px; border: none; color: #FFFFFF; cursor: pointer; display: inline-block; font-family: gustan-book, sans-serif; font-size: 1em; font-weight: 600; line-height: 1; padding: 0.75em 1em; text-align: center; text-decoration: none; user-select: none; vertical-align: middle; white-space: nowrap; }
+button:hover, button:focus, input[type="button"]:hover, input[type="button"]:focus, input[type="reset"]:hover, input[type="reset"]:focus, input[type="submit"]:hover, input[type="submit"]:focus, .button > a:hover, .button > a:focus, button:hover, button:focus { background-color: #2c5999; color: #FFFFFF; }
+button:disabled, input[type="button"]:disabled, input[type="reset"]:disabled, input[type="submit"]:disabled, .button > a:disabled, button:disabled { cursor: not-allowed; opacity: 0.5; }
 
 fieldset { background-color: #f7f7f7; border: 1px solid #DDDDDD; margin: 0 0 0.75em; padding: 1.5em; }
 
@@ -1726,6 +1726,8 @@ strong, b { font-family: 'gustan-bold'; }
 */ }
 @media (max-width: 1024px) { .indicator-chart .chart-wrapper .d3-attach, .indicator-map .map-wrapper { width: 100%; max-width: 700px; } }
 @media (min-width: 1025px) { .indicator-chart .chart-wrapper .d3-attach, .indicator-map .map-wrapper { width: 481px; } }
+
+*[id]:before { content: " "; display: block; height: 62px; margin-top: -62px; visibility: hidden; }
 
 .agriculture-icon-rear-dark-gray { background-image: url('data:image/svg+xml;utf8,<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 125 109.46" style="enable-background:new 0 0 125 109.46;" xml:space="preserve"><path fill="#666666" style="fill-rule:evenodd;clip-rule:evenodd;" d="M30.92,109.46A26.14,26.14,0,1,1,57.07,83.31,26.17,26.17,0,0,1,30.92,109.46Zm0-41.78A15.64,15.64,0,1,0,46.56,83.31,15.66,15.66,0,0,0,30.92,67.68Zm84.33,12.09,9.75-27-1.39-4.43-19.2-1.94V27.85h0c.23-3.19,2.41-6,5.75-7.92V15h-.44c-8.71,0-15.76,4.9-15.76,11,0,0,0,0,0,0h0V45.37L69.87,42.93,60.93,8.12A8.15,8.15,0,0,0,52.81,0H17.52A8.15,8.15,0,0,0,9.4,8.12V48.58a41.36,41.36,0,0,0-8.09,6.61,4.78,4.78,0,0,0,6.92,6.58A31,31,0,0,1,30.92,52a31.34,31.34,0,0,1,31.3,31.3,4.78,4.78,0,1,0,9.55,0c0-.06,0-.11,0-.16l15.47-.2a15.72,15.72,0,1,0,23.07-.3h0ZM20.54,41V10h30l8,31Zm78.38,60.5A8.08,8.08,0,1,1,107,93.44,8.09,8.09,0,0,1,98.92,101.53Z"/></svg>'); }
 

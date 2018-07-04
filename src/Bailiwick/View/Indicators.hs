@@ -18,8 +18,8 @@ import GHCJS.DOM.Types (MonadJSM)
 
 import Reflex (TriggerEvent, PerformEvent, PostBuild, Dynamic, Performable, never, Event)
 import Reflex.Dom.Core
-       (elClass, dynText, text, el, divClass, GhcjsDomSpace, DomBuilder,
-        DomBuilderSpace)
+       ((=:), elAttr, elClass, dynText, text, el, divClass, GhcjsDomSpace,
+        DomBuilder, DomBuilderSpace)
 
 import Bailiwick.Types (Theme(..), Area(..), Indicator(..), Themes, Indicators)
 import Bailiwick.State (getArea, Message, State(..))
@@ -41,7 +41,8 @@ indicators
   -> m (Event t Message)
 indicators themes inds state = do
   let dispArea = maybe "New Zealand" areaName . getArea <$> state
-  divClass "themes-outer indicators-section" $
+  divClass "themes-outer indicators-section" $ do
+    elAttr "span" ("id" =: "indicators") $ return ()
     divClass "content" $
       divClass "themes" $ do
         divClass "theme-top" $
