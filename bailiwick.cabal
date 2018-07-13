@@ -12,17 +12,18 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Bailiwick.Devel
-                     , Bailiwick
-                     , Bailiwick.Store
-                     , Bailiwick.Types
-                     , Bailiwick.State
-                     , Bailiwick.Route
-                     , Bailiwick.View
-                     , Bailiwick.View.AreaSummary
-                     , Bailiwick.View.Header
-                     , Bailiwick.View.Indicators
-                     , Bailiwick.View.Map
-                     , Bailiwick.Application
+                       Bailiwick
+                       Bailiwick.Store
+                       Bailiwick.Types
+                       Bailiwick.State
+                       Bailiwick.Route
+                       Bailiwick.View
+                       Bailiwick.View.AreaSummary
+                       Bailiwick.View.Header
+                       Bailiwick.View.Indicators
+                       Bailiwick.View.Map
+                       Bailiwick.View.ToolBar
+                       Bailiwick.Application
 
   build-depends:       base >= 4.7 && < 5
                      , aeson
@@ -34,6 +35,7 @@ library
                      , directory
                      , filepath
                      , ghcjs-dom
+                     , hashable
                      , http-media
                      , http-types
                      , Interpolation
@@ -41,7 +43,7 @@ library
                      , jsaddle-warp
                      , lens
                      , mtl
-                     , ordered-containers
+                     , insert-ordered-containers
                      , process
                      , QuickCheck
                      , reflex

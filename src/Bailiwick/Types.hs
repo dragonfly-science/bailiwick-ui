@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 module Bailiwick.Types where
-
 
 import GHC.Generics
 import Data.Char
@@ -9,8 +9,9 @@ import Data.Map (Map)
 
 import qualified Data.Vector as V
 import Data.Text (Text)
-import Data.Map.Ordered (OMap)
-import qualified Data.Map.Ordered as OMap
+import Data.Hashable (Hashable)
+import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
+import qualified Data.HashMap.Strict.InsOrd as OMap
 import Data.Aeson
 
 data Area
@@ -32,7 +33,7 @@ instance FromJSON Area where
       Array as <- v .: "areas"
       mapM parseJSON $ V.toList as
 
-type Areas = OMap Text Area
+type Areas = InsOrdHashMap Text Area
 
 mkAreas :: [ Area ] -> Areas
 mkAreas areas = OMap.fromList [(areaId a, a) | a <- areas]
@@ -51,7 +52,7 @@ instance FromJSON AreaSummary where
       Array as <- v .: "areaSummaries"
       mapM parseJSON $ V.toList as
 
-type AreaSummaries = OMap Text AreaSummary
+type AreaSummaries = InsOrdHashMap Text AreaSummary
 
 mkAreaSummaries :: [ AreaSummary ] -> AreaSummaries
 mkAreaSummaries summaries = OMap.fromList [(areaSummaryId a, a) | a <- summaries]
@@ -60,7 +61,7 @@ data Theme
   = Theme
     { themeId :: Text
     , themeName :: Text
-    , themeIndicators :: [ Text ]
+    , themeIndicators :: [ IndicatorId ]
     } deriving (Eq, Show, Generic)
 
 themeOptions :: Options
@@ -73,7 +74,7 @@ instance FromJSON Theme where
       Array as <- v .: "themes"
       mapM parseJSON $ V.toList as
 
-type Themes = OMap Text Theme
+type Themes = InsOrdHashMap Text Theme
 
 mkThemes :: [ Theme ] -> Themes
 mkThemes themes = OMap.fromList [(themeId t, t) | t <- themes]
@@ -114,13 +115,14 @@ instance FromJSON SecondaryNumber where
 
 data Chart
   = Chart
-  { chartType       :: Text
-  , chartTitle      :: Text
-  , chartTransforms :: [Transform]
-  , chartFacets     :: Maybe [Text]
-  , chartOrder      :: Maybe [Text]
-  , chartAxis       :: Maybe [Text]
-  , chartMapping    :: Maybe [ChartMapping]
+  { chartType        :: Text
+  , chartTitle       :: Text
+  , chartTransforms2 :: [Transform]
+  , chartTransforms  :: [Text]
+  , chartFacets      :: Maybe [Text]
+  , chartOrder       :: Maybe [Text]
+  , chartAxis        :: Maybe [Text]
+  , chartMapping     :: Maybe [ChartMapping]
   } deriving (Show, Eq, Generic)
 
 chartOptions :: Options
@@ -180,11 +182,63 @@ langOptions = defaultOptions
 instance FromJSON Language where
     parseJSON = genericParseJSON langOptions
 
-type IndicatorID = Text
+newtype IndicatorId = IndicatorId Text deriving (Eq, Ord, Show, Generic)
+instance Hashable IndicatorId
+instance FromJSON IndicatorId where
+   parseJSON v = IndicatorId <$> parseJSON v
+newtype ChartId = ChartId Text deriving (Eq, Ord, Show, Generic)
+instance FromJSON ChartId where
+   parseJSON v = ChartId <$> parseJSON v
 
 data Indicator = Indicator
-  { indicatorId                   :: IndicatorID
-  , indicatorName                 :: Text
+  { indicatorId                     :: IndicatorId
+--  , indicatorBarchartLabelWidth     :: Maybe Int
+--  , indicatorAbsoluteLabel          :: Maybe Text
+--  , indicatorCaptions               :: Maybe (Map Text Text)
+--  , indicatorCharts                 :: [Chart]
+  , indicatorDefaultChartLeft       :: ChartId
+  , indicatorDefaultChartRight      :: ChartId
+--  , indicatorDetailName             :: Maybe Text
+--  , indicatorDetails                :: [Text]
+--  , indicatorEnableAreaToggle       :: Bool
+--  , indicatorFeatureName            :: Maybe Text
+--  , indicatorFeatures               :: [Text]
+--  , indicatorFeatureText            :: Maybe (Map Text Text)
+--  , indicatorFeatureDropdownLabel   :: Maybe Text
+--  , indicatorFirstYear              :: Text
+--  , indicatorHeaderTitle            :: Text
+--  , indicatorHeadlineNumCaption     :: Text
+--  , indicatorIcon                   :: Maybe Text
+--  , indicatorLabels                 :: Maybe (Map Text Text)
+--  , indicatorLocalNumCaption        :: Text
+--  , indicatorMaxFeatures            :: Maybe (Map Text Text)
+  , indicatorName                   :: Text
+--  , indicatorNationalNumCaption     :: Text
+--  , indicatorNotes                  :: [Text]
+--  , indicatorNz                     :: Text
+--  , indicatorPeriod                 :: Maybe Int
+--  , indicatorPrimaryYear            :: Maybe Text
+--  , indicatorPublishers             :: Text
+--  , indicatorRegions                :: [Text]
+--  , indicatorScale                  :: Maybe Text
+--  , indicatorSlices                 :: [Text]
+--  , indicatorSummaryTitle           :: Text
+--  , indicatorTerritorialAuthorities :: [Text]
+--  , indicatorTooltipExtra           :: Maybe Text
+--  , indicatorThemes                 :: [Text]
+--  , indicatorTopDetailLabel         :: Maybe Text
+--  , indicatorTopFeatureLabel        :: Maybe Text
+--  , indicatorUnits                  :: Units
+--  , indicatorYearEndMonth           :: Maybe Text
+--  , indicatorYears                  :: [Text]
+--  , indicatorFeatureTrees           :: [Text]
+--  , indicatorAreaTrees              :: [Text]
+--  , indicatorSummaries              :: [Text]
+--  , indicatorTimeseries             :: [Text]
+--  , indicatorMapdata                :: [Text]
+--  , indicatorTableRawData           :: [Text]
+--  , indicatorTransforms             :: [Transform]
+
 --  , indicatorThemes               :: [Text]
 --  , indicatorHeaderTitle          :: Text
 --  , indicatorSlices               :: [Text]
@@ -221,7 +275,9 @@ data Indicator = Indicator
 
 indicatorOptions :: Options
 indicatorOptions = defaultOptions
-    { fieldLabelModifier = map toLower . drop 9 }
+    { fieldLabelModifier = (\case
+        [] -> []
+        (x:xs) -> toLower x : xs) . drop 9 }
 
 instance FromJSON Indicator where
     parseJSON = genericParseJSON indicatorOptions
@@ -229,7 +285,7 @@ instance FromJSON Indicator where
       Array as <- v .: "indicators"
       mapM parseJSON $ V.toList as
 
-type Indicators = OMap Text Indicator
+type Indicators = InsOrdHashMap IndicatorId Indicator
 
 mkIndicators :: [ Indicator ] -> Indicators
 mkIndicators indicators = OMap.fromList [(indicatorId i, i) | i <- indicators]

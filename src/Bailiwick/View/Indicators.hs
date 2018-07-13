@@ -11,7 +11,7 @@ module Bailiwick.View.Indicators (
 
 import Data.Text (Text)
 import qualified Data.Text as T (pack)
-import qualified Data.Map.Ordered as OMap (lookup, assocs)
+import qualified Data.HashMap.Strict.InsOrd as OMap (lookup, toList)
 import Data.Foldable (forM_)
 
 import GHCJS.DOM.Types (MonadJSM)
@@ -52,7 +52,7 @@ indicators themes inds state = do
               text "Indicators for "
               dynText dispArea
         divClass "theme-cards" $
-          forM_ (OMap.assocs themes) $ \(k, Theme{..}) ->
+          forM_ (OMap.toList themes) $ \(k, Theme{..}) ->
             divClass "theme-card" $ do
               divClass ("card-header card-header-" <> k) $ do
                 el "i" $ return ()

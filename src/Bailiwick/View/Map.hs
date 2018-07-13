@@ -23,7 +23,7 @@ import Data.Maybe
 import Data.List (nub)
 import Data.Text (Text)
 import qualified Data.Text as Text
-import qualified Data.Map.Ordered as OM (lookup)
+import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
 
 import qualified GHCJS.DOM.Element as DOM
 import qualified GHCJS.DOM.Node as DOM
@@ -352,14 +352,14 @@ nzmap
 nzmap areas state = mdo
 
   zoomD <- holdUniqDyn $ hasAdapter Mapzoom <$> state
-  let page = getPage <$> state
+  let selectedArea = stateArea <$> state
 
-      regD = page >>= \case
-            Summary (r:_) -> return . Just $ areaId r
+      regD = selectedArea >>= \case
+            (r:_) -> return . Just $ areaId r
             _             -> return Nothing
 
-      regChildrenD = page >>= \case
-            Summary (r:_) -> return $ areaChildren r
+      regChildrenD = selectedArea >>= \case
+            (r:_) -> return $ areaChildren r
             _             -> return []
       subareaD = fmap areaId . getSubArea <$> state
 

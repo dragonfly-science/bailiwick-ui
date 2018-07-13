@@ -4,6 +4,8 @@ let
       repo = "reflex-platform";
       rev = "9cd56b0c56b3f45470b6369d6b80320c49dc8cd7";
       sha256 = "00qv2ripq2k38jnal3r7wi7jsczi9bcpps6pjqxkw3qdnx0hwxqn";
+#      rev = "22b3871b3eb5b95d4fae18372f6b46b037565287";
+#      sha256 = "1ksxrq1gcdp19a68lrlgr4a4l66cdp22n9pwbbfb4cxwff8l548c";
     }) {};
   nixpkgs = reflex-platform.nixpkgs;
   jsaddle-github = nixpkgs.fetchFromGitHub {
@@ -21,8 +23,8 @@ let
   reflex-dom-github = nixpkgs.fetchFromGitHub {
     owner = "reflex-frp";
     repo = "reflex-dom";
-    rev = "a3ae1ee151aba7842fb675d11fb38b5e8f59a0e5";
-    sha256 = "1ph0k0rvx92i9z425xm35rwd55m78z56q2fnagshk576hl0k4fjr";
+    rev = "f26d424fb4d5e976364bb0a205b4c01fb2275883";
+    sha256 = "042wlzjc178j9w28w1dfdkclpic0ia05xf45jj93d4x0has3fmmr";
   };
   servant-auth-github = nixpkgs.fetchFromGitHub {
     owner = "hamishmack";
@@ -39,8 +41,8 @@ in reflex-platform.project ({ pkgs, ... }: {
         jsaddle-dom = pkgs.fetchFromGitHub {
           owner = "ghcjs";
           repo = "jsaddle-dom";
-          rev = "5eb4b59bc1aff4066e454ff874481829f505e101";
-          sha256 = "09szzwncy0ddckdssxfj1nkv1hf4afnghabmrhhzgy6ksqfq7vdq";
+          rev = "0c59032d9f584029b00a9427722d4e77a1ab9ee5";
+          sha256 = "0p1l3y8hmqiaykabayazyx5fyv6ghsxxx9g47796bzw4jl71c8xw";
         };
         ghcjs-dom-jsffi = "${ghcjs-dom-github}/ghcjs-dom-jsffi";
         ghcjs-dom-jsaddle = "${ghcjs-dom-github}/ghcjs-dom-jsaddle";
@@ -74,12 +76,14 @@ in reflex-platform.project ({ pkgs, ... }: {
         jsaddle-warp = pkgs.haskell.lib.dontCheck super.jsaddle-warp;
         # self.callPackage ../../haskell/aspen/focus/reflex-platform/jsaddle/jsaddle-wkwebview {};
         # jsaddle-devtools = self.callPackage ../../haskell/aspen/focus/reflex-platform/jsaddle/jsaddle-devtools {};
-        reflex-dom-core = self.callPackage "${reflex-dom-github}/reflex-dom-core" {};
+        reflex-dom-core = pkgs.haskell.lib.dontHaddock (self.callPackage "${reflex-dom-github}/reflex-dom-core" {});
         reflex-dom = null;
+        servant = pkgs.haskell.lib.doJailbreak super.servant;
+        servant-auth = pkgs.haskell.lib.doJailbreak super.servant-auth;
       };
 
       shells = {
-        ghc = ["bailiwick"];
-        ghcjs = ["bailiwick"];
+        ghc = ["bailiwick" "reflex-dom-contrib"];
+        ghcjs = ["bailiwick" "reflex-dom-contrib"];
       };
   })

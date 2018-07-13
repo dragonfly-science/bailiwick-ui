@@ -7,14 +7,15 @@ module Bailiwick.View.Header
 where
 
 import Control.Monad.Fix
+import Data.Bool (bool)
 import Data.Monoid ((<>))
 import Data.Maybe (fromMaybe, listToMaybe)
 
 import Data.Text (Text)
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Map.Ordered (OMap, (<|))
-import qualified Data.Map.Ordered as OMap
+import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
+import qualified Data.HashMap.Strict.InsOrd as OMap
 import Reflex.Dom.Core hiding (Home)
 
 import Bailiwick.State
@@ -22,7 +23,6 @@ import Bailiwick.Types
 
 
 type AreaSlug = Text
-
 
 header
     :: ( MonadFix m
@@ -36,17 +36,17 @@ header areas state = mdo
   let urlRegion = (fmap areaId) . getRegion <$> state
       urlTa = (fmap areaId) . getSubArea <$> state
       regionsD = do
-        let regions = OMap.filter (\_ a -> areaLevel a == "reg") areas
+        let regions = OMap.filter (\a -> areaLevel a == "reg") areas
         return $
            case OMap.lookup "new-zealand" areas of
-              Just nz -> ("new-zealand", nz) <| regions
+              Just nz -> OMap.singleton "new-zealand" nz <> regions
               Nothing -> regions
       tasD = do
         mreg <- urlRegion
         return $ fromMaybe OMap.empty $ do
           reg <- mreg
           thisArea <- OMap.lookup reg areas
-          return $ OMap.filter (\_ a -> areaId a `elem` areaChildren thisArea) areas
+          return $ OMap.filter (\a -> areaId a `elem` areaChildren thisArea) areas
       background = do
         reg <- (fromMaybe "new-zealand" <$> urlRegion)
         return $ (  "class" =: "title" <> "data-region" =: reg)
@@ -65,22 +65,29 @@ header areas state = mdo
 
   elDynAttr "div" background $
     divClass "content" $ mdo
-      divClass "left" $ do
-        elClass "span" "block-label context-text" $ text "You're looking at"
+      backToSummaryE <- divClass "left" $ do
+        let displayNone = "style" =: "display: none;"
+            disp = bool displayNone mempty
+        (backToSummary, _) <- elDynAttr' "div" (("class" =: "back-to-summary context-text" <>) . disp . (/=Summary) . getPage <$> state) $
+          el "a" $ do
+            elClass "i" "fa fa-arrow-left" $ return ()
+            text "Back to summary page"
+        elDynAttr "span" (("class" =: "block-label context-text"  <>) . disp . (==Summary) . getPage <$> state) $ text "You're looking at"
         divClass "page-header summary-page-header" $ do
           el "div" $ do
             dynText dispRegion
             dynText dispConnect
           el "div" $ dynText dispSubArea
-      divClass "right" $ do
+        return $ GoTo Summary <$ domEvent Click backToSummary
+      menuE <- divClass "right" $
         divClass "title-menus" $ do
           (region, regionOpen) <-
             dropdownMenu (constDyn "Select a region") never
-                         (constDyn True) urlRegion regionsD
+                         (constDyn True) urlRegion (OMap.map areaName <$> regionsD)
           (subarea, _) <-
             dropdownMenu subAreaMessage
-                         (() <$ (ffilter id $ updated regionOpen))
-                         showSubareaD urlTa tasD
+                         (() <$ ffilter id (updated regionOpen))
+                         showSubareaD urlTa (fmap areaName <$> tasD)
 
           uniqRegion <- holdUniqDyn region
           uniqSubarea <- holdUniqDyn subarea
@@ -88,6 +95,7 @@ header areas state = mdo
           return $ leftmost [ SetSubArea <$> fmapMaybe id (updated uniqSubarea)
                             , SetRegion <$> fmapMaybe id (updated uniqRegion)
                             ]
+      return $ leftmost [backToSummaryE, menuE]
 
 dropdownMenu
     :: ( MonadFix m
@@ -99,7 +107,7 @@ dropdownMenu
     -> Event t ()                  -- Close event
     -> Dynamic t Bool              -- Is hidden or not
     -> Dynamic t (Maybe Text)      -- Initial value
-    -> Dynamic t (OMap Text Area)    -- Options (ordered)
+    -> Dynamic t (InsOrdHashMap Text Text)    -- Options (ordered)
     -> m (Dynamic t (Maybe Text), Dynamic t Bool)
 dropdownMenu emptyPresentD closeE seenD initialD valuesD = do
 
@@ -127,14 +135,14 @@ dropdownMenu emptyPresentD closeE seenD initialD valuesD = do
               Nothing -> emptyPresentD
               Just val -> do
                 values <- valuesD
-                return $ maybe "" areaName $ OMap.lookup val values
+                return $ fromMaybe "" $ OMap.lookup val values
 
           ulClass = ffor open $ \isOpen ->
               if isOpen then "dropdown-menu dropdown-select show-menu"
                         else "dropdown-menu dropdown-select"
 
-          shuffle (i, (k, v)) = ((i,k), areaName v)
-          optionsD = Map.fromList . map shuffle . zip [1..] . OMap.assocs <$> valuesD
+          shuffle (i, (k, v)) = ((i,k), v)
+          optionsD = Map.fromList . map shuffle . zip [1..] . OMap.toList <$> valuesD
 
       (p, _) <-  elClass' "p" "dropdown-button" $ dynText label
       selectedValue :: Event t (Map (Int, Text) Text)

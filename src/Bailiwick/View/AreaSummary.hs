@@ -11,21 +11,22 @@ module Bailiwick.View.AreaSummary (
 
 import Data.Text (Text)
 import Reflex
-       (TriggerEvent, delay, leftmost, tagPromptlyDyn, constDyn, ffor,
-        PostBuild, updated)
+       (traceEvent, TriggerEvent, delay, leftmost, tagPromptlyDyn,
+        constDyn, ffor, PostBuild, updated)
 import Reflex.Dom.Core
-       (elDynAttr', elAttr', elDynAttrNS, elDynAttrNS', GhcjsDomSpace,
-        DomBuilderSpace, el', el, dynText, DomBuilder, elAttr, text, (=:),
-        elClass, divClass, Dynamic, _element_raw)
+       (display, elAttr', elDynAttr', elDynAttrNS, elDynAttrNS',
+        GhcjsDomSpace, DomBuilderSpace, el, dynText, DomBuilder, elAttr,
+        text, (=:), elClass, divClass, Dynamic, _element_raw, Event, never)
 import Data.Monoid ((<>))
 import Data.Map (Map)
 import qualified Data.Text as T (pack)
 
 import Bailiwick.Types
-       (Areas, AreaSummary(..), Area(..), IndicatorID(..),
-        AreaSummaries(..))
-import Bailiwick.State (getArea, State(..))
-import qualified Data.Map.Ordered as OM (lookup)
+       (ChartId(..), Indicator(..), Indicators, Areas, AreaSummary(..),
+        Area(..), IndicatorId(..), AreaSummaries(..))
+import Bailiwick.State
+       (ThemePageArgs(..), Message(..), getArea, State(..), Message, Page(..))
+import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
 import Control.Monad (void, join)
 import qualified Data.HashMap.Strict as HM (lookup)
 import Data.Aeson ((.:), Object, (.:?), FromJSON, Value)
@@ -36,27 +37,31 @@ import Language.Javascript.JSaddle
        (jsg3, MonadJSM, liftJSM, jsNull, jsg2)
 import Reflex.PostBuild.Class (PostBuild(..))
 import Control.Applicative (liftA2)
+import Reflex.Dom.Builder.Class (HasDomEvent(..))
+import Reflex.Dom.Builder.Class.Events (EventName(..))
 
 indicatorSummary
   :: (Monad m, PostBuild t m, DomBuilder t m)
   => Text
-  -> IndicatorID
+  -> Maybe Indicator
   -> Dynamic t Text
   -> m ()
-  -> m ()
-indicatorSummary cssClass indicatorId label content =
-  divClass ("summary-item " <> cssClass <> "-item") $ do
+  -> m (Event t Indicator)
+indicatorSummary _ Nothing _ _ = return never
+indicatorSummary cssClass (Just indicator) label content = do
+  (e, _) <- elAttr' "div" ("class" =: ("summary-item " <> cssClass <> "-item")) $ do
       divClass "block-label" $ dynText label
       content
+  return $ indicator <$ domEvent Click e
 
 indicatorLatestYearSummary
   :: (Monad m, PostBuild t m, DomBuilder t m)
   => Text
-  -> IndicatorID
+  -> Maybe Indicator
   -> Text
   -> Dynamic t (Maybe Text)
   -> m ()
-  -> m ()
+  -> m (Event t Indicator)
 indicatorLatestYearSummary cssClass indicator label year numbers =
   indicatorSummary cssClass indicator (maybe "" (\y -> label <> " (" <> y <> ")") <$> year) $
     divClass ("summary-numbers " <> cssClass <> "-numbers") $ do
@@ -75,54 +80,66 @@ areaSummary
      )
   => Areas
   -> AreaSummaries
+  -> Indicators
   -> Dynamic t State
-  -> m ()
-areaSummary areas areaSummaries state = do
+  -> m (Event t Message)
+areaSummary areas areaSummaries indicators state = do
   let areaIdD = maybe "new-zealand" areaId . getArea <$> state
       areaD :: Dynamic t (Maybe Area)
       areaD = (`OM.lookup` areas) <$> areaIdD
       summaryD :: Dynamic t (Maybe AreaSummary)
       summaryD = (`OM.lookup` areaSummaries) <$> areaIdD
-      indicatorsD :: Dynamic t (Maybe Object)
-      indicatorsD = fmap areaSummaryIndicatorValues <$> summaryD
+      indicatorValuesD :: Dynamic t (Maybe Object)
+      indicatorValuesD = fmap areaSummaryIndicatorValues <$> summaryD
       convertValue p = parseMaybe (const p) ()
       lookupValue :: forall a. FromJSON a => Text -> Dynamic t (Maybe a)
-      lookupValue n = ((convertValue . (.: n)) =<<) <$> indicatorsD
+      lookupValue n = ((convertValue . (.: n)) =<<) <$> indicatorValuesD
+      lookupIndicatorById i = OM.lookup (IndicatorId i) indicators
       textValue n = dynText $ fromMaybe "" <$> lookupValue n
-  indicatorLatestYearSummary
-    "population"
-    "population-estimates"
-    "Population estimate"
-    (lookupValue "populationEstimateYear")
-    (textValue "populationEstimate")
-  indicatorLatestYearSummary
-    "income"
-    "household-income"
-    "Average household income"
-    (lookupValue "averageHouseholdIncomeYear")
-    (textValue "averageHouseholdIncome")
-  indicatorLatestYearSummary
-    "housing"
-    "mean-weekly-rent"
-    "Mean weekly rent"
-    (lookupValue "meanWeeklyRentYear")
-    (textValue "meanWeeklyRent")
-  indicatorLatestYearSummary
-    "economic"
-    "gdp-per-capita"
-    "GDP per capita"
-    (lookupValue "gdpPerCapitaYear")
-    (textValue "gdpPerCapita")
-  indicatorSummary
-    "house-price"
-    "mean-house-value"
-    "Mean house value"
-    (housePriceTimeSeries areaD $ lookupValue "housePriceSeries")
-  divClass "summary-item button" $
-    elAttr "a" ("class" =: "indicators right" <> "href" =: "#indicators") $
-      el "span" $ do
-        text "All indicators"
-        el "i" $ return ()
+  gotoIndicatorE <- leftmost <$> sequence
+    [ indicatorLatestYearSummary
+        "population"
+        (lookupIndicatorById "population-estimates")
+        "Population estimate"
+        (lookupValue "populationEstimateYear")
+        (textValue "populationEstimate")
+    , indicatorLatestYearSummary
+        "income"
+        (lookupIndicatorById "average-household-income")
+        "Average household income"
+        (lookupValue "averageHouseholdIncomeYear")
+        (textValue "averageHouseholdIncome")
+    , indicatorLatestYearSummary
+        "housing"
+        (lookupIndicatorById "mean-weekly-rent")
+        "Mean weekly rent"
+        (lookupValue "meanWeeklyRentYear")
+        (textValue "meanWeeklyRent")
+    , indicatorLatestYearSummary
+        "economic"
+        (lookupIndicatorById "gdp-per-capita")
+        "GDP per capita"
+        (lookupValue "gdpPerCapitaYear")
+        (textValue "gdpPerCapita")
+    , indicatorSummary
+        "house-price"
+        (lookupIndicatorById "mean-house-value")
+        "Mean house value"
+        (housePriceTimeSeries areaD $ lookupValue "housePriceSeries")
+    , divClass "summary-item button" $
+        elAttr "a" ("class" =: "indicators right" <> "href" =: "#indicators") $
+          el "span" $ do
+            text "All indicators"
+            el "i" $ return ()
+            return never
+    ]
+  return $ (\Indicator{..} ->
+      GoTo (ThemePage $ ThemePageArgs
+        indicatorId
+        indicatorDefaultChartLeft
+        indicatorDefaultChartRight
+        2017 Nothing Nothing "reg" "indexed" "indexed")
+        ) <$> gotoIndicatorE
 
 housePriceTimeSeries
   :: ( Monad m

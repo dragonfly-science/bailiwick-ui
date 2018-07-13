@@ -60,7 +60,7 @@ debug prt f = do
                   staticApp (defaultFileServerSettings
                           "dist-ghcjs/build/x86_64-osx/ghcjs-0.2.1/bailiwick-0.1.0.0/c/bailiwick/build/bailiwick/bailiwick.jsexe/")
                       req sendResponse
-              ("GET", x) | (null x || head x == "summary") && W.requestHeaderHost req /= Just ("jsaddle.localhost:" <> T.encodeUtf8 (T.pack $ show prt)) -> sendResponse . W.responseLBS H.status200 [("Content-Type", "text/html")]
+              ("GET", x) | (null x || head x `elem` ["summary", "theme"]) && W.requestHeaderHost req /= Just ("jsaddle.localhost:" <> T.encodeUtf8 (T.pack $ show prt)) -> sendResponse . W.responseLBS H.status200 [("Content-Type", "text/html")]
                   =<< indexHtml (map ((LBS.fromStrict . T.encodeUtf8) . ("/" <>)) ghcjsFiles)
               _ -> logStdoutDev app req sendResponse)
   putStrLn $ "<a href=\"http://localhost:" <> show prt <> "\">run</a>"

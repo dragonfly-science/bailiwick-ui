@@ -43,7 +43,7 @@ ui = do
     themes <- themesD
     indicators <- indicatorsD
     return $ mdo
-      state <- route' encodeRoute (decodeRoute areas) events
+      state <- route' (encodeRoute areas) (decodeRoute areas) events
       events <- view areas areaSummaries themes indicators state
       return ()
 

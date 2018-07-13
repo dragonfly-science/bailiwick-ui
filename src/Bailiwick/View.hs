@@ -2,14 +2,23 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE RecursiveDo         #-}
 module Bailiwick.View
 where
 
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Fix
+import Data.Bool (bool)
 import Data.Monoid ((<>))
 
 import Language.Javascript.JSaddle.Types (MonadJSM)
+import qualified GHCJS.DOM.GlobalEventHandlers as Events (scroll)
+import GHCJS.DOM (currentDocumentUnchecked, currentWindowUnchecked)
+import GHCJS.DOM.Document (getBodyUnchecked)
+import GHCJS.DOM.EventM (on)
+import GHCJS.DOM.Element (getScrollTop)
+import GHCJS.DOM.Window (getPageYOffset)
+
 import Servant.Reflex
 import Reflex.Dom.Core hiding (Home)
 
@@ -19,13 +28,7 @@ import Bailiwick.View.Header
 import Bailiwick.View.Map
 import Bailiwick.View.AreaSummary (areaSummary)
 import Bailiwick.View.Indicators (indicators)
-import qualified GHCJS.DOM.GlobalEventHandlers as Events (scroll)
-import GHCJS.DOM (currentDocumentUnchecked, currentWindowUnchecked)
-import GHCJS.DOM.Document (getBodyUnchecked)
-import GHCJS.DOM.EventM (on)
-import GHCJS.DOM.Element (getScrollTop)
-import GHCJS.DOM.Window (getPageYOffset)
-import Data.Bool (bool)
+import Bailiwick.View.ToolBar (toolBar)
 
 windowScrolled
   :: (Monad m, MonadJSM m, TriggerEvent t m)
@@ -55,42 +58,53 @@ view
     => Areas -> AreaSummaries -> Themes -> Indicators -> Dynamic t State -> m (Event t Message)
 view areas areaSummaries themes inds state = do
   isScrolledD <- fmap (>137) <$> windowScrollDyn
-  elDynAttr "div" (("class" =:) . ("whole-body summary-whole-body" <>) . bool "" " fixed" <$> isScrolledD)  $ do
-    headerE
-      <-  divClass "main-header-area" $
-            elClass "header" "main-header closed" $ do
-              navbar
-              header areas state
+  let wholeBodyClass s = "whole-body " <> case getPage s of
+                              ThemePage _ -> "theme-whole-body"
+                              Summary -> "summary-whole-body"
+      mainHeaderClass s isOpen =
+         "main-header " <> case getPage s of
+                              ThemePage _ -> if isOpen then "large" else "small"
+                              Summary -> "closed"
+  elDynAttr "div" (("class" =:) <$> ((<>) <$> (wholeBodyClass <$> state) <*> (bool "" " fixed" <$> isScrolledD)))  $ mdo
+    (headerE, isOpen)
+      <- divClass "main-header-area" $
+            elDynClass "header" (mainHeaderClass <$> state <*> isOpen) $ do
+              navBarE <- navbar
+              headerE <- header areas state
+              (toolBarE, isOpen) <- toolBar areas state
+              return (leftmost [navBarE, headerE, toolBarE], isOpen)
     mainE <-
       elDynAttr "div" (("class" =: "content main-content" <>) . bool mempty ("style" =: "margin-top: 279px") <$> isScrolledD) $
-        maincontent areas areaSummaries state
+        maincontent areas areaSummaries inds state
     indicatorsE <- indicators themes inds state
     footer
     return $ leftmost [headerE, mainE, indicatorsE]
 
 
-navbar :: (Monad m, DomBuilder t m) => m ()
+navbar :: (Monad m, DomBuilder t m) => m (Event t Message)
 navbar =
   elClass "nav" "content" $ do
-    elAttr "a" ( "href" =: "/"
-             <>"class" =: "logo font--droid-serif" ) $ do
+    (logo, _) <- elAttr' "a" ("class" =: "logo font--droid-serif") $ do
       el "span" $ text "Regional"
       el "strong" $ text "Economic Activity"
       el "span" $ text "Web Tool"
-    divClass "menu-items" $ do
-      divClass "links" $ do
-        elAttr "a" ( "href" =: "/"
-                 <>"class" =: "home button") $ do
+
+    home <- divClass "menu-items" $ do
+      home <- divClass "links" $ do
+        (home, _) <- elAttr' "a" ("class" =: "home button") $ do
           el "i" $ return ()
           el "span" $ text "Home"
         elAttr "a" ("class" =: "indicators left" <> "href" =: "#indicators") $
           el "span" $ do
             text "Indicators"
             el "i" $ return ()
+        return home
       divClass "menu-buttons" $
         elClass "button" "share" $ do
           el "i" $ return ()
           el "span" $ text "share"
+      return home
+    return $ GoToHomePage <$ leftmost [domEvent Click logo, domEvent Click home]
 
 
 maincontent
@@ -109,9 +123,10 @@ maincontent
        )
     => Areas
     -> AreaSummaries
+    -> Indicators
     -> Dynamic t State
     -> m (Event t Message)
-maincontent areas areaSummaries state =
+maincontent areas areaSummaries indicators state =
     divClass "central-content summary" $ do
       messages
        <-
@@ -121,9 +136,9 @@ maincontent areas areaSummaries state =
              divClass "svg-wrapper" $
                nzmap areas state
            return $ leftmost [zoomClick, mapClicks]
-      divClass "area-summary" $
-        areaSummary areas areaSummaries state
-      return messages
+      summaryMessages <- divClass "area-summary" $
+        areaSummary areas areaSummaries indicators state
+      return $ leftmost [messages, summaryMessages]
 
 summaryText
   :: ( DomBuilder t m
@@ -132,12 +147,11 @@ summaryText
   -> m (Event t Message)
 summaryText state = do
 
-  let page = getPage <$> state
-      homeAttr = page >>= \case
-            Home -> return ("class" =: "text-wrapper" <> "style" =: "display: block")
+  let homeAttr = state >>= \case
+            State Summary [] _ -> return ("class" =: "text-wrapper" <> "style" =: "display: block")
             _    -> return ("class" =: "text-wrapper" <> "style" =: "display: none")
-      summaryAttr = page >>= \case
-            Home -> return ("class" =: "text-wrapper" <> "style" =: "display: none")
+      summaryAttr = state >>= \case
+            State Summary [] _ -> return ("class" =: "text-wrapper" <> "style" =: "display: none")
             _    -> return ("class" =: "text-wrapper" <> "style" =: "display: block")
 
       -- Zoom in and out button

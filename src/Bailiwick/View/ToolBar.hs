@@ -1,0 +1,223 @@
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE RecursiveDo         #-}
+module Bailiwick.View.ToolBar (
+    toolBar
+) where
+
+import Control.Monad.Fix (MonadFix)
+import Data.Text (Text)
+import Data.Map (Map)
+import qualified Data.Map as M (fromList, toList)
+import Data.Maybe (fromMaybe, listToMaybe)
+import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
+import qualified Data.HashMap.Strict.InsOrd as OM (toList, fromList, lookup)
+import Data.Monoid ((<>))
+import Reflex.Dom.Core
+       (elDynClass', GhcjsDomSpace, elAttr', MonadHold, PostBuild,
+        DomBuilder, Event, Dynamic, divClass, elAttr, el, elClass, text,
+        (=:), never, dropdown, def, constDyn, elDynAttr, holdDyn, leftmost,
+        tag, current, domEvent, EventName(Click, Focus, Blur), ffor,
+        elClass', dynText, elDynClass, listViewWithKey, el', elDynAttr',
+        DomBuilderSpace, _element_raw)
+
+import Bailiwick.State
+import Bailiwick.Types
+import Data.Bool (bool)
+import Reflex (TriggerEvent, delay, demuxed, demux, foldDyn)
+import qualified Data.Text as T (unpack, pack)
+import Reflex.Dom.Contrib.Utils (listWithKeyAndSelection)
+import Language.Javascript.JSaddle (MonadJSM, liftJSM, jsg, new)
+import Reflex.PerformEvent.Class (PerformEvent(..))
+import Reflex.PostBuild.Class (PostBuild(..))
+import GHCJS.DOM.Types (Element(..), HTMLElement(..))
+import Reflex.FunctorMaybe (FunctorMaybe(..))
+import Text.Read (readMaybe)
+-- import Bailiwick.View.Header (dropdownMenu)
+
+toolBar
+    :: ( MonadFix m
+       , MonadHold t m
+       , PostBuild t m
+       , DomBuilder t m
+       , TriggerEvent t m
+       , PerformEvent t m
+       , MonadJSM (Performable m)
+       , DomBuilderSpace m ~ GhcjsDomSpace
+       )
+    => Areas -> Dynamic t State -> m (Event t Message, Dynamic t Bool)
+toolBar areas state = do
+  let areaTypes = OM.fromList [("nz", "New Zealand"), ("reg", "Regional Council"), ("ta", "Territorial Authority")]
+      transforms = OM.fromList [("indexed", "indexed"), ("absolute", "population")]
+      years = OM.fromList [(T.pack $ show y, T.pack $ show y) | y <- reverse [1996..2017]] -- TODO fix range
+      areaTypeD = fmap themePageAreaType . getThemePage <$> state
+      leftTransformD = fmap themePageLeftTransform . getThemePage <$> state
+      rightTransformD = fmap themePageRightTransform . getThemePage <$> state
+      yearD = fmap (T.pack . show . themePageYear) . getThemePage <$> state
+      setAreaEvent = fmap (fmap SetAreaType . fmapMaybe id)
+      setLeftTransformEvent = fmap (fmap SetLeftTransform . fmapMaybe id)
+      setYearEvent = fmap (fmap SetYear . fmapMaybe id . fmap (readMaybe . T.unpack =<<))
+  divClass "tool-bar" $ do
+    (dropdownsE, isOpen) <- divClass "summary content" $ do
+      dropdownsE <- divClass "top" $ do
+        elClass "span" "label" $ text "select:"
+        divClass "elements" $ do
+          areaTypeE <- setAreaEvent $ divClass "element" $
+            el "div" $
+              toolbarDropdown "area" (constDyn "") never (constDyn True) areaTypeD (constDyn areaTypes)
+          transformE <- setLeftTransformEvent $ divClass "element" $
+            divClass "toolbar-transform" $
+              toolbarDropdown "transform" (constDyn "") never (constDyn True) leftTransformD
+                (constDyn transforms)
+          yearE <- setYearEvent $ divClass "element" $
+            el "div" $
+              toolbarDropdown "year" (constDyn "") never (constDyn True) yearD
+                (constDyn years)
+          return $ leftmost [areaTypeE, transformE, yearE]
+      isOpen <- divClass "actions content" $ mdo
+        (b, _) <- elDynAttr' "button" (("class" =:) . bool "open-button" "close-button" <$> isOpen) $
+            el "i" $ return ()
+        isOpen <- foldDyn (const not) False $ domEvent Click b
+        return isOpen
+      return (dropdownsE, isOpen)
+    filterE <- divClass "filtering content" $
+      divClass "filters" $ do
+        divClass "filter-type view-by" $
+          elClass "span" "label" $ text "view by:"
+        areaTypeE <- setAreaEvent $ toolbarList "area" (constDyn "") never (constDyn True) areaTypeD
+          (constDyn areaTypes)
+        transformE <- setLeftTransformEvent $ toolbarList "transform" (constDyn "") never (constDyn True) leftTransformD
+          (constDyn transforms)
+        yearE <- setYearEvent $ toolbarList "year" (constDyn "") never (constDyn True) yearD
+          (constDyn years)
+        rightTransformE <- divClass "filter-type charts" $ do
+          elClass "span" "label" $ text "view by"
+          divClass "header" $ do
+            (ts, _) <- elDynClass' "button" (("timeseries" <>) . bool "" " active" . (==Just "indexed") <$> rightTransformD) $ el "i" $ return ()
+            (bc, _) <- elDynClass' "button" (("barchart" <>) . bool "" " active" . (==Just "absolute") <$> rightTransformD) $ el "i" $ return ()
+            return $ leftmost
+                [ SetRightTransform "indexed" <$ domEvent Click ts
+                , SetRightTransform "absolute" <$ domEvent Click bc
+                ]
+        return $ leftmost [areaTypeE, transformE, yearE, rightTransformE]
+    return (leftmost [dropdownsE, filterE], isOpen)
+
+toolbarDropdown
+    :: ( MonadFix m
+       , MonadHold t m
+       , PostBuild t m
+       , DomBuilder t m
+       )
+    => Text
+    -> Dynamic t Text              -- empty value presentation
+    -> Event t ()                  -- Close event
+    -> Dynamic t Bool              -- Is hidden or not
+    -> Dynamic t (Maybe Text)      -- Initial value
+    -> Dynamic t (InsOrdHashMap Text Text)    -- Options (ordered)
+    -> m (Event t (Maybe Text))
+toolbarDropdown dropdownClass emptyPresentD closeE seenD currentValue valuesD = do
+
+  let dropdownAttrD = do
+        canSee <- seenD
+        let visibility = if canSee then "visibility: block"
+                                   else "visibility: hidden"
+        return ("class" =: ("toolbar-dropdown " <> dropdownClass) <> "style" =: visibility)
+
+  elDynAttr "div" dropdownAttrD $ mdo
+
+      active :: Dynamic t Bool
+        <- holdDyn False $
+            leftmost [ True <$ domEvent Focus container
+                     , False <$ domEvent Blur container ]
+
+      open :: Dynamic t Bool
+        <- holdDyn False $
+            leftmost [ not <$> tag (current open) (domEvent Click a)
+                     , False <$ selectedValue
+                     , False <$ closeE ]
+
+      let label = do
+            mval <- currentValue
+            case mval of
+              Nothing -> emptyPresentD
+              Just val -> fromMaybe "" . OM.lookup val <$> valuesD
+
+          containerClass = (\isOpen isActive ->
+              "chosen-container chosen-container-single chosen-container-single-nosearch"
+              <> (if isOpen then " chosen-with-drop"
+                            else "")
+              <> (if isActive then " chosen-container-active"
+                              else "")) <$> open <*> active
+
+          ulClass = ffor open $ \isOpen ->
+              if isOpen then "chosen-results show-menu"
+                        else "chosen-results"
+
+          shuffle i (k, v) = ((i,k), v)
+          optionsD = M.fromList . zipWith shuffle [1 ..] . OM.toList <$> valuesD
+
+      (container, (a, selectedValue)) <-
+        elDynAttr' "div" (("tabindex" =: "0" <>) . ("class" =:) <$> containerClass) $ do
+          (a', _) <-  elDynAttr' "a" (constDyn $ "class" =: "chosen-single") $ do
+            el "span" $ dynText label
+            el "div" $ el "b" $ return ()
+          selectedValue' :: Event t (Map (Int, Text) Text)
+            <- divClass "chosen-drop" . elDynClass "ul" ulClass $ do
+                let selectionDemux = demux currentValue
+                listViewWithKey optionsD $ \(_, k) v -> do
+                  let selected = demuxed selectionDemux (Just k)
+                  (li, _) <- elDynAttr' "li" (("class" =:) . ("active-result" <>) . bool "" " result-selected" <$> selected) $ dynText v
+                  return (tag (current v) (domEvent Click li))
+          return (a', selectedValue')
+
+      return $ firstKey <$> selectedValue
+
+  where
+    firstKey :: Map (Int, Text) Text -> Maybe Text
+    firstKey = fmap (snd . fst) . listToMaybe . M.toList
+
+toolbarList
+    :: ( MonadFix m
+       , MonadHold t m
+       , PostBuild t m
+       , DomBuilder t m
+       , TriggerEvent t m
+       , PerformEvent t m
+       , MonadJSM (Performable m)
+       , DomBuilderSpace m ~ GhcjsDomSpace
+       )
+    => Text
+    -> Dynamic t Text              -- empty value presentation
+    -> Event t ()                  -- Close event
+    -> Dynamic t Bool              -- Is hidden or not
+    -> Dynamic t (Maybe Text)      -- Initial value
+    -> Dynamic t (InsOrdHashMap Text Text)    -- Options (ordered)
+    -> m (Event t (Maybe Text))
+toolbarList dropdownClass emptyPresentD closeE seenD currentValue valuesD =
+  divClass ("filter-type " <> dropdownClass) $ mdo
+
+      let shuffle i (k, v) = ((i,k), v)
+          optionsD = M.fromList . zipWith shuffle [1 ..] . OM.toList <$> valuesD
+
+      elClass "span" "label" $ text dropdownClass
+      (ps, selectedValue :: Event t (Map (Int, Text) Text))
+          <- elAttr' "div" ("style" =: "overflow: scroll") $ -- ("class" =: "ps-content ps-container ps-theme-default") $
+                elClass "ul" "options" $ do
+                let selectionDemux = demux currentValue
+                listViewWithKey optionsD $ \(_, k) v -> do
+                  let selected = demuxed selectionDemux (Just k)
+                  (li, _) <- el "li" $ elDynAttr' "button" (("class" =:) . bool "" "active" <$> selected) $
+                    dynText v
+                  return (tag (current v) (domEvent Click li))
+--      postBuild <- delay 20 =<< getPostBuild
+--      performEvent_ $ ffor postBuild $ \() -> do
+--            liftJSM $ new (jsg ("PerfectScrollbar" :: Text)) [_element_raw ps :: Element]
+--            return ()
+      tbE <- toolbarDropdown dropdownClass emptyPresentD closeE seenD currentValue valuesD
+      return $ leftmost [tbE, firstKey <$> selectedValue]
+
+  where
+    firstKey :: Map (Int, Text) Text -> Maybe Text
+    firstKey = fmap (snd . fst) . listToMaybe . M.toList
