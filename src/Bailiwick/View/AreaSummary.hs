@@ -47,12 +47,13 @@ indicatorSummary
   -> Dynamic t Text
   -> m ()
   -> m (Event t Indicator)
-indicatorSummary _ Nothing _ _ = return never
-indicatorSummary cssClass (Just indicator) label content = do
+indicatorSummary cssClass mbIndicator label content = do
   (e, _) <- elAttr' "div" ("class" =: ("summary-item " <> cssClass <> "-item")) $ do
       divClass "block-label" $ dynText label
       content
-  return $ indicator <$ domEvent Click e
+  case mbIndicator of
+    Just indicator -> return $ indicator <$ domEvent Click e
+    Nothing -> return never
 
 indicatorLatestYearSummary
   :: (Monad m, PostBuild t m, DomBuilder t m)
