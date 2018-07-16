@@ -17,6 +17,7 @@ data Message
   = SetRegion Text
   | SetSubArea Text
   | SetAreaType Text
+  | SetRightChart ChartId
   | SetLeftTransform Text
   | SetRightTransform Text
   | SetYear Int

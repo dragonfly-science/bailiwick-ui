@@ -74,8 +74,6 @@ in reflex-platform.project ({ pkgs, ... }: {
         ghcjs-dom = self.callPackage "${ghcjs-dom-github}/ghcjs-dom" {};
         servant-reflex = pkgs.haskell.lib.dontCheck (pkgs.haskell.lib.doJailbreak super.servant-reflex);
         jsaddle-warp = pkgs.haskell.lib.dontCheck super.jsaddle-warp;
-        # self.callPackage ../../haskell/aspen/focus/reflex-platform/jsaddle/jsaddle-wkwebview {};
-        # jsaddle-devtools = self.callPackage ../../haskell/aspen/focus/reflex-platform/jsaddle/jsaddle-devtools {};
         reflex-dom-core = pkgs.haskell.lib.dontHaddock (self.callPackage "${reflex-dom-github}/reflex-dom-core" {});
         reflex-dom = null;
         servant = pkgs.haskell.lib.doJailbreak super.servant;
@@ -83,7 +81,7 @@ in reflex-platform.project ({ pkgs, ... }: {
       };
 
       shells = {
-        ghc = ["bailiwick" "reflex-dom-contrib"];
+        ghc = ["bailiwick" "reflex-dom-contrib" "jsaddle-devtools"];
         ghcjs = ["bailiwick" "reflex-dom-contrib"];
       };
   })

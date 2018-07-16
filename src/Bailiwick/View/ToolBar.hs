@@ -47,14 +47,15 @@ toolBar
        , MonadJSM (Performable m)
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
-    => Areas -> Dynamic t State -> m (Event t Message, Dynamic t Bool)
-toolBar areas state = do
+    => Areas -> Indicators -> Dynamic t State -> m (Event t Message, Dynamic t Bool)
+toolBar areas indicators state = do
   let areaTypes = OM.fromList [("nz", "New Zealand"), ("reg", "Regional Council"), ("ta", "Territorial Authority")]
-      transforms = OM.fromList [("indexed", "indexed"), ("absolute", "population")]
+      transforms = (\n -> OM.fromList [("indexed", "indexed"), ("absolute", fromMaybe "absolute" n)]) <$> absoluteLabel
+      absoluteLabel = (indicatorAbsoluteLabel =<<) . ((`OM.lookup` indicators) =<<) . fmap themePageIndicatorId . getThemePage <$> state
       years = OM.fromList [(T.pack $ show y, T.pack $ show y) | y <- reverse [1996..2017]] -- TODO fix range
       areaTypeD = fmap themePageAreaType . getThemePage <$> state
       leftTransformD = fmap themePageLeftTransform . getThemePage <$> state
-      rightTransformD = fmap themePageRightTransform . getThemePage <$> state
+      rightChartD = fmap themePageRightChart . getThemePage <$> state
       yearD = fmap (T.pack . show . themePageYear) . getThemePage <$> state
       setAreaEvent = fmap (fmap SetAreaType . fmapMaybe id)
       setLeftTransformEvent = fmap (fmap SetLeftTransform . fmapMaybe id)
@@ -70,7 +71,7 @@ toolBar areas state = do
           transformE <- setLeftTransformEvent $ divClass "element" $
             divClass "toolbar-transform" $
               toolbarDropdown "transform" (constDyn "") never (constDyn True) leftTransformD
-                (constDyn transforms)
+                transforms
           yearE <- setYearEvent $ divClass "element" $
             el "div" $
               toolbarDropdown "year" (constDyn "") never (constDyn True) yearD
@@ -89,17 +90,17 @@ toolBar areas state = do
         areaTypeE <- setAreaEvent $ toolbarList "area" (constDyn "") never (constDyn True) areaTypeD
           (constDyn areaTypes)
         transformE <- setLeftTransformEvent $ toolbarList "transform" (constDyn "") never (constDyn True) leftTransformD
-          (constDyn transforms)
+          transforms
         yearE <- setYearEvent $ toolbarList "year" (constDyn "") never (constDyn True) yearD
           (constDyn years)
         rightTransformE <- divClass "filter-type charts" $ do
           elClass "span" "label" $ text "view by"
           divClass "header" $ do
-            (ts, _) <- elDynClass' "button" (("timeseries" <>) . bool "" " active" . (==Just "indexed") <$> rightTransformD) $ el "i" $ return ()
-            (bc, _) <- elDynClass' "button" (("barchart" <>) . bool "" " active" . (==Just "absolute") <$> rightTransformD) $ el "i" $ return ()
+            (ts, _) <- elDynClass' "button" (("timeseries" <>) . bool "" " active" . (==Just (ChartId "timeseries")) <$> rightChartD) $ el "i" $ return ()
+            (bc, _) <- elDynClass' "button" (("barchart" <>) . bool "" " active" . (==Just (ChartId "barchart")) <$> rightChartD) $ el "i" $ return ()
             return $ leftmost
-                [ SetRightTransform "indexed" <$ domEvent Click ts
-                , SetRightTransform "absolute" <$ domEvent Click bc
+                [ SetRightChart (ChartId "timeseries") <$ domEvent Click ts
+                , SetRightChart (ChartId "barchart") <$ domEvent Click bc
                 ]
         return $ leftmost [areaTypeE, transformE, yearE, rightTransformE]
     return (leftmost [dropdownsE, filterE], isOpen)

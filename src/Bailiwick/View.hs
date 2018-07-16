@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE TypeFamilies        #-}
@@ -28,6 +29,7 @@ import Bailiwick.View.Header
 import Bailiwick.View.Map
 import Bailiwick.View.AreaSummary (areaSummary)
 import Bailiwick.View.Indicators (indicators)
+import Bailiwick.View.IndicatorSummary (indicatorSummary)
 import Bailiwick.View.ToolBar (toolBar)
 
 windowScrolled
@@ -71,11 +73,11 @@ view areas areaSummaries themes inds state = do
             elDynClass "header" (mainHeaderClass <$> state <*> isOpen) $ do
               navBarE <- navbar
               headerE <- header areas state
-              (toolBarE, isOpen) <- toolBar areas state
+              (toolBarE, isOpen) <- toolBar areas inds state
               return (leftmost [navBarE, headerE, toolBarE], isOpen)
     mainE <-
       elDynAttr "div" (("class" =: "content main-content" <>) . bool mempty ("style" =: "margin-top: 279px") <$> isScrolledD) $
-        maincontent areas areaSummaries inds state
+        mainContent areas areaSummaries inds state
     indicatorsE <- indicators themes inds state
     footer
     return $ leftmost [headerE, mainE, indicatorsE]
@@ -107,38 +109,88 @@ navbar =
     return $ GoToHomePage <$ leftmost [domEvent Click logo, domEvent Click home]
 
 
-maincontent
-    :: ( Monad m
-       , MonadJSM m
-       , DomBuilder t m
-       , MonadFix m
-       , PostBuild t m
-       , TriggerEvent t m
-       , PerformEvent t m
-       , HasJSContext (Performable m)
-       , MonadJSM (Performable m)
-       , MonadIO m
-       , MonadHold t m
-       , DomBuilderSpace m ~ GhcjsDomSpace
-       )
+type ContentConstraints t m =
+    ( Monad m
+    , MonadJSM m
+    , DomBuilder t m
+    , MonadFix m
+    , PostBuild t m
+    , TriggerEvent t m
+    , PerformEvent t m
+    , HasJSContext (Performable m)
+    , MonadJSM (Performable m)
+    , MonadIO m
+    , MonadHold t m
+    , DomBuilderSpace m ~ GhcjsDomSpace
+    )
+
+mainContent
+    :: ContentConstraints t m
     => Areas
     -> AreaSummaries
     -> Indicators
     -> Dynamic t State
     -> m (Event t Message)
-maincontent areas areaSummaries indicators state =
-    divClass "central-content summary" $ do
-      messages
-       <-
-         divClass "navigation-map base-map" $ do
-           zoomClick <- summaryText state
-           mapClicks <-
-             divClass "svg-wrapper" $
-               nzmap areas state
-           return $ leftmost [zoomClick, mapClicks]
-      summaryMessages <- divClass "area-summary" $
-        areaSummary areas areaSummaries indicators state
-      return $ leftmost [messages, summaryMessages]
+mainContent areas areaSummaries indicators state = do
+  isSummary <- holdUniqDyn ((== Summary) . getPage <$> state)
+  switchHold never =<< dyn (ffor isSummary $ \case
+    True -> summaryContent areas areaSummaries indicators state
+    False -> indicatorContent areas areaSummaries indicators state)
+
+summaryContent
+    :: ContentConstraints t m
+    => Areas
+    -> AreaSummaries
+    -> Indicators
+    -> Dynamic t State
+    -> m (Event t Message)
+summaryContent areas areaSummaries indicators state =
+  divClass "central-content summary" $ do
+    messages
+     <-
+       divClass "navigation-map base-map" $ do
+         zoomClick <- summaryText state
+         mapClicks <-
+           divClass "svg-wrapper" $
+             nzmap areas state
+         return $ leftmost [zoomClick, mapClicks]
+
+    summaryMessages <- divClass "area-summary" $
+      areaSummary areas areaSummaries indicators state
+    return $ leftmost [messages, summaryMessages]
+
+indicatorContent
+    :: ContentConstraints t m
+    => Areas
+    -> AreaSummaries
+    -> Indicators
+    -> Dynamic t State
+    -> m (Event t Message)
+indicatorContent areas areaSummaries indicators state = do
+  contentE <- divClass "central-content indicator" $ do
+    mapE <- divClass "indicator-map base-map" $
+      divClass "map-wrapper" $ do
+        zoomClick <- divClass "map-options" $ do
+          divClass "zoom-controls map-zoom active" $ do
+            el "label" $ do
+              elAttr "input" ("type" =: "radio" <> "name" =: "map-zoom-left") $ return ()
+              elClass "span" "zoom-in" $ return ()
+            el "label" $ do
+              elAttr "input" ("type" =: "radio" <> "name" =: "map-zoom-left") $ return ()
+              elClass "span" "zoom-out" $ return ()
+          return never --TODO
+
+        mapClicks <-
+          divClass "svg-wrapper" $
+            nzmap areas state
+        return $ leftmost [zoomClick, mapClicks]
+    chartE <- divClass "indicator-chart" $ do
+      text "TODO"
+      return never
+    return $ leftmost [ mapE, chartE ]
+  summaryE <- divClass "indicator-summary hide-table no-compare" $
+    indicatorSummary areas areaSummaries indicators state
+  return $ leftmost [contentE, summaryE]
 
 summaryText
   :: ( DomBuilder t m

@@ -193,7 +193,7 @@ instance FromJSON ChartId where
 data Indicator = Indicator
   { indicatorId                     :: IndicatorId
 --  , indicatorBarchartLabelWidth     :: Maybe Int
---  , indicatorAbsoluteLabel          :: Maybe Text
+  , indicatorAbsoluteLabel          :: Maybe Text
 --  , indicatorCaptions               :: Maybe (Map Text Text)
 --  , indicatorCharts                 :: [Chart]
   , indicatorDefaultChartLeft       :: ChartId

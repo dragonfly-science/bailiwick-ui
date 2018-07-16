@@ -27,6 +27,7 @@ step areas state message =
     SetRegion reg        -> state { stateArea = areaList areas reg }
     SetSubArea sa        -> state { stateArea = areaList areas sa }
     SetAreaType at       -> updateThemePage state $ \args -> args { themePageAreaType = at }
+    SetRightChart c      -> updateThemePage state $ \args -> args { themePageRightChart = c }
     SetLeftTransform lt  -> updateThemePage state $ \args -> args { themePageLeftTransform = lt }
     SetRightTransform rt -> updateThemePage state $ \args -> args { themePageRightTransform = rt }
     SetYear y            -> updateThemePage state $ \args -> args { themePageYear = y }
