@@ -4,26 +4,28 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE LambdaCase #-}
 module Bailiwick.View.Indicators (
   indicators
 ) where
 
-import Data.Text (Text)
-import qualified Data.Text as T (pack)
+import Data.Maybe (maybeToList)
+import Data.Monoid ((<>))
 import qualified Data.HashMap.Strict.InsOrd as OMap (lookup, toList)
-import Data.Foldable (forM_)
+import Data.Traversable (forM)
 
 import GHCJS.DOM.Types (MonadJSM)
 
-import Reflex (TriggerEvent, PerformEvent, PostBuild, Dynamic, Performable, never, Event)
+import Reflex
+       (leftmost, TriggerEvent, PerformEvent, PostBuild, Dynamic,
+        Performable, Event)
 import Reflex.Dom.Core
-       ((=:), elAttr, elClass, dynText, text, el, divClass, GhcjsDomSpace,
-        DomBuilder, DomBuilderSpace)
+       (elClass', (=:), elAttr, dynText, text, el, divClass,
+        GhcjsDomSpace, DomBuilder, DomBuilderSpace, domEvent, EventName(Click))
 
 import Bailiwick.Types (Theme(..), Area(..), Indicator(..), Themes, Indicators)
-import Bailiwick.State (getArea, Message, State(..))
-import Data.Monoid ((<>))
+import Bailiwick.State
+       (ThemePageArgs(..), Page(..), Message(..), getArea, Message,
+        State(..))
 
 indicators
   :: forall m t.
@@ -52,15 +54,19 @@ indicators themes inds state = do
               text "Indicators for "
               dynText dispArea
         divClass "theme-cards" $
-          forM_ (OMap.toList themes) $ \(k, Theme{..}) ->
+          fmap leftmost . forM (OMap.toList themes) $ \(k, Theme{..}) ->
             divClass "theme-card" $ do
               divClass ("card-header card-header-" <> k) $ do
                 el "i" $ return ()
                 text themeName
               divClass "card-copy" $
                 el "ul" $
-                  forM_ themeIndicators $ \iId ->
-                    forM_ (OMap.lookup iId inds) $ \Indicator{..} ->
-                      elClass "li" "inicator-list" $
+                  fmap leftmost . forM themeIndicators $ \iId ->
+                    fmap (leftmost . maybeToList) . forM (OMap.lookup iId inds) $ \Indicator{..} -> do
+                      click <- fmap (domEvent Click . fst) . elClass' "li" "inicator-list" $
                         text indicatorName
-  return never
+                      return $ GoTo (ThemePage $ ThemePageArgs
+                            indicatorId
+                            indicatorDefaultChartLeft
+                            indicatorDefaultChartRight
+                            2017 Nothing Nothing "reg" "indexed" "indexed") <$ click

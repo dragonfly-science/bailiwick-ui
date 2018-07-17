@@ -10,15 +10,14 @@ where
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Fix
 import Data.Bool (bool)
+import Data.Maybe (isJust)
 import Data.Monoid ((<>))
 
 import Language.Javascript.JSaddle.Types (MonadJSM)
 import qualified GHCJS.DOM.GlobalEventHandlers as Events (scroll)
-import GHCJS.DOM (currentDocumentUnchecked, currentWindowUnchecked)
-import GHCJS.DOM.Document (getBodyUnchecked)
+import GHCJS.DOM (currentWindowUnchecked)
 import GHCJS.DOM.EventM (on)
-import GHCJS.DOM.Element (getScrollTop)
-import GHCJS.DOM.Window (getPageYOffset)
+import GHCJS.DOM.Window (scrollTo, getPageYOffset)
 
 import Servant.Reflex
 import Reflex.Dom.Core hiding (Home)
@@ -59,7 +58,10 @@ view
        )
     => Areas -> AreaSummaries -> Themes -> Indicators -> Dynamic t State -> m (Event t Message)
 view areas areaSummaries themes inds state = do
-  isScrolledD <- fmap (>137) <$> windowScrollDyn
+  let marginTop (ThemePage _) = bool Nothing (Just "349px") . (> 140)
+      marginTop _ = bool Nothing (Just "279px") . (> 140)
+  scrollPosD <- windowScrollDyn
+  let marginTopD = marginTop <$> (getPage <$> state) <*> scrollPosD
   let wholeBodyClass s = "whole-body " <> case getPage s of
                               ThemePage _ -> "theme-whole-body"
                               Summary -> "summary-whole-body"
@@ -67,7 +69,7 @@ view areas areaSummaries themes inds state = do
          "main-header " <> case getPage s of
                               ThemePage _ -> if isOpen then "large" else "small"
                               Summary -> "closed"
-  elDynAttr "div" (("class" =:) <$> ((<>) <$> (wholeBodyClass <$> state) <*> (bool "" " fixed" <$> isScrolledD)))  $ mdo
+  elDynAttr "div" (("class" =:) <$> ((<>) <$> (wholeBodyClass <$> state) <*> (bool "" " fixed" . isJust <$> marginTopD))) $ mdo
     (headerE, isOpen)
       <- divClass "main-header-area" $
             elDynClass "header" (mainHeaderClass <$> state <*> isOpen) $ do
@@ -76,9 +78,17 @@ view areas areaSummaries themes inds state = do
               (toolBarE, isOpen) <- toolBar areas inds state
               return (leftmost [navBarE, headerE, toolBarE], isOpen)
     mainE <-
-      elDynAttr "div" (("class" =: "content main-content" <>) . bool mempty ("style" =: "margin-top: 279px") <$> isScrolledD) $
+      elDynAttr "div" (("class" =: "content main-content" <>) . maybe mempty (("style" =:) . ("margin-top: " <>)) <$> marginTopD) $
         mainContent areas areaSummaries inds state
     indicatorsE <- indicators themes inds state
+
+    -- We need to scroll up when these links are clicked (or you can't tell they do anything)
+    performEvent_ $ ffor indicatorsE $ \case
+      GoTo _ -> do
+        window <- currentWindowUnchecked
+        scrollTo window 0 185
+      _ -> return ()
+
     footer
     return $ leftmost [headerE, mainE, indicatorsE]
 
