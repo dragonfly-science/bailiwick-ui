@@ -24,7 +24,8 @@ import Reflex
 import Reflex.Dom.Core
        (elClass', (=:), el, elDynAttr', AttributeName, dyn, EventResult,
         dynText, text, divClass, GhcjsDomSpace, DomBuilder,
-        DomBuilderSpace, Element, _element_raw, EventName(Click))
+        DomBuilderSpace, Element, _element_raw, EventName(Click),
+        elDynClass, elAttr)
 import GHCJS.DOM.Types (liftJSM, MonadJSM)
 import Bailiwick.Types
        (Area(..), AreaSummaries, Areas, Indicators, Indicator(..),
@@ -186,9 +187,9 @@ indicatorSummary areas areaSummaries indicators features state = mdo
         text "Notes:"
         void . dyn $ ffor (fromMaybe [] . (indicatorNotes =<<) <$> indicatorD)
                        (mapM_ $ elDynHtmlAttr' "p" (constDyn mempty) . subs . constDyn)
-  elClassDyn "div" (("table-view " <>) bool "hide" "show" <$> showTableD) $
+  elDynClass "div" (("table-view " <>) . bool "hide" "show" <$> showTableD) $
     elAttr "div" ("class" =: "panel" <> "style" =: "height: 799px;") $ do
-      el "header"
+      el "header" $
         divClass "table-caption text" $
           text "TODO"
       elAttr "div" ("class" =: "table-container" <> "style" =: "height: 657px;") $
