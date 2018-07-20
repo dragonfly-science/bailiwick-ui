@@ -42,10 +42,10 @@ encodeState :: State -> URI -> URI
 encodeState state uri =
   let (segments, query) =
         case state of
-          State Summary [] _ -> ([], [])
-          State Summary areas _ -> (["summary", areaId $ last areas], [])
-          State (ThemePage (ThemePageArgs (IndicatorId i) (ChartId lc) (ChartId rc) y f t at lt rt)) areas _ ->
-                ( ["theme", i, lc, rc, T.pack $ show y, last ("new-zealand":map areaId areas)] <> maybeToList f <> maybeToList t
+          State Summary [] _ _ -> ([], [])
+          State Summary areas _ _ -> (["summary", areaId $ last areas], [])
+          State (ThemePage (ThemePageArgs (IndicatorId i) (ChartId lc) (ChartId rc) y f t at lt rt)) areas _ _ ->
+                ( ["theme", i, lc, rc, T.pack $ show y, last ("new-zealand":map areaId areas)] <> (featureIdText <$> maybeToList f) <> maybeToList t
                 , [("areatype", encodeUtf8 at) | at /= "reg"] <> [("left-transform", encodeUtf8 lt) | lt /= "absolute"] <> [("right-transform", encodeUtf8 rt)]
                 )
   in uri { uriPath = B.toStrict $ toLazyByteString (encodePath segments [])
@@ -77,7 +77,7 @@ decodeRoute areas uri =
       adapters = mapMaybe mkAdapter flags
       mkAdapter ("mapzoom", "1") = Just Mapzoom
       mkAdapter _ = Nothing
-      homePage = State Summary [] adapters
+      homePage = State Summary [] Nothing adapters
       flagMap = M.fromList flags
       maybeDecodeUtf8 = either (const Nothing) Just . decodeUtf8'
       at = fromMaybe "reg" $ maybeDecodeUtf8 =<< M.lookup "areatype" flagMap
@@ -85,7 +85,7 @@ decodeRoute areas uri =
       rt = fromMaybe "absolute" $ maybeDecodeUtf8 =<< M.lookup "right-transform" flagMap
 
   in case segments of
-    ["summary", a] -> State Summary (areaList areas a) adapters
+    ["summary", a] -> State Summary (areaList areas a) Nothing adapters
     ("theme":i:lc:rc:y:a:rest) ->
       let fd = case rest of
                      [f, d] -> Just (Just f, Just d)
@@ -93,5 +93,5 @@ decodeRoute areas uri =
                      [] -> Just (Nothing, Nothing)
                      _ -> Nothing
       in fromMaybe homePage $ (\year (f, d) -> State (ThemePage (
-            ThemePageArgs (IndicatorId i) (ChartId lc) (ChartId rc) year f d at lt rt)) (areaList areas a) adapters) <$> readMaybe (T.unpack y) <*> fd
+            ThemePageArgs (IndicatorId i) (ChartId lc) (ChartId rc) year (FeatureId <$> f) d at lt rt)) (areaList areas a) Nothing adapters) <$> readMaybe (T.unpack y) <*> fd
     _  -> homePage

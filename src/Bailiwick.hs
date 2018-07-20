@@ -14,10 +14,11 @@ import Reflex.Dom.Contrib.Router
 import Language.Javascript.JSaddle.Types (MonadJSM)
 import Servant.Reflex
 
-import Bailiwick.Store (getAreas, getAreaSummaries, getThemes, getIndicators)
+import Bailiwick.Store (getAreas, getAreaSummaries, getThemes, getIndicators, getAreaTrees, getFeatures)
 import Bailiwick.Route (decodeRoute, encodeRoute)
 import Bailiwick.View (view)
 import Bailiwick.Types
+import Bailiwick.AreaTrees
 
 ui  :: ( Monad m
        , MonadJSM m
@@ -36,15 +37,19 @@ ui = do
   areaSummariesD <- fmap (fmap mkAreaSummaries) $ maybeGetList =<< getAreaSummaries ready
   themesD <- fmap (fmap mkThemes) $ maybeGetList =<< getThemes ready
   indicatorsD <- fmap (fmap mkIndicators) $ maybeGetList =<< getIndicators ready
+  areaTreesD <- fmap (fmap mkAreaTrees) $ maybeGetList =<< getAreaTrees ready
+  featuresD <- fmap (fmap mkFeatures) $ maybeGetList =<< getFeatures ready
 
   dyn_ $ do
     areas <- areasD
     areaSummaries <- areaSummariesD
     themes <- themesD
     indicators <- indicatorsD
+    areaTrees <- areaTreesD
+    features <- featuresD
     return $ mdo
       state <- route' (encodeRoute areas) (decodeRoute areas) events
-      events <- view areas areaSummaries themes indicators state
+      events <- view areas areaSummaries themes indicators areaTrees features state
       return ()
 
 

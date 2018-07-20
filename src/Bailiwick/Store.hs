@@ -9,6 +9,8 @@ module Bailiwick.Store
     , getAreaSummaries
     , getThemes
     , getIndicators
+    , getAreaTrees
+    , getFeatures
     )
 where
 
@@ -19,13 +21,15 @@ import Servant.Reflex
 import Reflex.Dom.Core
 
 import Bailiwick.Types
+import Bailiwick.AreaTrees
 
 
 type GetAreas = "data" :> "areas-1b7549470.json" :> Get '[JSON] [Area]
 type GetAreaSummaries = "data" :> "areaSummaries-1b7549470.json" :> Get '[JSON] [AreaSummary]
 type GetThemes = "data" :> "themes-dev.json" :> Get '[JSON] [Theme]
 type GetIndicators = "data" :> "indicators-dev.json" :> Get '[JSON] [Indicator]
-
+type GetAreaTrees = "data" :> "areaTrees.json" :> Get '[JSON] [AreaTree]
+type GetFeatures = "data" :> "features.json" :> Get '[JSON] [Feature]
 
 
 getAreas
@@ -50,6 +54,18 @@ getIndicators
     :: forall t m . SupportsServantReflex t m => Client t m GetIndicators ()
 getIndicators
     = client (Proxy :: Proxy GetIndicators) (Proxy :: Proxy m)
+        (Proxy :: Proxy ()) (constDyn (BasePath "/"))
+
+getAreaTrees
+    :: forall t m . SupportsServantReflex t m => Client t m GetAreaTrees ()
+getAreaTrees
+    = client (Proxy :: Proxy GetAreaTrees) (Proxy :: Proxy m)
+        (Proxy :: Proxy ()) (constDyn (BasePath "/"))
+
+getFeatures
+    :: forall t m . SupportsServantReflex t m => Client t m GetFeatures ()
+getFeatures
+    = client (Proxy :: Proxy GetFeatures) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
 

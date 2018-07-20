@@ -29,7 +29,9 @@ import Bailiwick.View.Map
 import Bailiwick.View.AreaSummary (areaSummary)
 import Bailiwick.View.Indicators (indicators)
 import Bailiwick.View.IndicatorSummary (indicatorSummary)
+import Bailiwick.View.IndicatorChart (indicatorChart)
 import Bailiwick.View.ToolBar (toolBar)
+import Bailiwick.AreaTrees (AreaTrees(..))
 
 windowScrolled
   :: (Monad m, MonadJSM m, TriggerEvent t m)
@@ -56,8 +58,8 @@ view
        , MonadIO m
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
-    => Areas -> AreaSummaries -> Themes -> Indicators -> Dynamic t State -> m (Event t Message)
-view areas areaSummaries themes inds state = do
+    => Areas -> AreaSummaries -> Themes -> Indicators -> AreaTrees -> Features -> Dynamic t State -> m (Event t Message)
+view areas areaSummaries themes inds areaTrees features state = do
   let marginTop (ThemePage _) = bool Nothing (Just "349px") . (> 140)
       marginTop _ = bool Nothing (Just "279px") . (> 140)
   scrollPosD <- windowScrollDyn
@@ -79,7 +81,7 @@ view areas areaSummaries themes inds state = do
               return (leftmost [navBarE, headerE, toolBarE], isOpen)
     mainE <-
       elDynAttr "div" (("class" =: "content main-content" <>) . maybe mempty (("style" =:) . ("margin-top: " <>)) <$> marginTopD) $
-        mainContent areas areaSummaries inds state
+        mainContent areas areaSummaries inds areaTrees features state
     indicatorsE <- indicators themes inds state
 
     -- We need to scroll up when these links are clicked (or you can't tell they do anything)
@@ -139,13 +141,15 @@ mainContent
     => Areas
     -> AreaSummaries
     -> Indicators
+    -> AreaTrees
+    -> Features
     -> Dynamic t State
     -> m (Event t Message)
-mainContent areas areaSummaries indicators state = do
+mainContent areas areaSummaries indicators areaTrees features state = do
   isSummary <- holdUniqDyn ((== Summary) . getPage <$> state)
   switchHold never =<< dyn (ffor isSummary $ \case
     True -> summaryContent areas areaSummaries indicators state
-    False -> indicatorContent areas areaSummaries indicators state)
+    False -> indicatorContent areas areaSummaries indicators areaTrees features state)
 
 summaryContent
     :: ContentConstraints t m
@@ -174,9 +178,11 @@ indicatorContent
     => Areas
     -> AreaSummaries
     -> Indicators
+    -> AreaTrees
+    -> Features
     -> Dynamic t State
     -> m (Event t Message)
-indicatorContent areas areaSummaries indicators state = do
+indicatorContent areas areaSummaries indicators areaTrees features state = do
   contentE <- divClass "central-content indicator" $ do
     mapE <- divClass "indicator-map base-map" $
       divClass "map-wrapper" $ do
@@ -194,12 +200,11 @@ indicatorContent areas areaSummaries indicators state = do
           divClass "svg-wrapper" $
             nzmap areas state
         return $ leftmost [zoomClick, mapClicks]
-    chartE <- divClass "indicator-chart" $ do
-      text "TODO"
-      return never
+    chartE <- divClass "indicator-chart" $
+      indicatorChart areaTrees state
     return $ leftmost [ mapE, chartE ]
   summaryE <- divClass "indicator-summary hide-table no-compare" $
-    indicatorSummary areas areaSummaries indicators state
+    indicatorSummary areas areaSummaries indicators features state
   return $ leftmost [contentE, summaryE]
 
 summaryText
@@ -210,10 +215,10 @@ summaryText
 summaryText state = do
 
   let homeAttr = state >>= \case
-            State Summary [] _ -> return ("class" =: "text-wrapper" <> "style" =: "display: block")
+            State Summary [] _ _ -> return ("class" =: "text-wrapper" <> "style" =: "display: block")
             _    -> return ("class" =: "text-wrapper" <> "style" =: "display: none")
       summaryAttr = state >>= \case
-            State Summary [] _ -> return ("class" =: "text-wrapper" <> "style" =: "display: none")
+            State Summary [] _ _ -> return ("class" =: "text-wrapper" <> "style" =: "display: none")
             _    -> return ("class" =: "text-wrapper" <> "style" =: "display: block")
 
       -- Zoom in and out button

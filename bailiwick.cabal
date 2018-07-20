@@ -11,20 +11,22 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Bailiwick.Devel
-                       Bailiwick
+  exposed-modules:     Bailiwick
+                       Bailiwick.Application
+                       Bailiwick.AreaTrees
+                       Bailiwick.Devel
+                       Bailiwick.Route
+                       Bailiwick.State
                        Bailiwick.Store
                        Bailiwick.Types
-                       Bailiwick.State
-                       Bailiwick.Route
                        Bailiwick.View
                        Bailiwick.View.AreaSummary
                        Bailiwick.View.Header
-                       Bailiwick.View.Indicators
+                       Bailiwick.View.IndicatorChart
                        Bailiwick.View.IndicatorSummary
+                       Bailiwick.View.Indicators
                        Bailiwick.View.Map
                        Bailiwick.View.ToolBar
-                       Bailiwick.Application
 
   build-depends:       base >= 4.7 && < 5
                      , aeson

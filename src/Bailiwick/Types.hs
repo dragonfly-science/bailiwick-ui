@@ -13,6 +13,7 @@ import Data.Hashable (Hashable)
 import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Data.Aeson
+import Data.Aeson.Types (FromJSONKeyFunction(FromJSONKeyText))
 
 data Area
   = Area
@@ -203,22 +204,22 @@ data Indicator = Indicator
 --  , indicatorEnableAreaToggle       :: Bool
 --  , indicatorFeatureName            :: Maybe Text
 --  , indicatorFeatures               :: [Text]
---  , indicatorFeatureText            :: Maybe (Map Text Text)
+  , indicatorFeatureText            :: Maybe (Map FeatureId Text)
 --  , indicatorFeatureDropdownLabel   :: Maybe Text
---  , indicatorFirstYear              :: Text
+  , indicatorFirstYear              :: Text
 --  , indicatorHeaderTitle            :: Text
---  , indicatorHeadlineNumCaption     :: Text
+  , indicatorHeadlineNumCaption     :: Text
 --  , indicatorIcon                   :: Maybe Text
 --  , indicatorLabels                 :: Maybe (Map Text Text)
---  , indicatorLocalNumCaption        :: Text
+  , indicatorLocalNumCaption        :: Text
 --  , indicatorMaxFeatures            :: Maybe (Map Text Text)
   , indicatorName                   :: Text
---  , indicatorNationalNumCaption     :: Text
+  , indicatorNationalNumCaption     :: Text
 --  , indicatorNotes                  :: [Text]
 --  , indicatorNz                     :: Text
---  , indicatorPeriod                 :: Maybe Int
+  , indicatorPeriod                 :: Maybe Int
 --  , indicatorPrimaryYear            :: Maybe Text
---  , indicatorPublishers             :: Text
+  , indicatorPublishers             :: Text
 --  , indicatorRegions                :: [Text]
 --  , indicatorScale                  :: Maybe Text
 --  , indicatorSlices                 :: [Text]
@@ -229,7 +230,7 @@ data Indicator = Indicator
 --  , indicatorTopDetailLabel         :: Maybe Text
 --  , indicatorTopFeatureLabel        :: Maybe Text
 --  , indicatorUnits                  :: Units
---  , indicatorYearEndMonth           :: Maybe Text
+  , indicatorYearEndMonth           :: Maybe Text
 --  , indicatorYears                  :: [Text]
 --  , indicatorFeatureTrees           :: [Text]
 --  , indicatorAreaTrees              :: [Text]
@@ -253,16 +254,16 @@ data Indicator = Indicator
 --  , indicatorPrimaryYear          :: Maybe Text
 --  , indicatorFeatureName          :: Maybe Text
 --  , indicatorFeatureDropdownLabel :: Maybe Text
---  , indicatorTopFeatureLabel      :: Maybe Text
+  , indicatorTopFeatureLabel      :: Maybe Text
 --  , indicatorDetailName           :: Maybe Text
---  , indicatorTopDetailLabel       :: Maybe Text
+  , indicatorTopDetailLabel       :: Maybe Text
 --  , indicatorLeftChart            :: Maybe Text
 --  , indicatorLanguageConfig       :: Language
 --  , indicatorRightChart           :: Maybe Text
 --  , indicatorAbsoluteLabel        :: Maybe Text
 --  , indicatorTooltipExtra         :: Maybe Text
 --  , indicatorIcon                 :: Maybe Text
---  , indicatorNotes                :: Maybe [Text]
+  , indicatorNotes                :: Maybe [Text]
 --  , indicatorSource               :: Text
 --  , indicatorScale                :: Maybe Text
 --  , indicatorBarchartLabelWidth   :: Maybe Int
@@ -290,5 +291,34 @@ type Indicators = InsOrdHashMap IndicatorId Indicator
 mkIndicators :: [ Indicator ] -> Indicators
 mkIndicators indicators = OMap.fromList [(indicatorId i, i) | i <- indicators]
 
+newtype FeatureId = FeatureId { featureIdText :: Text } deriving (Eq, Ord, Show, Generic)
+instance Hashable FeatureId
+instance FromJSON FeatureId where
+   parseJSON v = FeatureId <$> parseJSON v
+instance FromJSONKey FeatureId where
+   fromJSONKey = FromJSONKeyText FeatureId
+
+data Feature = Feature
+  { featureId     :: FeatureId
+  , featureName   :: Text
+  , featureParent :: Maybe Text
+  } deriving (Eq, Show, Generic)
+
+featureOptions :: Options
+featureOptions = defaultOptions
+    { fieldLabelModifier = (\case
+        [] -> []
+        (x:xs) -> toLower x : xs) . drop 7 }
+
+instance FromJSON Feature where
+    parseJSON = genericParseJSON featureOptions
+    parseJSONList = withObject "Features" $ \v -> do
+      Array as <- v .: "features"
+      mapM parseJSON $ V.toList as
+
+type Features = InsOrdHashMap FeatureId Feature
+
+mkFeatures :: [ Feature ] -> Features
+mkFeatures features = OMap.fromList [(featureId i, i) | i <- features]
 
 

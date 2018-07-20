@@ -41,7 +41,7 @@ addDebugMenu = return ()
 
 debug :: Int -> JSM () -> IO ()
 debug prt f = do
-  system "nix-build ./css"
+  _ <- system "nix-build ./css"
   copyFile "result/bailiwick-pre.css" "static/teal-skua.css"
   app <- application "/jsaddle.js"
   let ghcjsFiles = ["rts.js", "lib.js", "out.js", "runmain.js"]
@@ -74,7 +74,7 @@ debug _ = id
 test :: JSM ()
 test = mainWidget ui
 
--- > Bailiwik.Devel.debug 3706 Bailwick.Devel.test
+-- > Bailiwick.Devel.debug 3706 Bailwick.Devel.test
 -- try putting this into the repl to force reload of app
 -- :def! reload (const $ return "::reload\nBailiwick.Devel.debug 3705 test")
 
