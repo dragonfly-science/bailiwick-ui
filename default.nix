@@ -2,86 +2,84 @@ let
   reflex-platform = import ((import <nixpkgs> {}).pkgs.fetchFromGitHub {
       owner = "reflex-frp";
       repo = "reflex-platform";
-      rev = "9cd56b0c56b3f45470b6369d6b80320c49dc8cd7";
-      sha256 = "00qv2ripq2k38jnal3r7wi7jsczi9bcpps6pjqxkw3qdnx0hwxqn";
-#      rev = "22b3871b3eb5b95d4fae18372f6b46b037565287";
-#      sha256 = "1ksxrq1gcdp19a68lrlgr4a4l66cdp22n9pwbbfb4cxwff8l548c";
+      rev = "7e002c573a3d7d3224eb2154ae55fc898e67d211";
+      sha256 = "1adhzvw32zahybwd6hn1fmqm0ky2x252mshscgq2g1qlks915436";
     }) {};
   nixpkgs = reflex-platform.nixpkgs;
-  jsaddle-github = nixpkgs.fetchFromGitHub {
-    owner = "ghcjs";
-    repo = "jsaddle";
-    rev = "7eb50cb73a7cbc31ec16916f85a3a89164b4908b";
-    sha256 = "1dq99q12ibvsm6jz35jxmcv154n0jcb0k8lfhnx5c28ckgk3g8q7";
-  };
-  ghcjs-dom-github = nixpkgs.fetchFromGitHub {
-    owner = "ghcjs";
-    repo = "ghcjs-dom";
-    rev = "d17a8078b05e7b06dc2ad5553016181c20bd2f83";
-    sha256 = "10g2gf5vdlmnchgy72cdnj1nl4av2dcrm8is8a7q4vp73lc6k7h9";
-  };
-  reflex-dom-github = nixpkgs.fetchFromGitHub {
-    owner = "reflex-frp";
-    repo = "reflex-dom";
-    rev = "f26d424fb4d5e976364bb0a205b4c01fb2275883";
-    sha256 = "042wlzjc178j9w28w1dfdkclpic0ia05xf45jj93d4x0has3fmmr";
-  };
   servant-auth-github = nixpkgs.fetchFromGitHub {
-    owner = "hamishmack";
+    owner = "haskell-servant";
     repo = "servant-auth";
-    rev = "77f246501cb5e83074e96a0ce419b58974406173";
-    sha256 = "0g1ig082bxa7lh0yh30rbww23cmvww0al44ld3gckn0lidn3ksa2";
+    rev = "dde682a3fd49bf27b2f94755a5987b7ff4f64bfb";
+    sha256 = "1pd8h5b20i8drf6y1k0fjvl97n87rhkma82pxynnwq5b90iqy0mj";
   };
 in reflex-platform.project ({ pkgs, ... }: {
       packages = {
         bailiwick = ./.;
-        jsaddle = "${jsaddle-github}/jsaddle";
-        jsaddle-warp = "${jsaddle-github}/jsaddle-warp";
-        jsaddle-wkwebview = "${jsaddle-github}/jsaddle-wkwebview";
-        jsaddle-dom = pkgs.fetchFromGitHub {
-          owner = "ghcjs";
-          repo = "jsaddle-dom";
-          rev = "0c59032d9f584029b00a9427722d4e77a1ab9ee5";
-          sha256 = "0p1l3y8hmqiaykabayazyx5fyv6ghsxxx9g47796bzw4jl71c8xw";
-        };
-        ghcjs-dom-jsffi = "${ghcjs-dom-github}/ghcjs-dom-jsffi";
-        ghcjs-dom-jsaddle = "${ghcjs-dom-github}/ghcjs-dom-jsaddle";
         reflex-dom-contrib = pkgs.fetchFromGitHub {
           owner = "reflex-frp";
           repo = "reflex-dom-contrib";
-          rev = "707450daa582c937291a30a56c0d2ece0cfd3037";
-          sha256 = "1nqplvr6qvdpih80wnxy46acx8nqpdfjvn8kvsq6vxnsp5gqp8rx";
+          rev = "9900f2d433240a3f93cdae930a6ffbb73c50bb86";
+          sha256 = "1z8cnnhibsiap08pq2iw1r5zqvbla6hci7dhrz9mhfr0nqyryk65";
         };
         servant-reflex = pkgs.fetchFromGitHub {
-          owner = "imalsogreg";
+          owner = "hamishmack";
           repo = "servant-reflex";
-          rev = "1761f87e859f6e77335911fd73fefd4e855f4865";
+          rev = "37461d27c8ff31a8876cee8b4beb5492c606f2a0";
           sha256 = "14v4ygb5kraikbs429df8vizq7hhr79gg84pqr7ccays137znd2n";
         };
         servant-auth = "${servant-auth-github}/servant-auth";
+        servant-auth-server = "${servant-auth-github}/servant-auth-server";
         chrome-remote-interface-haskell = pkgs.fetchFromGitHub {
           owner = "ThomasCrevoisier";
           repo = "chrome-remote-interface-haskell";
           rev = "106aad97aebf0905a40bdec9effea183c08e2863";
           sha256 = "0di4w3j9kkc82adxc2jpjzkm6gh9qj61i56lpwmnnpl722my25mx";
         };
+        memory = pkgs.fetchFromGitHub {
+          owner = "vincenthz";
+          repo = "hs-memory";
+          rev = "a658506d2d42ddcc7fd5cab4110f7a82852edb0b";
+          sha256 = "0b7a29cssmp77mqi9qxcarc9nsijpja75pn3afhyqjfh235q6l5s";
+        };
       };
 
-      overrides = self: super: {
-        ghcjs-dom-jsffi = self.callPackage "${ghcjs-dom-github}/ghcjs-dom-jsffi" {};
-        ghcjs-dom-jsaddle = pkgs.haskell.lib.dontHaddock (self.callPackage "${ghcjs-dom-github}/ghcjs-dom-jsaddle" {});
-        # ghcjs-dom = pkgs.haskell.lib.appendConfigureFlag (self.callPackage "${ghcjs-dom-github}/ghcjs-dom" {}) "-fdebug";
-        ghcjs-dom = self.callPackage "${ghcjs-dom-github}/ghcjs-dom" {};
+      overrides = self: super:
+       let dontCheckGhcjs = p: if self.ghc.isGhcjs or false
+                then pkgs.haskell.lib.dontCheck p
+                else p;
+       in {
         servant-reflex = pkgs.haskell.lib.dontCheck (pkgs.haskell.lib.doJailbreak super.servant-reflex);
-        jsaddle-warp = pkgs.haskell.lib.dontCheck super.jsaddle-warp;
-        reflex-dom-core = pkgs.haskell.lib.dontHaddock (self.callPackage "${reflex-dom-github}/reflex-dom-core" {});
         reflex-dom = null;
-        servant = pkgs.haskell.lib.doJailbreak super.servant;
+        servant = dontCheckGhcjs super.servant;
         servant-auth = pkgs.haskell.lib.doJailbreak super.servant-auth;
+        http-date = dontCheckGhcjs super.http-date;
+        simple-sendfile = if self.ghc.isGhcjs or false
+          then pkgs.haskell.lib.overrideCabal (super.simple-sendfile.overrideAttrs (oldAttr: {
+              postUnpack = ''
+                sed -i 's/os(linux)/os(linux) \&\& !impl(ghcjs)/' $sourceRoot/simple-sendfile.cabal
+              '';
+            })) (drv: {
+              libraryHaskellDepends = drv.libraryHaskellDepends ++ [ self.conduit self.conduit-extra self.resourcet ];
+            })
+          else super.simple-sendfile;
+        memory = dontCheckGhcjs super.memory;
+        iproute = dontCheckGhcjs super.iproute;
+        unix-time = dontCheckGhcjs super.unix-time;
+        silently = dontCheckGhcjs super.silently;
+        Glob = dontCheckGhcjs super.Glob;
+        http2 = dontCheckGhcjs super.http2;
+        bsb-http-chunked = dontCheckGhcjs super.bsb-http-chunked;
+        SHA = dontCheckGhcjs super.SHA;
+        warp = if self.ghc.isGhcjs or false
+          then super.warp.overrideAttrs (_: {
+              configureFlags = ["-f-allow-sendfilefd"];
+            })
+          else super.warp;
+        wai-app-static = dontCheckGhcjs super.wai-app-static;
       };
 
       shells = {
-        ghc = ["bailiwick" "reflex-dom-contrib" "jsaddle-devtools"];
+        ghc = ["bailiwick" "reflex-dom-contrib"];
         ghcjs = ["bailiwick" "reflex-dom-contrib"];
       };
   })
