@@ -100,8 +100,14 @@ animationFrame sendEvents = do
   sendEventsMVar <- liftIO newEmptyMVar
   ctx <- liftJSM askJSM
   _ <- liftIO . forkIO $ forever $ do
+#ifdef ghcjs_HOST_OS
     takeMVar sendEventsMVar
     runJSM waitForAnimationFrame ctx >>= send
+#else
+    threadDelay 100000
+    takeMVar sendEventsMVar
+    runJSM now ctx >>= send
+#endif
   performEvent_ $ ffor
     (leftmost [stateChange, tag (current sendEvents) e]) $ \enabled ->
       when enabled . void . liftIO $ tryPutMVar sendEventsMVar ()
@@ -127,6 +133,7 @@ transition
   -> DOMHighResTimeStamp
   -> Dynamic t Double
   -> m (Dynamic t Bool, Dynamic t Double)
+--transition frame duration input = return (constDyn False, input)
 transition frame duration input = do
   postBuild <- getPostBuild
   uniqInput <- holdUniqDyn input
