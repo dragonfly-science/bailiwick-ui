@@ -74,7 +74,7 @@ debug _ = id
 test :: JSM ()
 test = mainWidget ui
 
--- > Bailiwick.Devel.debug 3706 Bailwick.Devel.test
+-- > Bailiwick.Devel.debug 3706 Bailiwick.Devel.test
 -- try putting this into the repl to force reload of app
 -- :def! reload (const $ return "::reload\nBailiwick.Devel.debug 3705 test")
 
