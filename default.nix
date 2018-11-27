@@ -18,8 +18,8 @@ in reflex-platform.project ({ pkgs, ... }: {
         reflex-dom-contrib = pkgs.fetchFromGitHub {
           owner = "reflex-frp";
           repo = "reflex-dom-contrib";
-          rev = "9900f2d433240a3f93cdae930a6ffbb73c50bb86";
-          sha256 = "1z8cnnhibsiap08pq2iw1r5zqvbla6hci7dhrz9mhfr0nqyryk65";
+          rev = "fbd2bc4279146a239342147dbe9f1b9264c63ceb";
+          sha256 = "04j06iaabk0ajdi19qv588ybd29wdm0scbnyyfnb9p010a4pwm3f";
         };
         servant-reflex = pkgs.fetchFromGitHub {
           owner = "hamishmack";
@@ -52,6 +52,7 @@ in reflex-platform.project ({ pkgs, ... }: {
         reflex-dom = null;
         servant = dontCheckGhcjs super.servant;
         servant-auth = pkgs.haskell.lib.doJailbreak super.servant-auth;
+        reflex-dom-contrib = pkgs.haskell.lib.doJailbreak super.reflex-dom-contrib;
         http-date = dontCheckGhcjs super.http-date;
         simple-sendfile = if self.ghc.isGhcjs or false
           then pkgs.haskell.lib.overrideCabal (super.simple-sendfile.overrideAttrs (oldAttr: {
@@ -79,7 +80,7 @@ in reflex-platform.project ({ pkgs, ... }: {
       };
 
       shells = {
-        ghc = ["bailiwick" "reflex-dom-contrib"];
-        ghcjs = ["bailiwick" "reflex-dom-contrib"];
+        ghc = ["bailiwick"];
+        ghcjs = ["bailiwick"];
       };
   })

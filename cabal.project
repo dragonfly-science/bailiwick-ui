@@ -9,7 +9,7 @@ packages:
 -- /Users/hamish/haskell/aspen/focus/reflex-platform/ghcjs-dom/ghcjs-dom/
 -- /Users/hamish/haskell/aspen/focus/reflex-platform/reflex-dom/reflex-dom-core/
 -- /Users/hamish/haskell/reflex-dom-nested-routing/
- /Users/hamish/haskell/reflex-dom-contrib/
+-- /Users/hamish/haskell/reflex-dom-contrib/
 -- /Users/hamish/haskell/servant-reflex/
 
 -- package ghcjs-dom
