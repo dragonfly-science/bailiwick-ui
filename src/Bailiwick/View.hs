@@ -201,7 +201,7 @@ indicatorContent areas areaSummaries indicators areaTrees features state = do
             nzmap areas state
         return $ leftmost [zoomClick, mapClicks]
     chartE <- divClass "indicator-chart" $
-      indicatorChart areaTrees state
+      indicatorChart areaTrees indicators state
     return $ leftmost [ mapE, chartE ]
   summaryE <- divClass "indicator-summary hide-table no-compare" $
     indicatorSummary areas areaSummaries indicators features state

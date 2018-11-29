@@ -1,3 +1,7 @@
+
+/**
+ * ￼Update the time series on the home page side bar - housePriceTimeSeries
+ **/
 var updateTimeSeries = function(element, labelledData, activeLabelName) {
   var base = d3.select(element).select('svg.d3-attach')
     , yearFormat = d3.time.format('%Y').parse
@@ -93,3 +97,22 @@ var updateTimeSeries = function(element, labelledData, activeLabelName) {
 
   linePlot.exit().remove();
 }
+
+/**
+ * ￼Initialise a bar chart - used on the indicator.
+ **/
+var updateAreaBarchart = function(element, data) {
+    console.log(element, data)
+  // var container = d3.select(element).select('svg.d3-attach')
+  //   , tooltipElem = d3.select(element).select(".tooltip")
+  //   , margin = {
+  //       top: 5, 
+  //       right: 25, 
+  //       bottom: 40, 
+  //       left: 140
+  //     };
+  // 
+  // width = parseInt(container.style("width")) - margin.left - margin.right;
+  // height = parseInt(container.style("height")) - margin.top - margin.bottom;
+}
+
