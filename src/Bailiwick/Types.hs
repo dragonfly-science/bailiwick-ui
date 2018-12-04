@@ -183,7 +183,7 @@ langOptions = defaultOptions
 instance FromJSON Language where
     parseJSON = genericParseJSON langOptions
 
-newtype IndicatorId = IndicatorId Text deriving (Eq, Ord, Show, Generic)
+newtype IndicatorId = IndicatorId { unIndicatorId :: Text } deriving (Eq, Ord, Show, Generic)
 instance Hashable IndicatorId
 instance FromJSON IndicatorId where
    parseJSON v = IndicatorId <$> parseJSON v

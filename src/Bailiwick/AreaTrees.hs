@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 module Bailiwick.AreaTrees (
    FT(..)
  , AreaTree(..)
@@ -38,7 +39,9 @@ data AreaTree = AreaTree
     } deriving(Show, Eq, Generic)
 
 instance FromJSON AreaTree where
-    parseJSON = genericParseJSON defaultOptions
+    parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = \case 
+       "indicator" -> "id"
+       x -> x }
     parseJSONList = withObject "AreaTrees" $ \v -> do
       Array as <- v .: "areaTrees"
       mapM parseJSON $ V.toList as

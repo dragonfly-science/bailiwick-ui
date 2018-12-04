@@ -14,6 +14,7 @@ import Control.Monad (void)
 import Data.Maybe (isJust, maybe)
 import Data.Monoid ((<>))
 import Data.Text (Text)
+import qualified Data.Text as T (pack)
 import Language.Javascript.JSaddle
        (jsg2, MonadJSM, liftJSM, new)
 import Reflex.Dom.Core
@@ -27,9 +28,9 @@ import GHCJS.DOM.Types (Element(..), HTMLElement(..))
 import Bailiwick.AreaTrees (AreaTrees, AreaTree)
 import Bailiwick.State
        (getThemePage, ThemePageArgs(..), Message, State(..))
-import Bailiwick.Types (Indicators)
+import Bailiwick.Types
 
-import qualified Data.HashMap.Strict.InsOrd as OM (lookup, toList, elems, keys)
+import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
 
 indicatorChart
   :: ( Monad m
@@ -48,13 +49,20 @@ indicatorChart areaTrees indicators state = do
   postBuild <- getPostBuild
   let year = fmap themePageYear . getThemePage <$> state
       indicatorId = fmap themePageIndicatorId . getThemePage <$> state
-      -- areaTree = OM.lookup areaTrees (indicatorId <> "-" <> (show year))
+      areaTree = do 
+        (getThemePage <$> state) >>=
+            mapM (\ themePage ->
+                let y = themePageYear themePage
+                    ind = themePageIndicatorId themePage
+                in return $ OM.lookup (IndicatorId $ unIndicatorId ind <> "-" <> T.pack (show y)) areaTrees)
       indicator = ((`OM.lookup` indicators) =<<) . fmap themePageIndicatorId . getThemePage <$> state
   
   display indicatorId
-  display year
+  -- display year
   -- display areaTree
-  display indicator
+  -- display indicator
+  
+  -- text $ T.pack (show areaTrees)
   
   let showAttr True  = "display: block"
       showAttr False = "display: none"
