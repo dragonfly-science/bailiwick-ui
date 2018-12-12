@@ -11,6 +11,9 @@
 {-# LANGUAGE DeriveFunctor       #-}
 {-# LANGUAGE DeriveFoldable      #-}
 {-# LANGUAGE DeriveTraversable   #-}
+{-# LANGUAGE RankNTypes          #-}
+
+
 module Bailiwick.View.Map
 where
 
@@ -514,6 +517,7 @@ nzmap areas state = mdo
               forSelectionSetAttributes ("g." <> cssClass <> "[same_reg=TRUE] > polyline") [("stroke", "rgb(0, 189, 233)"), ("stroke-width", "3.0")]
               forSelectionSetAttribute ("g." <> cssClass <> ".coastline > polyline") "stroke" "rgb(0, 189, 233)")
 
+  let transformD = fmap themePageLeftTransform . getThemePage <$> state
   let tooltipArea :: State -> Maybe (AreaInfo, (Int, Int)) -> Maybe ((AreaInfo, (Int, Int)), Area)
       tooltipArea s Nothing = Nothing
       tooltipArea s (Just (ai, xy)) =
@@ -527,8 +531,9 @@ nzmap areas state = mdo
       showStyle Nothing = "visibility:hidden;"
       showStyle (Just ((_, (x,y)), _)) = Text.pack $
           "visibility:visible; left:" <> show (x + 8) <> "px; top:" <> show (y + 8) <> "px;"
-  elDynAttr "div" (("class" =: "tooltip" <>) . ("style" =:) . showStyle <$> tooltipAreaD) $
+  elDynAttr "div" (("class" =: "tooltip" <>) . ("style" =:) . showStyle <$> tooltipAreaD) $ do
     el "p" $ dynText $ maybe "" (areaName . snd) <$> tooltipAreaD
+    elDynAttr "p" (("class" =: ) <$> (fromMaybe "" <$> transformD) <> " number") $ text "Val"
 
   moveE :: Event t (Maybe (AreaInfo, (Int, Int))) <- switchHold never =<< dyn (ffor svgBodyD $ \case
     Just divElement ->

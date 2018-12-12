@@ -1,11 +1,11 @@
 -- {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RecordWildCards #-}
+-- {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE LambdaCase #-}
+-- {-# LANGUAGE LambdaCase #-}
 module Bailiwick.View.IndicatorChart (
   indicatorChart
 ) where
@@ -14,7 +14,6 @@ import Control.Monad (void)
 import Data.Maybe (isJust, maybe)
 import Data.Monoid ((<>))
 import Data.Text (Text)
-import qualified Data.Text as T (pack)
 import Language.Javascript.JSaddle
        (jsg2, MonadJSM, liftJSM, new)
 import Reflex.Dom.Core
@@ -30,6 +29,7 @@ import Bailiwick.State
        (getThemePage, ThemePageArgs(..), Message, State(..))
 import Bailiwick.Types
 
+import qualified Data.Text as T (pack)
 import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
 
 indicatorChart
@@ -49,7 +49,7 @@ indicatorChart areaTrees indicators state = do
   postBuild <- getPostBuild
   let year = fmap themePageYear . getThemePage <$> state
       indicatorId = fmap themePageIndicatorId . getThemePage <$> state
-      areaTree = do 
+      areaTree =
         (getThemePage <$> state) >>=
             mapM (\ themePage ->
                 let y = themePageYear themePage
@@ -57,16 +57,17 @@ indicatorChart areaTrees indicators state = do
                 in return $ OM.lookup (IndicatorId $ unIndicatorId ind <> "-" <> T.pack (show y)) areaTrees)
       indicator = ((`OM.lookup` indicators) =<<) . fmap themePageIndicatorId . getThemePage <$> state
   
-  display indicatorId
+  -- display indicatorId
   -- display year
   -- display areaTree
-  -- display indicator
+  
+  display indicator
   
   -- text $ T.pack (show areaTrees)
   
   let showAttr True  = "display: block"
       showAttr False = "display: none"
-  (e, _) <- elDynAttr' "div" (constDyn $ "class" =: "basic-barchart") $ do
+  (e, _) <- elDynAttr' "div" (constDyn $ "class" =: "basic-barchart") $
       elDynAttrNS (Just "http://www.w3.org/2000/svg") "svg" (constDyn $ "class"=:"d3-attach" <> "width"=:"480" <> "height"=:"530") $ return ()
   
     

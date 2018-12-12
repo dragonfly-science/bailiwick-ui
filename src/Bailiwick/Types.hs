@@ -1,19 +1,21 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
+
 module Bailiwick.Types where
 
 import GHC.Generics
-import Data.Char
-import Data.Map (Map)
-
-import qualified Data.Vector as V
-import Data.Text (Text)
-import Data.Hashable (Hashable)
-import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
-import qualified Data.HashMap.Strict.InsOrd as OMap
 import Data.Aeson
 import Data.Aeson.Types (FromJSONKeyFunction(FromJSONKeyText))
+import Data.Char
+import Data.Map (Map)
+import Data.Text (Text)
+import Data.Hashable (Hashable)
+import Data.HashMap.Strict (HashMap)
+import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
+
+import qualified Data.HashMap.Strict.InsOrd as OMap
+import qualified Data.Vector as V
 
 data Area
   = Area
@@ -203,7 +205,7 @@ data Indicator = Indicator
 --  , indicatorDetails                :: [Text]
 --  , indicatorEnableAreaToggle       :: Bool
 --  , indicatorFeatureName            :: Maybe Text
---  , indicatorFeatures               :: [Text]
+  , indicatorFeatures               :: [Text]
   , indicatorFeatureText            :: Maybe (Map FeatureId Text)
 --  , indicatorFeatureDropdownLabel   :: Maybe Text
   , indicatorFirstYear              :: Text
@@ -222,7 +224,7 @@ data Indicator = Indicator
   , indicatorPublishers             :: Text
 --  , indicatorRegions                :: [Text]
 --  , indicatorScale                  :: Maybe Text
---  , indicatorSlices                 :: [Text]
+  , indicatorSlices                 :: [Text]
 --  , indicatorSummaryTitle           :: Text
 --  , indicatorTerritorialAuthorities :: [Text]
 --  , indicatorTooltipExtra           :: Maybe Text
@@ -232,17 +234,16 @@ data Indicator = Indicator
 --  , indicatorUnits                  :: Units
   , indicatorYearEndMonth           :: Maybe Text
 --  , indicatorYears                  :: [Text]
---  , indicatorFeatureTrees           :: [Text]
+  , indicatorFeatureTrees           :: [Text]
 --  , indicatorAreaTrees              :: [Text]
 --  , indicatorSummaries              :: [Text]
 --  , indicatorTimeseries             :: [Text]
---  , indicatorMapdata                :: [Text]
+  , indicatorMapdata                :: [Text]
 --  , indicatorTableRawData           :: [Text]
 --  , indicatorTransforms             :: [Transform]
 
 --  , indicatorThemes               :: [Text]
 --  , indicatorHeaderTitle          :: Text
---  , indicatorSlices               :: [Text]
 --  , indicatorSummaryTitle         :: Text
 --  , indicatorHeadlineNumCaption   :: Text
 --  , indicatorLocalNum             :: SecondaryNumber
@@ -252,7 +253,7 @@ data Indicator = Indicator
 --  , indicatorCharts               :: [Chart]
 --  , indicatorPeriod               :: Maybe Int
 --  , indicatorPrimaryYear          :: Maybe Text
---  , indicatorFeatureName          :: Maybe Text
+  , indicatorFeatureName          :: Maybe Text
 --  , indicatorFeatureDropdownLabel :: Maybe Text
   , indicatorTopFeatureLabel      :: Maybe Text
 --  , indicatorDetailName           :: Maybe Text
@@ -322,3 +323,53 @@ mkFeatures :: [ Feature ] -> Features
 mkFeatures features = OMap.fromList [(featureId i, i) | i <- features]
 
 
+-- data FeatureTree = FB { name :: Text, children :: [FeatureTree] }
+--                  | FL { name           :: Text
+--                        , slug           :: Text
+--                        , absolute       :: Double
+--                        , dispAbsolute   :: Text
+--                        , percentage     :: Double
+--                        , dispPercentage :: Text }
+--                   deriving (Show, Eq)
+-- 
+-- data MapData = MapData
+--   { mapId :: Text
+--   , mapData :: [ MapValue ]
+--   } deriving (Eq, Show, Generic)
+-- 
+-- data MapValue = MapValue
+--   { mapValAreaId :: Text
+--   , mapValAreaName :: Text
+--   , mapValDispPercentage :: Double
+--   , mapValDispAbsolute :: Text
+--   } deriving (Show, Eq, Generic)
+
+newtype AreaName = AreaName { areaNameText :: Text } deriving (Eq, Ord, Show, Generic)
+instance Hashable AreaName
+
+data AreaSummaryDisplay = AreaSummaryDisplay
+  { areaSlugName :: Text
+  , areaPercentage :: Text
+  , areaDisplayValue :: Text
+  , areaRawValue :: Text
+  } deriving (Eq, Show)
+
+data MapSummary = MapSummary
+  { mapSummaryId :: Text 
+  , mapSummaryValues :: Object -- HashMap AreaName AreaSummaryDisplay
+  } deriving (Eq, Show)
+  
+type MapSummaries = InsOrdHashMap AreaName MapSummary
+
+instance FromJSON MapSummary where
+    parseJSON  = withObject "summary" $ \value -> do
+        summary <- value .: "summary"
+        msid <- summary .: "id"
+        rawval <- summary .: "values"
+        -- let getmsval (Object hm) = 
+        --     getmsval v = typemismatch "Expected an object" v
+        -- msval <- getmsval rawval
+        -- parseJSONList = withObject "Themes" $ \v -> do
+        --   Array as <- v .: "themes"
+        --   mapM parseJSON $ V.toList as
+        return (MapSummary msid rawval)

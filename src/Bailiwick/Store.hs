@@ -15,6 +15,7 @@ module Bailiwick.Store
 where
 
 import Data.Proxy
+import Data.Text
 
 import Servant.API
 import Servant.Reflex
@@ -24,13 +25,13 @@ import Bailiwick.Types
 import Bailiwick.AreaTrees
 
 
-type GetAreas = "data" :> "areas-1b7549470.json" :> Get '[JSON] [Area]
-type GetAreaSummaries = "data" :> "areaSummaries-1b7549470.json" :> Get '[JSON] [AreaSummary]
-type GetThemes = "data" :> "themes-dev.json" :> Get '[JSON] [Theme]
-type GetIndicators = "data" :> "indicators-dev.json" :> Get '[JSON] [Indicator]
-type GetAreaTrees = "data" :> "areaTrees.json" :> Get '[JSON] [AreaTree]
-type GetFeatures = "data" :> "features.json" :> Get '[JSON] [Feature]
-
+type GetAreas = "data" :> "areas-11d88bc13.json" :> Get '[JSON] [Area]
+type GetAreaSummaries = "data" :> "areaSummaries-11d88bc13.json" :> Get '[JSON] [AreaSummary]
+type GetThemes = "data" :> "themes-11d88bc13.json" :> Get '[JSON] [Theme]
+type GetIndicators = "data" :> "indicators-11d88bc13.json" :> Get '[JSON] [Indicator]
+type GetAreaTrees = "data" :> "areaTrees-11d88bc13.json" :> Get '[JSON] [AreaTree]
+type GetFeatures = "data" :> "features-11d88bc13.json" :> Get '[JSON] [Feature]
+type GetMapSummaries = "data" :> Capture "filename" Text :> Get '[JSON] MapSummary
 
 getAreas
     :: forall t m . SupportsServantReflex t m => Client t m GetAreas ()
@@ -42,6 +43,12 @@ getAreaSummaries
     :: forall t m . SupportsServantReflex t m => Client t m GetAreaSummaries ()
 getAreaSummaries
     = client (Proxy :: Proxy GetAreaSummaries) (Proxy :: Proxy m)
+        (Proxy :: Proxy ()) (constDyn (BasePath "/"))
+        
+getMapSummaries
+    :: forall t m . SupportsServantReflex t m => Client t m GetMapSummaries ()
+getMapSummaries
+    = client (Proxy :: Proxy GetMapSummaries) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
 getThemes

@@ -44,7 +44,7 @@ ui = do
   
   -- display =<< getAreaTrees ready
   -- areaTreesErrorD <- (holdDyn [] =<< fmapMaybe reqSuccess <$> getAreaTrees ready)
-  display $ OM.lookup (IndicatorId "agriculture-percentage-share-of-regional-gdp-2000") <$> areaTreesD
+  -- display $ OM.lookup (IndicatorId "agriculture-percentage-share-of-regional-gdp-2000") <$> areaTreesD
   -- display $ take 1 <$> areaTreesErrorD
 
 
