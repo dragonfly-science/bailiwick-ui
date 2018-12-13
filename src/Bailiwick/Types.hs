@@ -11,7 +11,6 @@ import Data.Char
 import Data.Map (Map)
 import Data.Text (Text)
 import Data.Hashable (Hashable)
-import Data.HashMap.Strict (HashMap)
 import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 
 import qualified Data.HashMap.Strict.InsOrd as OMap
@@ -331,12 +330,12 @@ mkFeatures features = OMap.fromList [(featureId i, i) | i <- features]
 --                        , percentage     :: Double
 --                        , dispPercentage :: Text }
 --                   deriving (Show, Eq)
--- 
+--
 -- data MapData = MapData
 --   { mapId :: Text
 --   , mapData :: [ MapValue ]
 --   } deriving (Eq, Show, Generic)
--- 
+--
 -- data MapValue = MapValue
 --   { mapValAreaId :: Text
 --   , mapValAreaName :: Text
@@ -355,10 +354,10 @@ data AreaSummaryDisplay = AreaSummaryDisplay
   } deriving (Eq, Show)
 
 data MapSummary = MapSummary
-  { mapSummaryId :: Text 
+  { mapSummaryId :: Text
   , mapSummaryValues :: Object -- HashMap AreaName AreaSummaryDisplay
   } deriving (Eq, Show)
-  
+
 type MapSummaries = InsOrdHashMap AreaName MapSummary
 
 instance FromJSON MapSummary where
@@ -366,7 +365,7 @@ instance FromJSON MapSummary where
         summary <- value .: "summary"
         msid <- summary .: "id"
         rawval <- summary .: "values"
-        -- let getmsval (Object hm) = 
+        -- let getmsval (Object hm) =
         --     getmsval v = typemismatch "Expected an object" v
         -- msval <- getmsval rawval
         -- parseJSONList = withObject "Themes" $ \v -> do

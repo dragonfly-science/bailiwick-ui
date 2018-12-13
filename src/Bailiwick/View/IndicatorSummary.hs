@@ -15,39 +15,34 @@ import Control.Monad (void)
 import Control.Monad.Fix (MonadFix)
 import Data.Bool (bool)
 import Data.Char (isSpace)
-import Data.Foldable (forM_)
+import Data.Monoid ((<>))
 import Data.Maybe (fromMaybe, isJust)
-import Text.Read (readMaybe)
+import Data.Map (Map)
+import qualified Data.Map as M (lookup)
+import Data.Text (Text)
+import qualified Data.Text as T (pack, strip, replace, unpack)
+import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
+
 import Reflex
-       (tagDyn, constDyn, PerformEvent, PostBuild, TriggerEvent, ffor,
+       (constDyn, PerformEvent, PostBuild, TriggerEvent, ffor,
         tag, leftmost, Event(..), Dynamic(..), Performable)
 import Reflex.Dom.Core
-       (elClass', (=:), el, elDynAttr', AttributeName, dyn, EventResult,
+       (elClass', (=:), el, elDynAttr', dyn, EventResult,
         dynText, text, divClass, GhcjsDomSpace, DomBuilder,
         DomBuilderSpace, Element, _element_raw, EventName(Click),
         elDynClass, elAttr)
+import Reflex.Class (MonadHold(..))
+import Reflex.Dom.Builder.Class (HasDomEvent(..))
+import Reflex.PostBuild.Class (PostBuild(..))
+import Reflex.PerformEvent.Class (PerformEvent(..))
 import GHCJS.DOM.Types (liftJSM, MonadJSM)
+import GHCJS.DOM.Element (setInnerHTML)
+
 import Bailiwick.Types
        (Area(..), AreaSummaries, Areas, Indicators, Indicator(..),
         Features, Feature(..))
 import Bailiwick.State
        (getArea, getThemePage, ThemePageArgs(..), Message, State(..))
-import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
-import Data.Text (Text)
-import Data.Map (Map)
-import qualified Data.Map as Map (mapKeys)
-import GHCJS.DOM.Element (setInnerHTML)
-import Data.Default (Default(..))
-import Reflex.Dom.Widget.Input ((.~), (&))
-import Reflex.Dom.Builder.Class
-       (HasDomEvent(..), DomBuilder(..), InitialAttributes(..))
-import Reflex.PostBuild.Class (PostBuild(..))
-import Reflex.PerformEvent.Class (PerformEvent(..))
-import qualified GHCJS.DOM.Types as DOM (Element(..))
-import Data.Monoid ((<>))
-import qualified Data.Text as T (pack, strip, replace, unpack)
-import qualified Data.Map as M (lookup)
-import Reflex.Class (MonadHold(..))
 
 elDynHtmlAttr'
   :: ( Monad m
@@ -66,19 +61,6 @@ elDynHtmlAttr' elementTag attrs html = do
   postBuild <- getPostBuild
   performEvent_ $ liftJSM . setInnerHTML (_element_raw e) <$> leftmost [updated html, tag (current html) postBuild]
   return e
-
-elDynHtml'
-  :: ( Monad m
-     , DomBuilder t m
-     , PostBuild t m
-     , PerformEvent t m
-     , MonadJSM (Performable m)
-     , DomBuilderSpace m ~ GhcjsDomSpace
-     )
-  => Text
-  -> Dynamic t Text
-  -> m (Element EventResult (DomBuilderSpace m) t)
-elDynHtml' elementTag = elDynHtmlAttr' elementTag (constDyn mempty)
 
 textSubstitution :: Indicators -> Features -> Bool -> State -> Text -> Text
 textSubstitution indicators features addCompareArea state =
@@ -158,7 +140,7 @@ indicatorSummary
   -> Features
   -> Dynamic t State
   -> m (Event t Message)
-indicatorSummary areas areaSummaries indicators features state = mdo
+indicatorSummary _areas _areaSummaries indicators features state = mdo
   let indicatorD = ((`OM.lookup` indicators) =<<) . fmap themePageIndicatorId . getThemePage <$> state
       subs = (textSubstitution indicators features True <$> state <*>)
 

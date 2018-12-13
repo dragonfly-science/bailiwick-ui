@@ -9,36 +9,32 @@ module Bailiwick.View.AreaSummary (
   areaSummary
 ) where
 
+import Control.Monad (void)
+import Control.Applicative (liftA2)
+import Data.Monoid ((<>))
+import Data.Maybe (isJust, fromMaybe)
 import Data.Text (Text)
-import Reflex
-       (traceEvent, TriggerEvent, delay, leftmost, tagPromptlyDyn,
+
+import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
+import Data.Aeson ((.:), Object, FromJSON, Value)
+import Data.Aeson.Types (parseMaybe)
+import Language.Javascript.JSaddle (jsg3, MonadJSM, liftJSM)
+import Reflex.PerformEvent.Class (PerformEvent(..))
+import Reflex (TriggerEvent, delay, leftmost, tagPromptlyDyn,
         constDyn, ffor, PostBuild, updated)
 import Reflex.Dom.Core
-       (display, elAttr', elDynAttr', elDynAttrNS, elDynAttrNS',
+       (elAttr', elDynAttr', elDynAttrNS,
         GhcjsDomSpace, DomBuilderSpace, el, dynText, DomBuilder, elAttr,
-        text, (=:), elClass, divClass, Dynamic, _element_raw, Event, never)
-import Data.Monoid ((<>))
-import Data.Map (Map)
-import qualified Data.Text as T (pack)
-
-import Bailiwick.Types
-       (ChartId(..), Indicator(..), Indicators, Areas, AreaSummary(..),
-        Area(..), IndicatorId(..), AreaSummaries(..))
-import Bailiwick.State
-       (ThemePageArgs(..), Message(..), getArea, State(..), Message, Page(..))
-import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
-import Control.Monad (void, join)
-import qualified Data.HashMap.Strict as HM (lookup)
-import Data.Aeson ((.:), Object, (.:?), FromJSON, Value)
-import Data.Aeson.Types (parseMaybe)
-import Data.Maybe (isJust, fromMaybe)
-import Reflex.PerformEvent.Class (PerformEvent(..))
-import Language.Javascript.JSaddle
-       (jsg3, MonadJSM, liftJSM, jsNull, jsg2)
-import Reflex.PostBuild.Class (PostBuild(..))
-import Control.Applicative (liftA2)
+        text, (=:), divClass, Dynamic, _element_raw, Event, never)
 import Reflex.Dom.Builder.Class (HasDomEvent(..))
 import Reflex.Dom.Builder.Class.Events (EventName(..))
+import Reflex.PostBuild.Class (PostBuild(..))
+
+import Bailiwick.Types
+       (Indicator(..), Indicators, Areas, AreaSummary(..),
+        Area(..), IndicatorId(..), AreaSummaries)
+import Bailiwick.State
+       (ThemePageArgs(..), Message(..), getArea, State(..), Message, Page(..))
 
 indicatorSummary
   :: (Monad m, PostBuild t m, DomBuilder t m)

@@ -5,7 +5,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Bailiwick.View.Indicators (
-  indicators
+  indicatorsV
 ) where
 
 import Data.Maybe (maybeToList)
@@ -27,7 +27,7 @@ import Bailiwick.State
        (ThemePageArgs(..), Page(..), Message(..), getArea, Message,
         State(..))
 
-indicators
+indicatorsV
   :: forall m t.
      ( Monad m
      , PostBuild t m
@@ -41,7 +41,7 @@ indicators
   -> Indicators
   -> Dynamic t State
   -> m (Event t Message)
-indicators themes inds state = do
+indicatorsV themes inds state = do
   let dispArea = maybe "New Zealand" areaName . getArea <$> state
   divClass "themes-outer indicators-section" $ do
     elAttr "span" ("id" =: "indicators") $ return ()

@@ -27,11 +27,11 @@ import Bailiwick.Types
 import Bailiwick.View.Header
 import Bailiwick.View.Map
 import Bailiwick.View.AreaSummary (areaSummary)
-import Bailiwick.View.Indicators (indicators)
+import Bailiwick.View.Indicators (indicatorsV)
 import Bailiwick.View.IndicatorSummary (indicatorSummary)
 import Bailiwick.View.IndicatorChart (indicatorChart)
 import Bailiwick.View.ToolBar (toolBar)
-import Bailiwick.AreaTrees (AreaTrees(..))
+import Bailiwick.AreaTrees (AreaTrees)
 
 windowScrolled
   :: (Monad m, MonadJSM m, TriggerEvent t m)
@@ -71,18 +71,21 @@ view areas areaSummaries themes inds areaTrees features state = do
          "main-header " <> case getPage s of
                               ThemePage _ -> if isOpen then "large" else "small"
                               Summary -> "closed"
-  elDynAttr "div" (("class" =:) <$> ((<>) <$> (wholeBodyClass <$> state) <*> (bool "" " fixed" . isJust <$> marginTopD))) $ mdo
+  elDynAttr "div" (("class" =:) <$>
+         ((<>) <$> (wholeBodyClass <$> state)
+               <*> (bool "" " fixed" . isJust <$> marginTopD))) $ mdo
     (headerE, isOpen)
       <- divClass "main-header-area" $
             elDynClass "header" (mainHeaderClass <$> state <*> isOpen) $ do
               navBarE <- navbar
-              headerE <- header areas state
-              (toolBarE, isOpen) <- toolBar areas inds state
-              return (leftmost [navBarE, headerE, toolBarE], isOpen)
+              headerE' <- header areas state
+              (toolBarE, isOpen') <- toolBar areas inds state
+              return (leftmost [navBarE, headerE', toolBarE], isOpen')
     mainE <-
-      elDynAttr "div" (("class" =: "content main-content" <>) . maybe mempty (("style" =:) . ("margin-top: " <>)) <$> marginTopD) $
+      elDynAttr "div" (("class" =: "content main-content" <>) .
+             maybe mempty (("style" =:) . ("margin-top: " <>)) <$> marginTopD) $
         mainContent areas areaSummaries inds areaTrees features state
-    indicatorsE <- indicators themes inds state
+    indicatorsE <- indicatorsV themes inds state
 
     -- We need to scroll up when these links are clicked (or you can't tell they do anything)
     performEvent_ $ ffor indicatorsE $ \case

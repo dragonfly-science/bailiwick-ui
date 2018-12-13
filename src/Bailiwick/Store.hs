@@ -11,6 +11,7 @@ module Bailiwick.Store
     , getIndicators
     , getAreaTrees
     , getFeatures
+    , getMapSummaries
     )
 where
 
@@ -44,7 +45,7 @@ getAreaSummaries
 getAreaSummaries
     = client (Proxy :: Proxy GetAreaSummaries) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
-        
+
 getMapSummaries
     :: forall t m . SupportsServantReflex t m => Client t m GetMapSummaries ()
 getMapSummaries

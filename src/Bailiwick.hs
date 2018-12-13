@@ -18,9 +18,7 @@ import Bailiwick.Store (getAreas, getAreaSummaries, getThemes, getIndicators, ge
 import Bailiwick.Route (decodeRoute, encodeRoute)
 import Bailiwick.View (view)
 import Bailiwick.Types
-import Bailiwick.AreaTrees
-
-import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
+import Bailiwick.AreaTrees hiding (areas)
 
 ui  :: ( Monad m
        , MonadJSM m
@@ -41,7 +39,7 @@ ui = do
   indicatorsD <- fmap (fmap mkIndicators) $ maybeGetList =<< getIndicators ready
   areaTreesD <- fmap (fmap mkAreaTrees) $ maybeGetList =<< getAreaTrees ready
   featuresD <- fmap (fmap mkFeatures) $ maybeGetList =<< getFeatures ready
-  
+
   -- display =<< getAreaTrees ready
   -- areaTreesErrorD <- (holdDyn [] =<< fmapMaybe reqSuccess <$> getAreaTrees ready)
   -- display $ OM.lookup (IndicatorId "agriculture-percentage-share-of-regional-gdp-2000") <$> areaTreesD

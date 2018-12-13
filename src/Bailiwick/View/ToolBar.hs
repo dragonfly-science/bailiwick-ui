@@ -8,34 +8,32 @@ module Bailiwick.View.ToolBar (
 ) where
 
 import Control.Monad.Fix (MonadFix)
+import Data.Monoid ((<>))
+import Data.Bool (bool)
+import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Text (Text)
+import qualified Data.Text as T (unpack, pack)
 import Data.Map (Map)
 import qualified Data.Map as M (fromList, toList)
-import Data.Maybe (fromMaybe, listToMaybe)
 import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as OM (toList, fromList, lookup)
-import Data.Monoid ((<>))
+import Text.Read (readMaybe)
+
+import Language.Javascript.JSaddle (MonadJSM)
+import Reflex (TriggerEvent, demuxed, demux, foldDyn)
 import Reflex.Dom.Core
        (elDynClass', GhcjsDomSpace, elAttr', MonadHold, PostBuild,
-        DomBuilder, Event, Dynamic, divClass, elAttr, el, elClass, text,
-        (=:), never, dropdown, def, constDyn, elDynAttr, holdDyn, leftmost,
+        DomBuilder, Event, Dynamic, divClass, el, elClass, text,
+        (=:), never, constDyn, elDynAttr, holdDyn, leftmost,
         tag, current, domEvent, EventName(Click, Focus, Blur), ffor,
-        elClass', dynText, elDynClass, listViewWithKey, el', elDynAttr',
-        DomBuilderSpace, _element_raw)
+        dynText, elDynClass, listViewWithKey, elDynAttr',
+        DomBuilderSpace)
+import Reflex.PerformEvent.Class (PerformEvent(..))
+import Reflex.FunctorMaybe (FunctorMaybe(..))
+-- import Bailiwick.View.Header (dropdownMenu)
 
 import Bailiwick.State
 import Bailiwick.Types
-import Data.Bool (bool)
-import Reflex (TriggerEvent, delay, demuxed, demux, foldDyn)
-import qualified Data.Text as T (unpack, pack)
-import Reflex.Dom.Contrib.Utils (listWithKeyAndSelection)
-import Language.Javascript.JSaddle (MonadJSM, liftJSM, jsg, new)
-import Reflex.PerformEvent.Class (PerformEvent(..))
-import Reflex.PostBuild.Class (PostBuild(..))
-import GHCJS.DOM.Types (Element(..), HTMLElement(..))
-import Reflex.FunctorMaybe (FunctorMaybe(..))
-import Text.Read (readMaybe)
--- import Bailiwick.View.Header (dropdownMenu)
 
 toolBar
     :: ( MonadFix m
@@ -48,11 +46,12 @@ toolBar
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
     => Areas -> Indicators -> Dynamic t State -> m (Event t Message, Dynamic t Bool)
-toolBar areas indicators state = do
+toolBar _areas indicators state = do
   let areaTypes = OM.fromList [("nz", "New Zealand"), ("reg", "Regional Council"), ("ta", "Territorial Authority")]
       transforms = (\n -> OM.fromList [("indexed", "indexed"), ("absolute", fromMaybe "absolute" n)]) <$> absoluteLabel
       absoluteLabel = (indicatorAbsoluteLabel =<<) . ((`OM.lookup` indicators) =<<) . fmap themePageIndicatorId . getThemePage <$> state
-      years = OM.fromList [(T.pack $ show y, T.pack $ show y) | y <- reverse [1996..2017]] -- TODO fix range
+      years = OM.fromList [(T.pack $ show y, T.pack $ show y)
+                          | y <- reverse ([1996..2017] :: [ Int ])] -- TODO fix range
       areaTypeD = fmap themePageAreaType . getThemePage <$> state
       leftTransformD = fmap themePageLeftTransform . getThemePage <$> state
       rightChartD = fmap themePageRightChart . getThemePage <$> state
@@ -203,7 +202,7 @@ toolbarList dropdownClass emptyPresentD closeE seenD currentValue valuesD =
           optionsD = M.fromList . zipWith shuffle [1 ..] . OM.toList <$> valuesD
 
       elClass "span" "label" $ text dropdownClass
-      (ps, selectedValue :: Event t (Map (Int, Text) Text))
+      (_, selectedValue :: Event t (Map (Int, Text) Text))
           <- elAttr' "div" ("style" =: "overflow: scroll") $ -- ("class" =: "ps-content ps-container ps-theme-default") $
                 elClass "ul" "options" $ do
                 let selectionDemux = demux currentValue

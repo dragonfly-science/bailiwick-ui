@@ -10,27 +10,20 @@ module Bailiwick.View.IndicatorChart (
   indicatorChart
 ) where
 
-import Control.Monad (void)
-import Data.Maybe (isJust, maybe)
 import Data.Monoid ((<>))
 import Data.Text (Text)
-import Language.Javascript.JSaddle
-       (jsg2, MonadJSM, liftJSM, new)
-import Reflex.Dom.Core
-       (display, elAttr', elDynAttr', elDynAttrNS, elDynAttrNS',
-        GhcjsDomSpace, DomBuilderSpace, el, display, dynText, DomBuilder, elAttr,
-        text, (=:), elClass, divClass, Dynamic, _element_raw, Event, PostBuild, never, getPostBuild)
-import Reflex (Dynamic(..), TriggerEvent, constDyn, ffor)
-import Reflex.PerformEvent.Class (PerformEvent(..))
-import GHCJS.DOM.Types (Element(..), HTMLElement(..))
-
-import Bailiwick.AreaTrees (AreaTrees, AreaTree)
-import Bailiwick.State
-       (getThemePage, ThemePageArgs(..), Message, State(..))
-import Bailiwick.Types
-
 import qualified Data.Text as T (pack)
 import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
+
+import Language.Javascript.JSaddle
+       (jsg2, MonadJSM, liftJSM)
+import Reflex.Dom.Core
+import Reflex.PerformEvent.Class (PerformEvent(..))
+import qualified GHCJS.DOM.Types as DOM (Element(..))
+
+import Bailiwick.AreaTrees (AreaTrees)
+import Bailiwick.State (getThemePage, ThemePageArgs(..), Message, State(..))
+import Bailiwick.Types
 
 indicatorChart
   :: ( Monad m
@@ -47,32 +40,32 @@ indicatorChart
   -> m (Event t Message)
 indicatorChart areaTrees indicators state = do
   postBuild <- getPostBuild
-  let year = fmap themePageYear . getThemePage <$> state
-      indicatorId = fmap themePageIndicatorId . getThemePage <$> state
-      areaTree =
+  let _year = fmap themePageYear . getThemePage <$> state
+      _iId = fmap themePageIndicatorId . getThemePage <$> state
+      _areaTree =
         (getThemePage <$> state) >>=
             mapM (\ themePage ->
                 let y = themePageYear themePage
                     ind = themePageIndicatorId themePage
                 in return $ OM.lookup (IndicatorId $ unIndicatorId ind <> "-" <> T.pack (show y)) areaTrees)
       indicator = ((`OM.lookup` indicators) =<<) . fmap themePageIndicatorId . getThemePage <$> state
-  
-  -- display indicatorId
+
+  -- display iId
   -- display year
   -- display areaTree
-  
+
   display indicator
-  
+
   -- text $ T.pack (show areaTrees)
-  
-  let showAttr True  = "display: block"
-      showAttr False = "display: none"
+
+  let _showAttr True  = "display: block"
+      _showAttr False = "display: none"
   (e, _) <- elDynAttr' "div" (constDyn $ "class" =: "basic-barchart") $
       elDynAttrNS (Just "http://www.w3.org/2000/svg") "svg" (constDyn $ "class"=:"d3-attach" <> "width"=:"480" <> "height"=:"530") $ return ()
-  
-    
+
+
   performEvent_ $ ffor postBuild $ \() -> do
-    liftJSM $ jsg2 ("updateAreaBarchart" :: Text) (_element_raw e :: Element) ("text" :: Text)
+    _ <- liftJSM $ jsg2 ("updateAreaBarchart" :: Text) (_element_raw e :: DOM.Element) ("text" :: Text)
     return ()
-  
+
   return never

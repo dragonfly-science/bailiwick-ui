@@ -17,14 +17,17 @@
 module Bailiwick.View.Map
 where
 
+import Control.Monad ((>=>), forever, void, when)
+import Control.Monad.IO.Class (MonadIO(..))
+import Control.Concurrent
+       (threadDelay, tryPutMVar, takeMVar, forkIO, newEmptyMVar)
 import Control.Applicative (liftA2, Alternative(..))
 import Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
 import Control.Monad.Fix
-import Data.Bool (bool)
 import Data.Monoid ((<>))
-import Data.Maybe
-       (fromMaybe, isNothing, catMaybes, isJust, fromJust)
-import Data.List (nub)
+import Data.Functor (($>))
+import Data.Maybe (fromMaybe, isNothing, isJust, fromJust)
+import Data.Foldable (Foldable(..), forM_)
 import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
@@ -34,54 +37,30 @@ import qualified GHCJS.DOM.Node as DOM
 import qualified GHCJS.DOM.EventM as DOM
 import qualified GHCJS.DOM.GlobalEventHandlers as DOM
 import qualified GHCJS.DOM.Types as DOM
+import qualified GHCJS.DOM.Performance as Performance (now)
+import qualified GHCJS.DOM.MediaQueryList as MQ (removeListener, addListener)
 import GHCJS.DOM.MouseEvent (IsMouseEvent)
-import GHCJS.DOM.EventM (mouseClientXY, mouseOffsetXY)
-import GHCJS.DOM.HTMLElement
-       (getOffsetHeight, getOffsetTop, getOffsetLeft)
+import GHCJS.DOM.EventM (mouseClientXY)
+import GHCJS.DOM.Types
+       (MediaQueryList(..), NodeList(..), DOMHighResTimeStamp, IsElement,
+        HTMLElement(..), HTMLObjectElement(..), uncheckedCastTo)
+import GHCJS.DOM (currentWindowUnchecked)
+import GHCJS.DOM.ParentNode (querySelector, querySelectorUnsafe, querySelectorAll)
+import GHCJS.DOM.Element (setAttribute)
+import GHCJS.DOM.HTMLObjectElement (getContentDocument)
+import GHCJS.DOM.GlobalPerformance (getPerformance)
+import GHCJS.DOM.Window (matchMedia)
+import GHCJS.DOM.MediaQueryList (getMatches)
+import GHCJS.DOM.MediaQueryListListener (newMediaQueryListListenerAsync)
 
 import Language.Javascript.JSaddle.Types (MonadJSM)
+import Language.Javascript.JSaddle
+       (call, eval, ToJSString, runJSM, askJSM, liftJSM)
 import Reflex.Dom.Core
 import Reflex.Dom.Builder.Immediate (wrapDomEvent)
 
 import Bailiwick.State
 import Bailiwick.Types
-import Control.Monad.IO.Class (MonadIO(..))
-import GHCJS.DOM.CSSStyleSheet (deleteRule, insertRule_)
-import GHCJS.DOM.Types
-       (HTMLStyleElement(..), CSSStyleSheet(..), uncheckedCastTo)
-import GHCJS.DOM.HTMLStyleElement (getSheet)
-import Control.Monad ((>=>), foldM, forever, void, unless, when)
-import Control.Lens ((^.))
-import Language.Javascript.JSaddle
-       (call, eval, ToJSString, runJSM, askJSM, waitForAnimationFrame,
-        liftJSM, js2)
-import GHCJS.DOM.Types
-       (MediaQueryList(..), NodeList(..), DOMHighResTimeStamp, IsElement,
-        IsParentNode, HTMLElement(..), HTMLObjectElement(..),
-        SVGElement(..), ToJSVal(..))
-import GHCJS.DOM
-       (currentWindowUnchecked, inAnimationFrame',
-        currentDocumentUnchecked)
-import GHCJS.DOM.ParentNode
-       (querySelector, querySelectorUnsafe, querySelectorAll)
-import qualified GHCJS.DOM.NodeList as NodeList
-       (itemUnchecked, getLength)
-import Data.Traversable (forM)
-import GHCJS.DOM.Element (setAttribute)
-import Data.Foldable (Foldable(..), forM_)
-import GHCJS.DOM.HTMLObjectElement (getContentDocument)
-import Data.Functor (($>))
-import Data.Time (getCurrentTime)
-import qualified GHCJS.DOM.Performance as Performance (now)
-import GHCJS.DOM.GlobalPerformance (getPerformance)
-import Control.Concurrent
-       (threadDelay, tryPutMVar, takeMVar, forkIO, newEmptyMVar)
-import qualified GHCJS.DOM.MediaQueryList as MQ
-       (removeListener, addListener)
-import GHCJS.DOM.Window (matchMedia)
-import GHCJS.DOM.MediaQueryList (getMatches, removeListener)
-import GHCJS.DOM.MediaQueryListListener
-       (newMediaQueryListListenerAsync)
 
 slugify :: Text -> Text
 slugify = Text.replace "'" ""
@@ -270,7 +249,10 @@ zoomState wide z selectedRegion = ZoomState
       case selectedRegion of
         Just r | z -> regionTransform $ slugify r
         _ -> transform 0 727.5 1 (-1) 0.8
-    transform x y sx sy sw = (Translate (x + if wide then 113 else 0) y, Scale sx sy, if z then 1.2/sx else 0.6)
+    transform :: Double -> Double -> Double -> Double -> Double
+              -> (Translate Double, Scale Double, Double)
+    transform x y sx sy _sw
+         = (Translate (x + if wide then 113 else 0) y, Scale sx sy, if z then 1.2/sx else 0.6)
     regionTransform "auckland"          = transform (-3080) 6370 10 (-10) 0.3
     regionTransform "bay-of-plenty"     = transform (-2050) 3240 5.5 (-5.5) 0.3
     regionTransform "canterbury"        = transform (-350) 1000 3 (-3) 0.55
@@ -395,17 +377,13 @@ nzmap areas state = mdo
     Nothing -> return never
     Just svgBody -> do
       let forSelectionSetAttribute :: (MonadJSM m0) => Text -> Text -> Text -> m0 ()
-          forSelectionSetAttribute q name value = do
+          forSelectionSetAttribute q name val = do
             nodeList <- querySelectorAll svgBody q
-            forNodesSetAttribute nodeList name value
+            forNodesSetAttribute nodeList name val
           forSelectionSetAttributes :: (MonadJSM m0) => Text -> [(Text, Text)] -> m0 ()
           forSelectionSetAttributes q = mapM_ (uncurry $ forSelectionSetAttribute q)
           set :: (MonadJSM m0, IsElement e) => Text -> Text -> e -> m0 ()
           set a v e = setAttribute e a v
-          setColour :: (MonadJSM m0) => Text -> Text -> m0 ()
-          setColour cssClass colour = liftJSM $ do
-            forSelectionSetAttribute ("g." <> cssClass <> " > path") "fill" colour
-            forSelectionSetAttribute ("g." <> cssClass <> " > polyline") "stroke" colour
           mapStateD = MapState <$> zoomD <*> zoomStateT <*> mouseOverD <*> regD <*> subareaD <*> regChildrenD
 
       postBuild <- getPostBuild
@@ -519,7 +497,7 @@ nzmap areas state = mdo
 
   let transformD = fmap themePageLeftTransform . getThemePage <$> state
   let tooltipArea :: State -> Maybe (AreaInfo, (Int, Int)) -> Maybe ((AreaInfo, (Int, Int)), Area)
-      tooltipArea s Nothing = Nothing
+      tooltipArea _ Nothing = Nothing
       tooltipArea s (Just (ai, xy)) =
         let maybeAreaId =
               if hasAdapter Mapzoom s
