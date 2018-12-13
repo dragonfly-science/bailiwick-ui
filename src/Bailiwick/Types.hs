@@ -1,20 +1,21 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 
 module Bailiwick.Types where
 
-import GHC.Generics
 import Data.Aeson
 import Data.Aeson.Types (FromJSONKeyFunction(FromJSONKeyText))
 import Data.Char
-import Data.Map (Map)
-import Data.Text (Text)
 import Data.Hashable (Hashable)
 import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
-
+import Data.Map (Map)
+import Data.Text (Text)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import qualified Data.Vector as V
+
+import GHC.Generics
 
 data Area
   = Area
@@ -236,7 +237,7 @@ data Indicator = Indicator
   , indicatorFeatureTrees           :: [Text]
 --  , indicatorAreaTrees              :: [Text]
 --  , indicatorSummaries              :: [Text]
---  , indicatorTimeseries             :: [Text]
+  , indicatorTimeseries             :: [Text]
   , indicatorMapdata                :: [Text]
 --  , indicatorTableRawData           :: [Text]
 --  , indicatorTransforms             :: [Transform]
@@ -372,3 +373,20 @@ instance FromJSON MapSummary where
         --   Array as <- v .: "themes"
         --   mapM parseJSON $ V.toList as
         return (MapSummary msid rawval)
+
+data ChartData = ChartData
+  { chartDataID :: ChartDataName
+  , chartDataValues :: Object
+  } deriving (Eq, Show)
+
+newtype ChartDataName = ChartDataName { chartDataNameText :: Text } deriving (Eq, Show, Generic, FromJSON)
+instance Hashable ChartDataName
+
+type ChartDatas = InsOrdHashMap ChartDataName ChartData
+
+instance FromJSON ChartData where
+  parseJSON = withObject "chartdatum" $ \value -> do
+      chartId <- value .: "id"
+      chartVals <- value .: "values"
+
+      return (ChartData chartId chartVals)

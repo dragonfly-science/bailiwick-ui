@@ -7,11 +7,12 @@
 module Bailiwick.Store
     ( getAreas
     , getAreaSummaries
-    , getThemes
-    , getIndicators
     , getAreaTrees
+    , getChartData
     , getFeatures
     , getMapSummaries
+    , getIndicators
+    , getThemes
     )
 where
 
@@ -33,6 +34,7 @@ type GetIndicators = "data" :> "indicators-11d88bc13.json" :> Get '[JSON] [Indic
 type GetAreaTrees = "data" :> "areaTrees-11d88bc13.json" :> Get '[JSON] [AreaTree]
 type GetFeatures = "data" :> "features-11d88bc13.json" :> Get '[JSON] [Feature]
 type GetMapSummaries = "data" :> Capture "filename" Text :> Get '[JSON] MapSummary
+type GetChartData = "data" :> Capture "filename" Text :> Get '[JSON] ChartData
 
 getAreas
     :: forall t m . SupportsServantReflex t m => Client t m GetAreas ()
@@ -74,6 +76,12 @@ getFeatures
     :: forall t m . SupportsServantReflex t m => Client t m GetFeatures ()
 getFeatures
     = client (Proxy :: Proxy GetFeatures) (Proxy :: Proxy m)
+        (Proxy :: Proxy ()) (constDyn (BasePath "/"))
+
+getChartData
+    :: forall t m . SupportsServantReflex t m => Client t m GetChartData ()
+getChartData
+    = client (Proxy :: Proxy GetChartData) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
 

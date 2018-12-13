@@ -7,7 +7,8 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecursiveDo #-}
 module Bailiwick.View.IndicatorSummary (
-    indicatorSummary
+    indicatorSummary,
+    elDynHtml'
 ) where
 
 import Control.Applicative ((<|>))
@@ -149,7 +150,7 @@ indicatorSummary _areas _areaSummaries indicators features state = mdo
       divClass "intersection-number headline-number" $ do
         divClass "number" $ text "TODO"
         divClass "comparison-number" $ text "TODO"
-        void . elDynHtmlAttr' "p" (constDyn $ "class" =: "pation") $
+        void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
           subs $ maybe "" indicatorHeadlineNumCaption <$> indicatorD
       divClass "intersection-number regional-value" $ do
         divClass "number" $ text "TODO"

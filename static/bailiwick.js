@@ -1,6 +1,6 @@
 
 /**
- * ￼Update the time series on the home page side bar - housePriceTimeSeries
+ * Update the time series on the home page side bar - housePriceTimeSeries
  **/
 var updateTimeSeries = function(element, labelledData, activeLabelName) {
   var base = d3.select(element).select('svg.d3-attach')
@@ -99,7 +99,7 @@ var updateTimeSeries = function(element, labelledData, activeLabelName) {
 }
 
 /**
- * ￼Initialise a bar chart - used on the indicator.
+ * Initialise a bar chart - used on the indicator.
  **/
 var updateAreaBarchart = function(element, data) {
     console.log(element, data)
@@ -116,3 +116,9 @@ var updateAreaBarchart = function(element, data) {
   // height = parseInt(container.style("height")) - margin.top - margin.bottom;
 }
 
+/**
+ * Time series used on an indicator
+ **/
+var updateIndicatorTimeSeries = function(element, label, ) {
+    
+}

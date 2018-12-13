@@ -24,7 +24,7 @@ uiStatic
     :: ( DomBuilder t m
        , PostBuild t m)
     => m ()
-uiStatic = do
+uiStatic =
   divClass "section columns" $
     elAttr "div" ( "class" =: "container box column home-page is-half"
                  <> "id" =: "content-wrapper") $
