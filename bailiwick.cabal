@@ -47,6 +47,7 @@ library
                      , lens
                      , mtl
                      , insert-ordered-containers
+                     , pretty-show
                      , process
                      , QuickCheck
                      , reflex

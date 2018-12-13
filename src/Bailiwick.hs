@@ -41,12 +41,6 @@ ui = do
   indicatorsD <- fmap (fmap mkIndicators) $ maybeGetList =<< getIndicators ready
   areaTreesD <- fmap (fmap mkAreaTrees) $ maybeGetList =<< getAreaTrees ready
   featuresD <- fmap (fmap mkFeatures) $ maybeGetList =<< getFeatures ready
-  
-  -- display =<< getAreaTrees ready
-  -- areaTreesErrorD <- (holdDyn [] =<< fmapMaybe reqSuccess <$> getAreaTrees ready)
-  -- display $ OM.lookup (IndicatorId "agriculture-percentage-share-of-regional-gdp-2000") <$> areaTreesD
-  -- display $ take 1 <$> areaTreesErrorD
-
 
   dyn_ $ do
     areas <- areasD
@@ -59,6 +53,4 @@ ui = do
       state <- route' (encodeRoute areas) (decodeRoute areas) events
       events <- view areas areaSummaries themes indicators areaTrees features state
       return ()
-
-
 
