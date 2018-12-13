@@ -7,8 +7,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecursiveDo #-}
 module Bailiwick.View.IndicatorSummary (
-    indicatorSummary,
-    elDynHtml'
+    indicatorSummary
 ) where
 
 import Control.Applicative ((<|>))

@@ -10,41 +10,24 @@ module Bailiwick.View.IndicatorChart (
   indicatorChart
 ) where
 
-import Control.Monad (join, void)
-import Data.Maybe (isJust, maybe, fromMaybe, fromJust, listToMaybe)
+import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Monoid ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T (pack)
 import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
 
-import Language.Javascript.JSaddle
-       (jsg2, MonadJSM, liftJSM)
+import GHCJS.DOM.Types (Element(..))
+import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
 import Reflex.Dom.Core
+       (elDynAttr', elDynAttrNS, GhcjsDomSpace, DomBuilderSpace, DomBuilder,
+        (=:), Dynamic, _element_raw, Event, PostBuild, never, getPostBuild)
+import Reflex (TriggerEvent, constDyn, current, ffor, leftmost, tag, updated)
 import Reflex.PerformEvent.Class (PerformEvent(..))
-import qualified GHCJS.DOM.Types as DOM (Element(..))
 
 import Bailiwick.AreaTrees (AreaTrees)
 import Bailiwick.State (getThemePage, ThemePageArgs(..), Message, State(..))
 import Bailiwick.Types
-       (display, elAttr', elDynAttr', elDynAttrNS, elDynAttrNS',
-        GhcjsDomSpace, DomBuilderSpace, el, display, dynText, DomBuilder, elAttr,
-        text, (=:), elClass, divClass, Dynamic, _element_raw, Event, PostBuild, never, getPostBuild)
-import Reflex (Dynamic(..), TriggerEvent, constDyn, current, ffor, leftmost, tag, updated)
-import Reflex.PerformEvent.Class (PerformEvent(..))
-import GHCJS.DOM.Types (Element(..), HTMLElement(..))
-import Text.Show.Pretty
 
-import Bailiwick.View.IndicatorSummary (elDynHtml')
-import Bailiwick.AreaTrees (AreaTrees, AreaTree)
-import Bailiwick.State
-       (getThemePage, ThemePageArgs(..), Message, State(..))
-import Bailiwick.Store (getChartData)
-import Bailiwick.Types
-
-import qualified Data.Text as T (pack)
-import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
-
-prettyDisplay val = elDynHtml' "pre" $ T.pack . maybe "pretty show fail" valToStr . reify <$> val
 
 indicatorChart
   :: ( Monad m
@@ -84,8 +67,8 @@ indicatorChart areaTrees indicators state = do
                  <> "-11d88bc13.json"
       -- chartDataD = postBuild <$> getChartData chartD
 
-  let showAttr True  = "display: block"
-      showAttr False = "display: none"
+  let _showAttr True  = "display: block"
+      _showAttr False = "display: none"
   (e, _) <- elDynAttr' "div" (constDyn $ "class" =: "basic-barchart") $
       elDynAttrNS
         (Just "http://www.w3.org/2000/svg") "svg"
@@ -104,7 +87,7 @@ indicatorChart areaTrees indicators state = do
                        [tag (current chartD) postBuild, updated chartD]
                        )
                        $ \chart -> do
-    liftJSM $ jsg2 ("updateAreaBarchart" :: Text)
+    _ <- liftJSM $ jsg2 ("updateAreaBarchart" :: Text)
                    (_element_raw e :: Element)
                    (chart :: Text)
     return ()
