@@ -91,7 +91,7 @@ indicatorChart storeD stateD = do
                        [tag (current chartD) delayEvent, updated chartD]
                        )
                        $ \chart -> do
-    _ <- liftJSM $ jsg2 ("setupDefaultTimeSeries" :: Text)
+    _ <- liftJSM $ jsg2 ("updateAreaBarchart" :: Text)
                    (_element_raw e :: Element)
                    (chart :: Text)
     return ()
