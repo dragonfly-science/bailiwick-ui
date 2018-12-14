@@ -59,7 +59,7 @@ indexHtml jss = do
 
     </script>
     <script src="https://d3js.org/d3.v3.min.js"></script>
-    <script src="/bailiwick.js"></script>
+    <script src="/bailiwick.min.js"></script>
     <script src="/perfect-scrollbar.js"></script>
 
   </head>

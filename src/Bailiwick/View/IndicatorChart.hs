@@ -17,11 +17,11 @@ import qualified Data.Text as T (pack)
 import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
 
 import GHCJS.DOM.Types (Element(..))
-import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
+import Language.Javascript.JSaddle (jsg1, jsg2, MonadJSM, liftJSM)
 import Reflex.Dom.Core
        (elDynAttr', elDynAttrNS, GhcjsDomSpace, DomBuilderSpace, DomBuilder,
         (=:), Dynamic, _element_raw, Event, PostBuild, never, getPostBuild)
-import Reflex (TriggerEvent, constDyn, current, ffor, leftmost, tag, updated)
+import Reflex (TriggerEvent, constDyn, current, delay, ffor, leftmost, tag, updated)
 import Reflex.PerformEvent.Class (PerformEvent(..))
 
 import Bailiwick.Store (Store)
@@ -87,13 +87,16 @@ indicatorChart storeD stateD = do
   -- - caption
   -- - chartData
   -- - compareArea
+  delayEvent <- delay 0.5 =<< getPostBuild
   performEvent_ $ ffor (leftmost
-                       [tag (current chartD) postBuild, updated chartD]
+                       [tag (current chartD) delayEvent, updated chartD]
                        )
                        $ \chart -> do
-    _ <- liftJSM $ jsg2 ("updateAreaBarchart" :: Text)
+    _ <- liftJSM $ jsg1 ("setupDefaultTimeSeries" :: Text)
                    (_element_raw e :: Element)
-                   (chart :: Text)
+    -- _ <- liftJSM $ jsg2 ("updateDefaultTimeSeries" :: Text)
+    --                (_element_raw e :: Element)
+    --                (chart :: Text)
     return ()
 
   return never
