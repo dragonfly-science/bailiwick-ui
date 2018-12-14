@@ -38,11 +38,10 @@ import Reflex.PerformEvent.Class (PerformEvent(..))
 import GHCJS.DOM.Types (liftJSM, MonadJSM)
 import GHCJS.DOM.Element (setInnerHTML)
 
-import Bailiwick.Types
-       (Area(..), AreaSummaries, Areas, Indicators, Indicator(..),
-        Features, Feature(..))
-import Bailiwick.State
-       (getArea, getThemePage, ThemePageArgs(..), Message, State(..))
+import Bailiwick.Store (Store)
+import qualified Bailiwick.Store as Store
+import Bailiwick.Types (Area(..), Indicators, Indicator(..), Features, Feature(..))
+import Bailiwick.State (getArea, getThemePage, ThemePageArgs(..), Message, State(..))
 
 elDynHtmlAttr'
   :: ( Monad m
@@ -62,8 +61,8 @@ elDynHtmlAttr' elementTag attrs html = do
   performEvent_ $ liftJSM . setInnerHTML (_element_raw e) <$> leftmost [updated html, tag (current html) postBuild]
   return e
 
-textSubstitution :: Indicators -> Features -> Bool -> State -> Text -> Text
-textSubstitution indicators features addCompareArea state =
+textSubstitution :: Bool -> Indicators -> Features -> State -> Text -> Text
+textSubstitution addCompareArea indicators features state =
     let themePage = getThemePage state
         indicator = (`OM.lookup` indicators) =<< themePageIndicatorId <$> themePage
         y = themePageYear <$> themePage
@@ -134,15 +133,19 @@ indicatorSummary
      , MonadJSM (Performable m)
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
-  => Areas
-  -> AreaSummaries
-  -> Indicators
-  -> Features
+  => Dynamic t Store
   -> Dynamic t State
   -> m (Event t Message)
-indicatorSummary _areas _areaSummaries indicators features state = mdo
-  let indicatorD = ((`OM.lookup` indicators) =<<) . fmap themePageIndicatorId . getThemePage <$> state
-      subs = (textSubstitution indicators features True <$> state <*>)
+indicatorSummary storeD stateD = mdo
+  let indicatorD = do
+        state <- stateD
+        indicators <- Store.getIndicators <$> storeD
+        return $ do
+            tp <- getThemePage state
+            themePageIndicatorId tp `OM.lookup` indicators
+      subs = (textSubstitution True <$> (Store.getIndicators <$> storeD)
+                                    <*> (Store.getFeatures <$> storeD)
+                                    <*> stateD <*>)
 
   divClass "summary" $
     divClass "intersection" $ do

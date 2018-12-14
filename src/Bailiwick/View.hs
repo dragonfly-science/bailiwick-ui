@@ -22,16 +22,16 @@ import GHCJS.DOM.Window (scrollTo, getPageYOffset)
 import Servant.Reflex
 import Reflex.Dom.Core hiding (Home)
 
+import Bailiwick.Store (Store)
 import Bailiwick.State
 import Bailiwick.Types
-import Bailiwick.View.Header
+import Bailiwick.View.Header (header)
 import Bailiwick.View.Map
 import Bailiwick.View.AreaSummary (areaSummary)
-import Bailiwick.View.Indicators (indicatorsV)
+import Bailiwick.View.Indicators (indicators)
 import Bailiwick.View.IndicatorSummary (indicatorSummary)
 import Bailiwick.View.IndicatorChart (indicatorChart)
 import Bailiwick.View.ToolBar (toolBar)
-import Bailiwick.AreaTrees (AreaTrees)
 
 windowScrolled
   :: (Monad m, MonadJSM m, TriggerEvent t m)
@@ -58,12 +58,12 @@ view
        , MonadIO m
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
-    => Areas -> AreaSummaries -> Themes -> Indicators -> AreaTrees -> Features -> Dynamic t State -> m (Event t Message)
-view areas areaSummaries themes inds areaTrees features state = do
+    => Dynamic t Store -> Dynamic t State -> m (Event t Message)
+view storeD stateD = do
   let marginTop (ThemePage _) = bool Nothing (Just "349px") . (> 140)
       marginTop _ = bool Nothing (Just "279px") . (> 140)
   scrollPosD <- windowScrollDyn
-  let marginTopD = marginTop <$> (getPage <$> state) <*> scrollPosD
+  let marginTopD = marginTop <$> (getPage <$> stateD) <*> scrollPosD
   let wholeBodyClass s = "whole-body " <> case getPage s of
                               ThemePage _ -> "theme-whole-body"
                               Summary -> "summary-whole-body"
@@ -72,20 +72,20 @@ view areas areaSummaries themes inds areaTrees features state = do
                               ThemePage _ -> if isOpen then "large" else "small"
                               Summary -> "closed"
   elDynAttr "div" (("class" =:) <$>
-         ((<>) <$> (wholeBodyClass <$> state)
+         ((<>) <$> (wholeBodyClass <$> stateD)
                <*> (bool "" " fixed" . isJust <$> marginTopD))) $ mdo
     (headerE, isOpen)
       <- divClass "main-header-area" $
-            elDynClass "header" (mainHeaderClass <$> state <*> isOpen) $ do
+            elDynClass "header" (mainHeaderClass <$> stateD <*> isOpen) $ do
               navBarE <- navbar
-              headerE' <- header areas state
-              (toolBarE, isOpen') <- toolBar areas inds state
+              headerE' <- header storeD stateD
+              (toolBarE, isOpen') <- toolBar storeD stateD
               return (leftmost [navBarE, headerE', toolBarE], isOpen')
     mainE <-
       elDynAttr "div" (("class" =: "content main-content" <>) .
              maybe mempty (("style" =:) . ("margin-top: " <>)) <$> marginTopD) $
-        mainContent areas areaSummaries inds areaTrees features state
-    indicatorsE <- indicatorsV themes inds state
+        mainContent storeD stateD
+    indicatorsE <- indicators storeD stateD
 
     -- We need to scroll up when these links are clicked (or you can't tell they do anything)
     performEvent_ $ ffor indicatorsE $ \case
@@ -141,51 +141,41 @@ type ContentConstraints t m =
 
 mainContent
     :: ContentConstraints t m
-    => Areas
-    -> AreaSummaries
-    -> Indicators
-    -> AreaTrees
-    -> Features
+    => Dynamic t Store
     -> Dynamic t State
     -> m (Event t Message)
-mainContent areas areaSummaries indicators areaTrees features state = do
-  isSummary <- holdUniqDyn ((== Summary) . getPage <$> state)
+mainContent storeD stateD = do
+  isSummary <- holdUniqDyn ((== Summary) . getPage <$> stateD)
   switchHold never =<< dyn (ffor isSummary $ \case
-    True -> summaryContent areas areaSummaries indicators state
-    False -> indicatorContent areas areaSummaries indicators areaTrees features state)
+    True -> summaryContent storeD stateD
+    False -> indicatorContent storeD stateD)
 
 summaryContent
     :: ContentConstraints t m
-    => Areas
-    -> AreaSummaries
-    -> Indicators
+    => Dynamic t Store
     -> Dynamic t State
     -> m (Event t Message)
-summaryContent areas areaSummaries indicators state =
+summaryContent storeD stateD =
   divClass "central-content summary" $ do
     messages
      <-
        divClass "navigation-map base-map" $ do
-         zoomClick <- summaryText state
+         zoomClick <- summaryText stateD
          mapClicks <-
            divClass "svg-wrapper" $
-             nzmap areas state
+             nzmap storeD stateD
          return $ leftmost [zoomClick, mapClicks]
 
     summaryMessages <- divClass "area-summary" $
-      areaSummary areas areaSummaries indicators state
+      areaSummary storeD stateD
     return $ leftmost [messages, summaryMessages]
 
 indicatorContent
     :: ContentConstraints t m
-    => Areas
-    -> AreaSummaries
-    -> Indicators
-    -> AreaTrees
-    -> Features
+    => Dynamic t Store
     -> Dynamic t State
     -> m (Event t Message)
-indicatorContent areas areaSummaries indicators areaTrees features state = do
+indicatorContent storeD stateD = do
   contentE <- divClass "central-content indicator" $ do
     mapE <- divClass "indicator-map base-map" $
       divClass "map-wrapper" $ do
@@ -201,13 +191,13 @@ indicatorContent areas areaSummaries indicators areaTrees features state = do
 
         mapClicks <-
           divClass "svg-wrapper" $
-            nzmap areas state
+            nzmap storeD stateD
         return $ leftmost [zoomClick, mapClicks]
     chartE <- divClass "indicator-chart" $
-      indicatorChart areaTrees indicators state
+      indicatorChart storeD stateD
     return $ leftmost [ mapE, chartE ]
   summaryE <- divClass "indicator-summary hide-table no-compare" $
-    indicatorSummary areas areaSummaries indicators features state
+    indicatorSummary storeD stateD
   return $ leftmost [contentE, summaryE]
 
 summaryText
@@ -215,17 +205,17 @@ summaryText
      , PostBuild t m )
   => Dynamic t State
   -> m (Event t Message)
-summaryText state = do
+summaryText stateD = do
 
-  let homeAttr = state >>= \case
+  let homeAttr = stateD >>= \case
             State Summary [] _ _ -> return ("class" =: "text-wrapper" <> "style" =: "display: block")
             _    -> return ("class" =: "text-wrapper" <> "style" =: "display: none")
-      summaryAttr = state >>= \case
+      summaryAttr = stateD >>= \case
             State Summary [] _ _ -> return ("class" =: "text-wrapper" <> "style" =: "display: none")
             _    -> return ("class" =: "text-wrapper" <> "style" =: "display: block")
 
       -- Zoom in and out button
-      zoomed = hasAdapter Mapzoom <$> state
+      zoomed = hasAdapter Mapzoom <$> stateD
       zoomAttr = zoomed >>= \case
                     True -> return ( "class" =: "zoom-out-small")
                     False -> return ( "class" =: "zoom-in-small")
@@ -233,7 +223,7 @@ summaryText state = do
                     True -> return "Zoom out"
                     False -> return "Zoom in"
 
-      dispArea = maybe "" areaName . getArea <$> state
+      dispArea = maybe "" areaName . getArea <$> stateD
 
   elDynAttr "div" homeAttr $
     divClass "background-wrapper" $ do
@@ -258,7 +248,7 @@ summaryText state = do
        <- elAttr' "div" ("class" =: "map-zoom") $ do
            dynText zoomText
            elDynAttr "span" zoomAttr $ return ()
-    return $ ffor (tagPromptlyDyn state (domEvent Click zoom)) $ \case
+    return $ ffor (tagPromptlyDyn stateD (domEvent Click zoom)) $ \case
       s | hasAdapter Mapzoom s -> ZoomOut . fmap areaId $ getRegion s
       _ -> ZoomIn
 

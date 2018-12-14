@@ -5,14 +5,8 @@
 {-# LANGUAGE FlexibleContexts        #-}
 {-# LANGUAGE ScopedTypeVariables     #-}
 module Bailiwick.Store
-    ( getAreas
-    , getAreaSummaries
-    , getAreaTrees
-    , getChartData
-    , getFeatures
-    , getMapSummaries
-    , getIndicators
-    , getThemes
+    ( initialise
+    , Store(..)
     )
 where
 
@@ -27,60 +21,97 @@ import Bailiwick.Types
 import Bailiwick.AreaTrees
 
 
+data Store
+  = Store
+    { getAreas          :: Areas
+    , getAreaSummaries  :: AreaSummaries
+    , getThemes         :: Themes
+    , getIndicators     :: Indicators
+    , getAreaTrees      :: AreaTrees
+    , getFeatures       :: Features
+    }
+    deriving (Show, Eq)
+
+initialise
+  :: ( MonadHold t m
+     , Reflex t
+     , SupportsServantReflex t m
+     , HasJSContext (Performable m)
+     )
+  => Event t () -> m (Dynamic t Store)
+initialise ready = do
+  let maybeGetList = holdDyn [] . fmapMaybe reqSuccess
+  areasD <- fmap (fmap mkAreas) $ maybeGetList =<< apiGetAreas ready
+  areaSummariesD <- fmap (fmap mkAreaSummaries) $ maybeGetList =<< apiGetAreaSummaries ready
+  themesD <- fmap (fmap mkThemes) $ maybeGetList =<< apiGetThemes ready
+  indicatorsD <- fmap (fmap mkIndicators) $ maybeGetList =<< apiGetIndicators ready
+  areaTreesD <- fmap (fmap mkAreaTrees) $ maybeGetList =<< apiGetAreaTrees ready
+  featuresD <- fmap (fmap mkFeatures) $ maybeGetList =<< apiGetFeatures ready
+  return $
+      Store <$> areasD
+            <*> areaSummariesD
+            <*> themesD
+            <*> indicatorsD
+            <*> areaTreesD
+            <*> featuresD
+
+
+
 type GetAreas = "data" :> "areas-11d88bc13.json" :> Get '[JSON] [Area]
 type GetAreaSummaries = "data" :> "areaSummaries-11d88bc13.json" :> Get '[JSON] [AreaSummary]
 type GetThemes = "data" :> "themes-11d88bc13.json" :> Get '[JSON] [Theme]
 type GetIndicators = "data" :> "indicators-11d88bc13.json" :> Get '[JSON] [Indicator]
 type GetAreaTrees = "data" :> "areaTrees-11d88bc13.json" :> Get '[JSON] [AreaTree]
 type GetFeatures = "data" :> "features-11d88bc13.json" :> Get '[JSON] [Feature]
+
 type GetMapSummaries = "data" :> Capture "filename" Text :> Get '[JSON] MapSummary
 type GetChartData = "data" :> Capture "filename" Text :> Get '[JSON] ChartData
 
-getAreas
+apiGetAreas
     :: forall t m . SupportsServantReflex t m => Client t m GetAreas ()
-getAreas
+apiGetAreas
     = client (Proxy :: Proxy GetAreas) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
-getAreaSummaries
+apiGetAreaSummaries
     :: forall t m . SupportsServantReflex t m => Client t m GetAreaSummaries ()
-getAreaSummaries
+apiGetAreaSummaries
     = client (Proxy :: Proxy GetAreaSummaries) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
-getMapSummaries
+_apiGetMapSummaries
     :: forall t m . SupportsServantReflex t m => Client t m GetMapSummaries ()
-getMapSummaries
+_apiGetMapSummaries
     = client (Proxy :: Proxy GetMapSummaries) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
-getThemes
+apiGetThemes
     :: forall t m . SupportsServantReflex t m => Client t m GetThemes ()
-getThemes
+apiGetThemes
     = client (Proxy :: Proxy GetThemes) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
-getIndicators
+apiGetIndicators
     :: forall t m . SupportsServantReflex t m => Client t m GetIndicators ()
-getIndicators
+apiGetIndicators
     = client (Proxy :: Proxy GetIndicators) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
-getAreaTrees
+apiGetAreaTrees
     :: forall t m . SupportsServantReflex t m => Client t m GetAreaTrees ()
-getAreaTrees
+apiGetAreaTrees
     = client (Proxy :: Proxy GetAreaTrees) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
-getFeatures
+apiGetFeatures
     :: forall t m . SupportsServantReflex t m => Client t m GetFeatures ()
-getFeatures
+apiGetFeatures
     = client (Proxy :: Proxy GetFeatures) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
-getChartData
+_apiGetChartData
     :: forall t m . SupportsServantReflex t m => Client t m GetChartData ()
-getChartData
+_apiGetChartData
     = client (Proxy :: Proxy GetChartData) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 

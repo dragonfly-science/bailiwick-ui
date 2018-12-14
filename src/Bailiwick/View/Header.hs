@@ -18,6 +18,8 @@ import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Reflex.Dom.Core hiding (Home)
 
+import Bailiwick.Store (Store)
+import qualified Bailiwick.Store as Store
 import Bailiwick.State
 import Bailiwick.Types
 
@@ -30,12 +32,13 @@ header
        , PostBuild t m
        , DomBuilder t m
        )
-    => Areas -> Dynamic t State -> m (Event t Message)
-header areas state = mdo
+    => Dynamic t Store -> Dynamic t State -> m (Event t Message)
+header storeD stateD = mdo
 
-  let urlRegion = (fmap areaId) . getRegion <$> state
-      urlTa = (fmap areaId) . getSubArea <$> state
+  let urlRegion = (fmap areaId) . getRegion <$> stateD
+      urlTa = (fmap areaId) . getSubArea <$> stateD
       regionsD = do
+        areas <- Store.getAreas <$> storeD
         let regions = OMap.filter (\a -> areaLevel a == "reg") areas
         return $
            case OMap.lookup "new-zealand" areas of
@@ -43,6 +46,7 @@ header areas state = mdo
               Nothing -> regions
       tasD = do
         mreg <- urlRegion
+        areas <- Store.getAreas <$> storeD
         return $ fromMaybe OMap.empty $ do
           reg <- mreg
           thisArea <- OMap.lookup reg areas
@@ -51,9 +55,9 @@ header areas state = mdo
         reg <- (fromMaybe "new-zealand" <$> urlRegion)
         return $ (  "class" =: "title" <> "data-region" =: reg)
 
-      dispRegion = maybe "New Zealand" areaName . getRegion <$> state
-      dispConnect = maybe "" (const ":") . getSubArea <$> state
-      dispSubArea = maybe "" areaName . getSubArea <$> state
+      dispRegion = maybe "New Zealand" areaName . getRegion <$> stateD
+      dispConnect = maybe "" (const ":") . getSubArea <$> stateD
+      dispSubArea = maybe "" areaName . getSubArea <$> stateD
 
       showSubareaD = not . ( == OMap.empty) <$> tasD
 
@@ -68,11 +72,11 @@ header areas state = mdo
       backToSummaryE <- divClass "left" $ do
         let displayNone = "style" =: "display: none;"
             disp = bool displayNone mempty
-        (backToSummary, _) <- elDynAttr' "div" (("class" =: "back-to-summary context-text" <>) . disp . (/=Summary) . getPage <$> state) $
+        (backToSummary, _) <- elDynAttr' "div" (("class" =: "back-to-summary context-text" <>) . disp . (/=Summary) . getPage <$> stateD) $
           el "a" $ do
             elClass "i" "fa fa-arrow-left" $ return ()
             text "Back to summary page"
-        elDynAttr "span" (("class" =: "block-label context-text"  <>) . disp . (==Summary) . getPage <$> state) $ text "You're looking at"
+        elDynAttr "span" (("class" =: "block-label context-text"  <>) . disp . (==Summary) . getPage <$> stateD) $ text "You're looking at"
         divClass "page-header summary-page-header" $ do
           el "div" $ do
             dynText dispRegion

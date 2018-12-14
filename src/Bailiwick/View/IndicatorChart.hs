@@ -24,7 +24,8 @@ import Reflex.Dom.Core
 import Reflex (TriggerEvent, constDyn, current, ffor, leftmost, tag, updated)
 import Reflex.PerformEvent.Class (PerformEvent(..))
 
-import Bailiwick.AreaTrees (AreaTrees)
+import Bailiwick.Store (Store)
+import qualified Bailiwick.Store as Store
 import Bailiwick.State (getThemePage, ThemePageArgs(..), Message, State(..))
 import Bailiwick.Types
 
@@ -38,25 +39,28 @@ indicatorChart
      , MonadJSM (Performable m)
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
-  => AreaTrees
-  -> Indicators
+  => Dynamic t Store
   -> Dynamic t State
   -> m (Event t Message)
-indicatorChart areaTrees indicators state = do
+indicatorChart storeD stateD = do
   postBuild <- getPostBuild
-  let _year = fmap themePageYear . getThemePage <$> state
-      _iId = fmap themePageIndicatorId . getThemePage <$> state
-      _areaTree =
-        (getThemePage <$> state) >>=
-            mapM (\ themePage ->
-                let y = themePageYear themePage
-                    ind = themePageIndicatorId themePage
-                in return $ OM.lookup (IndicatorId $ unIndicatorId ind
-                                                   <> "-"
-                                                   <> T.pack (show y))
-                                      areaTrees)
-      indicatorD = ((`OM.lookup` indicators) =<<) .
-                     fmap themePageIndicatorId . getThemePage <$> state
+  let _year = fmap themePageYear . getThemePage <$> stateD
+      _iId = fmap themePageIndicatorId . getThemePage <$> stateD
+      _areaTree = do
+         mThemePage <- getThemePage <$> stateD
+         areaTrees <- Store.getAreaTrees <$> storeD
+         return $ do
+            themePage <- mThemePage
+            let y = themePageYear themePage
+                ind = themePageIndicatorId themePage
+            OM.lookup (IndicatorId $ unIndicatorId ind <> "-" <> T.pack (show y))
+                      areaTrees
+      indicatorD = do
+         mThemePage <- getThemePage <$> stateD
+         indicators <- Store.getIndicators <$> storeD
+         return $ do
+            themePage <- mThemePage
+            OM.lookup (themePageIndicatorId themePage) indicators
 
   -- TODO: we now know the time series from the indicator,
   -- we just need to retrieve the current "chartD" json from the

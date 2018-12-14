@@ -59,6 +59,8 @@ import Language.Javascript.JSaddle
 import Reflex.Dom.Core
 import Reflex.Dom.Builder.Immediate (wrapDomEvent)
 
+import Bailiwick.Store (Store)
+import qualified Bailiwick.Store as Store
 import Bailiwick.State
 import Bailiwick.Types
 
@@ -339,10 +341,10 @@ nzmap
        , MonadHold t m
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
-    => Areas
+    => Dynamic t Store
     -> Dynamic t State
     -> m (Event t Message)
-nzmap areas state = mdo
+nzmap storeD state = mdo
 
   zoomD <- holdUniqDyn $ hasAdapter Mapzoom <$> state
   let selectedArea = stateArea <$> state
@@ -496,16 +498,16 @@ nzmap areas state = mdo
               forSelectionSetAttribute ("g." <> cssClass <> ".coastline > polyline") "stroke" "rgb(0, 189, 233)")
 
   let transformD = fmap themePageLeftTransform . getThemePage <$> state
-  let tooltipArea :: State -> Maybe (AreaInfo, (Int, Int)) -> Maybe ((AreaInfo, (Int, Int)), Area)
-      tooltipArea _ Nothing = Nothing
-      tooltipArea s (Just (ai, xy)) =
+  let tooltipArea :: Areas -> State -> Maybe (AreaInfo, (Int, Int)) -> Maybe ((AreaInfo, (Int, Int)), Area)
+      tooltipArea _ _ Nothing = Nothing
+      tooltipArea areas s (Just (ai, xy)) =
         let maybeAreaId =
               if hasAdapter Mapzoom s
                 then areaWard ai <|> areaTa ai
                 else areaRegion ai
         in ((ai, xy),) <$> (((`OM.lookup` areas) . slugify) =<< maybeAreaId)
       tooltipAreaD :: Dynamic t (Maybe ((AreaInfo, (Int, Int)), Area))
-      tooltipAreaD = tooltipArea <$> state <*> mouseOverFullD
+      tooltipAreaD = tooltipArea <$> (Store.getAreas <$> storeD) <*> state <*> mouseOverFullD
       showStyle Nothing = "visibility:hidden;"
       showStyle (Just ((_, (x,y)), _)) = Text.pack $
           "visibility:visible; left:" <> show (x + 8) <> "px; top:" <> show (y + 8) <> "px;"
