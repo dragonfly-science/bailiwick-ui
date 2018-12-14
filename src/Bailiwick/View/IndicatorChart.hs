@@ -17,7 +17,7 @@ import qualified Data.Text as T (pack)
 import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
 
 import GHCJS.DOM.Types (Element(..))
-import Language.Javascript.JSaddle (jsg1, jsg2, MonadJSM, liftJSM)
+import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
 import Reflex.Dom.Core
        (elDynAttr', elDynAttrNS, GhcjsDomSpace, DomBuilderSpace, DomBuilder,
         (=:), Dynamic, _element_raw, Event, PostBuild, never, getPostBuild)
@@ -43,7 +43,6 @@ indicatorChart
   -> Dynamic t State
   -> m (Event t Message)
 indicatorChart storeD stateD = do
-  postBuild <- getPostBuild
   let _year = fmap themePageYear . getThemePage <$> stateD
       _iId = fmap themePageIndicatorId . getThemePage <$> stateD
       _areaTree = do
@@ -92,11 +91,9 @@ indicatorChart storeD stateD = do
                        [tag (current chartD) delayEvent, updated chartD]
                        )
                        $ \chart -> do
-    _ <- liftJSM $ jsg1 ("setupDefaultTimeSeries" :: Text)
+    _ <- liftJSM $ jsg2 ("setupDefaultTimeSeries" :: Text)
                    (_element_raw e :: Element)
-    -- _ <- liftJSM $ jsg2 ("updateDefaultTimeSeries" :: Text)
-    --                (_element_raw e :: Element)
-    --                (chart :: Text)
+                   (chart :: Text)
     return ()
 
   return never

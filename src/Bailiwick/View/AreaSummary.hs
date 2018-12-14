@@ -158,5 +158,5 @@ housePriceTimeSeries areaD dataD = do
       el "span" $ dynText $ maybe "" (\a -> if areaId a == "new-zealand" then "" else " — New Zealand") <$> areaD
   initialUpdate <- tagPromptlyDyn inputValues <$> (delay 0.5 =<< getPostBuild)
   performEvent_ $ ffor (leftmost [updated inputValues, initialUpdate]) $ \case
-    Just (d, area) -> liftJSM . void $ jsg3 ("updateHomeTimeSeries" :: Text) (_element_raw e) d (areaName area)
+    Just (d, area) -> liftJSM . void $ jsg3 ("updateTimeSeries" :: Text) (_element_raw e) d (areaName area)
     _ -> return ()
