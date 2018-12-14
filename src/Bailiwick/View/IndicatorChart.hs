@@ -87,7 +87,7 @@ indicatorChart areaTrees indicators state = do
                        [tag (current chartD) postBuild, updated chartD]
                        )
                        $ \chart -> do
-    _ <- liftJSM $ jsg2 ("updateAreaBarchart" :: Text)
+    _ <- liftJSM $ jsg2 ("updateDefaultTimeSeries" :: Text)
                    (_element_raw e :: Element)
                    (chart :: Text)
     return ()

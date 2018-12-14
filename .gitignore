@@ -3,3 +3,4 @@ result
 /dist/
 /dist-ghcjs/
 /dist-newstyle/
+node_modules
