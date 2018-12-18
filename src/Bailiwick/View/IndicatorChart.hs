@@ -69,16 +69,15 @@ indicatorChart storeD stateD = do
   -- we just need to retrieve the current "chartD" json from the
   -- api (giving us a ChartData). Once we have the ChartData, we can then
   -- pass it on to the jsg2 call below.
-  let chartD = (fromMaybe "none" . ((listToMaybe . indicatorTimeseries) =<<)
+  let chartFilenameD = (fromMaybe "none" . ((listToMaybe . indicatorTimeseries) =<<)
                  <$> indicatorD)
                  <> "-11d88bc13.json"
-      -- chartDataD = postBuild <$> getChartData chartD
+  chartD <- Store.getChartData chartFilenameD
 
   let _showAttr True  = "display: block"
       _showAttr False = "display: none"
   (e, _) <- elDynAttr' "div" (constDyn $ "class" =: "basic-barchart") $
     elAttr "div" ("class"=:"d3-attach" <> "style"=:"width: 480px; height: 530px") $ return ()
-
 
   -- Data to pass to chart:
   -- - Years?
@@ -89,7 +88,7 @@ indicatorChart storeD stateD = do
   -- - compareArea
   delayEvent <- delay 0.5 =<< getPostBuild
   performEvent_ $ ffor (leftmost
-                       [tag (current chartD) delayEvent, traceEvent "debugging event.." $ updated chartD]
+                       [tag (current chartD) delayEvent, traceEvent "debugging event.."$ fmapMaybe id $ updated chartD]
                        )
                        $ \chart -> do
     _ <- liftJSM $ jsg2 ("updateAreaBarchart" :: Text)
