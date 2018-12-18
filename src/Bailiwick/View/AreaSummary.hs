@@ -21,7 +21,7 @@ import Data.Aeson.Types (parseMaybe)
 import Language.Javascript.JSaddle (jsg3, MonadJSM, liftJSM)
 import Reflex.PerformEvent.Class (PerformEvent(..))
 import Reflex (TriggerEvent, delay, leftmost, tagPromptlyDyn,
-        constDyn, ffor, PostBuild, updated, fmapMaybe)
+       ffor, PostBuild, updated, fmapMaybe)
 import Reflex.Dom.Core
        (elAttr', elDynAttr',
         GhcjsDomSpace, DomBuilderSpace, el, dynText, DomBuilder, elAttr,

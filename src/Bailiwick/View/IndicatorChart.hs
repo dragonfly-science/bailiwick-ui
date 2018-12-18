@@ -10,6 +10,7 @@ module Bailiwick.View.IndicatorChart (
   indicatorChart
 ) where
 
+import Control.Monad.Fix (MonadFix)
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Monoid ((<>))
 import Data.Text (Text)
@@ -19,9 +20,9 @@ import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
 import GHCJS.DOM.Types (Element(..))
 import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
 import Reflex.Dom.Core
-       (elDynAttr', elDynAttrNS, GhcjsDomSpace, DomBuilderSpace, DomBuilder,
-        (=:), Dynamic, _element_raw, Event, PostBuild, never, getPostBuild)
-import Reflex (TriggerEvent, constDyn, current, delay, ffor, leftmost, tag, updated)
+       (elAttr, elDynAttr', GhcjsDomSpace, DomBuilderSpace, DomBuilder,
+        (=:), Dynamic, _element_raw, Event, MonadHold, PostBuild, never, getPostBuild)
+import Reflex (TriggerEvent, constDyn, current, delay, ffor, holdUniqDyn, leftmost, tag, traceEvent, updated)
 import Reflex.PerformEvent.Class (PerformEvent(..))
 
 import Bailiwick.Store (Store)
@@ -38,6 +39,8 @@ indicatorChart
      , TriggerEvent t m
      , MonadJSM (Performable m)
      , DomBuilderSpace m ~ GhcjsDomSpace
+     , MonadHold t m
+     , MonadFix m
      )
   => Dynamic t Store
   -> Dynamic t State
@@ -54,12 +57,13 @@ indicatorChart storeD stateD = do
                 ind = themePageIndicatorId themePage
             OM.lookup (IndicatorId $ unIndicatorId ind <> "-" <> T.pack (show y))
                       areaTrees
-      indicatorD = do
+      indicatorD' = do
          mThemePage <- getThemePage <$> stateD
          indicators <- Store.getIndicators <$> storeD
          return $ do
             themePage <- mThemePage
             OM.lookup (themePageIndicatorId themePage) indicators
+  indicatorD <- holdUniqDyn indicatorD'
 
   -- TODO: we now know the time series from the indicator,
   -- we just need to retrieve the current "chartD" json from the
@@ -73,10 +77,7 @@ indicatorChart storeD stateD = do
   let _showAttr True  = "display: block"
       _showAttr False = "display: none"
   (e, _) <- elDynAttr' "div" (constDyn $ "class" =: "basic-barchart") $
-      elDynAttrNS
-        (Just "http://www.w3.org/2000/svg") "svg"
-        (constDyn $ "class"=:"d3-attach" <> "width"=:"480" <> "height"=:"530") $
-          return ()
+    elAttr "div" ("class"=:"d3-attach" <> "style"=:"width: 480px; height: 530px") $ return ()
 
 
   -- Data to pass to chart:
@@ -88,7 +89,7 @@ indicatorChart storeD stateD = do
   -- - compareArea
   delayEvent <- delay 0.5 =<< getPostBuild
   performEvent_ $ ffor (leftmost
-                       [tag (current chartD) delayEvent, updated chartD]
+                       [tag (current chartD) delayEvent, traceEvent "debugging event.." $ updated chartD]
                        )
                        $ \chart -> do
     _ <- liftJSM $ jsg2 ("updateAreaBarchart" :: Text)
