@@ -23,7 +23,7 @@ import Reflex.PerformEvent.Class (PerformEvent(..))
 import Reflex (TriggerEvent, delay, leftmost, tagPromptlyDyn,
         constDyn, ffor, PostBuild, updated, fmapMaybe)
 import Reflex.Dom.Core
-       (elAttr', elDynAttr', elDynAttrNS,
+       (elAttr', elDynAttr',
         GhcjsDomSpace, DomBuilderSpace, el, dynText, DomBuilder, elAttr,
         text, (=:), divClass, Dynamic, _element_raw, Event, never)
 import Reflex.Dom.Builder.Class (HasDomEvent(..))
@@ -152,7 +152,7 @@ housePriceTimeSeries areaD dataD = do
       showAttr True  = mempty
       showAttr False = "style" =: "display: none"
   (e, _) <- elDynAttr' "div" (("class" =: "houseprice-timeseries" <>) . showAttr . isJust <$> inputValues) $ do
-    elDynAttrNS (Just "http://www.w3.org/2000/svg") "svg" (constDyn $ "class"=:"d3-attach" <> "width"=:"225" <> "height"=:"120") $ return ()
+    elAttr "div" ("class"=:"d3-attach" <> "style"=:"width: 225px; height: 120px") $ return ()
     divClass "time-series-legend" $ do
       el "span" $ dynText $ maybe "" (("— " <>) . areaName) <$> areaD
       el "span" $ dynText $ maybe "" (\a -> if areaId a == "new-zealand" then "" else " — New Zealand") <$> areaD
