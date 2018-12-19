@@ -83,7 +83,7 @@ type GetAreaTrees = "data" :> "areaTrees-11d88bc13.json" :> Get '[JSON] [AreaTre
 type GetFeatures = "data" :> "features-11d88bc13.json" :> Get '[JSON] [Feature]
 
 type GetMapSummaries = "data" :> Capture "filename" Text :> Get '[JSON] MapSummary
-type GetChartData = "data" :> Capture "filename" Text :> Get '[JSON] ChartData
+type GetChartData = "chartdata" :> Capture "filename" Text :> Get '[JSON] ChartData
 
 apiGetAreas
     :: forall t m . SupportsServantReflex t m => Client t m GetAreas ()
@@ -131,6 +131,6 @@ apiGetChartData
     :: forall t m . SupportsServantReflex t m => Client t m GetChartData ()
 apiGetChartData
     = client (Proxy :: Proxy GetChartData) (Proxy :: Proxy m)
-        (Proxy :: Proxy ()) (constDyn (BasePath "/"))
+        (Proxy :: Proxy ()) (constDyn (BasePath "/data"))
 
 

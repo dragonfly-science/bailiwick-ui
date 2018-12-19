@@ -22,9 +22,9 @@ import GHCJS.DOM.Types (Element(..))
 import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
 import Reflex.Dom.Core
        (elAttr, elDynAttr', GhcjsDomSpace, DomBuilderSpace, DomBuilder, HasJSContext,
-        (=:), Dynamic, _element_raw, Event, MonadHold, PostBuild, never, getPostBuild)
+        (=:), Dynamic, _element_raw, Event, MonadHold, PostBuild, never)
 import Reflex
-       (attachWithMaybe, TriggerEvent, constDyn, current, delay, ffor, fmapMaybe,
+       (TriggerEvent, constDyn, ffor, fmapMaybe,
         holdUniqDyn, leftmost, traceEvent, updated)
 import Reflex.PerformEvent.Class (PerformEvent(..))
 
@@ -90,10 +90,8 @@ indicatorChart storeD stateD = do
   -- - caption
   -- - chartData
   -- - compareArea
-  delayEvent <- delay 0.5 =<< getPostBuild
   performEvent_ $ ffor (leftmost
-                       [ attachWithMaybe (flip $ const id) (current chartD) delayEvent
-                       , traceEvent "debugging event.." $ fmapMaybe id $ updated chartD]
+                       [ traceEvent "debugging event.." $ fmapMaybe id $ updated chartD]
                        )
                        $ \chart -> do
     _ <- liftJSM $ jsg2 ("updateAreaBarchart" :: Text)
