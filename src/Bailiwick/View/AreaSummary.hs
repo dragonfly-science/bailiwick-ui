@@ -9,6 +9,7 @@ module Bailiwick.View.AreaSummary (
   areaSummary
 ) where
 
+import Control.Monad.Fix (MonadFix)
 import Control.Monad (void)
 import Control.Applicative (liftA2)
 import Data.Monoid ((<>))
@@ -21,10 +22,10 @@ import Data.Aeson.Types (parseMaybe)
 import Language.Javascript.JSaddle (jsg3, MonadJSM, liftJSM)
 import Reflex.PerformEvent.Class (PerformEvent(..))
 import Reflex (TriggerEvent, delay, leftmost, tagPromptlyDyn,
-       ffor, PostBuild, updated, fmapMaybe)
+       ffor, holdUniqDyn, PostBuild, updated, fmapMaybe)
 import Reflex.Dom.Core
        (elAttr', elDynAttr',
-        GhcjsDomSpace, DomBuilderSpace, el, dynText, DomBuilder, elAttr,
+        GhcjsDomSpace, DomBuilderSpace, MonadHold, el, dynText, DomBuilder, elAttr,
         text, (=:), divClass, Dynamic, _element_raw, Event, never)
 import Reflex.Dom.Builder.Class (HasDomEvent(..))
 import Reflex.Dom.Builder.Class.Events (EventName(..))
@@ -72,6 +73,8 @@ areaSummary
      , PerformEvent t m
      , TriggerEvent t m
      , MonadJSM (Performable m)
+     , MonadHold t m
+     , MonadFix m
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
   => Dynamic t Store
@@ -142,13 +145,17 @@ housePriceTimeSeries
      , PerformEvent t m
      , TriggerEvent t m
      , MonadJSM (Performable m)
+     , MonadHold t m
+     , MonadFix m
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
   => Dynamic t (Maybe Area)
   -> Dynamic t (Maybe Value)
   -> m ()
 housePriceTimeSeries areaD dataD = do
-  let inputValues = liftA2 (,) <$> dataD <*> areaD
+  dataD' <- holdUniqDyn dataD
+  areaD' <- holdUniqDyn areaD
+  let inputValues = liftA2 (,) <$> dataD' <*> areaD'
       showAttr True  = mempty
       showAttr False = "style" =: "display: none"
   (e, _) <- elDynAttr' "div" (("class" =: "houseprice-timeseries" <>) . showAttr . isJust <$> inputValues) $ do
