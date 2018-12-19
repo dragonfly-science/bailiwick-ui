@@ -2,8 +2,8 @@ let
   reflex-platform = import ((import <nixpkgs> {}).pkgs.fetchFromGitHub {
       owner = "reflex-frp";
       repo = "reflex-platform";
-      rev = "7e002c573a3d7d3224eb2154ae55fc898e67d211";
-      sha256 = "1adhzvw32zahybwd6hn1fmqm0ky2x252mshscgq2g1qlks915436";
+      rev = "b97782f764b5e905f18739299b042764b5d95f7a";
+      sha256 = "11aw2vf8ghk18h9mgwmnh6bf494b1pc45yr61ql74w4kxvs4n83p";
     }) {};
   nixpkgs = reflex-platform.nixpkgs;
   servant-auth-github = nixpkgs.fetchFromGitHub {
@@ -71,6 +71,9 @@ in reflex-platform.project ({ pkgs, ... }: {
         http2 = dontCheckGhcjs super.http2;
         bsb-http-chunked = dontCheckGhcjs super.bsb-http-chunked;
         SHA = dontCheckGhcjs super.SHA;
+        unliftio = dontCheckGhcjs super.unliftio;
+        wai-extra = dontCheckGhcjs super.wai-extra;
+        conduit = dontCheckGhcjs super.conduit;
         warp = if self.ghc.isGhcjs or false
           then super.warp.overrideAttrs (_: {
               configureFlags = ["-f-allow-sendfilefd"];

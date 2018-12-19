@@ -66,6 +66,12 @@ getChartData
   =>  Dynamic t Text -> m (Dynamic t (Maybe ChartData))
 getChartData filenameD = do
 
+--   updated filenameD ...
+--       lookInMemory ... <|>
+--       lookInLocalStorate ... <|>
+--       lookOnDisk ... <|>
+--       fetchUsing servant <|>
+
   chartDataE <- apiGetChartData (Right <$> filenameD) (() <$ updated filenameD)
 
   holdDyn Nothing $ fmap reqSuccess chartDataE

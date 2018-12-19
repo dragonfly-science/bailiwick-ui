@@ -1,0 +1,8 @@
+**
+!nix.conf
+!default.nix
+!deploy.nix
+!bailiwick.cabal
+!app/
+!src/
+!static/
