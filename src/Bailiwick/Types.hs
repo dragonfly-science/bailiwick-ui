@@ -377,7 +377,7 @@ instance FromJSON MapSummary where
 data ChartData = ChartData
   { chartDataID :: ChartDataName
   , chartDataValues :: Object
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic)
 
 newtype ChartDataName = ChartDataName { chartDataNameText :: Text } deriving (Eq, Show, Generic, FromJSON)
 instance Hashable ChartDataName
@@ -390,3 +390,5 @@ instance FromJSON ChartData where
       chartVals <- value .: "values"
 
       return (ChartData chartId chartVals)
+
+

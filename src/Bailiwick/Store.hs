@@ -7,6 +7,7 @@
 module Bailiwick.Store
     ( initialise
     , Store(..)
+    , getChartData
     )
 where
 
@@ -54,6 +55,23 @@ initialise ready = do
             <*> indicatorsD
             <*> areaTreesD
             <*> featuresD
+
+
+getChartData
+  :: ( MonadHold t m
+     , Reflex t
+     , SupportsServantReflex t m
+     , HasJSContext (Performable m)
+     )
+  =>  Dynamic t Text -> m (Dynamic t (Maybe ChartData))
+getChartData filenameD = do
+
+  chartDataE <- apiGetChartData (Right <$> filenameD) (() <$ updated filenameD)
+
+  holdDyn Nothing $ fmap reqSuccess chartDataE
+
+
+
 
 
 
@@ -109,9 +127,9 @@ apiGetFeatures
     = client (Proxy :: Proxy GetFeatures) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
-_apiGetChartData
+apiGetChartData
     :: forall t m . SupportsServantReflex t m => Client t m GetChartData ()
-_apiGetChartData
+apiGetChartData
     = client (Proxy :: Proxy GetChartData) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
