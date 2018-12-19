@@ -74,7 +74,7 @@ getChartData filenameD = do
 
   chartDataE <- apiGetChartData (Right <$> filenameD) (() <$ updated filenameD)
 
-  holdDyn Nothing $ fmap reqSuccess chartDataE
+  holdDyn Nothing $ fmap reqSuccess $ traceEventWith (Prelude.take 100 . show . reqFailure) $ chartDataE
 
 
 

@@ -16,16 +16,16 @@ import Data.Monoid ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T (pack)
 import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
-import Data.Aeson (Value(Object))
+import Data.Aeson (Value(Array))
 
 import GHCJS.DOM.Types (Element(..))
 import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
 import Reflex.Dom.Core
        (elAttr, elDynAttr', GhcjsDomSpace, DomBuilderSpace, DomBuilder, HasJSContext,
-        (=:), Dynamic, _element_raw, Event, MonadHold, PostBuild, never)
+        (=:), Dynamic, _element_raw, Event, MonadHold, getPostBuild, PostBuild, never)
 import Reflex
-       (TriggerEvent, constDyn, ffor, fmapMaybe,
-        holdUniqDyn, leftmost, traceEvent, updated)
+       (TriggerEvent, constDyn, ffor, fmapMaybe, delay, attachWithMaybe,
+        holdUniqDyn, leftmost, traceEventWith, updated, current)
 import Reflex.PerformEvent.Class (PerformEvent(..))
 
 import Bailiwick.Store (Store)
@@ -90,13 +90,15 @@ indicatorChart storeD stateD = do
   -- - caption
   -- - chartData
   -- - compareArea
+  delayE <- delay 2.0 =<< getPostBuild
   performEvent_ $ ffor (leftmost
-                       [ traceEvent "debugging event.." $ fmapMaybe id $ updated chartD]
+                       [ attachWithMaybe (flip $ const id) (current chartD) delayE
+                       , fmapMaybe id $ traceEventWith (Prelude.take 100 . show) $ updated chartD]
                        )
                        $ \chart -> do
     _ <- liftJSM $ jsg2 ("updateAreaBarchart" :: Text)
                    (_element_raw e :: Element)
-                   (Object $ chartDataValues chart)
+                   (Array $ chartDataValues chart)
     return ()
 
   return never

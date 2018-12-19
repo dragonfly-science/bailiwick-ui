@@ -376,7 +376,7 @@ instance FromJSON MapSummary where
 
 data ChartData = ChartData
   { chartDataID :: ChartDataName
-  , chartDataValues :: Object
+  , chartDataValues :: Array
   } deriving (Eq, Show, Generic)
 
 newtype ChartDataName = ChartDataName { chartDataNameText :: Text } deriving (Eq, Show, Generic, FromJSON)
@@ -386,8 +386,9 @@ type ChartDatas = InsOrdHashMap ChartDataName ChartData
 
 instance FromJSON ChartData where
   parseJSON = withObject "chartdatum" $ \value -> do
-      chartId <- value .: "id"
-      chartVals <- value .: "values"
+      chartdata <- value .: "chartdatum"
+      chartId <- chartdata .: "id"
+      chartVals <- chartdata .: "values"
 
       return (ChartData chartId chartVals)
 
