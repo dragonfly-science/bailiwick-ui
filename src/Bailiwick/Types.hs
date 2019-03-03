@@ -15,8 +15,6 @@ import Data.Text (Text)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import qualified Data.Vector as V
 
-import Reflex (traceEvent)
-
 import GHC.Generics
 
 data Area

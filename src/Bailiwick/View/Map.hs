@@ -19,8 +19,13 @@ where
 
 import Control.Monad ((>=>), forever, void, when)
 import Control.Monad.IO.Class (MonadIO(..))
+#ifdef ghcjs_HOST_OS
+import Control.Concurrent
+       (tryPutMVar, takeMVar, forkIO, newEmptyMVar)
+#else
 import Control.Concurrent
        (threadDelay, tryPutMVar, takeMVar, forkIO, newEmptyMVar)
+#endif
 import Control.Applicative (liftA2, Alternative(..))
 import Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
 import Control.Monad.Fix
@@ -44,7 +49,11 @@ import GHCJS.DOM.EventM (mouseClientXY)
 import GHCJS.DOM.Types
        (MediaQueryList(..), NodeList(..), DOMHighResTimeStamp, IsElement,
         HTMLElement(..), HTMLObjectElement(..), uncheckedCastTo)
+#ifdef ghcjs_HOST_OS
 import GHCJS.DOM (currentWindowUnchecked, waitForAnimationFrame)
+#else
+import GHCJS.DOM (currentWindowUnchecked)
+#endif
 import GHCJS.DOM.ParentNode (querySelector, querySelectorUnsafe, querySelectorAll)
 import GHCJS.DOM.Element (setAttribute)
 import GHCJS.DOM.HTMLObjectElement (getContentDocument)
