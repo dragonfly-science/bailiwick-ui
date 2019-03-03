@@ -44,7 +44,7 @@ import GHCJS.DOM.EventM (mouseClientXY)
 import GHCJS.DOM.Types
        (MediaQueryList(..), NodeList(..), DOMHighResTimeStamp, IsElement,
         HTMLElement(..), HTMLObjectElement(..), uncheckedCastTo)
-import GHCJS.DOM (currentWindowUnchecked)
+import GHCJS.DOM (currentWindowUnchecked, waitForAnimationFrame)
 import GHCJS.DOM.ParentNode (querySelector, querySelectorUnsafe, querySelectorAll)
 import GHCJS.DOM.Element (setAttribute)
 import GHCJS.DOM.HTMLObjectElement (getContentDocument)

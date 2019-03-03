@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE TypeOperators     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
@@ -12,11 +13,13 @@ import qualified Data.ByteString.Lazy as LB
        (fromStrict, ByteString)
 import Data.String.Interpolation
 
+#ifndef ghcjs_HOST_OS
 import qualified Network.Wai as W
        (responseLBS, pathInfo, requestMethod, Application, Request)
 import qualified Network.HTTP.Types as H (status200)
 import Network.Wai.Application.Static
        (staticApp, defaultWebAppSettings)
+#endif
 
 import Reflex.Dom.Core
 
@@ -62,6 +65,7 @@ indexHtml jss = do
 |]
 
 
+#ifndef ghcjs_HOST_OS
 
 checkPath :: W.Request -> Bool
 checkPath req =
@@ -71,6 +75,8 @@ checkPath req =
         ("summary":_) -> True
         ("theme":_)   -> True
         _             -> False
+
+
 
 application :: LB.ByteString -> IO W.Application
 application js = do
@@ -83,5 +89,10 @@ application js = do
                     loadingPage
             _ -> staticApp (defaultWebAppSettings "static") req sendResponse
 
+#else
+application :: String
+application = "Not defined"
+
+#endif
 
 

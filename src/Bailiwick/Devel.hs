@@ -39,6 +39,9 @@ addDebugMenu :: JSM ()
 addDebugMenu = return ()
 #endif
 
+staticfiles :: FilePath
+staticfiles = "dist-ghcjs/build/x86_64-linux/ghcjs-8.4.0.1/bailiwick-0.1.0.0/x/bailiwick/build/bailiwick/bailiwick.jsexe/"
+
 debug :: Int -> JSM () -> IO ()
 debug prt f = do
   _ <- system "nix-build ./css"
@@ -52,16 +55,22 @@ debug prt f = do
                 (withRefresh $ \req sendResponse ->
           case (W.requestMethod req, W.pathInfo req) of
               ("GET", ["jsaddle.js"]) ->
-                       sendResponse
+                  sendResponse
                       $ W.responseLBS H.status200
                           [("Content-Type", "application/javascript")]
                       $ jsaddleJs True
-              ("GET", [ghcjsFile]) | ghcjsFile `elem` ghcjsFiles ->
-                  staticApp (defaultFileServerSettings
-                          "dist-ghcjs/build/x86_64-linux/ghcjs-8.4.0.1/bailiwick-0.1.0.0/x/bailiwick/build/bailiwick/bailiwick.jsexe/")
+              ("GET", [ghcjsFile]) |
+                  ghcjsFile `elem` ghcjsFiles ->
+                    staticApp (defaultFileServerSettings staticfiles)
                       req sendResponse
-              ("GET", x) | (null x || head x `elem` ["summary", "theme"]) && W.requestHeaderHost req /= Just ("jsaddle.localhost:" <> T.encodeUtf8 (T.pack $ show prt)) -> sendResponse . W.responseLBS H.status200 [("Content-Type", "text/html")]
-                  =<< indexHtml (map ((LBS.fromStrict . T.encodeUtf8) . ("/" <>)) ghcjsFiles)
+              ("GET", x) | (null x || head x `elem` ["summary", "theme"])
+                         && W.requestHeaderHost req /=
+                             Just ("jsaddle.localhost:"
+                                  <> T.encodeUtf8 (T.pack $ show prt)) ->
+                  sendResponse . W.responseLBS H.status200
+                                 [("Content-Type", "text/html")]
+                  =<< indexHtml (map ((LBS.fromStrict . T.encodeUtf8) . ("/" <>)) 
+                                 ghcjsFiles)
               _ -> logStdoutDev app req sendResponse)
   putStrLn $ "<a href=\"http://localhost:" <> show prt <> "\">run</a>"
 #else
