@@ -71,8 +71,6 @@ library
   ghc-options: -Wall
 
 executable bailiwick
-  if impl( ghcjs )
-    buildable: False
   hs-source-dirs: app
   main-is: Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
@@ -89,10 +87,6 @@ executable bailiwick
                      , mtl
                      , reflex-dom-core
                      , text
-                     , wai
-                     , wai-app-static
-                     , warp
-                     , websockets
                      , bailiwick
   if impl(ghcjs)
     ghc-options:       -dedupe
