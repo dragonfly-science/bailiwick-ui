@@ -39,16 +39,17 @@ initialise
      , SupportsServantReflex t m
      , HasJSContext (Performable m)
      )
-  => Event t () -> m (Dynamic t Store)
+  => Event t () -> m (Dynamic t (Maybe Store))
 initialise ready = do
-  let maybeGetList = holdDyn [] . fmapMaybe reqSuccess
-  areasD <- fmap (fmap mkAreas) $ maybeGetList =<< apiGetAreas ready
-  areaSummariesD <- fmap (fmap mkAreaSummaries) $ maybeGetList =<< apiGetAreaSummaries ready
-  themesD <- fmap (fmap mkThemes) $ maybeGetList =<< apiGetThemes ready
-  indicatorsD <- fmap (fmap mkIndicators) $ maybeGetList =<< apiGetIndicators ready
-  areaTreesD <- fmap (fmap mkAreaTrees) $ maybeGetList =<< apiGetAreaTrees ready
-  featuresD <- fmap (fmap mkFeatures) $ maybeGetList =<< apiGetFeatures ready
+  let maybeGetList = holdDyn Nothing . fmap reqSuccess
+  areasD         <- fmap (fmap (fmap mkAreas))         $ maybeGetList =<< apiGetAreas ready
+  areaSummariesD <- fmap (fmap (fmap mkAreaSummaries)) $ maybeGetList =<< apiGetAreaSummaries ready
+  themesD        <- fmap (fmap (fmap mkThemes))        $ maybeGetList =<< apiGetThemes ready
+  indicatorsD    <- fmap (fmap (fmap mkIndicators))    $ maybeGetList =<< apiGetIndicators ready
+  areaTreesD     <- fmap (fmap (fmap mkAreaTrees))     $ maybeGetList =<< apiGetAreaTrees ready
+  featuresD      <- fmap (fmap (fmap mkFeatures))      $ maybeGetList =<< apiGetFeatures ready
   return $
+    if all [isJust <$>
       Store <$> areasD
             <*> areaSummariesD
             <*> themesD
@@ -74,10 +75,7 @@ getChartData filenameD = do
 
   chartDataE <- apiGetChartData (Right <$> filenameD) (() <$ updated filenameD)
 
-  holdDyn Nothing $ fmap reqSuccess $ traceEventWith (Prelude.take 100 . show . reqFailure) $ chartDataE
-
-
-
+  holdDyn Nothing $ fmap reqSuccess chartDataE
 
 
 

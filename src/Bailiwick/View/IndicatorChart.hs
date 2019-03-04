@@ -20,12 +20,7 @@ import Data.Aeson (Value(Array))
 
 import GHCJS.DOM.Types (Element(..))
 import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
-import Reflex.Dom.Core
-       (elAttr, elDynAttr', GhcjsDomSpace, DomBuilderSpace, DomBuilder, HasJSContext,
-        (=:), Dynamic, _element_raw, Event, MonadHold, getPostBuild, PostBuild, never)
-import Reflex
-       (TriggerEvent, constDyn, ffor, fmapMaybe, delay, attachWithMaybe,
-        holdUniqDyn, leftmost, traceEventWith, updated, current)
+import Reflex.Dom.Core hiding (Element)
 import Reflex.PerformEvent.Class (PerformEvent(..))
 
 import Bailiwick.Store (Store)
@@ -76,7 +71,7 @@ indicatorChart storeD stateD = do
   let chartFilenameD = (fromMaybe "none" . ((listToMaybe . indicatorTimeseries) =<<)
                  <$> indicatorD)
                  <> "-11d88bc13.json"
-  chartD <- Store.getChartData chartFilenameD
+  chartD <- Store.getChartData $ traceDyn "chartFilenameD" chartFilenameD
 
   let _showAttr True  = "display: block"
       _showAttr False = "display: none"
@@ -93,7 +88,7 @@ indicatorChart storeD stateD = do
   delayE <- delay 2.0 =<< getPostBuild
   performEvent_ $ ffor (leftmost
                        [ attachWithMaybe (flip $ const id) (current chartD) delayE
-                       , fmapMaybe id $ traceEventWith (Prelude.take 100 . show) $ updated chartD]
+                       , traceEventWith (("HERE: "++) . Prelude.take 100 . show) $ fmapMaybe id $ updated chartD]
                        )
                        $ \chart -> do
     _ <- liftJSM $ jsg2 ("updateAreaBarchart" :: Text)
