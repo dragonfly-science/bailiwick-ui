@@ -43,7 +43,7 @@ library
                      , http-types
                      , Interpolation
                      , jsaddle
-                     , jsaddle-warp
+                     , jsaddle-warp >=0.9.6.0
                      , lens
                      , mtl
                      , insert-ordered-containers
