@@ -22,7 +22,7 @@ import GHCJS.DOM.Window (scrollTo, getPageYOffset)
 import Servant.Reflex
 import Reflex.Dom.Core hiding (Home)
 
-import Bailiwick.Store (Store)
+import Bailiwick.Store (Store, Ask)
 import Bailiwick.State
 import Bailiwick.Types
 import Bailiwick.View.Header (header)
@@ -58,7 +58,7 @@ view
        , MonadIO m
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
-    => Dynamic t Store -> Dynamic t State -> m (Event t Message)
+    => Dynamic t Store -> Dynamic t State -> m (Event t (Either Message Ask))
 view storeD stateD = do
   let marginTop (ThemePage _) = bool Nothing (Just "349px") . (> 140)
       marginTop _ = bool Nothing (Just "279px") . (> 140)
@@ -95,7 +95,7 @@ view storeD stateD = do
       _ -> return ()
 
     footer
-    return $ leftmost [headerE, mainE, indicatorsE]
+    return $ fmap Left $ leftmost [headerE, mainE, indicatorsE]
 
 
 navbar :: (Monad m, DomBuilder t m) => m (Event t Message)

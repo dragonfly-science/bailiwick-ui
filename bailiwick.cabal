@@ -13,7 +13,6 @@ library
   hs-source-dirs:      src
   exposed-modules:     Bailiwick
                        Bailiwick.AreaTrees
-                       Bailiwick.Route
                        Bailiwick.State
                        Bailiwick.Store
                        Bailiwick.Types

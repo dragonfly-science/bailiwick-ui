@@ -5,8 +5,9 @@
 {-# LANGUAGE FlexibleContexts        #-}
 {-# LANGUAGE ScopedTypeVariables     #-}
 module Bailiwick.Store
-    ( initialise
+    ( runStore
     , Store(..)
+    , Ask(..)
     , getChartData
     )
 where
@@ -21,6 +22,7 @@ import Reflex.Dom.Core
 import Bailiwick.Types
 import Bailiwick.AreaTrees
 
+data Ask = Ask deriving (Show, Eq)
 
 data Store
   = Store
@@ -33,6 +35,15 @@ data Store
     }
     deriving (Show, Eq)
 
+runStore
+  :: ( MonadHold t m
+     , Reflex t
+     , SupportsServantReflex t m
+     , HasJSContext (Performable m)
+     )
+  => Event t Ask -> m (Dynamic t Store)
+runStore = undefined
+
 initialise
   :: ( MonadHold t m
      , Reflex t
@@ -40,22 +51,22 @@ initialise
      , HasJSContext (Performable m)
      )
   => Event t () -> m (Dynamic t (Maybe Store))
-initialise ready = do
-  let maybeGetList = holdDyn Nothing . fmap reqSuccess
-  areasD         <- fmap (fmap (fmap mkAreas))         $ maybeGetList =<< apiGetAreas ready
-  areaSummariesD <- fmap (fmap (fmap mkAreaSummaries)) $ maybeGetList =<< apiGetAreaSummaries ready
-  themesD        <- fmap (fmap (fmap mkThemes))        $ maybeGetList =<< apiGetThemes ready
-  indicatorsD    <- fmap (fmap (fmap mkIndicators))    $ maybeGetList =<< apiGetIndicators ready
-  areaTreesD     <- fmap (fmap (fmap mkAreaTrees))     $ maybeGetList =<< apiGetAreaTrees ready
-  featuresD      <- fmap (fmap (fmap mkFeatures))      $ maybeGetList =<< apiGetFeatures ready
-  return $
-    if all [isJust <$>
-      Store <$> areasD
-            <*> areaSummariesD
-            <*> themesD
-            <*> indicatorsD
-            <*> areaTreesD
-            <*> featuresD
+initialise ready = undefined
+--initialise ready = do
+--  let maybeGetList = holdDyn Nothing . fmap reqSuccess
+--  areasD         <- fmap (fmap (fmap mkAreas))         $ maybeGetList =<< apiGetAreas ready
+--  areaSummariesD <- fmap (fmap (fmap mkAreaSummaries)) $ maybeGetList =<< apiGetAreaSummaries ready
+--  themesD        <- fmap (fmap (fmap mkThemes))        $ maybeGetList =<< apiGetThemes ready
+--  indicatorsD    <- fmap (fmap (fmap mkIndicators))    $ maybeGetList =<< apiGetIndicators ready
+--  areaTreesD     <- fmap (fmap (fmap mkAreaTrees))     $ maybeGetList =<< apiGetAreaTrees ready
+--  featuresD      <- fmap (fmap (fmap mkFeatures))      $ maybeGetList =<< apiGetFeatures ready
+--  return $
+--      Store <$> areasD
+--            <*> areaSummariesD
+--            <*> themesD
+--            <*> indicatorsD
+--            <*> areaTreesD
+--            <*> featuresD
 
 
 getChartData
