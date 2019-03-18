@@ -5,6 +5,7 @@
 
 module Bailiwick.Types where
 
+import Data.Maybe (listToMaybe, mapMaybe)
 import Data.Aeson
 import Data.Aeson.Types (FromJSONKeyFunction(FromJSONKeyText))
 import Data.Char
@@ -40,6 +41,21 @@ type Areas = InsOrdHashMap Text Area
 
 mkAreas :: [ Area ] -> Areas
 mkAreas areas = OMap.fromList [(areaId a, a) | a <- areas]
+
+areaList :: Areas -> Text -> [Area]
+areaList _ "new-zealand" = []
+areaList areas p = case (area, parent) of
+                  (Just a, Just b)  -> [b, a]
+                  (Just a, Nothing) -> [a]
+                  _                 -> []
+  where
+    area = OMap.lookup p areas
+    parent = do
+      a <- area
+      -- TODO: handle accessedvia
+      listToMaybe [ parentArea
+                  | parentArea <- mapMaybe (`OMap.lookup` areas) (areaParents a)
+                  , areaLevel parentArea == "reg" ]
 
 data AreaSummary
   = AreaSummary

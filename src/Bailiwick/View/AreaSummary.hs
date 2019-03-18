@@ -36,7 +36,7 @@ import qualified Bailiwick.Store as Store
 import Bailiwick.Types
        (Indicator(..), AreaSummary(..), Area(..), IndicatorId(..))
 import Bailiwick.State
-       (ThemePageArgs(..), Message(..), getArea, State(..), Message, Page(..))
+       (ThemePageArgs(..), Message(..), State(..), Message, Page(..))
 
 indicatorSummary
   :: (Monad m, PostBuild t m, DomBuilder t m)
@@ -81,7 +81,7 @@ areaSummary
   -> Dynamic t State
   -> m (Event t Message)
 areaSummary storeD stateD = do
-  let areaIdD = maybe "new-zealand" areaId . getArea <$> stateD
+  let areaIdD = stateArea <$> stateD
       areaD :: Dynamic t (Maybe Area)
       areaD = OM.lookup <$> areaIdD <*> (Store.getAreas <$> storeD)
       summaryD :: Dynamic t (Maybe AreaSummary)
