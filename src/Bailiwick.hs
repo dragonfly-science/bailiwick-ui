@@ -15,9 +15,8 @@ import qualified Bailiwick.Store as Store
 import qualified Bailiwick.State as State
 import Bailiwick.View (view)
 
-ui  :: ( Monad m
-       , MonadFix m
-       , MonadWidget t m
+ui :: ( MonadFix m
+      , MonadWidget t m
       )  => m ()
 ui = mdo
   stateD <- State.runState messagesE
