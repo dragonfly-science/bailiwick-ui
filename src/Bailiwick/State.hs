@@ -5,6 +5,8 @@ import Bailiwick.Route (Route(..), Page(..), ThemePageArgs)
 import Bailiwick.Store (Store(..))
 import Bailiwick.Types
 
+import qualified Data.HashMap.Strict.InsOrd as OMap
+
 data State = State deriving (Show, Eq)
 
 make :: Route -> Store -> State
@@ -15,22 +17,23 @@ getRoute = undefined
 
 getArea = undefined
 
-getAreas = undefined
+getAreas :: State -> Areas
+getAreas _ = OMap.empty
 
 getAreaSummaries :: State -> AreaSummaries
 getAreaSummaries = undefined
 
 getRegion :: State -> Maybe Area
-getRegion = undefined
+getRegion _ = Nothing
 
 getSubArea :: State -> Maybe Area
-getSubArea = undefined
+getSubArea _ = Nothing
 
 getPage :: State -> Page
 getPage _ = Summary
 
 getThemePage :: State -> Maybe ThemePageArgs
-getThemePage = undefined
+getThemePage _ = Nothing
 
 getIndicators = undefined
 

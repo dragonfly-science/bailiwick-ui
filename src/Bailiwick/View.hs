@@ -78,7 +78,7 @@ view stateD = do
       <- divClass "main-header-area" $
             elDynClass "header" (mainHeaderClass <$> stateD <*> isOpen) $ do
               navBarE <- navbar
-              headerE' <- return never --header stateD
+              headerE' <- header stateD
               (toolBarE, isOpen') <- return (never, constDyn True) -- toolBar stateD
               return (leftmost [navBarE, headerE', toolBarE], isOpen')
     mainE <-
