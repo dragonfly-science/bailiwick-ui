@@ -78,14 +78,17 @@ view stateD = do
       <- divClass "main-header-area" $
             elDynClass "header" (mainHeaderClass <$> stateD <*> isOpen) $ do
               navBarE <- navbar
-              headerE' <- header stateD
-              (toolBarE, isOpen') <- toolBar stateD
+              headerE' <- return never --header stateD
+              (toolBarE, isOpen') <- return (never, constDyn True) -- toolBar stateD
               return (leftmost [navBarE, headerE', toolBarE], isOpen')
     mainE <-
       elDynAttr "div" (("class" =: "content main-content" <>) .
              maybe mempty (("style" =:) . ("margin-top: " <>)) <$> marginTopD) $
-        mainContent stateD
-    indicatorsE <- indicators stateD
+        --mainContent stateD
+        return never
+    indicatorsE <- do
+        --indicators stateD
+        return never
 
     -- We need to scroll up when these links are clicked (or you can't tell they do anything)
     performEvent_ $ ffor indicatorsE $ \case

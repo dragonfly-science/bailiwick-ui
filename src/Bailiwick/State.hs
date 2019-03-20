@@ -27,7 +27,7 @@ getSubArea :: State -> Maybe Area
 getSubArea = undefined
 
 getPage :: State -> Page
-getPage = undefined
+getPage _ = Summary
 
 getThemePage :: State -> Maybe ThemePageArgs
 getThemePage = undefined
