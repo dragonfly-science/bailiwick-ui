@@ -22,12 +22,10 @@ import Reflex.Dom.Core
        (elClass', (=:), elAttr, text, el, divClass, dyn,
         GhcjsDomSpace, DomBuilder, DomBuilderSpace, domEvent, EventName(Click))
 
-import Bailiwick.Store (Store)
-import qualified Bailiwick.Store as Store
+import Bailiwick.State (State)
+import qualified Bailiwick.State as State
 import Bailiwick.Types (Theme(..), Area(..), Indicator(..))
-import Bailiwick.State
-       (ThemePageArgs(..), Page(..), Message(..), getArea, Message,
-        State(..))
+import Bailiwick.Route (ThemePageArgs(..), Page(..), Message(..))
 
 indicators
   :: forall m t.
@@ -40,13 +38,12 @@ indicators
      , MonadJSM (Performable m)
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
-  => Dynamic t Store
-  -> Dynamic t State
+  => Dynamic t State
   -> m (Event t Message)
-indicators storeD stateD = (switchHold never =<<) . dyn $ do
-  marea <- getArea <$> stateD
-  themes <- Store.getThemes <$> storeD
-  inds <- Store.getIndicators <$> storeD
+indicators stateD = (switchHold never =<<) . dyn $ do
+  marea <- State.getArea <$> stateD
+  themes <- State.getThemes <$> stateD
+  inds <- State.getIndicators <$> stateD
   return $
     divClass "themes-outer indicators-section" $ do
       elAttr "span" ("id" =: "indicators") $ return ()

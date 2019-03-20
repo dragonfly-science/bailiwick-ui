@@ -10,17 +10,19 @@ module Bailiwick (
 import Control.Monad.Fix
 
 import Reflex.Dom.Core
+import Reflex.Dom.Contrib.Router (route')
 
+import qualified Bailiwick.Route as Route
 import qualified Bailiwick.Store as Store
 import qualified Bailiwick.State as State
-import Bailiwick.View (view)
+import qualified Bailiwick.View  as View
 
 ui :: ( MonadFix m
       , MonadWidget t m
       )  => m ()
 ui = mdo
-  stateD <- State.runState messagesE
-  storeD <- Store.runStore asksE
-  (messagesE, asksE) <- fanEither <$> view storeD stateD
+  routeD <- route' Route.encodeUri Route.decodeUri messagesE
+  storeD <- Store.run messagesE
+  messagesE <- View.view (State.make <$> routeD <*> storeD)
   return ()
 

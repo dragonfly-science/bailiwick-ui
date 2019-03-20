@@ -38,10 +38,10 @@ import Reflex.PerformEvent.Class (PerformEvent(..))
 import GHCJS.DOM.Types (liftJSM, MonadJSM)
 import GHCJS.DOM.Element (setInnerHTML)
 
-import Bailiwick.Store (Store)
-import qualified Bailiwick.Store as Store
+import Bailiwick.State (State)
+import qualified Bailiwick.State as State
 import Bailiwick.Types (Area(..), Indicators, Indicator(..), Features, Feature(..))
-import Bailiwick.State (getArea, getThemePage, ThemePageArgs(..), Message, State(..))
+import Bailiwick.Route (ThemePageArgs(..), Message)
 
 elDynHtmlAttr'
   :: ( Monad m
@@ -63,12 +63,12 @@ elDynHtmlAttr' elementTag attrs html = do
 
 textSubstitution :: Bool -> Indicators -> Features -> State -> Text -> Text
 textSubstitution addCompareArea indicators features state =
-    let themePage = getThemePage state
+    let themePage = State.getThemePage state
         indicator = (`OM.lookup` indicators) =<< themePageIndicatorId <$> themePage
         y = themePageYear <$> themePage
         fy = indicatorFirstYear <$> indicator
         yem = indicatorYearEndMonth =<< indicator
-        sa = maybe "New Zealand" areaName $ getArea state
+        sa = maybe "New Zealand" areaName $ State.getArea state
         feature = (`OM.lookup` features) =<< themePageFeatureId =<< themePage
         f = featureName <$> feature
         fp = if isJust f then featureParent =<< feature else Just ""
@@ -76,7 +76,7 @@ textSubstitution addCompareArea indicators features state =
         dl = Nothing -- TODO d <|> (indicatorTopDetailLabel =<< indicator)
         ip = indicatorPeriod =<< indicator
         p = (-) <$> y <*> ip
-        ca = areaName <$> stateCompareArea state
+        ca = areaName <$> State.stateCompareArea state
         a = case (addCompareArea, ca) of
               (True, Just ca') -> "<span class='active'>" <> sa <> "</span><span class='compare'> (and " <> ca' <> ")</span>"
               _ -> sa
@@ -133,18 +133,17 @@ indicatorSummary
      , MonadJSM (Performable m)
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
-  => Dynamic t Store
-  -> Dynamic t State
+  => Dynamic t State
   -> m (Event t Message)
-indicatorSummary storeD stateD = mdo
+indicatorSummary stateD = mdo
   let indicatorD = do
         state <- stateD
-        indicators <- Store.getIndicators <$> storeD
+        indicators <- State.getIndicators <$> stateD
         return $ do
-            tp <- getThemePage state
+            tp <- State.getThemePage state
             themePageIndicatorId tp `OM.lookup` indicators
-      subs = (textSubstitution True <$> (Store.getIndicators <$> storeD)
-                                    <*> (Store.getFeatures <$> storeD)
+      subs = (textSubstitution True <$> (State.getIndicators <$> stateD)
+                                    <*> (State.getFeatures <$> stateD)
                                     <*> stateD <*>)
 
   divClass "summary" $

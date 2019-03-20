@@ -32,9 +32,9 @@ import Reflex.PerformEvent.Class (PerformEvent(..))
 import Reflex.FunctorMaybe (FunctorMaybe(..))
 -- import Bailiwick.View.Header (dropdownMenu)
 
-import Bailiwick.Store (Store)
-import qualified Bailiwick.Store as Store
-import Bailiwick.State
+import Bailiwick.State (State)
+import qualified Bailiwick.State as State
+import Bailiwick.Route
 import Bailiwick.Types
 
 toolBar
@@ -47,23 +47,23 @@ toolBar
        , MonadJSM (Performable m)
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
-    => Dynamic t Store -> Dynamic t State -> m (Event t Message, Dynamic t Bool)
-toolBar storeD stateD = do
+    => Dynamic t State -> m (Event t Message, Dynamic t Bool)
+toolBar stateD = do
   let areaTypes = OM.fromList [("nz", "New Zealand"), ("reg", "Regional Council"), ("ta", "Territorial Authority")]
       transforms = (\n -> OM.fromList [("indexed", "indexed"), ("absolute", fromMaybe "absolute" n)]) <$> absoluteLabel
       absoluteLabel = do
-         mtp <- getThemePage <$> stateD
-         indicators <- Store.getIndicators <$> storeD
+         mtp <- State.getThemePage <$> stateD
+         indicators <- State.getIndicators <$> stateD
          return $ do
              themepage <- mtp
              ind <- themePageIndicatorId themepage `OM.lookup` indicators
              indicatorAbsoluteLabel ind
       years = OM.fromList [(T.pack $ show y, T.pack $ show y)
                           | y <- reverse ([1996..2017] :: [ Int ])] -- TODO fix range
-      areaTypeD = fmap themePageAreaType . getThemePage <$> stateD
-      leftTransformD = fmap themePageLeftTransform . getThemePage <$> stateD
-      rightChartD = fmap themePageRightChart . getThemePage <$> stateD
-      yearD = fmap (T.pack . show . themePageYear) . getThemePage <$> stateD
+      areaTypeD = fmap themePageAreaType . State.getThemePage <$> stateD
+      leftTransformD = fmap themePageLeftTransform . State.getThemePage <$> stateD
+      rightChartD = fmap themePageRightChart . State.getThemePage <$> stateD
+      yearD = fmap (T.pack . show . themePageYear) . State.getThemePage <$> stateD
       setAreaEvent = fmap (fmap SetAreaType . fmapMaybe id)
       setLeftTransformEvent = fmap (fmap SetLeftTransform . fmapMaybe id)
       setYearEvent = fmap (fmap SetYear . fmapMaybe id . fmap (readMaybe . T.unpack =<<))

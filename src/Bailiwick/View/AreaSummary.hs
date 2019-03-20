@@ -31,12 +31,12 @@ import Reflex.Dom.Builder.Class (HasDomEvent(..))
 import Reflex.Dom.Builder.Class.Events (EventName(..))
 import Reflex.PostBuild.Class (PostBuild(..))
 
-import Bailiwick.Store (Store)
-import qualified Bailiwick.Store as Store
+import Bailiwick.State (State)
+import qualified Bailiwick.State as State
 import Bailiwick.Types
        (Indicator(..), AreaSummary(..), Area(..), IndicatorId(..))
-import Bailiwick.State
-       (ThemePageArgs(..), Message(..), State(..), Message, Page(..))
+import Bailiwick.Route
+       (ThemePageArgs(..), Message(..), Route(..), Message, Page(..))
 
 indicatorSummary
   :: (Monad m, PostBuild t m, DomBuilder t m)
@@ -77,21 +77,20 @@ areaSummary
      , MonadFix m
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
-  => Dynamic t Store
-  -> Dynamic t State
+  => Dynamic t State
   -> m (Event t Message)
-areaSummary storeD stateD = do
-  let areaIdD = stateArea <$> stateD
+areaSummary stateD = do
+  let areaIdD = State.stateArea <$> stateD
       areaD :: Dynamic t (Maybe Area)
-      areaD = OM.lookup <$> areaIdD <*> (Store.getAreas <$> storeD)
+      areaD = OM.lookup <$> areaIdD <*> (State.getAreas <$> stateD)
       summaryD :: Dynamic t (Maybe AreaSummary)
-      summaryD = OM.lookup <$> areaIdD <*> (Store.getAreaSummaries <$> storeD)
+      summaryD = OM.lookup <$> areaIdD <*> (State.getAreaSummaries <$> stateD)
       indicatorValuesD :: Dynamic t (Maybe Object)
       indicatorValuesD = fmap areaSummaryIndicatorValues <$> summaryD
       convertValue p = parseMaybe (const p) ()
       lookupValue :: forall a. FromJSON a => Text -> Dynamic t (Maybe a)
       lookupValue n = ((convertValue . (.: n)) =<<) <$> indicatorValuesD
-      lookupIndicatorById i = OM.lookup (IndicatorId i) <$> (Store.getIndicators <$> storeD)
+      lookupIndicatorById i = OM.lookup (IndicatorId i) <$> (State.getIndicators <$> stateD)
       textValue n = dynText $ fromMaybe "" <$> lookupValue n
   gotoIndicatorE <- leftmost <$> sequence
     [ indicatorLatestYearSummary

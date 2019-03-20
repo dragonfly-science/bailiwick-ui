@@ -40,7 +40,7 @@ addDebugMenu = return ()
 #endif
 
 staticfiles :: FilePath
-staticfiles = "dist-ghcjs/build/x86_64-linux/ghcjs-8.4.0.1/bailiwick-0.1.0.0/x/bailiwick/build/bailiwick/bailiwick.jsexe/"
+staticfiles = "dist-newstyle/build/x86_64-linux/ghcjs-8.4.0.1/bailiwick-0.1.0.0/x/bailiwick/build/bailiwick/bailiwick.jsexe/"
 
 debug :: Int -> JSM () -> IO ()
 debug prt f = do
@@ -69,7 +69,7 @@ debug prt f = do
                                   <> T.encodeUtf8 (T.pack $ show prt)) ->
                   sendResponse . W.responseLBS H.status200
                                  [("Content-Type", "text/html")]
-                  =<< indexHtml (map ((LBS.fromStrict . T.encodeUtf8) . ("/" <>)) 
+                  =<< indexHtml (map ((LBS.fromStrict . T.encodeUtf8) . ("/" <>))
                                  ghcjsFiles)
               _ -> logStdoutDev app req sendResponse)
   putStrLn $ "<a href=\"http://localhost:" <> show prt <> "\">run</a>"

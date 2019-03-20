@@ -18,9 +18,9 @@ import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Reflex.Dom.Core hiding (Home)
 
-import Bailiwick.Store (Store)
-import qualified Bailiwick.Store as Store
-import Bailiwick.State
+import Bailiwick.State (State)
+import qualified Bailiwick.State as State
+import Bailiwick.Route
 import Bailiwick.Types
 
 
@@ -32,13 +32,13 @@ header
        , PostBuild t m
        , DomBuilder t m
        )
-    => Dynamic t Store -> Dynamic t State -> m (Event t Message)
-header storeD stateD = mdo
+    => Dynamic t State -> m (Event t Message)
+header stateD = mdo
 
-  let urlRegion = (fmap areaId) . getRegion <$> stateD
-      urlTa = (fmap areaId) . getSubArea <$> stateD
+  let urlRegion = (fmap areaId) . State.getRegion <$> stateD
+      urlTa = (fmap areaId) . State.getSubArea <$> stateD
       regionsD = do
-        areas <- Store.getAreas <$> storeD
+        areas <- State.getAreas <$> stateD
         let regions = OMap.filter (\a -> areaLevel a == "reg") areas
         return $
            case OMap.lookup "new-zealand" areas of
@@ -46,7 +46,7 @@ header storeD stateD = mdo
               Nothing -> regions
       tasD = do
         mreg <- urlRegion
-        areas <- Store.getAreas <$> storeD
+        areas <- State.getAreas <$> stateD
         return $ fromMaybe OMap.empty $ do
           reg <- mreg
           thisArea <- OMap.lookup reg areas
@@ -55,9 +55,9 @@ header storeD stateD = mdo
         reg <- (fromMaybe "new-zealand" <$> urlRegion)
         return $ (  "class" =: "title" <> "data-region" =: reg)
 
-      dispRegion = maybe "New Zealand" areaName . getRegion <$> stateD
-      dispConnect = maybe "" (const ":") . getSubArea <$> stateD
-      dispSubArea = maybe "" areaName . getSubArea <$> stateD
+      dispRegion = maybe "New Zealand" areaName . State.getRegion <$> stateD
+      dispConnect = maybe "" (const ":") . State.getSubArea <$> stateD
+      dispSubArea = maybe "" areaName . State.getSubArea <$> stateD
 
       showSubareaD = not . ( == OMap.empty) <$> tasD
 
@@ -72,11 +72,11 @@ header storeD stateD = mdo
       backToSummaryE <- divClass "left" $ do
         let displayNone = "style" =: "display: none;"
             disp = bool displayNone mempty
-        (backToSummary, _) <- elDynAttr' "div" (("class" =: "back-to-summary context-text" <>) . disp . (/=Summary) . getPage <$> stateD) $
+        (backToSummary, _) <- elDynAttr' "div" (("class" =: "back-to-summary context-text" <>) . disp . (/=Summary) . State.getPage <$> stateD) $
           el "a" $ do
             elClass "i" "fa fa-arrow-left" $ return ()
             text "Back to summary page"
-        elDynAttr "span" (("class" =: "block-label context-text"  <>) . disp . (==Summary) . getPage <$> stateD) $ text "You're looking at"
+        elDynAttr "span" (("class" =: "block-label context-text"  <>) . disp . (==Summary) . State.getPage <$> stateD) $ text "You're looking at"
         divClass "page-header summary-page-header" $ do
           el "div" $ do
             dynText dispRegion

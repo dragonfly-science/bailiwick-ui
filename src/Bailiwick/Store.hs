@@ -5,68 +5,67 @@
 {-# LANGUAGE FlexibleContexts        #-}
 {-# LANGUAGE ScopedTypeVariables     #-}
 module Bailiwick.Store
-    ( runStore
-    , Store(..)
-    , Ask(..)
-    , getChartData
-    )
 where
 
+import Control.Monad.Fix (MonadFix)
 import Data.Proxy
-import Data.Text
+import Data.Text hiding (empty)
 
 import Servant.API
 import Servant.Reflex
 import Reflex.Dom.Core
+import Language.Javascript.JSaddle.Types (MonadJSM)
 
 import Bailiwick.Types
+import Bailiwick.Route (Message(..))
 import Bailiwick.AreaTrees
 
-data Ask = Ask deriving (Show, Eq)
-
 data Store
-  = Store
-    { getAreas          :: Areas
-    , getAreaSummaries  :: AreaSummaries
-    , getThemes         :: Themes
-    , getIndicators     :: Indicators
-    , getAreaTrees      :: AreaTrees
-    , getFeatures       :: Features
+  = Empty
+  | LoadAreas
+    { areas :: [Area]
     }
     deriving (Show, Eq)
 
-runStore
-  :: ( MonadHold t m
-     , Reflex t
-     , SupportsServantReflex t m
-     , HasJSContext (Performable m)
-     )
-  => Event t Ask -> m (Dynamic t Store)
-runStore = undefined
+empty :: Store
+empty = Empty
 
-initialise
-  :: ( MonadHold t m
-     , Reflex t
-     , SupportsServantReflex t m
+run
+  :: ( TriggerEvent t m
+     , PerformEvent t m
+     , MonadFix m
+     , MonadHold t m
      , HasJSContext (Performable m)
+     , MonadJSM (Performable m)
      )
-  => Event t () -> m (Dynamic t (Maybe Store))
-initialise ready = undefined
---initialise ready = do
---  let maybeGetList = holdDyn Nothing . fmap reqSuccess
---  areasD         <- fmap (fmap (fmap mkAreas))         $ maybeGetList =<< apiGetAreas ready
---  areaSummariesD <- fmap (fmap (fmap mkAreaSummaries)) $ maybeGetList =<< apiGetAreaSummaries ready
---  themesD        <- fmap (fmap (fmap mkThemes))        $ maybeGetList =<< apiGetThemes ready
---  indicatorsD    <- fmap (fmap (fmap mkIndicators))    $ maybeGetList =<< apiGetIndicators ready
---  areaTreesD     <- fmap (fmap (fmap mkAreaTrees))     $ maybeGetList =<< apiGetAreaTrees ready
---  featuresD      <- fmap (fmap (fmap mkFeatures))      $ maybeGetList =<< apiGetFeatures ready
---  return $
---      Store <$> areasD
---            <*> areaSummariesD
---            <*> themesD
---            <*> indicatorsD
---            <*> areaTreesD
---            <*> featuresD
+  => Event t Message
+  -> m (Dynamic t Store)
+run messagesE = do
+
+  -- Create API request, and capture the response
+  responseE <- makeRequest messagesE
+
+  -- Pull them back together to create the dynamic store
+  foldDyn ($) empty responseE
+
+
+makeRequest
+  :: ( TriggerEvent t m
+     , PerformEvent t m
+     , HasJSContext (Performable m)
+     , MonadJSM (Performable m)
+     )
+  => Event t Message
+  -> m (Event t (Store -> Store))
+makeRequest messageE = do
+  areasE <- apiGetAreas (() <$ ffilter (==Ready) messageE)
+  return $ fmap (flip $ const LoadAreas) $ fmapMaybe reqSuccess areasE
+
+
+
+
+
+
 
 
 getChartData

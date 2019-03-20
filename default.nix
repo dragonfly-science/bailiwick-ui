@@ -22,7 +22,7 @@ in reflex-platform.project ({ pkgs, ... }: {
                  else p;
         in {
           servant = dontCheckGhcjs super.servant;
-          servant-reflex = pkgs.haskell.lib.dontCheck 
+          servant-reflex = pkgs.haskell.lib.dontCheck
                  (pkgs.haskell.lib.doJailbreak super.servant-reflex);
           reflex-dom = null;
           reflex-dom-contrib = pkgs.haskell.lib.doJailbreak super.reflex-dom-contrib;

@@ -19,13 +19,58 @@
   <defs
      id="defs4">
     <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="marker11091"
+       style="overflow:visible;"
+       inkscape:isstock="true">
+      <path
+         id="path11093"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         transform="scale(0.4) rotate(180) translate(10,0)" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible;"
+       id="marker11013"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow1Mend"
+       inkscape:collect="always">
+      <path
+         transform="scale(0.4) rotate(180) translate(10,0)"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         id="path11015" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="marker10599"
+       style="overflow:visible;"
+       inkscape:isstock="true"
+       inkscape:collect="always">
+      <path
+         id="path10601"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         transform="scale(0.4) rotate(180) translate(10,0)" />
+    </marker>
+    <marker
        inkscape:isstock="true"
        style="overflow:visible;"
        id="marker7746"
        refX="0.0"
        refY="0.0"
        orient="auto"
-       inkscape:stockid="Arrow1Mend">
+       inkscape:stockid="Arrow1Mend"
+       inkscape:collect="always">
       <path
          transform="scale(0.4) rotate(180) translate(10,0)"
          style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
@@ -384,7 +429,7 @@
     </g>
     <g
        id="g7601"
-       transform="translate(-4.312178,-34.030458)">
+       transform="translate(15.187822,26.469542)">
       <text
          sodipodi:linespacing="125%"
          id="text4414"
@@ -438,7 +483,7 @@
     </g>
     <g
        id="g7593"
-       transform="translate(-13.54061,28.208127)">
+       transform="translate(-74.54061,18.208127)">
       <text
          sodipodi:linespacing="125%"
          id="text4418"
@@ -457,38 +502,23 @@
          x="298.05737"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.25px;line-height:125%;font-family:'Palatino Linotype';-inkscape-font-specification:'Palatino Linotype Italic';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
          xml:space="preserve"><tspan
-           id="tspan6698"
            style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;font-family:monospace;-inkscape-font-specification:'monospace Italic'"
            y="795.08459"
-           x="298.05737"
-           sodipodi:role="line">type Interact</tspan><tspan
-           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;font-family:monospace;-inkscape-font-specification:'monospace Italic'"
-           y="804.45959"
-           x="298.05737"
-           sodipodi:role="line"
-           id="tspan9778">  = Either Message Ask</tspan><tspan
-           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;font-family:monospace;-inkscape-font-specification:'monospace Italic'"
-           y="813.83459"
            x="298.05737"
            sodipodi:role="line"
            id="tspan9776">view</tspan><tspan
            style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;font-family:monospace;-inkscape-font-specification:'monospace Italic'"
-           y="823.20959"
+           y="804.45959"
            x="298.05737"
            sodipodi:role="line"
-           id="tspan9550">  :: Dynamic State</tspan><tspan
-           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;font-family:monospace;-inkscape-font-specification:'monospace Italic'"
-           y="832.58459"
-           x="298.05737"
-           sodipodi:role="line"
-           id="tspan9774">  -&gt; Dynamic Store</tspan><tspan
+           id="tspan9774">  :: Dynamic State</tspan><tspan
            style="font-size:7.5px"
-           y="841.95959"
+           y="813.83459"
            x="298.05737"
            sodipodi:role="line"
            id="tspan9527"><tspan
    style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:monospace;-inkscape-font-specification:'monospace Italic'"
-   id="tspan9529">  -&gt; m (Event Interact</tspan>)</tspan></text>
+   id="tspan9529">  -&gt; m (Event Message</tspan>)</tspan></text>
       <rect
          y="772.04486"
          x="289.40869"
@@ -517,27 +547,21 @@
          y="1024.078">State</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker7746)"
-       d="m 267.3021,821.41034 c -55.21575,0 -80.13453,-37.60977 -80.13453,-83.7919"
+       d="m 208.8021,846.91034 c -46.71575,2.5 -21.63453,-63.10977 -21.63453,-109.2919"
        id="path7738"
-       inkscape:connector-curvature="0"
-       sodipodi:nodetypes="cc" />
-    <path
-       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
-       d="m 414.7869,815.98649 c 53.53809,2.0203 45.14469,-49.18022 45.14469,-72.18022"
-       id="path8260"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
     <text
        sodipodi:linespacing="125%"
        id="text6630-7-4"
-       y="827.32629"
-       x="168.65576"
+       y="858.32629"
+       x="146.65576"
        style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.25px;line-height:125%;font-family:monospace;-inkscape-font-specification:'monospace Italic';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        xml:space="preserve"><tspan
          id="tspan6698-9"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;font-family:monospace;-inkscape-font-specification:'monospace Italic'"
-         y="827.32629"
-         x="168.65576"
+         y="858.32629"
+         x="146.65576"
          sodipodi:role="line">data Messsage</tspan></text>
     <flowRoot
        xml:space="preserve"
@@ -552,14 +576,30 @@
          id="flowPara9537"></flowPara></flowRoot>    <text
        sodipodi:linespacing="125%"
        id="text6630-7-4-6"
-       y="820.40564"
-       x="444.65002"
+       y="656.90564"
+       x="366.15002"
        style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.25px;line-height:125%;font-family:monospace;-inkscape-font-specification:'monospace Italic';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        xml:space="preserve"><tspan
          id="tspan6698-9-3"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;font-family:monospace;-inkscape-font-specification:'monospace Italic'"
-         y="820.40564"
-         x="444.65002"
-         sodipodi:role="line">data Request</tspan></text>
+         y="656.90564"
+         x="366.15002"
+         sodipodi:role="line">data Ask</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker10599)"
+       d="m 307,664.86218 c 67.28697,-8.51341 105.91821,4.01449 131.5,30.5"
+       id="path10591"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker11013)"
+       d="m 379,708.86218 -72,0"
+       id="path11005"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker11091)"
+       d="m 252.5,729.86218 0,60"
+       id="path11083"
+       inkscape:connector-curvature="0" />
   </g>
 </svg>

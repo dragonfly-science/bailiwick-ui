@@ -23,9 +23,9 @@ import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
 import Reflex.Dom.Core hiding (Element)
 import Reflex.PerformEvent.Class (PerformEvent(..))
 
-import Bailiwick.Store (Store)
-import qualified Bailiwick.Store as Store
-import Bailiwick.State (getThemePage, ThemePageArgs(..), Message, State(..))
+import Bailiwick.State (State)
+import qualified Bailiwick.State as State
+import Bailiwick.Route (ThemePageArgs(..), Message)
 import Bailiwick.Types
 
 
@@ -41,15 +41,14 @@ indicatorChart
      , MonadFix m
      , HasJSContext (Performable m)
      )
-  => Dynamic t Store
-  -> Dynamic t State
+  => Dynamic t State
   -> m (Event t Message)
-indicatorChart storeD stateD = do
-  let _year = fmap themePageYear . getThemePage <$> stateD
-      _iId = fmap themePageIndicatorId . getThemePage <$> stateD
+indicatorChart stateD = do
+  let _year = fmap themePageYear . State.getThemePage <$> stateD
+      _iId = fmap themePageIndicatorId . State.getThemePage <$> stateD
       _areaTree = do
-         mThemePage <- getThemePage <$> stateD
-         areaTrees <- Store.getAreaTrees <$> storeD
+         mThemePage <- State.getThemePage <$> stateD
+         areaTrees <- State.getAreaTrees <$> stateD
          return $ do
             themePage <- mThemePage
             let y = themePageYear themePage
@@ -57,8 +56,8 @@ indicatorChart storeD stateD = do
             OM.lookup (IndicatorId $ unIndicatorId ind <> "-" <> T.pack (show y))
                       areaTrees
       indicatorD' = do
-         mThemePage <- getThemePage <$> stateD
-         indicators <- Store.getIndicators <$> storeD
+         mThemePage <- State.getThemePage <$> stateD
+         indicators <- State.getIndicators <$> stateD
          return $ do
             themePage <- mThemePage
             OM.lookup (themePageIndicatorId themePage) indicators
@@ -71,7 +70,7 @@ indicatorChart storeD stateD = do
   let chartFilenameD = (fromMaybe "none" . ((listToMaybe . indicatorTimeseries) =<<)
                  <$> indicatorD)
                  <> "-11d88bc13.json"
-  chartD <- Store.getChartData $ traceDyn "chartFilenameD" chartFilenameD
+  chartD <- State.getChartData $ traceDyn "chartFilenameD" chartFilenameD
 
   let _showAttr True  = "display: block"
       _showAttr False = "display: none"

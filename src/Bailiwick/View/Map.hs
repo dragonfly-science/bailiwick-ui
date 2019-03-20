@@ -68,9 +68,9 @@ import Language.Javascript.JSaddle
 import Reflex.Dom.Core
 import Reflex.Dom.Builder.Immediate (wrapDomEvent)
 
-import Bailiwick.Store (Store)
-import qualified Bailiwick.Store as Store
-import Bailiwick.State
+import Bailiwick.State (State)
+import qualified Bailiwick.State as State
+import Bailiwick.Route
 import Bailiwick.Types
 
 slugify :: Text -> Text
@@ -350,13 +350,12 @@ nzmap
        , MonadHold t m
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
-    => Dynamic t Store
-    -> Dynamic t State
+    => Dynamic t State
     -> m (Event t Message)
-nzmap storeD state = mdo
+nzmap state = mdo
 
-  zoomD <- holdUniqDyn $ hasAdapter Mapzoom <$> state
-  let selectedArea = stateArea <$> state
+  zoomD <- holdUniqDyn $ (hasAdapter Mapzoom . State.getRoute) <$> state
+  let selectedArea = State.stateArea <$> state
 
       regD = selectedArea >>= \case
             (r:_) -> return . Just $ areaId r
@@ -365,7 +364,7 @@ nzmap storeD state = mdo
       regChildrenD = selectedArea >>= \case
             (r:_) -> return $ areaChildren r
             _             -> return []
-      subareaD = fmap areaId . getSubArea <$> state
+      subareaD = fmap areaId . State.getSubArea <$> state
 
   svgVisibilityD <- holdDyn ("style"=:"visibility: hidden;") $ mempty <$ loadedSvg
   let svgObjectAttrD = (("type"=:"image/svg+xml" <> "data"=:"/assets/map.svg" <> "class" =: "map") <>) <$> svgVisibilityD
@@ -506,17 +505,17 @@ nzmap storeD state = mdo
               forSelectionSetAttributes ("g." <> cssClass <> "[same_reg=TRUE] > polyline") [("stroke", "rgb(0, 189, 233)"), ("stroke-width", "3.0")]
               forSelectionSetAttribute ("g." <> cssClass <> ".coastline > polyline") "stroke" "rgb(0, 189, 233)")
 
-  let transformD = fmap themePageLeftTransform . getThemePage <$> state
+  let transformD = fmap themePageLeftTransform . State.getThemePage <$> state
   let tooltipArea :: Areas -> State -> Maybe (AreaInfo, (Int, Int)) -> Maybe ((AreaInfo, (Int, Int)), Area)
       tooltipArea _ _ Nothing = Nothing
       tooltipArea areas s (Just (ai, xy)) =
         let maybeAreaId =
-              if hasAdapter Mapzoom s
+              if hasAdapter Mapzoom (State.getRoute s)
                 then areaWard ai <|> areaTa ai
                 else areaRegion ai
         in ((ai, xy),) <$> (((`OM.lookup` areas) . slugify) =<< maybeAreaId)
       tooltipAreaD :: Dynamic t (Maybe ((AreaInfo, (Int, Int)), Area))
-      tooltipAreaD = tooltipArea <$> (Store.getAreas <$> storeD) <*> state <*> mouseOverFullD
+      tooltipAreaD = tooltipArea <$> (State.getAreas <$> state) <*> state <*> mouseOverFullD
       showStyle Nothing = "visibility:hidden;"
       showStyle (Just ((_, (x,y)), _)) = Text.pack $
           "visibility:visible; left:" <> show (x + 8) <> "px; top:" <> show (y + 8) <> "px;"
@@ -546,9 +545,9 @@ nzmap storeD state = mdo
         let region = slugify <$> (areaRegion =<< ai)
             ta = slugify <$> (areaTa =<< ai)
             ward = slugify <$> (areaWard =<< ai)
-            currentRegion = areaId <$> getRegion st
-            currentSubarea = areaId <$> getSubArea st
-            iszoomed = hasAdapter Mapzoom st
+            currentRegion = areaId <$> State.getRegion st
+            currentSubarea = areaId <$> State.getSubArea st
+            iszoomed = hasAdapter Mapzoom $ State.getRoute st
             auckland = "auckland" :: Text
             subarea = if region == Just auckland then ward else ta
         in  if
