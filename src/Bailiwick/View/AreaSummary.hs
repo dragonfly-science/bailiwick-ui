@@ -34,9 +34,8 @@ import Reflex.PostBuild.Class (PostBuild(..))
 import Bailiwick.State (State)
 import qualified Bailiwick.State as State
 import Bailiwick.Types
-       (Indicator(..), AreaSummary(..), Area(..), IndicatorId(..))
 import Bailiwick.Route
-       (ThemePageArgs(..), Message(..), Route(..), Message, Page(..))
+       (ThemePageArgs(..), Message(..), Message, Page(..))
 
 indicatorSummary
   :: (Monad m, PostBuild t m, DomBuilder t m)
@@ -82,7 +81,7 @@ areaSummary
 areaSummary stateD = do
   let areaIdD = State.stateArea <$> stateD
       areaD :: Dynamic t (Maybe Area)
-      areaD = OM.lookup <$> areaIdD <*> (State.getAreas <$> stateD)
+      areaD = OM.lookup <$> areaIdD <*> (unAreas . State.getAreas <$> stateD)
       summaryD :: Dynamic t (Maybe AreaSummary)
       summaryD = OM.lookup <$> areaIdD <*> (State.getAreaSummaries <$> stateD)
       indicatorValuesD :: Dynamic t (Maybe Object)

@@ -1,6 +1,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
 
 module Bailiwick.Types where
@@ -37,25 +39,13 @@ instance FromJSON Area where
       Array as <- v .: "areas"
       mapM parseJSON $ V.toList as
 
-type Areas = InsOrdHashMap Text Area
-
-mkAreas :: [ Area ] -> Areas
-mkAreas areas = OMap.fromList [(areaId a, a) | a <- areas]
-
-areaList :: Areas -> Text -> [Area]
-areaList _ "new-zealand" = []
-areaList areas p = case (area, parent) of
-                  (Just a, Just b)  -> [b, a]
-                  (Just a, Nothing) -> [a]
-                  _                 -> []
-  where
-    area = OMap.lookup p areas
-    parent = do
-      a <- area
-      -- TODO: handle accessedvia
-      listToMaybe [ parentArea
-                  | parentArea <- mapMaybe (`OMap.lookup` areas) (areaParents a)
-                  , areaLevel parentArea == "reg" ]
+newtype Areas
+  = Areas { unAreas :: InsOrdHashMap Text Area }
+  deriving (Eq, Show, Generic)
+instance FromJSON Areas where
+    parseJSON v = do
+      areas <- parseJSON v
+      return $ Areas $ OMap.fromList [(areaId a, a) | a <- areas]
 
 data AreaSummary
   = AreaSummary

@@ -23,7 +23,7 @@ import Bailiwick.AreaTrees
 data Store
   = Empty
   | LoadAreas
-    { areas :: [Area]
+    { areas :: Areas
     }
     deriving (Show, Eq)
 
@@ -89,7 +89,7 @@ getChartData filenameD = do
 
 
 
-type GetAreas = "data" :> "areas-11d88bc13.json" :> Get '[JSON] [Area]
+type GetAreas = "data" :> "areas-11d88bc13.json" :> Get '[JSON] Areas
 type GetAreaSummaries = "data" :> "areaSummaries-11d88bc13.json" :> Get '[JSON] [AreaSummary]
 type GetThemes = "data" :> "themes-11d88bc13.json" :> Get '[JSON] [Theme]
 type GetIndicators = "data" :> "indicators-11d88bc13.json" :> Get '[JSON] [Indicator]

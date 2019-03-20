@@ -7,7 +7,6 @@ module Bailiwick.View.Header
 where
 
 import Control.Monad.Fix
-import Data.Bool (bool)
 import Data.Monoid ((<>))
 import Data.Maybe (fromMaybe, listToMaybe)
 
@@ -18,7 +17,7 @@ import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Reflex.Dom.Core hiding (Home)
 
-import Bailiwick.State (State)
+import Bailiwick.State (HeaderState)
 import qualified Bailiwick.State as State
 import Bailiwick.Route
 import Bailiwick.Types
@@ -32,74 +31,96 @@ header
        , PostBuild t m
        , DomBuilder t m
        )
-    => Dynamic t State -> m (Event t Message)
-header stateD = mdo
+    => Dynamic t HeaderState -> m (Event t Message)
+header headerStateD = mdo
+  let regionD   = State.region   <$> headerStateD
+      subareaD  = State.subarea  <$> headerStateD
+      regionsD  = State.regions  <$> headerStateD
+      subareasD = State.subareas <$> headerStateD
 
-  let urlRegion = (fmap areaId) . State.getRegion <$> stateD
-      urlTa = (fmap areaId) . State.getSubArea <$> stateD
-      regionsD = do
-        areas <- State.getAreas <$> stateD
-        let regions = OMap.filter (\a -> areaLevel a == "reg") areas
-        return $
-           case OMap.lookup "new-zealand" areas of
-              Just nz -> OMap.singleton "new-zealand" nz <> regions
-              Nothing -> regions
-      tasD = do
-        mreg <- urlRegion
-        areas <- State.getAreas <$> stateD
-        return $ fromMaybe OMap.empty $ do
-          reg <- mreg
-          thisArea <- OMap.lookup reg areas
-          return $ OMap.filter (\a -> areaId a `elem` areaChildren thisArea) areas
+      urlRegion = areaId <$> regionD
+      urlSubarea = fmap areaId <$> subareaD
+
       background = do
-        reg <- (fromMaybe "new-zealand" <$> urlRegion)
+        reg <- urlRegion
         return $ (  "class" =: "title" <> "data-region" =: reg)
 
-      dispRegion = maybe "New Zealand" areaName . State.getRegion <$> stateD
-      dispConnect = maybe "" (const ":") . State.getSubArea <$> stateD
-      dispSubArea = maybe "" areaName . State.getSubArea <$> stateD
+      dispRegion = areaName <$> regionD
+      dispConnect = maybe "" (const ":") <$> subareaD
+      dispSubArea = maybe "" areaName <$> subareaD
 
-      showSubareaD = not . ( == OMap.empty) <$> tasD
+      showSubareaD = not . ( == OMap.empty) <$> subareasD
 
       subAreaMessage = do
         reg <- urlRegion
-        if reg == Just "auckland"
+        if reg == "auckland"
             then return "Select a ward"
             else return "Select a territorial authority"
 
   elDynAttr "div" background $
     divClass "content" $ mdo
-      backToSummaryE <- divClass "left" $ do
-        let displayNone = "style" =: "display: none;"
-            disp = bool displayNone mempty
-        (backToSummary, _) <- elDynAttr' "div" (("class" =: "back-to-summary context-text" <>) . disp . (/=Summary) . State.getPage <$> stateD) $
-          el "a" $ do
-            elClass "i" "fa fa-arrow-left" $ return ()
-            text "Back to summary page"
-        elDynAttr "span" (("class" =: "block-label context-text"  <>) . disp . (==Summary) . State.getPage <$> stateD) $ text "You're looking at"
-        divClass "page-header summary-page-header" $ do
-          el "div" $ do
-            dynText dispRegion
-            dynText dispConnect
-          el "div" $ dynText dispSubArea
-        return $ GoTo Summary <$ domEvent Click backToSummary
-      menuE <- divClass "right" $
-        divClass "title-menus" $ do
-          (region, regionOpen) <-
-            dropdownMenu (constDyn "Select a region") never
-                         (constDyn True) urlRegion (OMap.map areaName <$> regionsD)
-          (subarea, _) <-
-            dropdownMenu subAreaMessage
-                         (() <$ ffilter id (updated regionOpen))
-                         showSubareaD urlTa (fmap areaName <$> tasD)
-
-          uniqRegion <- holdUniqDyn region
-          uniqSubarea <- holdUniqDyn subarea
-
-          return $ leftmost [ SetSubArea <$> fmapMaybe id (updated uniqSubarea)
-                            , SetRegion <$> fmapMaybe id (updated uniqRegion)
-                            ]
+      backToSummaryE <-
+        divClass "left" $ do
+          backToSummary (State.page <$> headerStateD)
+                        dispRegion dispConnect dispSubArea
+      menuE <-
+        divClass "right" $
+          divClass "title-menus" $ do
+            (region, regionOpen) <-
+              dropdownMenu (constDyn "Select a region") never
+                           (constDyn True) (Just <$> urlRegion)
+                           (fmap areaName <$> regionsD)
+            (subarea, _) <-
+              dropdownMenu subAreaMessage
+                           (() <$ ffilter id (updated regionOpen))
+                           showSubareaD urlSubarea
+                           (fmap areaName <$> subareasD)
+         
+            uniqRegion <- holdUniqDyn region
+            uniqSubarea <- holdUniqDyn subarea
+         
+            return $ leftmost [ SetSubArea <$> fmapMaybe id (updated uniqSubarea)
+                              , SetRegion <$> fmapMaybe id (updated uniqRegion)
+                              ]
       return $ leftmost [backToSummaryE, menuE]
+
+backToSummary
+    :: ( MonadFix m
+       , MonadHold t m
+       , PostBuild t m
+       , DomBuilder t m
+       )
+    => Dynamic t Page              -- current page
+    -> Dynamic t Text              -- region
+    -> Dynamic t Text              -- connect
+    -> Dynamic t Text              -- subarea
+    -> m (Event t Message)
+backToSummary pageD regionD connectD subAreaD= do
+  let displayNone = "style" =: "display: none;"
+      divcssD = do
+        page <- pageD
+        return $
+          if page /= Summary
+            then "class" =: "back-to-summary context-text" <> displayNone
+            else "class" =: "back-to-summary context-text" <> mempty
+      spancssD = do
+        page <- pageD
+        return $
+          if page == Summary
+            then "class" =: "block-label context-text" <> displayNone
+            else "class" =: "block-label context-text" <> mempty
+  (e, _) <-
+    elDynAttr' "div" divcssD $
+      el "a" $ do
+        elClass "i" "fa fa-arrow-left" $ return ()
+        text "Back to summary page"
+  elDynAttr "span" spancssD $ text "You're looking at"
+  divClass "page-header summary-page-header" $ do
+    el "div" $ do
+      dynText regionD
+      dynText connectD
+    el "div" $ dynText subAreaD
+  return $ GoTo Summary <$ domEvent Click e
 
 dropdownMenu
     :: ( MonadFix m

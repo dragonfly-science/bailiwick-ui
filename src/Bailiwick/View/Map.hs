@@ -513,7 +513,7 @@ nzmap state = mdo
               if hasAdapter Mapzoom (State.getRoute s)
                 then areaWard ai <|> areaTa ai
                 else areaRegion ai
-        in ((ai, xy),) <$> (((`OM.lookup` areas) . slugify) =<< maybeAreaId)
+        in ((ai, xy),) <$> (((`OM.lookup` (unAreas areas)) . slugify) =<< maybeAreaId)
       tooltipAreaD :: Dynamic t (Maybe ((AreaInfo, (Int, Int)), Area))
       tooltipAreaD = tooltipArea <$> (State.getAreas <$> state) <*> state <*> mouseOverFullD
       showStyle Nothing = "visibility:hidden;"
