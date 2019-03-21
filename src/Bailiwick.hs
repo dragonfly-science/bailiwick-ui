@@ -23,6 +23,8 @@ ui :: ( MonadFix m
 ui = mdo
   routeD <- route' Route.encodeUri Route.decodeUri messagesE
   storeD <- Store.run messagesE
-  messagesE <- View.view (State.make <$> routeD <*> storeD)
+  readyE <- getPostBuild
+  interactE <- View.view (State.make routeD storeD)
+  let messagesE = leftmost [Route.Ready <$ readyE, interactE]
   return ()
 

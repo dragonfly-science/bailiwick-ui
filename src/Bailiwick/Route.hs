@@ -89,6 +89,7 @@ updateThemePage s _ = s
 step :: Route -> Message -> Route
 step route message =
   case message of
+    Ready                -> route
     SetRegion reg        -> route { routeArea = reg }
     SetSubArea sa        -> route { routeArea = sa }
     SetAreaType at       -> updateThemePage route $ \args -> args { themePageAreaType = at }

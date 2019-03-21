@@ -47,7 +47,7 @@ toolBar
        , MonadJSM (Performable m)
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
-    => Dynamic t State -> m (Event t Message, Dynamic t Bool)
+    => Dynamic t (State t) -> m (Event t Message, Dynamic t Bool)
 toolBar stateD = do
   let areaTypes = OM.fromList [("nz", "New Zealand"), ("reg", "Regional Council"), ("ta", "Territorial Authority")]
       transforms = (\n -> OM.fromList [("indexed", "indexed"), ("absolute", fromMaybe "absolute" n)]) <$> absoluteLabel

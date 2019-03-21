@@ -41,7 +41,7 @@ indicatorChart
      , MonadFix m
      , HasJSContext (Performable m)
      )
-  => Dynamic t State
+  => Dynamic t (State t)
   -> m (Event t Message)
 indicatorChart stateD = do
   let _year = fmap themePageYear . State.getThemePage <$> stateD

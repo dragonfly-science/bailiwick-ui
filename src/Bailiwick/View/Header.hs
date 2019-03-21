@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RecursiveDo         #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE RecordWildCards     #-}
 module Bailiwick.View.Header
 where
 
@@ -17,11 +18,10 @@ import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Reflex.Dom.Core hiding (Home)
 
-import Bailiwick.State (HeaderState)
+import Bailiwick.State (HeaderState(..))
 import qualified Bailiwick.State as State
 import Bailiwick.Route
 import Bailiwick.Types
-
 
 type AreaSlug = Text
 
@@ -31,21 +31,16 @@ header
        , PostBuild t m
        , DomBuilder t m
        )
-    => Dynamic t HeaderState -> m (Event t Message)
-header headerStateD = mdo
-  let regionD   = State.region   <$> headerStateD
-      subareaD  = State.subarea  <$> headerStateD
-      regionsD  = State.regions  <$> headerStateD
-      subareasD = State.subareas <$> headerStateD
-
-      urlRegion = areaId <$> regionD
+    => HeaderState t -> m (Event t Message)
+header HeaderState{..} = mdo
+  let urlRegion = areaId <$> areaD
       urlSubarea = fmap areaId <$> subareaD
 
       background = do
         reg <- urlRegion
         return $ (  "class" =: "title" <> "data-region" =: reg)
 
-      dispRegion = areaName <$> regionD
+      dispRegion = areaName <$> areaD
       dispConnect = maybe "" (const ":") <$> subareaD
       dispSubArea = maybe "" areaName <$> subareaD
 
@@ -57,12 +52,23 @@ header headerStateD = mdo
             then return "Select a ward"
             else return "Select a territorial authority"
 
+      regionsD =
+        let regions = OMap.filter (\a -> areaLevel a == "reg") (unAreas areas)
+            Just nz = OMap.lookup "new-zealand" (unAreas areas)
+        in  constDyn $ OMap.singleton "new-zealand" nz <> regions
+
+      subareasD = do
+        reg <- areaD
+        return $
+          fromMaybe OMap.empty $ do
+            thisArea <- OMap.lookup (areaId reg) (unAreas areas)
+            return $ OMap.filter (\a -> areaId a `elem` areaChildren thisArea) (unAreas areas)
+
   elDynAttr "div" background $
     divClass "content" $ mdo
       backToSummaryE <-
         divClass "left" $ do
-          backToSummary (State.page <$> headerStateD)
-                        dispRegion dispConnect dispSubArea
+          backToSummary pageD dispRegion dispConnect dispSubArea
       menuE <-
         divClass "right" $
           divClass "title-menus" $ do
@@ -75,10 +81,10 @@ header headerStateD = mdo
                            (() <$ ffilter id (updated regionOpen))
                            showSubareaD urlSubarea
                            (fmap areaName <$> subareasD)
-         
+
             uniqRegion <- holdUniqDyn region
             uniqSubarea <- holdUniqDyn subarea
-         
+
             return $ leftmost [ SetSubArea <$> fmapMaybe id (updated uniqSubarea)
                               , SetRegion <$> fmapMaybe id (updated uniqRegion)
                               ]

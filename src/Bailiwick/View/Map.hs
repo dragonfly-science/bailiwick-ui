@@ -350,7 +350,7 @@ nzmap
        , MonadHold t m
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
-    => Dynamic t State
+    => Dynamic t (State t)
     -> m (Event t Message)
 nzmap state = mdo
 
@@ -506,7 +506,7 @@ nzmap state = mdo
               forSelectionSetAttribute ("g." <> cssClass <> ".coastline > polyline") "stroke" "rgb(0, 189, 233)")
 
   let transformD = fmap themePageLeftTransform . State.getThemePage <$> state
-  let tooltipArea :: Areas -> State -> Maybe (AreaInfo, (Int, Int)) -> Maybe ((AreaInfo, (Int, Int)), Area)
+  let tooltipArea :: Areas -> (State t) -> Maybe (AreaInfo, (Int, Int)) -> Maybe ((AreaInfo, (Int, Int)), Area)
       tooltipArea _ _ Nothing = Nothing
       tooltipArea areas s (Just (ai, xy)) =
         let maybeAreaId =
@@ -540,7 +540,7 @@ nzmap state = mdo
   mouseOverD :: Dynamic t (Maybe AreaInfo) <- holdUniqDyn $ fmap fst <$> mouseOverFullD
 
   -- The click event depends on the state
-  let makeMessages :: State -> Maybe AreaInfo -> Maybe Message
+  let makeMessages :: State t -> Maybe AreaInfo -> Maybe Message
       makeMessages st ai =
         let region = slugify <$> (areaRegion =<< ai)
             ta = slugify <$> (areaTa =<< ai)

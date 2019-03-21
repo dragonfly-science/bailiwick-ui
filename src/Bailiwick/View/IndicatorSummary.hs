@@ -61,7 +61,7 @@ elDynHtmlAttr' elementTag attrs html = do
   performEvent_ $ liftJSM . setInnerHTML (_element_raw e) <$> leftmost [updated html, tag (current html) postBuild]
   return e
 
-textSubstitution :: Bool -> Indicators -> Features -> State -> Text -> Text
+textSubstitution :: Bool -> Indicators -> Features -> State t -> Text -> Text
 textSubstitution addCompareArea indicators features state =
     let themePage = State.getThemePage state
         indicator = (`OM.lookup` indicators) =<< themePageIndicatorId <$> themePage
@@ -133,7 +133,7 @@ indicatorSummary
      , MonadJSM (Performable m)
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
-  => Dynamic t State
+  => Dynamic t (State t)
   -> m (Event t Message)
 indicatorSummary stateD = mdo
   let indicatorD = do

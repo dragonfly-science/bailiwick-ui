@@ -33,6 +33,10 @@ import Bailiwick.View.IndicatorSummary (indicatorSummary)
 import Bailiwick.View.IndicatorChart (indicatorChart)
 import Bailiwick.View.ToolBar (toolBar)
 
+switchDynM :: (MonadHold t m, DomBuilder t m, PostBuild t m)
+         => Dynamic t (m (Event t a)) -> m (Event t a)
+switchDynM = (switchHold never =<<) . dyn
+
 windowScrolled
   :: (Monad m, MonadJSM m, TriggerEvent t m)
   => m (Event t Double)
@@ -47,6 +51,7 @@ windowScrollDyn = do
   initialPos <- currentWindowUnchecked >>= getPageYOffset
   holdDyn initialPos =<< windowScrolled
 
+
 view
     :: ( Monad m
        , MonadJSM m
@@ -58,13 +63,13 @@ view
        , MonadIO m
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
-    => Dynamic t State -> m (Event t Message)
+    => Dynamic t (State t) -> m (Event t Message)
 view stateD = do
+  scrollPosD <- windowScrollDyn
   let marginTop (ThemePage _) = bool Nothing (Just "349px") . (> 140)
       marginTop _ = bool Nothing (Just "279px") . (> 140)
-  scrollPosD <- windowScrollDyn
-  let marginTopD = marginTop <$> (getPage <$> stateD) <*> scrollPosD
-  let wholeBodyClass s = "whole-body " <> case getPage s of
+      marginTopD = marginTop <$> (getPage <$> stateD) <*> scrollPosD
+      wholeBodyClass s = "whole-body " <> case getPage s of
                               ThemePage _ -> "theme-whole-body"
                               Summary -> "summary-whole-body"
       mainHeaderClass s isOpen =
@@ -78,9 +83,9 @@ view stateD = do
       <- divClass "main-header-area" $
             elDynClass "header" (mainHeaderClass <$> stateD <*> isOpen) $ do
               navBarE <- navbar
-              headerE' <- ffor stateD $ \case
-                  Loading   -> return never 
-                  State hs  -> header stateD
+              headerE' <- switchDynM $ ffor stateD $ \case
+                  Loading   -> return never
+                  State hs  -> header hs
               (toolBarE, isOpen') <- return (never, constDyn True) -- toolBar stateD
               return (leftmost [navBarE, headerE', toolBarE], isOpen')
     mainE <-
@@ -146,7 +151,7 @@ type ContentConstraints t m =
 
 mainContent
     :: ContentConstraints t m
-    => Dynamic t State
+    => Dynamic t (State t)
     -> m (Event t Message)
 mainContent stateD = do
   isSummary <- holdUniqDyn ((== Summary) . getPage <$> stateD)
@@ -156,7 +161,7 @@ mainContent stateD = do
 
 summaryContent
     :: ContentConstraints t m
-    => Dynamic t State
+    => Dynamic t (State t)
     -> m (Event t Message)
 summaryContent stateD =
   divClass "central-content summary" $ do
@@ -175,7 +180,7 @@ summaryContent stateD =
 
 indicatorContent
     :: ContentConstraints t m
-    => Dynamic t State
+    => Dynamic t (State t)
     -> m (Event t Message)
 indicatorContent stateD = do
   contentE <- divClass "central-content indicator" $ do
@@ -205,7 +210,7 @@ indicatorContent stateD = do
 summaryText
   :: ( DomBuilder t m
      , PostBuild t m )
-  => Dynamic t State
+  => Dynamic t (State t)
   -> m (Event t Message)
 summaryText stateD = do
 

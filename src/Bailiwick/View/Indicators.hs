@@ -38,7 +38,7 @@ indicators
      , MonadJSM (Performable m)
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
-  => Dynamic t State
+  => Dynamic t (State t)
   -> m (Event t Message)
 indicators stateD = (switchHold never =<<) . dyn $ do
   marea <- State.getArea <$> stateD
