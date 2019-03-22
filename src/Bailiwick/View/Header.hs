@@ -33,12 +33,9 @@ header
        )
     => HeaderState t -> m (Event t Message)
 header HeaderState{..} = mdo
-  let urlRegion = areaId <$> areaD
-      urlSubarea = fmap areaId <$> subareaD
-
-      background = do
-        reg <- urlRegion
-        return $ (  "class" =: "title" <> "data-region" =: reg)
+  let background = do
+        area <- areaId <$> areaD
+        return $ (  "class" =: "title" <> "data-region" =: area)
 
       dispRegion = areaName <$> areaD
       dispConnect = maybe "" (const ":") <$> subareaD
@@ -47,8 +44,8 @@ header HeaderState{..} = mdo
       showSubareaD = not . ( == OMap.empty) <$> subareasD
 
       subAreaMessage = do
-        reg <- urlRegion
-        if reg == "auckland"
+        area <- areaId <$> areaD
+        if area == "auckland"
             then return "Select a ward"
             else return "Select a territorial authority"
 
@@ -58,10 +55,10 @@ header HeaderState{..} = mdo
         in  constDyn $ OMap.singleton "new-zealand" nz <> regions
 
       subareasD = do
-        reg <- areaD
+        area <- areaD
         return $
           fromMaybe OMap.empty $ do
-            thisArea <- OMap.lookup (areaId reg) (unAreas areas)
+            thisArea <- OMap.lookup (areaId area) (unAreas areas)
             return $ OMap.filter (\a -> areaId a `elem` areaChildren thisArea) (unAreas areas)
 
   elDynAttr "div" background $
@@ -74,12 +71,12 @@ header HeaderState{..} = mdo
           divClass "title-menus" $ do
             (region, regionOpen) <-
               dropdownMenu (constDyn "Select a region") never
-                           (constDyn True) (Just <$> urlRegion)
+                           (constDyn True) (Just . areaId <$> areaD)
                            (fmap areaName <$> regionsD)
             (subarea, _) <-
               dropdownMenu subAreaMessage
                            (() <$ ffilter id (updated regionOpen))
-                           showSubareaD urlSubarea
+                           showSubareaD (fmap areaId <$> subareaD)
                            (fmap areaName <$> subareasD)
 
             uniqRegion <- holdUniqDyn region
@@ -103,24 +100,24 @@ backToSummary
     -> m (Event t Message)
 backToSummary pageD regionD connectD subAreaD= do
   let displayNone = "style" =: "display: none;"
-      divcssD = do
-        page <- pageD
-        return $
-          if page /= Summary
-            then "class" =: "back-to-summary context-text" <> displayNone
-            else "class" =: "back-to-summary context-text" <> mempty
-      spancssD = do
+      backcssD = do
         page <- pageD
         return $
           if page == Summary
-            then "class" =: "block-label context-text" <> displayNone
-            else "class" =: "block-label context-text" <> mempty
+            then "class" =: "back-to-summary context-text" <> displayNone
+            else "class" =: "back-to-summary context-text" <> mempty
+      lookcssD = do
+        page <- pageD
+        return $
+          if page == Summary
+            then "class" =: "block-label context-text" <> mempty
+            else "class" =: "block-label context-text" <> displayNone
   (e, _) <-
-    elDynAttr' "div" divcssD $
+    elDynAttr' "div" backcssD $
       el "a" $ do
         elClass "i" "fa fa-arrow-left" $ return ()
         text "Back to summary page"
-  elDynAttr "span" spancssD $ text "You're looking at"
+  elDynAttr "span" lookcssD $ text "You're looking at"
   divClass "page-header summary-page-header" $ do
     el "div" $ do
       dynText regionD

@@ -49,6 +49,14 @@ run messagesE = do
   foldDyn ($) empty responseE
 
 
+showReqResult :: ReqResult t a -> String
+showReqResult rr = unpack $
+    case rr of
+        ResponseSuccess _ _ _ -> "Success"
+        ResponseFailure _ msg _ -> "Response failure: " <> msg
+        RequestFailure _ msg -> "Request failure: " <> msg
+
+
 makeRequest
   :: ( TriggerEvent t m
      , PerformEvent t m
@@ -59,14 +67,7 @@ makeRequest
   -> m (Event t (Store -> Store))
 makeRequest messageE = do
   areasE <- apiGetAreas (() <$ ffilter (==Ready) messageE)
-  return $ fmap (flip $ const LoadAreas) $ fmapMaybe reqSuccess areasE
-
-
-
-
-
-
-
+  return $ fmap (flip $ const LoadAreas) $ fmapMaybe reqSuccess (traceEventWith showReqResult areasE)
 
 getChartData
   :: ( MonadHold t m
@@ -89,7 +90,7 @@ getChartData filenameD = do
 
 
 
-type GetAreas = "data" :> "areas-11d88bc13.json" :> Get '[JSON] Areas
+type GetAreas = "db" :> "dev" :> "areas.json" :> Get '[JSON] Areas
 type GetAreaSummaries = "data" :> "areaSummaries-11d88bc13.json" :> Get '[JSON] [AreaSummary]
 type GetThemes = "data" :> "themes-11d88bc13.json" :> Get '[JSON] [Theme]
 type GetIndicators = "data" :> "indicators-11d88bc13.json" :> Get '[JSON] [Indicator]

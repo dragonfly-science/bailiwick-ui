@@ -7,6 +7,8 @@
 module Bailiwick.View
 where
 
+import Debug.Trace
+
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Fix
 import Data.Bool (bool)
