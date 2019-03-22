@@ -26,6 +26,16 @@ areas[!grepl('^(Southland|Waikato)', ta), ta := gsub(' District', '', ta)]
 areas[!grepl('^Wellington', ta), ta := gsub(' City', '', ta)]
 areas[, ward := gsub(' Ward', '', ward)]
 
+areas <- areas[!(
+    ta == 'Taupo'      & !(reg == 'Waikato') |
+    ta == 'Rotorua'    & !(reg == 'Bay of Plenty') |
+    ta == 'Tararua'    & !(reg == 'Manawatu-Wanganui') |
+    ta == 'Stratford'  & !(reg == 'Taranaki') |
+    ta == 'Rangitikei' & !(reg == 'Manawatu-Wanganui') |
+    ta == 'Waitomo'    & !(reg == 'Waikato') |
+    ta == 'Waitaki'    & !(reg == 'Otago'))]
+
+
 all = rbind(
     data.table(name='New Zealand', 'id'='new-zealand', level='nz'),
     areas[, .(name=unique(reg), id=slugify(unique(reg)), level='reg')][order(id)],
