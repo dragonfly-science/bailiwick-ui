@@ -25,6 +25,6 @@ ui = mdo
   storeD <- Store.run messagesE
   readyE <- getPostBuild
   interactE <- View.view (State.make routeD storeD)
-  let messagesE = leftmost [Route.Ready <$ readyE, interactE]
+  let messagesE = leftmost [Route.Ready <$ readyE, traceEvent "interactE: " interactE]
   return ()
 

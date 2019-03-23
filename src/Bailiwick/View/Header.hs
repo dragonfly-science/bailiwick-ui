@@ -18,12 +18,16 @@ import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Reflex.Dom.Core hiding (Home)
 
-import Bailiwick.State (HeaderState(..))
-import qualified Bailiwick.State as State
 import Bailiwick.Route
 import Bailiwick.Types
 
-type AreaSlug = Text
+data HeaderState t
+  = HeaderState
+  { pageD     :: Dynamic t Page
+  , areaD     :: Dynamic t Area
+  , subareaD  :: Dynamic t (Maybe Area)
+  , areas     :: Areas
+  }
 
 header
     :: ( MonadFix m

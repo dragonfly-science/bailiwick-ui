@@ -7,6 +7,7 @@ module Bailiwick.Route
   , Message(..)
   , Route(..)
   , ThemePageArgs(..)
+  , getThemePage
   , Page(..)
   , hasAdapter
   , Adapter(..)

@@ -10,15 +10,22 @@ module Bailiwick.Types where
 import Data.Maybe (listToMaybe, mapMaybe)
 import Data.Aeson
 import Data.Aeson.Types (FromJSONKeyFunction(FromJSONKeyText))
-import Data.Char
+import Data.Char as Char
 import Data.Hashable (Hashable)
 import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import Data.Map (Map)
 import Data.Text (Text)
+import qualified Data.Text as Text
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import qualified Data.Vector as V
 
 import GHC.Generics
+
+capitalize :: Text -> Text
+capitalize inp
+ = case Text.uncons inp of
+     Nothing    -> ""
+     Just (h,t) -> Text.cons (Char.toUpper h) t
 
 data Area
   = Area
@@ -70,7 +77,7 @@ data Theme
   = Theme
     { themeId :: Text
     , themeName :: Text
-    , themeIndicators :: [ IndicatorId ]
+    , themeIndicators :: [ Indicator ]
     } deriving (Eq, Show, Generic)
 
 themeOptions :: Options
@@ -201,6 +208,7 @@ instance FromJSON ChartId where
 
 data Indicator = Indicator
   { indicatorId                     :: IndicatorId
+  , indicatorName                   :: Text
 --  , indicatorBarchartLabelWidth     :: Maybe Int
   , indicatorAbsoluteLabel          :: Maybe Text
 --  , indicatorCaptions               :: Maybe (Map Text Text)
@@ -212,25 +220,24 @@ data Indicator = Indicator
 --  , indicatorEnableAreaToggle       :: Bool
 --  , indicatorFeatureName            :: Maybe Text
   , indicatorFeatures               :: [Text]
-  , indicatorFeatureText            :: Maybe (Map FeatureId Text)
+--  , indicatorFeatureText            :: Maybe (Map FeatureId Text)
 --  , indicatorFeatureDropdownLabel   :: Maybe Text
-  , indicatorFirstYear              :: Text
+--  , indicatorFirstYear              :: Text
 --  , indicatorHeaderTitle            :: Text
-  , indicatorHeadlineNumCaption     :: Text
+--  , indicatorHeadlineNumCaption     :: Text
 --  , indicatorIcon                   :: Maybe Text
 --  , indicatorLabels                 :: Maybe (Map Text Text)
-  , indicatorLocalNumCaption        :: Text
+--  , indicatorLocalNumCaption        :: Text
 --  , indicatorMaxFeatures            :: Maybe (Map Text Text)
-  , indicatorName                   :: Text
-  , indicatorNationalNumCaption     :: Text
+--  , indicatorNationalNumCaption     :: Text
 --  , indicatorNotes                  :: [Text]
 --  , indicatorNz                     :: Text
-  , indicatorPeriod                 :: Maybe Int
+--  , indicatorPeriod                 :: Maybe Int
 --  , indicatorPrimaryYear            :: Maybe Text
-  , indicatorPublishers             :: Text
+--  , indicatorPublishers             :: Text
 --  , indicatorRegions                :: [Text]
 --  , indicatorScale                  :: Maybe Text
-  , indicatorSlices                 :: [Text]
+--  , indicatorSlices                 :: [Text]
 --  , indicatorSummaryTitle           :: Text
 --  , indicatorTerritorialAuthorities :: [Text]
 --  , indicatorTooltipExtra           :: Maybe Text
@@ -238,13 +245,13 @@ data Indicator = Indicator
 --  , indicatorTopDetailLabel         :: Maybe Text
 --  , indicatorTopFeatureLabel        :: Maybe Text
 --  , indicatorUnits                  :: Units
-  , indicatorYearEndMonth           :: Maybe Text
+--  , indicatorYearEndMonth           :: Maybe Text
 --  , indicatorYears                  :: [Text]
-  , indicatorFeatureTrees           :: [Text]
+--  , indicatorFeatureTrees           :: [Text]
 --  , indicatorAreaTrees              :: [Text]
 --  , indicatorSummaries              :: [Text]
-  , indicatorTimeseries             :: [Text]
-  , indicatorMapdata                :: [Text]
+--  , indicatorTimeseries             :: [Text]
+--  , indicatorMapdata                :: [Text]
 --  , indicatorTableRawData           :: [Text]
 --  , indicatorTransforms             :: [Transform]
 
@@ -259,18 +266,18 @@ data Indicator = Indicator
 --  , indicatorCharts               :: [Chart]
 --  , indicatorPeriod               :: Maybe Int
 --  , indicatorPrimaryYear          :: Maybe Text
-  , indicatorFeatureName          :: Maybe Text
+--  , indicatorFeatureName          :: Maybe Text
 --  , indicatorFeatureDropdownLabel :: Maybe Text
-  , indicatorTopFeatureLabel      :: Maybe Text
+--  , indicatorTopFeatureLabel      :: Maybe Text
 --  , indicatorDetailName           :: Maybe Text
-  , indicatorTopDetailLabel       :: Maybe Text
+--  , indicatorTopDetailLabel       :: Maybe Text
 --  , indicatorLeftChart            :: Maybe Text
 --  , indicatorLanguageConfig       :: Language
 --  , indicatorRightChart           :: Maybe Text
 --  , indicatorAbsoluteLabel        :: Maybe Text
 --  , indicatorTooltipExtra         :: Maybe Text
 --  , indicatorIcon                 :: Maybe Text
-  , indicatorNotes                :: Maybe [Text]
+--  , indicatorNotes                :: Maybe [Text]
 --  , indicatorSource               :: Text
 --  , indicatorScale                :: Maybe Text
 --  , indicatorBarchartLabelWidth   :: Maybe Int
@@ -289,9 +296,6 @@ indicatorOptions = defaultOptions
 
 instance FromJSON Indicator where
     parseJSON = genericParseJSON indicatorOptions
-    parseJSONList = withObject "Indicators" $ \v -> do
-      Array as <- v .: "indicators"
-      mapM parseJSON $ V.toList as
 
 type Indicators = InsOrdHashMap IndicatorId Indicator
 

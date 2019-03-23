@@ -22,13 +22,25 @@ import Bailiwick.AreaTrees
 
 data Store
   = Empty
-  | LoadAreas
-    { areas :: Areas
+  | Loading (Maybe Areas) (Maybe [Theme])
+  | Loaded
+    { areas  :: Areas
+    , themes :: [Theme]
     }
     deriving (Show, Eq)
 
 empty :: Store
 empty = Empty
+
+holdAreas :: Areas -> Store -> Store
+holdAreas as Empty                        = Loading (Just as) Nothing
+holdAreas as (Loading Nothing (Just ts))  = Loaded as ts
+holdAreas _ s = s
+
+holdThemes  :: [Theme] -> Store -> Store
+holdThemes ts Empty                        = Loading Nothing (Just ts)
+holdThemes ts (Loading (Just as) Nothing)  = Loaded as ts
+holdThemes _ s = s
 
 run
   :: ( TriggerEvent t m
@@ -66,8 +78,12 @@ makeRequest
   => Event t Message
   -> m (Event t (Store -> Store))
 makeRequest messageE = do
-  areasE <- apiGetAreas (() <$ ffilter (==Ready) messageE)
-  return $ fmap (flip $ const LoadAreas) $ fmapMaybe reqSuccess (traceEventWith showReqResult areasE)
+  areasE  <- apiGetAreas  (() <$ ffilter (==Ready) messageE)
+  themesE <- apiGetThemes (() <$ ffilter (==Ready) messageE)
+  return $ leftmost
+    [ fmap holdAreas  $ fmapMaybe reqSuccess areasE
+    , fmap holdThemes $ fmapMaybe reqSuccess (traceEventWith showReqResult themesE)
+    ]
 
 getChartData
   :: ( MonadHold t m
@@ -91,8 +107,8 @@ getChartData filenameD = do
 
 
 type GetAreas = "db" :> "dev" :> "areas.json" :> Get '[JSON] Areas
+type GetThemes = "db" :> "dev" :> "themes.json" :> Get '[JSON] [Theme]
 type GetAreaSummaries = "data" :> "areaSummaries-11d88bc13.json" :> Get '[JSON] [AreaSummary]
-type GetThemes = "data" :> "themes-11d88bc13.json" :> Get '[JSON] [Theme]
 type GetIndicators = "data" :> "indicators-11d88bc13.json" :> Get '[JSON] [Indicator]
 type GetAreaTrees = "data" :> "areaTrees-11d88bc13.json" :> Get '[JSON] [AreaTree]
 type GetFeatures = "data" :> "features-11d88bc13.json" :> Get '[JSON] [Feature]

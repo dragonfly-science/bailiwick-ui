@@ -31,8 +31,8 @@ import Bailiwick.View.Header (header)
 import Bailiwick.View.Map
 import Bailiwick.View.AreaSummary (areaSummary)
 import Bailiwick.View.Indicators (indicators)
-import Bailiwick.View.IndicatorSummary (indicatorSummary)
-import Bailiwick.View.IndicatorChart (indicatorChart)
+--import Bailiwick.View.IndicatorSummary (indicatorSummary)
+--import Bailiwick.View.IndicatorChart (indicatorChart)
 import Bailiwick.View.ToolBar (toolBar)
 
 switchDynM :: (MonadHold t m, DomBuilder t m, PostBuild t m)
@@ -86,8 +86,8 @@ view stateD = do
             elDynClass "header" (mainHeaderClass <$> stateD <*> isOpen) $ do
               navBarE <- navbar
               headerE' <- switchDynM $ ffor stateD $ \case
-                  Loading   -> return never
-                  State hs  -> header hs
+                  Waiting    -> return never
+                  State hs _ -> header hs
               (toolBarE, isOpen') <- return (never, constDyn True) -- toolBar stateD
               return (leftmost [navBarE, headerE', toolBarE], isOpen')
     mainE <-
@@ -95,9 +95,9 @@ view stateD = do
              maybe mempty (("style" =:) . ("margin-top: " <>)) <$> marginTopD) $
         --mainContent stateD
         return never
-    indicatorsE <- do
-        --indicators stateD
-        return never
+    indicatorsE <- switchDynM $ ffor stateD $ \case
+        Waiting     -> return never
+        State _ is  -> indicators is
 
     -- We need to scroll up when these links are clicked (or you can't tell they do anything)
     performEvent_ $ ffor indicatorsE $ \case
@@ -203,10 +203,12 @@ indicatorContent stateD = do
             nzmap stateD
         return $ leftmost [zoomClick, mapClicks]
     chartE <- divClass "indicator-chart" $
-      indicatorChart stateD
+      --indicatorChart stateD
+      return never
     return $ leftmost [ mapE, chartE ]
   summaryE <- divClass "indicator-summary hide-table no-compare" $
-    indicatorSummary stateD
+    --indicatorSummary stateD
+    return never
   return $ leftmost [contentE, summaryE]
 
 summaryText

@@ -8,21 +8,15 @@ import Data.Text (Text)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Reflex.Dom.Core
 
-import Bailiwick.Route (Route(..), Page(..), ThemePageArgs)
+import Bailiwick.Route as Route (Route(..), Page(..), ThemePageArgs, themePageIndicatorId, getThemePage)
 import Bailiwick.Store (Store(..))
+import Bailiwick.View.Header (HeaderState(..))
+import Bailiwick.View.Indicators (IndicatorState(..))
 import Bailiwick.Types
 
 data State t
-  = Loading
-  | State (HeaderState t)
-
-data HeaderState t
-  = HeaderState
-  { pageD     :: Dynamic t Page
-  , areaD     :: Dynamic t Area
-  , subareaD  :: Dynamic t (Maybe Area)
-  , areas     :: Areas
-  }
+  = Waiting
+  | State (HeaderState t) (IndicatorState t)
 
 make
   :: (Reflex t)
@@ -30,19 +24,29 @@ make
 make routeD storeD = do
   store <- storeD
   case store of
-    Empty -> return Loading
-    LoadAreas as@(Areas areas) -> do
+    Empty       -> return Waiting
+    Loading _ _ -> return Waiting
+    Loaded as@(Areas areas) ts -> do
+
+      -- Header state
       let page = routePage <$> routeD
-      let getRegandTa route =
+          getRegandTa route =
               let al = areaList as (routeArea route)
                   Just nz = OMap.lookup "new-zealand" areas
               in case al of
                   [r, t] -> (r, Just t)
                   [r]    -> (r, Nothing)
                   []     -> (nz, Nothing)
-      let reg = fst . getRegandTa <$> routeD
-      let mta = snd . getRegandTa <$> routeD
-      return $ State $ HeaderState page reg mta as
+          reg = fst . getRegandTa <$> routeD
+          mta = snd . getRegandTa <$> routeD
+          header_state = HeaderState page reg mta as
+
+      -- Indicator state
+      let area = zipDynWith fromMaybe reg mta
+          indId = fmap themePageIndicatorId . Route.getThemePage <$> routeD
+          indicator_state = IndicatorState area indId ts
+
+      return $ State header_state indicator_state
 
 
 
