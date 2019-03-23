@@ -1,0 +1,85 @@
+name: school leavers by NCEA level
+language-config:
+  subject: school leavers
+  subject-quantity: number of school leavers
+  feature-accessor: with
+themes:
+  - education
+source: Ministry of Education <a href="http://www.educationcounts.govt.nz/statistics/schooling/senior-student-attainment/school-leavers2" target="_blank">Senior Student Attainment School Leavers</a>.
+headerTitle: school leavers by NCEA level in $area$
+slices:
+  - school leavers by NCEA level
+  - school leavers by NCEA level - margin
+summaryTitle: School leavers with $feature$ in $area$ in  $year$
+headlineNumCaption: >-
+  the number of school leavers in $area$ with $feature$ for the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >-
+    the percentage of school leavers in $area$ with $feature$, for the year to $yearEndMonth$ $year$.
+  transform: regionalPercentage
+nationalNum:
+  caption: >
+    the perentage of all New Zealand school leavers with $feature$
+    that were in $area$, in the year to $yearEndMonth$. 
+  transform: nationalPercentage
+units: count
+valueType: quantity
+absoluteLabel: school leavers
+featureName: NCEA level
+featureText:
+  ncea-level-1: at least NCEA level 1
+  below-ncea-level-1: less than NCEA level 1
+  ncea-level-2: at least NCEA level 2
+  below-ncea-level-2: less than NCEA level 2
+  ncea-level-3: at least NCEA level 3
+  below-ncea-level-3: less than NCEA level 3
+featureOrder:
+  - ncea-level-3
+  - ncea-level-2
+  - ncea-level-1
+  - below-ncea-level-3
+  - below-ncea-level-2
+  - below-ncea-level-1
+rightChart: over-under-barchart
+charts:
+  - type: map
+    title: >-
+      percentage of school leavers with $feature$ in $area$ for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: regionalPercentage
+        caption: percentage of school leavers with $feature$
+    facets:
+      - year
+  - type: timeseries
+    title: school leavers with $feature$ in $area$, by year
+    transforms:
+      - name: percapita
+        caption: school leavers per 10,000 people
+      - name: absolute
+        caption: school leavers
+    order:
+      - area
+      - year
+  - type: over-under-barchart
+    title: school leavers in $area$, for $year$
+    transforms:
+      - name: percentage-tree
+        caption: percentage of school leavers in $area$
+      - name: absolute-tree
+        caption: school leavers in $area$
+    mapping:
+      - label: Level 1
+        dimensions:
+          - ncea-level-1
+          - below-ncea-level-1
+      - label: Level 2
+        dimensions:
+          - ncea-level-2
+          - below-ncea-level-2
+      - label: Level 3
+        dimensions:
+          - ncea-level-3
+          - below-ncea-level-3
+    facet:
+      - year
+

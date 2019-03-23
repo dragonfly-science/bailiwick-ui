@@ -1,0 +1,50 @@
+name: household income
+themes:
+  - social & income
+headerTitle: household income in $area$
+slices:
+  - average annual household income
+summaryTitle: household income in $area$ in $year$
+headlineNumCaption: the mean annual household income in $area$ in $year$
+localNum:
+  caption: >
+    the change in mean annual household income in $area$ between $prevYear$
+    and $year$
+  transform: rate
+nationalNum:
+  caption: >
+    the ratio of mean annual household income in $year$ in $area$ to
+    New Zealand
+  transform: nationalPercentage
+units: dollars
+absoluteLabel: mean income
+charts:
+  - type: map
+    title: >
+      household income around New Zealand in $year$
+    captions:
+      - key: shading
+        text: >
+          areas are shaded based on the mean annual household income in $year$
+    transforms:
+      - absolute
+    facets:
+      - year
+
+  - type: timeseries
+    title: >
+      household income time series for the different areas of New Zealand
+    transforms:
+      - absolute
+      - indexed
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: >
+      household income in $year$ in different areas of New Zealand
+    transforms:
+      - absolute-tree
+    facet:
+      - year

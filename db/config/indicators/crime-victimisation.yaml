@@ -1,0 +1,56 @@
+name: crime victimisation
+language-config:
+  subject: Annual crime victimisation occurrence per 10,000 population
+  subject-short: crime per 10,000 population
+themes:
+  - social & income
+source: New Zealand Police <a href="http://www.police.govt.nz/about-us/publications-and-statistics/statistics/policedatanz" target="_blank">Victim Time and Place report</a>.
+notes: 
+  - Annual figures. Only includes crime where there is a victim. Crime is classed by <a href="http://www.stats.govt.nz/methods/classifications-and-standards/classification-related-stats-standards/offence/classification-and-coding-process.aspx" target="_blank">ANZSOC</a> Subdivision. Location is by where the crime occurred. 
+headerTitle: Crime victimisation [of $feature$] in $area$
+slices:
+  - annual crime victimisation occurrence per 10,000 population
+summaryTitle: >-
+  Crime victimisation [of $feature$] per 10,000 population in $area$, for $year$
+headlineNumCaption: >-
+  The crime victimisation [of $feature$] per 10,000 population in $area$, for $year$.
+localNum:
+  caption: >-
+    The percentage change in crime victimisation [of $feature$] per 10,000 population from $prevYear$ to $year$, in $area$.
+  transform: rate
+nationalNum:
+  caption: >-
+    The ratio of the crime victimisation [of $feature$] per 10,000 population to the national number in $year$.
+  transform: ratioNZ
+units: count
+valueType: aggregate
+absoluteLabel: Crime victimisation per 10,000 population
+barchartLabelWidth: 240
+charts:
+  - type: map
+    title: >-
+      Crime victimisation [of $feature$] per 10,000 population, for $year$
+    transforms:
+      - name: absolute
+        caption: Crime victimisation per 10,000 population
+    facets:
+      - year
+  - type: timeseries
+    title: change in crime victimisation [of $feature$] per 10,000 population
+    transforms:
+      - name: absolute
+        caption: Crime victimisation per 10,000 population
+      - name: indexed
+        caption: Crime victimisation per 10,000 population, indexed to $firstYear$
+        formatter: indexed
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: Crime victimisation per 10,000 population in $area$, in $year$
+    transforms:
+      - name: absolute-tree
+        caption: Crime victimisation per 10,000 population
+    facet:
+      - year

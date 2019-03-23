@@ -1,0 +1,45 @@
+name: 
+themes:
+  - 
+headerTitle: 
+slices:
+  - 
+summaryTitle: 
+headlineNumCaption: >-
+  
+localNum:
+  caption: >-
+    
+  transform: 
+nationalNum:
+  caption: >-
+    
+  transform: 
+units: 
+absoluteLabel: 
+charts:
+  - type: map
+    title: >-
+      
+    captions:
+      - key: shading
+        text: >-
+    transforms:
+      - 
+    facets:
+      - year
+  - type: timeseries
+    title: 
+    transforms:
+      - absolute
+      - indexed
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: 
+    transforms:
+      - absolute-tree
+    facet:
+      - year

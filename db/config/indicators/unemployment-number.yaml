@@ -1,0 +1,52 @@
+name: unemployment number
+language-config:
+  subject: unemployment number
+themes:
+  - workforce
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/income-and-work/employment_and_unemployment/labour-market-statistics-information-releases.aspx" target="_blank">Household Labour Force Survey</a>.
+notes:
+  - The unemployment number is the total number of unemployed people. These are annual average figures. Results are subject to large sample errors, especially in smaller regions.
+headerTitle: unemployment number in $area$
+slices:
+  - unemployment
+summaryTitle: unemployment number in $area$ in the year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  the unemployment number in $area$ in the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >
+    the increase in unemployment number in $area$, between $prevYear$ and $year$.
+  transform: rate
+nationalNum:
+  caption: >
+    the percentage of the unemployment number in $area$ in New Zealand
+  transform: nationalPercentage
+units: count
+valueType: quantity
+absoluteLabel: unemployment number
+charts:
+  - type: map
+    title: >-
+      unemployment number, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: rate
+        caption: Percentage change in unemployment number between $prevYear$ and $year$
+    facets:
+      - year
+  - type: timeseries
+    title: unemployment number, by year
+    transforms:
+      - name: absolute
+        caption: unemployment number
+      - name: indexed
+        caption: unemployment number indexed to $firstYear$
+        formatter: indexed		  
+    order:
+      - area
+      - year
+  - type: barchart
+    title: unemployment number, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: unemployment number
+    facet:
+      - year

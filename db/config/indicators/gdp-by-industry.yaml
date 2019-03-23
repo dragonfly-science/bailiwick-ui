@@ -1,0 +1,61 @@
+name: GDP by industry
+language-config:
+  subject: GDP
+  feature-accessor: from
+themes:
+  - economic
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/economic_indicators/NationalAccounts/regional-gdp-info-releases.aspx" target="_blank">Regional GDP</a> and MBIE <a href="http://www.mbie.govt.nz/info-services/sectors-industries/regions-cities/research/modelled-territorial-authority-gross-domestic-product" target="_blank">Modelled Territorial Authority Gross Domestic Product (MTAGDP)</a>.
+notes: 
+  - Nominal Gross Domestic Product (GDP). Regional Council estimates are derived by Statistics New Zealand, based on the Annual Enterprise Survey, Linked Employer–Employee Data, Crown Financial Information System, and Local Authority Census. Territorial Authority level GDP is modelled by MBIE. 2015 results are provisional estimates. 
+headerTitle: GDP from $feature$ in $area$
+slices:
+  - GDP total by industry (annual-mar)
+  - GDP total by industry (annual-mar) feature sum
+summaryTitle: GDP from $feature$ in $area$, for the year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  the GDP [from $feature$] in $area$, for the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >-
+    the share of the GDP in $area$ that
+    came from $feature$, for the year to $yearEndMonth$ $year$.
+  transform: regionalPercentage
+nationalNum:
+  caption: >-
+    the percentage of the national GDP from $feature$ that came from $area$, for the year to $yearEndMonth$ $year$.
+  transform: nationalPercentage
+units: milliondollars
+valueType: quantity
+absoluteLabel: GDP
+rightChart: barchart
+topFeatureLabel: all industries
+featureDropdownLabel: select an industry
+barchartLabelWidth: 240
+barchartTicks: 3
+charts:
+  - type: map
+    title: >-
+      share of GDP from $feature$, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: regionalPercentage
+        caption: percentage of GDP
+        formatter: percentage
+    facets:
+      - year
+  - type: timeseries
+    title: GDP from $feature$, by year
+    transforms:
+      - name: absolute
+        caption: GDP, millions of dollars
+      - name: indexed
+        caption: GDP, relative to $firstYear$
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: GDP from $feature$ in $area$, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: GDP, millions of dollars
+    facet:
+      - year

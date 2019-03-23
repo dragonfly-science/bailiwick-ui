@@ -1,0 +1,52 @@
+name: underutilisation number
+language-config:
+  subject: underutilisation number
+themes:
+  - workforce
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/income-and-work/employment_and_underutilisation/labour-market-statistics-information-releases.aspx" target="_blank">Household Labour Force Survey</a>.
+notes:
+  -  The underutilisation expresses the number of underutilised persons in the extended labour force, where the extended labour force is the total of the labour force (i.e. the number of persons employed and unemployed) and the potential labour force. Data may be suppressed for some regions in some years. Results are subject to large sample errors, especially in smaller regions.
+headerTitle: underutilisation number in $area$
+slices:
+  - underutilisation
+summaryTitle: underutilisation number in $area$ in the year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  the underutilisation number in $area$ in the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >
+    the increase in underutilisation number in $area$, between $prevYear$ and $year$.
+  transform: rate
+nationalNum:
+  caption: >
+    the percentage of the underutilisation number in $area$ in New Zealand
+  transform: nationalPercentage
+units: count
+valueType: quantity
+absoluteLabel: underutilisation number
+charts:
+  - type: map
+    title: >-
+      underutilisation number, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: rate
+        caption: Percentage change in underutilisation number between $prevYear$ and $year$
+    facets:
+      - year
+  - type: timeseries
+    title: underutilisation number, by year
+    transforms:
+      - name: absolute
+        caption: underutilisation number
+      - name: indexed
+        caption: underutilisation number indexed to $firstYear$
+        formatter: indexed		  
+    order:
+      - area
+      - year
+  - type: barchart
+    title: underutilisation number, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: underutilisation number
+    facet:
+      - year

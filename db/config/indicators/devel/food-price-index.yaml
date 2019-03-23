@@ -1,0 +1,47 @@
+name: food price index
+themes:
+  - economic
+headerTitle: food price index in $area$
+slices:
+  - food price index, annual average (dec)
+summaryTitle: food price index in $area$ in $year$
+headlineNumCaption: >-
+  the food price index in $area$ in $year$
+localNum:
+  caption: >-
+    the percentage change in the food price index in $area$
+    since $prevYear$ and $year$
+  transform: rate
+nationalNum:
+  caption: >-
+    the ratio of the food price index in $area$ to the national
+    value in $year$
+  transform: ratioNZ
+units: count
+absoluteLabel: index
+charts:
+  - type: map
+    title: >-
+      food price index in $year$
+    captions:
+      - key: shading
+        text: >-
+          areas are shaded based on the food price index in $year$
+    transforms:
+      - absolute
+    facets:
+      - year
+  - type: timeseries
+    title: food price index over time
+    transforms:
+      - absolute
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: food price index in $year$
+    transforms:
+      - absolute-tree
+    facet:
+      - year

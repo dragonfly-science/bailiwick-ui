@@ -1,0 +1,62 @@
+name: employment by occupation
+language-config:
+  subject-quantity: number 
+  subject-short: people employed
+  feature-accessor: as
+themes:
+  - workforce
+source: MBIE Detailed Regional Employment Estimates.
+notes:
+  - Data may be suppressed for some regions in some years. Results are subject to large sample errors, especially in smaller regions.
+headerTitle: employment in $feature$ in $area$
+slices:
+  - employment estimates by occupation (ANZSCO L1) (incl self-employed)
+  - employment estimates by occupation (ANZSCO L1) (incl self-employed) feature sum
+summaryTitle: employment in $feature$ in $area$ in the year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  the number of people employed [as $feature$] in $area$ in the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >-
+    the percentage of employment in $area$ that is of $feature$ in the year to $yearEndMonth$ $year$.
+  transform: regionalPercentage
+nationalNum:
+  caption: >-
+    the percentage of the national employment of $feature$ that is in $area$
+    in the year to $yearEndMonth$ $year$.
+  transform: nationalPercentage
+units: count
+valueType: quantity
+absoluteLabel: employees
+featureDropdownLabel: select an occupation
+topFeatureLabel: all occupations
+featureName: occupation
+barchartLabelWidth: 240
+charts:
+  - type: map
+    title: >-
+      employment of $feature$, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: regionalPercentage
+        caption: percentage of employment that is of $feature$
+    facets:
+      - year
+  - type: timeseries
+    title: employment of $feature$, by year
+    transforms:
+      - name: percapita
+        caption: employment per 10,000 people
+      - name: absolute
+        caption: number of people employed
+      - name: indexed
+        caption: employment relative to $firstYear$
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: employment of $feature$ in $area$, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: number of people employed
+    facet:
+      - year

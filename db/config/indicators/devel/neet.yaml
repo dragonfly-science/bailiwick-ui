@@ -1,0 +1,51 @@
+name: NEET
+themes:
+  - workforce
+headerTitle: youth not in employment, education or training in $area$
+slices:
+  - NEET rate, population aged 15-24 years
+summaryTitle: >-
+  youth not in employment, education or training in $area$ in $year$
+headlineNumCaption: >-
+  the percentage of 15 to 24 year olds not in employment, education, or training
+  in $area$ in $year$
+localNum:
+  caption: >-
+    the change in the percentage of 15 to 24 year olds not in employment, education,
+    or training in $area$ between $prevYear$ and $year$
+  transform: rate
+nationalNum:
+  caption: >-
+    the ratio of the percentage of 15 to 24 year olds not in employment, education,
+    or training in $area$ to the national percentage in $year$
+  transform: ratioNZ
+units: percentage
+absoluteLabel: percent
+charts:
+  - type: map
+    title: >-
+      youth not in employment, education, or training in $year$
+    captions:
+      - key: shading
+        text: >-
+          areas are shaded based on the percentage of 15 to 24 year olds not in
+          employment, education, or training in $year$
+    transforms:
+      - absolute
+    facets:
+      - year
+  - type: timeseries
+    title: youth not in employment, education, or training over time
+    transforms:
+      - absolute
+      - indexed
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: youth not in employment, education, or training in $year$
+    transforms:
+      - absolute-tree
+    facet:
+      - year

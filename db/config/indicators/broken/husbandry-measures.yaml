@@ -1,0 +1,47 @@
+name: husbandry measures
+themes:
+  - agriculture
+headerTitle: $feature$ in $area$
+slices:
+  - husbandry industry production measures (annual-jun)
+summaryTitle: $feature$ in $area$ in $year$
+headlineNumCaption: >-
+  the
+localNum:
+  caption: >-
+    t
+  transform: rate
+nationalNum:
+  caption: >-
+    t
+  transform: ratioNZ
+units: count
+absoluteLabel: count
+charts:
+  - type: map
+    title: >-
+      t
+    captions:
+      - key: shading
+        text: >-
+          t
+    transforms:
+      - rate
+    facets:
+      - year
+  - type: timeseries
+    title: t
+    transforms:
+      - absolute
+      - indexed
+      - percapita
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: t
+    transforms:
+      - absolute-tree
+    facet:
+      - year

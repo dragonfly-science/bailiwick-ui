@@ -1,0 +1,54 @@
+name: internet
+language-config:
+  subject: households with internet access 
+themes:
+  - social & income
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/Census.aspx">Census data</a>.
+headerTitle: internet access in $area$
+slices:
+  - percentage of households having access to internet
+summaryTitle: internet access in $area$, for $year$
+headlineNumCaption: >-
+   households with internet access in $area$, for $year$.
+localNum:
+  caption: >-
+    the change in the percentage of households with access to the internet in $area$,
+    between $prevYear$ and $year$. 
+  transform: difference 
+nationalNum:
+  caption: >-
+    the ratio of the percentage of households with access to the internet
+    in $area$ to the national value, for $year$.
+  transform: ratioNZ
+units: percentage
+valueType: aggregate
+absoluteLabel: Internet
+period: 7
+charts:
+  - type: map
+    title: >-
+      households with internet access, for $year$
+    transforms:
+      - name: absolute
+        caption: percentage of households
+        formatter: percentage
+    facets:
+      - year
+  - type: timeseries
+    title: change in internet access
+    transforms:
+      - name: absolute
+        caption: percentage of households
+      - name: indexed
+        caption: proportion of households, relative to $firstYear$
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: households with internet access, for $year$
+    transforms:
+      - name: absolute-tree
+        caption: percentage of households
+    facet:
+      - year

@@ -1,0 +1,53 @@
+name: labour force participation rate
+language-config:
+  subject: labour force participation rate
+themes:
+  - workforce
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/income-and-work/employment_and_unemployment/labour-market-statistics-information-releases.aspx" target="_blank">Household Labour Force Survey</a>.
+notes:
+  - The labour force participation is the labour force (including both employed and unemployed), expressed as a percentage of the working-age population. These are annual average figures. Results are subject to large sample errors, especially in smaller regions.
+headerTitle: labour force participation rate in $area$
+slices:
+  - labour force participation rate, annual average
+summaryTitle: labour force participation rate in $area$ in the year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  the labour force participation rate in $area$, for the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >-
+    the change in the labour force participation rate in $area$
+    between $prevYear$ and $year$ (year to $yearEndMonth$).
+  transform: difference 
+nationalNum:
+  caption: >-
+    the ratio of the labour force participation rate in $area$ to the
+    national rate, in the year to $yearEndMonth$ $year$.
+  transform: ratioNZ
+units: percentage
+valueType: aggregate
+absoluteLabel: rate
+charts:
+  - type: map
+    title: >-
+      labour force participation, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute
+        caption: percentage of the working-age population
+    facets:
+      - year
+  - type: timeseries
+    title: labour force participation, by year
+    transforms:
+      - name: absolute
+        caption: percentage of the working-age population
+      - name: indexed
+        caption: labour force participation rate, relative to $firstYear$
+    order:
+      - area
+      - year
+  - type: barchart
+    title: labour force participation, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: percentage of the working-age population
+    facet:
+      - year

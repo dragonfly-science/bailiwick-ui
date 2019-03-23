@@ -1,0 +1,79 @@
+name: qualification completions by level
+language-config:
+  subject: tertiary enrolments
+  feature-accessor: at
+  subject-accessor: ""
+themes:
+  - education
+source: Tertiary Education Commission.
+notes:
+  - Data for regions (including TAs) has been derived from a mix of student-related indicators such as secondary school location, postcode of student's term or permanent address, and provider delivery site. Numbers should be taken as indicative only.
+  - Levels of study refer to ‘qualification types’ as set out in the New Zealand Qualifications Framework. Levels are based on complexity, with level 1 the least complex and level 10 the most complex.
+headerTitle: tertiary qualification completions[ at $feature$] by students from $area$
+slices:
+  - tertiary qualification completions by level (domestic)
+  - tertiary qualification completions by level (domestic) - margin
+summaryTitle: tertiary qualification completions[ at $feature$] by students from $area$, in the year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  tertiary qualification completions[ at $feature$] by students from $area$, in the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >
+    the percentage of tertiary qualification completions[ at $feature$] by students from $area$, for the year to $yearEndMonth$ $year$.
+  transform: regionalPercentage
+nationalNum:
+  caption: >
+    the percentage of the tertiary qualification completions[ at $feature$] for New Zealand
+    by students from $area$, in the year to $yearEndMonth$. 
+  transform: nationalPercentage
+units: count
+valueType: quantity
+absoluteLabel: qualifications
+featureDropdownLabel: select a level
+topFeatureLabel: all levels
+featureOrder:
+  - level-1-2
+  - level-3-4
+  - level-5-6
+  - level-7-8
+  - level-9-10
+featureName: level
+barchartLabelWidth: 140
+barchartTicks: 3'
+charts:
+  - type: map
+    title: >-
+      the percentage of tertiary qualification completions[ at $feature$], for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: regionalPercentage
+        caption: percentage of tertiary qualification completions that is in $feature$
+    facets:
+      - year
+  - type: timeseries
+    title: tertiary qualification completions[ at $feature$,] by year
+    transforms:
+      - name: percapita
+        caption: per capita tertiary qualification completions
+      - name: absolute
+        caption: tertiary qualification completions
+      - name: indexed
+        caption: tertiary qualification completions, relative to $firstYear$
+    order:
+      - area
+      - year
+  - type: barchart
+    title: tertiary qualification completions[ at $feature$] in $area$, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: tertiary qualification completions
+      - name: percentage-tree
+        caption: percentage of tertiary qualification completions
+    axis:
+      - level-1-2
+      - level-3-4
+      - level-5-6
+      - level-7-8
+      - level-9-10
+    facet:
+      - year
+
+

@@ -1,0 +1,63 @@
+name: household income (mean)
+language-config:
+  subject: mean annual household income
+themes:
+  - social & income
+headerTitle: mean household income in $area$
+source: MBIE Household Income Estimates (based on Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/income-and-work/Income/nz-income-survey-info-releases.aspx" target="_blank">NZ Income Survey</a> & <a href="http://www.stats.govt.nz/Census.aspx" target="_blank">Census</a>).
+notes: 
+  - Territorial Authority level workforce data has a break in the timeseries in 2015 due to a change in the sample method for the Household Labour Force Survey. Results are subject to large sample errors, especially in smaller regions.
+  - Mean annual household income.
+slices:
+  - average annual household income
+summaryTitle: mean annual household income in $area$, for $year$
+headlineNumCaption: the mean annual household income in $area$, for $year$.
+localNum:
+  caption: >
+    the change in mean annual household income in $area$, between $prevYear$
+    and $year$.
+  transform: rate
+nationalNum:
+  caption: >
+    the mean annual household income in $area$,
+    relative to the New Zealand average, for $year$.
+  transform: ratioNZ
+units: dollars
+valueType: aggregate
+absoluteLabel: income
+charts:
+  - type: map
+    title: >
+      mean annual household income, for $year$
+    transforms:
+      - name: absolute
+        formatter: dollars
+        caption: mean annual household income
+    facets:
+      - year
+
+  - type: timeseries
+    title: >
+      mean annual household income, by year
+    transforms:
+      - name: absolute
+        caption: mean annual household income
+        formatter: dollars
+      - name: indexed
+        caption: mean annual household income, relative to $firstYear$
+        formatter: indexed
+
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: >
+      mean annual household income, for $year$
+    transforms:
+      - name: absolute-tree
+        caption: mean annual household income
+        formatter: dollars
+    facet:
+      - year
+

@@ -1,0 +1,49 @@
+name: guest nights
+themes:
+  - tourism
+headerTitle: guest nights per capita in $area$
+slices:
+  - guest nights per resident population
+summaryTitle: guest nights per capita in $area$ in $year$
+headlineNumCaption: >-
+  the number of guest nights per resident population in $area$ in $year$
+localNum:
+  caption: >-
+    the percentage change in the number of guest nights per resident population
+    in $area$ between $prevYear$ and $year$
+  transform: rate
+nationalNum:
+  caption: >-
+    the ratio of the number of guest nights per resident population in $area$
+    to the national value in $year$
+  transform: ratioNZ
+units: count
+absoluteLabel: Per capita
+charts:
+  - type: map
+    title: >-
+      guest nights per capita in $year$
+    captions:
+      - key: shading
+        text: >-
+          areas are shaded based on the number of guest nights per capita in
+          $year$
+    transforms:
+      - absolute
+    facets:
+      - year
+  - type: timeseries
+    title: guest nights per capita over time
+    transforms:
+      - absolute
+      - indexed
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: guest nights per capita in $year$
+    transforms:
+      - absolute-tree
+    facet:
+      - year

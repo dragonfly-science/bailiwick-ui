@@ -1,0 +1,57 @@
+name: international migration
+language-config:
+  subject-quantity: number
+  subject-short: international migrants
+themes:
+  - population
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/population/Migration/international-travel-and-migration-info-releases.aspx" target="_blank">International Travel and Migration</a>.
+notes:
+  - Net permanent and long-term international migration, for the year to $yearEndMonth$.
+  - The net permanent and long-term international migration is migrant arrivals less migrant departures.
+  - Permanent and long-term arrivals (migrant arrivals) include people from overseas arriving to live in New Zealand for 12 months or more (including permanently), and New Zealanders returning after an absence of 12 months or more overseas.
+  - Permanent and long-term departures (migrant departures) include New Zealanders departing for an absence of 12 months or more (including permanently), and migrants leaving after a stay of 12 months or more in New Zealand.
+headerTitle: international migration to $area$
+slices:
+  - net permanent and long-term migration
+summaryTitle: international migration to $area$ in year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  net number of international migrants to $area$ in year to $yearEndMonth$ $year$.
+localNum:
+  caption: >-
+    net international migration to $area$ in year to $yearEndMonth$ $year$, per 10,000 residents.
+  transform: percapita
+nationalNum:
+  caption: >-
+    the percentage of the national net international migration in year to $yearEndMonth$ $year$
+    that is to $area$.
+  transform: nationalPercentage
+units: count
+valueType: change
+absoluteLabel: migrants
+charts:
+  - type: map
+    title: >-
+      net international migration, for year to $yearEndMonth$ $year$
+    transforms:
+      - name: percapita
+        caption: Net migration per 10,000 residents
+    facets:
+      - year
+  - type: timeseries
+    title: net international migration, by year
+    transforms:
+      - name: absolute
+        caption: Net number of international migrants
+      - name: percapita
+        caption: Net migration per 10,000 residents
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: net international migration, for year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: Net number of international migrants
+    facet:
+      - year

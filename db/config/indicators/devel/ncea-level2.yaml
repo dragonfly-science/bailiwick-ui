@@ -1,0 +1,53 @@
+name: NCEA level 2
+themes:
+  - education
+headerTitle: NCEA level 2 attainment [for $feature$] in $area$
+slices:
+  - all ethnicities NCEA level 2 attainment rates for 18-year-olds
+  - by ethnicity NCEA level 2 attainment rates for 18-year-olds
+summaryTitle: NCEA level 2 attainment [for $feature$] in $area$ in $year$
+headlineNumCaption: >-
+  the NCEA level 2 attainment [for $feature$] in $area$ in $year$
+localNum:
+  caption: >-
+    the percentage change in the NCEA level 2 attainment rate
+    [for $feature$] in $area$ between $prevYear$ and $year$
+  transform: rate
+nationalNum:
+  caption: >-
+    the ratio of the NCEA level 2 attainment rate [for $feature$]
+    in $area$ to the national rate in $year$
+  transform: ratioNZ
+units: percentage
+absoluteLabel: rate
+featureName: ethnicity
+featureDropdownLabel: select an ethnicity
+topFeatureLabel: all ethnicities
+charts:
+  - type: map
+    title: >-
+      the NCEA level 2 attainment rate [for $feature$] in $year$
+    captions:
+      - key: shading
+        text: >-
+          areas are shaded based on the NCEA level 2 attainment rate
+          [for $feature$] in $year$
+    transforms:
+      - absolute
+    facets:
+      - year
+  - type: timeseries
+    title: NCEA level 2 attainment rate [for $feature$] over time
+    transforms:
+      - absolute
+      - indexed
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: NCEA level 2 attainment rate [for $feature$] in $year$
+    transforms:
+      - absolute-tree
+    facet:
+      - year

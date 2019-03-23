@@ -1,0 +1,48 @@
+name: mean house value
+language-config:
+  subject: mean house value
+themes:
+  - housing
+source: QV.
+notes: 
+  - Annual average estimates of mean house values. 
+  - Source data is copyright to QV and not licensed for reuse.
+headerTitle: house value in $area$
+slices:
+  - average house value
+summaryTitle: mean house value in $area$ in $year$
+headlineNumCaption: >-
+  the mean house value in $area$, in the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >-
+    the percentage change in the mean house value between the year to $yearEndMonth$ $prevYear$ and $year$ in $area$.
+  transform: rate
+nationalNum:
+  caption: >-
+    the ratio of the mean house value in $area$, in the year to $yearEndMonth$ $year$, to the
+    national mean house value.
+  transform: ratioNZ
+units: dollars
+valueType: aggregate
+absoluteLabel: value
+charts:
+  - type: map
+    title: >-
+      house value, for $year$
+    transforms:
+      - name: absolute
+        caption: mean house value
+    facets:
+      - year
+  - type: timeseries
+    title: house value, by year
+    transforms:
+      - name: absolute
+        caption: mean house value
+      - name: indexed
+        caption: mean house value, relative to $firstYear$
+        formatter: indexed
+    order:
+      - area
+      - year
+

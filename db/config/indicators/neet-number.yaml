@@ -1,0 +1,52 @@
+name: NEET number
+language-config:
+  subject: NEET number
+themes:
+  - workforce
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/income-and-work/employment_and_unemployment/labour-market-statistics-information-releases.aspx" target="_blank">Household Labour Force Survey</a>.
+notes:
+  - The NEET number is the total number of youth (aged 15 to 24 years) who are not in education, employment, or training. These are annual average figures. Results are subject to large sample errors, especially in smaller regions.
+headerTitle: NEET number in $area$
+slices:
+  - NEET
+summaryTitle: NEET number in $area$ in the year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  the NEET number in $area$ in the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >
+    the increase in NEET number in $area$, between $prevYear$ and $year$.
+  transform: rate
+nationalNum:
+  caption: >
+    the percentage of the NEET number in $area$ in New Zealand
+  transform: nationalPercentage
+units: count
+valueType: quantity
+absoluteLabel: NEET number
+charts:
+  - type: map
+    title: >-
+      NEET number, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: rate
+        caption: Percentage change in NEET number between $prevYear$ and $year$
+    facets:
+      - year
+  - type: timeseries
+    title: NEET number, by year
+    transforms:
+      - name: absolute
+        caption: NEET number
+      - name: indexed
+        caption: NEET number indexed to $firstYear$
+        formatter: indexed		  
+    order:
+      - area
+      - year
+  - type: barchart
+    title: NEET number, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: NEET number
+    facet:
+      - year

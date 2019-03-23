@@ -1,0 +1,51 @@
+name: unemployment rate
+language-config:
+  subject: unemployment rate
+themes:
+  - workforce
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/income-and-work/employment_and_unemployment/labour-market-statistics-information-releases.aspx" target="_blank">Household Labour Force Survey</a>.
+notes:
+  - the unemployment rate is the number of unemployed people expressed as a percentage of the
+    labour force. These are annual average figures. Data may be suppressed for some regions in some years. Results are subject to large sample errors, especially in smaller regions.
+headerTitle: unemployment rate in $area$
+slices:
+  - unemployment rate, annual average
+summaryTitle: unemployment rate in $area$ in the year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  the percentage of labour force that was unemployed in $area$ in the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >-
+    the change in unemployment rate in $area$
+    between $prevYear$ and $year$ (year to $yearEndMonth$).
+  transform: difference 
+nationalNum:
+  caption: >-
+    the ratio of the unemployment rate in $area$ to the New Zealand unemployment rate, for the year to $yearEndMonth$ $year$.
+  transform: ratioNZ
+units: percentage
+valueType: aggregate
+absoluteLabel: unemployment
+charts:
+  - type: map
+    title: >-
+      unemployment rate, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute
+        caption: percentage of labour force
+    facets:
+      - year
+  - type: timeseries
+    title: unemployment rate, by year
+    transforms:
+      - name: absolute
+        caption: percentage of labour force
+    order:
+      - area
+      - year
+  - type: barchart
+    title: unemployment rate, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: percentage of labour force
+    facet:
+      - year

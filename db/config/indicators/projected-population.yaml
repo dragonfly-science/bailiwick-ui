@@ -1,0 +1,55 @@
+name: population projections
+language-config:
+  subject: projected resident population
+themes:
+  - population
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/population/estimates_and_projections/subnational-population-projections-info-releases.aspx" target="_blank">Subnational Population Projections (2013 base)</a>.
+notes:
+  - Statistics New Zealand produces subnational population projections, to give an indication of the future population usually living in New Zealand regions, and territorial and unitary authority areas. Three projections (low, medium, and high growth) incorporating different fertility, mortality, and migration assumptions for each geographic area are produced to illustrate a range of possible scenarios. The data shown here are the medium growth projections.
+headerTitle: projected population in $area$
+slices:
+  - projected resident population
+summaryTitle: projected population in $area$ at 30 June $year$
+headlineNumCaption: >-
+  the total projected resident population in $area$ at 30 June $year$.
+localNum:
+  caption: >-
+    the projected change in resident population in $area$
+    between 30 June $prevYear$ and $year$.
+  transform: rate
+nationalNum:
+  caption: >-
+    the percentage of the projected national population in
+    at 30 June $year$ that was in $area$.
+  transform: nationalPercentage
+units: count
+valueType: quantity
+absoluteLabel: People
+period: 5
+primaryYear: "2018"
+charts:
+  - type: map
+    title: >-
+      projected change in population, between 30 June $prevYear$ and $year$
+    transforms:
+      - name: rate
+        caption: Percentage change in population       
+    facets:
+      - year
+  - type: timeseries
+    title: projected population, by year
+    transforms:
+      - name: indexed
+        caption: resident population, relative to $firstYear$
+      - name: absolute
+        caption: resident population
+    order:
+      - area
+      - year
+  - type: barchart
+    title: projected population, at 30 June $year$
+    transforms:
+      - name: absolute-tree
+        caption: resident population
+    facet:
+      - year

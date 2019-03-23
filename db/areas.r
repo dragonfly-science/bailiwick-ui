@@ -6,9 +6,9 @@ inputfile <- 'data/REARdb.rda'
 outputfile <- 'dev/areas.json'
 
 args = commandArgs(trailingOnly=TRUE)
-if (length(args) == 2) {
+if (length(args) >= 2) {
     inputfile <- args[1]
-    outputfile <- args[2]
+    outputfile <- args[length(args)]
 }
 
 load(inputfile)

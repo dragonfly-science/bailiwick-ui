@@ -1,0 +1,43 @@
+name: industry types
+themes:
+  - economic
+headerTitle: $feature$ industry businesses in $area$
+slices:
+  - per cent businesses by type of industry (primary etc)
+summaryTitle: $feature$ industry business in $area$ in $year$
+headlineNumCaption: >-
+  the percentage of business that are in $feature$ industries
+  in $area$ in $year$
+localNum:
+  caption: >-
+    the percentage change in the fraction of businesses in $feature$
+    industries in $area$ between $prevYear$ and $year$
+  transform: rate
+nationalNum:
+  caption: >-
+    the ratio of fraction of businesses in $feature$ industries in $area$
+    to the national fraction in $year$
+  transform: ratioNZ
+units: percentage
+absoluteLabel: percent
+rightChart: barchart
+charts:
+  - type: map
+    title: >-
+      $feature$ industry businesses in $year$
+    captions:
+      - key: shading
+        text: >-
+          areas are shaded based on the percentage of businesses that are in
+          $feature$ industries in $year$
+    transforms:
+      - absolute
+    facets:
+      - year
+
+  - type: barchart
+    title: percentage of $feature$ industry businesses in $year$
+    transforms:
+      - absolute-tree
+    facet:
+      - year

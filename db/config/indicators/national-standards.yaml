@@ -1,0 +1,48 @@
+name: national standards achievement
+language-config:
+  subject: national standards achievement rate
+  subject-quantity: rate
+themes:
+  - education
+headerTitle: national standards achievement [in $feature$] in $area$
+source: Ministry of Education <a href="http://www.educationcounts.govt.nz/statistics/schooling/national-standards/National_Standards" target="_blank">National Standards Achievement</a>.
+notes:
+  - The National Standards set expectations for students to meet in reading, writing, and mathematics in the first eight years at school. These data are annual figures, combining years one to eight.
+slices:
+  - percentage at or above national standards
+summaryTitle: national standards achievement [in $feature$] in $area$ in $year$
+headlineNumCaption: >-
+  the percentage of students with national standards achievement [in $feature$] in
+  $area$, for $year$.
+localNum:
+  caption: >-
+    the percentage point change in the percentage of students with
+    national standards achievement [in $feature$] in $area$, between $prevYear$
+    and $year$.
+  transform: difference
+nationalNum:
+  caption: >-
+    the ratio of the national standards achievement rate in $area$ [in $feature$]
+    to the national rate, for $year$.
+  transform: ratioNZ
+units: percentage
+valueType: aggregate
+absoluteLabel: achievement
+rightChart: barchart
+charts:
+  - type: map
+    title: >-
+      national standards achievement [in $feature$] for $year$
+    transforms:
+      - name: absolute
+        caption: percentage of students achieving at or above standard
+    facets:
+      - year
+
+  - type: barchart
+    title: national standards achievement[ in $feature$], in $area$,  for $year$
+    transforms:
+      - name: absolute-tree
+        caption: percentage of students achieving at or above standard
+    facet:
+      - year

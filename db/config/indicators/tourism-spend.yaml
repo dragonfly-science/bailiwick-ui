@@ -1,0 +1,82 @@
+name: tourism spend
+language-config:
+  subject: tourism spend
+  feature-accessor: by visitors from
+  singular: true
+themes:
+  - tourism
+source: MBIE <a href="http://www.mbie.govt.nz/info-services/sectors-industries/tourism/tourism-research-data/monthly-regional-tourism-estimates" target="_blank">Monthly Regional Tourism Estimates</a>.
+headerTitle: spend by visitors in $area$ {on $detail$}
+slices:
+  - tourism spend($m) by origin feature sum
+  - tourism spend($m) by origin
+  # - tourism spend by origins and by products
+summaryTitle: spend by visitors from $feature$ {on $detail$}, for the year to $yearEndMonth$ $year$
+headlineNumCaption: total tourism spend by visitors from $feature$ to $area$, for the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >
+    tourism spend {on $detail$} in $area$ by visitors from $feature$, in the year to $yearEndMonth$ $year$.
+  transform: regionalPercentage
+nationalNum:
+  caption: >
+    tourism spend {on $detail$} by visitors from $feature$ in $area$ as a percentage of the  New Zealand spend, for the year to $yearEndMonth$ $year$.
+  transform: nationalPercentage
+units: milliondollars
+valueType: quantity
+featureName: origin
+featureDropdownLabel: select an origin
+# topFeatureLabel: all origins
+detailName: product
+topDetailLabel: all products
+rightChart: treemap
+absoluteLabel: spend
+charts:
+  - type: map
+    title: >
+      spend by visitors from $feature${ on $detail$}, for the year to $yearEndMonth$ $year$ 
+    transforms:
+      - name: regionalPercentage
+        caption: percentage of spend
+        formatter: percentage
+    facets:
+      - year
+      - feature
+      - detail
+
+  - type: treemap
+    title: origin of spend {on $detail$} by visitors to $area$, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: Millions of dollars
+    facets:
+      - year
+      - area
+      - detail
+
+  - type: timeseries
+    title: spend {on $detail$} from $feature$, by year
+    transforms:
+      - name: indexed
+        caption: spend, relative to $firstYear$
+      - name: absolute
+        caption: spend, millions of dollars
+      - name: percapita
+        caption: spend, per 10,000 residents
+    facets:
+      - feature
+      - detail
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: >
+      origin of spend {on $detail$} by $featureType$ visitors to $area$,
+      for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: spend, millions of dollars
+    facets:
+      - year
+      - area
+      - detail

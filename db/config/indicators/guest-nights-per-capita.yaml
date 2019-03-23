@@ -1,0 +1,52 @@
+name: guest nights per capita
+language-config:
+  subject-quantity: number 
+  subject-short: guest nights per capita
+themes:
+  - tourism
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/industry_sectors/accommodation/info-releases.aspx" target="_blank">Accommodation Survey</a>.
+notes:
+  - Commercial guest nights including domestic and international visitor guest nights, expressed as a proportion of the resident population. The figures are annual average figures.
+headerTitle: guest nights per capita in $area$
+slices:
+  - guest nights per resident population
+summaryTitle: guest nights per capita in $area$, in year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  the number of guest nights per capita in $area$, in year to $yearEndMonth$ $year$.
+localNum:
+  caption: >-
+    the percentage change in the number of guest nights per capita in $area$, between the year to $yearEndMonth$ $prevYear$ and $year$.
+  transform: rate
+nationalNum:
+  caption: >-
+    the ratio of the number of guest nights per capita in $area$ to the national value, in year to $yearEndMonth$ $year$.
+  transform: ratioNZ
+units: count
+valueType: aggregate
+absoluteLabel: Per capita
+charts:
+  - type: map
+    title: >-
+      guest nights per capita, in year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute
+        caption: guest nights per capita
+    facets:
+      - year
+  - type: timeseries
+    title: guest nights per capita, by year
+    transforms:
+      - name: absolute
+        caption: guest nights per capita
+      - name: indexed
+        caption: guest nights per capita, relative to $firstYear$
+    order:
+      - area
+      - year
+  - type: barchart
+    title: guest nights per capita, in year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: guest nights per capita
+    facet:
+      - year

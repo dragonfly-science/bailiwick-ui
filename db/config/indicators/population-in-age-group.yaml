@@ -1,0 +1,70 @@
+name: population by age group
+language-config:
+  subject: population
+  feature-accessor: in the
+  feature-label: age group
+themes:
+  - population
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/population/estimates_and_projections/subnational-pop-estimates-tables.aspx" target="_blank">Subnational Population Estimates</a>.
+notes:
+  - This is the estimated resident population at 30 June in each year, summaries age group. Subnational population estimates at 30 June were obtained by updating the census night base population of each area for births, deaths, and net migration.
+headerTitle: population by age group in $area$
+slices:
+  - share of population in age group
+summaryTitle: Population in the $feature$ age group in $area$, at 30 June $year$
+headlineNumCaption: >-
+  the percentage of the population in the $feature$ age group in $area$, at 30 June $year$.
+localNum:
+  caption: >-
+    the change in the percentage of the population in the $feature$ age
+    group in $area$,  between 30 June $prevYear$ and $year$.
+  transform: difference 
+nationalNum:
+  caption: >-
+    the ratio of the percentage of the population in the $feature$ age
+    group in $area$  to the New Zealand percentage, at 30 June $year$.
+  transform: ratioNZ
+units: percentage
+valueType: aggregate
+barchartLabelWidth: 180
+absoluteLabel: percent
+featureOrder:
+  - 0-14-years
+  - 15-24-years
+  - 25-64-years
+  - 65-years-and-over
+charts:
+  - type: map
+    title: >-
+      People in the $feature$ age group, at 30 June $year$
+    transforms:
+      - name: absolute
+        caption: Percentage of people
+    facets:
+      - year
+  - type: timeseries
+    title: people in the $feature$ age group, by year
+    transforms:
+      - name: absolute
+        caption: Percentage of people
+      - name: indexed
+        caption: Percentage of people,  relative to $firstYear$
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: >-
+      people in each age group
+      in $area$, at 30 June $year$
+    transforms:
+      - name: absolute-tree
+        caption: Percentage of people
+    facet:
+      - year
+    axis:
+      - 0-14-years
+      - 15-24-years
+      - 25-64-years
+      - 65-years-and-over
+

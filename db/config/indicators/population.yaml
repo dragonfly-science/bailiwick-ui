@@ -1,0 +1,54 @@
+name: population estimates
+language-config:
+  subject: estimated resident population
+themes:
+  - population
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/population/estimates_and_projections/subnational-pop-estimates-tables.aspx" target="_blank">Subnational Population Estimates</a>.
+notes:
+  - This is the estimated resident population at 30 June in each year. Subnational population estimates at 30 June were obtained by updating the census night base population of each area for births, deaths, and net migration.
+headerTitle: population in $area$
+slices:
+  - estimated resident population
+summaryTitle: population in $area$ in $year$
+headlineNumCaption: the estimated resident population in $area$, at 30 June $year$.
+localNum:
+  caption: >
+    the increase in estimated resident population in $area$, between 30 June $prevYear$ and $year$.
+  transform: rate
+nationalNum:
+  caption: >
+    the percentage of the total estimated resident population for New Zealand
+    that was in $area$, at 30 June $year$. 
+  transform: nationalPercentage
+units: count
+valueType: quantity
+absoluteLabel: population
+charts:
+  - type: map
+    title: >
+      change in population between $prevYear$ and $year$
+    transforms:
+      - name: rate
+        caption: Percentage change in population between $prevYear$ and $year$
+    facets:
+      - year
+
+  - type: timeseries
+    title: >
+      estimated resident population, by year
+    transforms:
+      - name: indexed
+        caption: population, relative to $firstYear$
+      - name: absolute
+        caption: number of people
+    order:
+      - area
+      - year
+  - type: barchart
+    title: >
+      Estimated resident population, at 30 June $year$
+    transforms:
+      - name: absolute-tree
+        caption: estimated resident population
+    facet:
+      - year

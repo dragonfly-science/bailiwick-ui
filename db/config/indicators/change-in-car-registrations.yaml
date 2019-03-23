@@ -1,0 +1,57 @@
+name: new car registrations
+language-config:
+  subject-quantity: number
+  subject-short: new cars first registered
+themes:
+  - economic
+source: NZTA <a href="http://www.nzta.govt.nz/resources/registration-statistics/" target="_blank">car registrations</a>.
+headerTitle: new car registrations in $area$
+slices:
+  - annual number of new cars first registered
+summaryTitle: new cars first registered in $area$ in $year$
+headlineNumCaption: >
+  the number of new cars first registered in $area$ in $year$.
+localNum:
+  caption: >
+    the percentage change in new cars first registered in $area$, from $prevYear$ to $year$.
+  transform: rate
+nationalNum:
+  caption: >
+    the percentage of the total number of new cars first registered in New Zealand which were registered in $area$, for $year$.
+  transform: nationalPercentage
+units: count
+valueType: quantity
+tooltipExtra: new cars registered
+absoluteLabel: Cars
+charts:
+  - type: map
+    title: >
+      change in new car registrations between $prevYear$ and $year$
+    transforms:
+      - name: rate
+        caption: percentage change
+    facets:
+      - year
+
+  - type: timeseries
+    title: >
+      new car registrations, by year
+    transforms:
+      - name: percapita
+        caption: car registrations per 10,000 people
+      - name: absolute
+        caption: number of car registrations
+      - name: indexed
+        caption: number of car registrations, relative to $firstYear$
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: >
+      new car registrations, for $year$
+    transforms:
+      - name: absolute-tree
+        caption: number of car registrations
+    facet:
+      - year

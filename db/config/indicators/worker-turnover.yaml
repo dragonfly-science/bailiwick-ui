@@ -1,0 +1,59 @@
+name: quarterly turnover rate
+language-config:
+  subject: annual-average quarterly worker turnover rate
+  subject-quantity: turnover rate
+themes:
+  - workforce
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/leed" target="_blank">Linked Employer-Employee Data (LEED)</a>.
+notes:
+  - Annual average of quarterly worker turnover rates. Worker turnover is a measure of the number of people starting and finishing jobs in a quarter, relative to the total number of jobs. A lower worker turnover indicates more stability. Data may be suppressed for some regions in some years. Results are subject to large sample errors, especially in smaller regions.
+headerTitle: worker turnover [in $feature$] in $area$
+slices:
+  - annual average worker turnover rate by industry
+  - annual average worker turnover rate
+summaryTitle: quarterly worker turnover rate [in $feature$] in $area$, in the year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  the annual-average quarterly worker turnover rate [in $feature$] in $area$, in the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >-
+    the change in the annual-average quarterly worker turnover rate [in
+    $feature$] in $area$, between $prevYear$ and $year$ (year to $yearEndMonth$).
+  transform: difference 
+nationalNum:
+  caption: >-
+    the ratio of the annual-average quarterly worker turnover rate [in $feature$] in $area$ to the 
+    national rate, for the year to $yearEndMonth$ $year$.
+  transform: ratioNZ
+units: percentage
+valueType: aggregate
+absoluteLabel: rate
+topFeatureLabel: all industries
+featureDropdownLabel: select an industry
+barchartLabelWidth: 240
+barchartTicks: 3
+charts:
+  - type: map
+    title: >-
+      worker turnover[ in $feature$], for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute
+        caption: annual-average quarterly turnover rate
+    facets:
+      - year
+  - type: timeseries
+    title: worker turnover[ in $feature$], by year
+    transforms:
+      - name: absolute
+        caption: annual-average quarterly turnover rate
+      - name: indexed
+        caption: annual-average quarterly turnover rate, relative to $firstYear$
+    order:
+      - area
+      - year
+  - type: barchart
+    title: worker turnover[ in $feature$] in $area$, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: annual-average quarterly turnover rate
+    facet:
+      - year

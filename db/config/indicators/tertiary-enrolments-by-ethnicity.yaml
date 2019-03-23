@@ -1,0 +1,67 @@
+name: enrolments by ethnicity
+language-config:
+  subject: tertiary enrolments
+  feature-accessor: identifying as
+  subject-accessor: ""
+themes:
+  - education
+source: Tertiary Education Commission.
+notes:  
+  - Data for regions (including TAs) has been derived from a mix of student-related indicators such as secondary school location, postcode of student's term or permanent address, and provider delivery site. Numbers should be taken as indicative only.
+  - Ethnicity is self-reported and where students identify with more than one ethnicity they will be counted more than once. Students not reporting an ethnicity are not counted.
+  - MELAA refers to Middle-Eastern, Latin American or African ethnicity.
+headerTitle: tertiary enrolments by ethnicity in $area$
+slices:
+  - tertiary enrolments by ethnicity (domestic)
+summaryTitle: all[ $feature$] tertiary enrolments in $area$, in the year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  tertiary enrolments identifying as $feature$ in $area$, in the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >
+    the percentage of all tertiary enrolments identifying as $feature$ in $area$, for the year to $yearEndMonth$ $year$.
+  transform: regionalPercentage
+nationalNum:
+  caption: >
+    the percentage of the total tertiary enrolments identifying as $feature$ for New Zealand
+    that was in $area$, in the year to $yearEndMonth$. 
+  transform: nationalPercentage
+units: count
+valueType: quantity
+absoluteLabel: people
+featureDropdownLabel: select an ethnicity
+featureName: ethnicity
+barchartLabelWidth: 140
+barchartTicks: 3
+charts:
+  - type: map
+    title: >-
+      the percentage of all tertiary enrolments identifying as $feature$, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: regionalPercentage
+        caption: percentage of all tertiary enrolments identifying as $feature$
+    facets:
+      - year
+  - type: timeseries
+    title: tertiary enrolments identifying as $feature$, by year
+    transforms:
+      - name: percapita
+        caption: per capita tertiary enrolments 
+      - name: absolute
+        caption: all tertiary enrolments
+      - name: indexed
+        caption: all tertiary enrolments, relative to $firstYear$
+    order:
+      - area
+      - year
+  - type: barchart
+    title: all tertiary enrolments identifying as $feature$ in $area$, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: tertiary enrolments
+      - name: percentage-tree
+        caption: percentage of tertiary enrolments
+    facet:
+      - year
+
+
+

@@ -1,0 +1,65 @@
+name: provision by sub-sector
+language-config:
+  subject: tertiary enrolments
+  feature-accessor: in
+  subject-accessor: ""
+themes:
+  - education
+source: Tertiary Education Commission.
+notes:
+  - Equivalent full-time students (EFTS) are the main unit of measure of the consumption of education (with one student enrolled in a standard programme of study full-time for the full year equating to 1.0 EFTS).
+  - Standard training measure (STM) is the main unit of measurement of the consumption of training (one STM equals the amount of training required to achieve 120 register credits).
+headerTitle: tertiary provision by $feature$ in $area$
+slices:
+  - tertiary provision by provider
+  - tertiary provision by provider - margin
+summaryTitle: tertiary provision (EFTS and STMs)[ by $feature$] in $area$, in the year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  tertiary provision (EFTS and STMs)[ by $feature$] in $area$, in the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >
+    the percentage of tertiary provision (EFTS and STMs) in $area$[ by $feature$], for the year to $yearEndMonth$ $year$.
+  transform: regionalPercentage
+nationalNum:
+  caption: >
+    the percentage of tertiary provision (EFTS and STMs)[ by $feature$] for New Zealand
+    that was in $area$, in the year to $yearEndMonth$ $year$.
+  transform: nationalPercentage
+units: count
+valueType: quantity
+absoluteLabel: students
+featureDropdownLabel: select a provider sub-sector
+topFeatureLabel: all provider sub-sectors
+featureName: provider sub-sector
+barchartLabelWidth: 240
+barchartTicks: 3
+charts:
+  - type: map
+    title: >-
+      percentage of tertiary provision (EFTS and STMs)[ by $feature$], for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: regionalPercentage
+        caption: percentage of provision by $feature$
+    facets:
+      - year
+  - type: timeseries
+    title: tertiary provision[ by $feature$], by year
+    transforms:
+      - name: percapita
+        caption: per capita tertiary provision (EFTS and STMs)
+      - name: absolute
+        caption: tertiary provision (EFTS and STMs)
+    order:
+      - area
+      - year
+  - type: barchart
+    title: tertiary provision (EFTS and STMs)[ by $feature$] in $area$, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: tertiary provision (EFTS and STMs)
+      - name: percentage-tree
+        caption: percentage of tertiary provision (EFTS and STMs)
+    facet:
+      - year
+
+

@@ -1,0 +1,50 @@
+name: underutilisation rate
+language-config:
+  subject: underutilisation rate
+themes:
+  - workforce
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/income-and-work/employment_and_unemployment/labour-market-statistics-information-releases.aspx" target="_blank">Household Labour Force Survey</a>.
+notes:
+  - The underutilisation rate expresses the number of underutilised persons relative to the size of the extended labour force, where the extended labour force is the total of the labour force (i.e. the number of persons employed and unemployed) and the potential labour force. Data may be suppressed for some regions in some years. Results are subject to large sample errors, especially in smaller regions.
+headerTitle: underutilisation rate in $area$
+slices:
+  - underutilisation rate
+summaryTitle: underutilisation rate in $area$ in the year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  the underutilisation rate in $area$ in the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >-
+    the change in underutilisation rate in $area$
+    between $prevYear$ and $year$ (year to $yearEndMonth$).
+  transform: difference 
+nationalNum:
+  caption: >-
+    the ratio of the underutilisation rate in $area$ to the New Zealand underutilisation rate, for the year to $yearEndMonth$ $year$.
+  transform: ratioNZ
+units: percentage
+valueType: aggregate
+absoluteLabel: underutilisation rate
+charts:
+  - type: map
+    title: >-
+      underutilisation rate, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute
+        caption: percentage of labour force
+    facets:
+      - year
+  - type: timeseries
+    title: underutilisation rate, by year
+    transforms:
+      - name: absolute
+        caption: percentage of labour force
+    order:
+      - area
+      - year
+  - type: barchart
+    title: underutilisation rate, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: percentage of labour force
+    facet:
+      - year

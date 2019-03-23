@@ -1,0 +1,50 @@
+name: population
+themes:
+  - population
+headerTitle: population in $area$
+slices:
+  - estimated resident population
+summaryTitle: population in $area$ in $year$
+headlineNumCaption: the estimated resident population in $area$ in $year$
+localNum:
+  caption: >
+    the increase in estimated resident population in $area$ since $prevYear$
+  transform: rate
+nationalNum:
+  caption: >
+    the percentage of the total estimated resident population for New Zealand
+    in $year$ that is in $area$
+  transform: nationalPercentage
+units: count
+absoluteLabel: population
+charts:
+  - type: map
+    title: >
+      change in population between $prevYear$ and $year$
+    captions:
+      - key: shading
+        text: >
+          areas are shaded based on the change in estimated resident population
+          between $prevYear$ and $year$
+    transforms:
+      - rate
+    facets:
+      - year
+
+  - type: timeseries
+    title: >
+      population time series for the different areas of New Zealand
+    transforms:
+      - indexed
+      - absolute
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: >
+      population in $year$ in different areas of New Zealand
+    transforms:
+      - absolute-tree
+    facet:
+      - year

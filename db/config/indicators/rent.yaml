@@ -1,0 +1,59 @@
+name: mean weekly rent
+language-config:
+  subject: mean weekly rent
+themes:
+  - housing
+source: MBIE <a href="http://www.mbie.govt.nz/info-services/housing-property/sector-information-and-statistics/rental-bond-data" target="_blank">Tenancy Bond Database</a>.
+notes:
+  - Annual average figures.
+headerTitle: weekly rent in $area$
+slices:
+  - mean weekly rent
+summaryTitle: weekly rent in $area$, for the year to $yearEndMonth$ $year$
+headlineNumCaption: the estimated mean weekly rent in $area$, for the year to $yearEndMonth$ $year$.
+note: >
+    These data are annual mean weekly rent. The data come from MBIE's tenancy bond database, which records all new rental bonds that are lodged with MBIE each month. 
+localNum:
+  caption: >
+    the increase in estimated mean weekly rent in $area$, between the year to $yearEndMonth$ $prevYear$
+    and $year$.
+  transform: rate
+nationalNum:
+  caption: >
+    the ratio of the mean weekly rent in $area$ to the
+    New Zealand average, for the year to $yearEndMonth$ $year$.  
+  transform: ratioNZ
+units: dollars
+valueType: aggregate
+absoluteLabel: rent
+charts:
+  - type: map
+    title: >
+       weekly rent, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute
+        caption: mean weekly rent
+    facets:
+      - year
+
+  - type: timeseries
+    title: weekly rent, by year
+    transforms:
+      - name: absolute
+        caption: mean weekly rent
+      - name: indexed
+        caption: mean weekly rent, relative to $firstYear$
+        formatter: indexed
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: >
+      weekly rent, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: mean weekly rent
+    facet:
+      - year
+

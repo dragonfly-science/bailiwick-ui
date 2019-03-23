@@ -1,0 +1,61 @@
+name: earnings by industry
+language-config:
+  subject: median annual earnings
+  subject-short: median
+themes:
+  - social & income
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/leed" target="_blank">Linked Employer-Employee Data</a>.
+notes: 
+  - Median annual earnings from wages and salaries or self-employment. Data may be suppressed for some regions.
+headerTitle: earnings [in $feature$] in $area$
+slices:
+  - median annual earnings by industry (ANZSIC06)
+summaryTitle: >-
+  median annual earnings [in $feature$] in
+  $area$, for $year$
+headlineNumCaption: >-
+  the median annual earnings [for individuals working in $feature$] in $area$, for $year$.
+localNum:
+  caption: >-
+    the percentage change in median annual earnings between $prevYear$ and $year$,
+    [for individuals working in $feature$,] in $area$.
+  transform: rate
+nationalNum:
+  caption: >-
+    the ratio of the median annual earnings 
+    in $area$ to the national median, 
+    [for individuals working in $feature$,]
+    for $year$.
+  transform: ratioNZ
+units: dollars
+valueType: aggregate
+absoluteLabel: Earnings
+barchartLabelWidth: 240
+charts:
+  - type: map
+    title: >-
+      earnings [in $feature$,] for $year$
+    transforms:
+      - name: absolute
+        caption: Median annual earnings
+    facets:
+      - year
+  - type: timeseries
+    title: change in earnings [in $feature$]
+    transforms:
+      - name: absolute
+        caption: Median annual earnings
+      - name: indexed
+        caption: Median annual earnings, indexed to $firstYear$
+        formatter: indexed
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: median earnings in $area$, for $year$
+    transforms:
+      - name: absolute-tree
+        caption: Median annual earnings
+    facet:
+      - year

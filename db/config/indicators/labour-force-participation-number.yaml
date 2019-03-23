@@ -1,0 +1,52 @@
+name: labour force participation number
+language-config:
+  subject: labour force participation number
+themes:
+  - workforce
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/income-and-work/employment_and_unemployment/labour-market-statistics-information-releases.aspx" target="_blank">Household Labour Force Survey</a>.
+notes:
+  - The labour force participation is the total labour force (including both employed and unemployed). These are annual average figures. Results are subject to large sample errors, especially in smaller regions.
+headerTitle: labour force participation number in $area$
+slices:
+  - labour force participation
+summaryTitle: labour force participation number in $area$ in the year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  the labour force participation number in $area$ in the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >
+    the increase in labour force participation number in $area$, between $prevYear$ and $year$.
+  transform: rate
+nationalNum:
+  caption: >
+    the percentage of the labour force participation number in $area$ in New Zealand
+  transform: nationalPercentage
+units: count
+valueType: quantity
+absoluteLabel: labour force participation number
+charts:
+  - type: map
+    title: >-
+      labour force participation number, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: rate
+        caption: Percentage change in labour force participation number between $prevYear$ and $year$
+    facets:
+      - year
+  - type: timeseries
+    title: labour force participation number, by year
+    transforms:
+      - name: absolute
+        caption: labour force participation number
+      - name: indexed
+        caption: labour force participation number indexed to $firstYear$
+        formatter: indexed		  
+    order:
+      - area
+      - year
+  - type: barchart
+    title: labour force participation number, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: labour force participation number
+    facet:
+      - year

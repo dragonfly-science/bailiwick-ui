@@ -1,0 +1,80 @@
+- name: social & income
+  indicators:
+    - household income (mean)
+    - household income (median)
+    - household income distribution
+    - earnings by industry
+    - income estimates by age
+    - income estimates by sex
+    - deprivation index
+    - internet
+    - crime victimisation
+- name: housing
+  indicators:
+    - mean weekly rent
+    - mean house value
+    - new dwellings
+    - housing affordability measure (Buy)
+    - housing affordability measure (Rent)
+- name: workforce rates
+  indicators:
+    - employment rate
+    - labour force participation rate
+    - NEET rate
+    - unemployment rate
+    - underutilisation rate
+    - quarterly turnover rate
+# - name: workforce totals
+  # indicators:
+    # - employment number
+    # - labour force participation number
+    # - NEET number
+    # - unemployment number
+    # - underutilisation number
+    # - working age population
+    # - employment by industry
+    # - employment by occupation
+- name: school education
+  indicators:
+    - national standards achievement
+    - NCEA level 2 rate (18-year-olds)
+    - school leavers by NCEA level
+    - school leavers by ethnicity
+- name: tertiary education
+  indicators:
+    - provision by level
+    - provision by sub-sector
+    - enrolments by age
+    - enrolments by ethnicity
+    - qualification completions by level
+- name: population
+  indicators:
+    - population estimates
+    - population projections
+    - international migration 
+    - population by ethnicity
+    - population by age group
+    - rural - urban proportions
+#    - life expectancy at birth by sex
+- name: economic
+  indicators:
+    - GDP per capita
+    - GDP by industry
+    - businesses by employees
+    - new building consents
+    - new car registrations
+    - retail trade	 
+- name: agriculture
+  indicators:
+    - agricultural share of regional GDP
+    - area in farms
+    - primary sector shares of regional GDP
+- name: tourism
+  indicators:
+    - guest nights per capita
+    - accommodation occupancy rate
+    - tourism spend
+    - international visitor nights
+    - international visits
+
+

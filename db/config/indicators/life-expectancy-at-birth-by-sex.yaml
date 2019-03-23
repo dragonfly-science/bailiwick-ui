@@ -1,0 +1,61 @@
+name: life expectancy at birth by sex
+language-config:
+  subject: Life expectancy at birth, by sex
+  subject-short: life expectancy at birth
+themes:
+  - population
+source: Stats NZ <a href="http://archive.stats.govt.nz/browse_for_stats/health/life_expectancy/subnational-period-life-tables-info-releases.aspx" target="_blank">Subnational Period Life Tables</a>. 
+notes: 
+headerTitle: Life expectancy at birth [of $feature$] in $area$
+slices:
+  - life expectancy at birth, by sex
+summaryTitle: >-
+  Life expectancy at birth [of $feature$] in $area$, for $year$
+headlineNumCaption: >-
+  Life expectancy at birth [of $feature$] in $area$, for $year$.
+localNum:
+  caption: >-
+    The percentage change in life expectancy at birth [of $feature$] in $area$, from $prevYear$ to $year$.
+  transform: rate
+nationalNum:
+  caption: >-
+    The ratio of the life expectancy at birth [of $feature$] in $area$ to the national number in $year$.
+  transform: ratioNZ
+units: count
+valueType: aggregate
+absoluteLabel: Life Expectancy at Birth
+barchartLabelWidth: 240
+featureOrder:
+  - females
+  - males
+charts:
+  - type: map
+    title: >-
+      Life expectancy at birth [of $feature$], for $year$
+    transforms:
+      - name: absolute
+        caption: Life Expectancy at Birth
+    facets:
+      - year
+  - type: timeseries
+    title: change in life expectancy at birth [of $feature$]
+    transforms:
+      - name: absolute
+        caption: Life Expectancy at Birth
+      - name: indexed
+        caption: Life Expectancy at Birth, indexed to $firstYear$
+        formatter: indexed
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: Life Expectancy at Birth [of $feature$] in $area$, in $year$
+    transforms:
+      - name: absolute-tree
+        caption: Life Expectancy at Birth
+    facet:
+      - year
+    axis:
+      - females
+      - males

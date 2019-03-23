@@ -1,0 +1,63 @@
+name: NCEA level 2 rate (18-year-olds)
+language-config:
+  subject: NCEA level 2 attainment rate for 18-year-olds
+  subject-quantity: attainment rate
+  feature-accessor: identifying as
+themes:
+  - education
+source: Ministry of Education <a href="http://www.educationcounts.govt.nz/statistics/schooling/senior-student-attainment/18-year-olds-with-level-2-or-equivalent" target="_blank">Senior Student Attainment 18-year-olds</a>.
+notes:
+  - The National Certificates of Educational Achievement (NCEA) are New Zealand's main secondary school qualifications. NCEA level 2 is usually studied in year 12 of schooling. The NCEA level 2 attainment rate is 
+    the percentage of participating students who achieve level 2. 
+  - Better Public Services' Result 5 is to increase the proportion of 18-year-olds with NCEA Level 2 or equivalent qualification. The target is 85% of 18-year-olds will have achieved NCEA Level 2 or an equivalent qualification in 2017.
+  - MELAA refers to Middle-Eastern, Latin American or African ethnicity. These are annual figures.
+headerTitle: NCEA level 2 attainment rate for 18-year-olds [for $feature$ ethnicities] in $area$
+slices:
+  - all ethnicities NCEA level 2 attainment rates for 18-year-olds
+  - by ethnicity NCEA level 2 attainment rates for 18-year-olds
+summaryTitle: NCEA level 2 attainment [for $feature$ ethnicities] in $area$, for $year$
+headlineNumCaption: >-
+  the NCEA level 2 attainment rate [for $feature$ ethnicities] in $area$, for $year$.
+localNum:
+  caption: >-
+    the change in the NCEA level 2 attainment rate for 18-year-olds
+    [for $feature$] in $area$, between $prevYear$ and $year$.
+  transform: difference
+nationalNum:
+  caption: >-
+    the ratio of the NCEA level 2 attainment rate for 18-year-olds [for $feature$ ethnicities]
+    in $area$ to the national rate, for $year$.
+  transform: ratioNZ
+units: percentage
+valueType: aggregate
+absoluteLabel: rate
+featureName: ethnicity
+featureDropdownLabel: select an ethnicity
+topFeatureLabel: all ethnicities
+rightChart: barchart
+charts:
+  - type: map
+    title: >-
+        the NCEA level 2 attainment rate for 18-year-olds[ for $feature$ ethnicities], for $year$
+    transforms:
+      - name: absolute
+        caption: Percentage of participating students 
+    facets:
+      - year
+  - type: timeseries
+    title: NCEA level 2 attainment rate for 18-year-olds[ for $feature$ ethnicities], by year
+    transforms:
+      - name: absolute
+        caption: Percentage of participating students 
+      - name: indexed
+        caption: Attainment rate, relative to $firstYear$ 
+    order:
+      - area
+      - year
+  - type: barchart
+    title: NCEA level 2 attainment rate for 18-year-olds in $area$, for $year$
+    transforms:
+      - name: absolute-tree
+        caption: Percentage of participating students 
+    facet:
+      - year

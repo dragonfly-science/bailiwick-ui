@@ -1,0 +1,73 @@
+name: businesses by employees
+language-config:
+  subject-quantity: number
+  subject-short: businesses
+  feature-accessor: which had
+  feature-label: employees
+themes:
+  - economic
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/businesses/business_characteristics/nz-business-demography-statistics-info-releases.aspx" target="_blank">NZ Business Demography Statistics</a>.
+notes:
+  - Businesses are individual operations engaged in predominantly one kind of economic activity from a single location. Single owner-operator businesses have no employees.
+headerTitle: Businesses [with $feature$ employees] in $area$
+slices:
+  - business units by firm size
+summaryTitle: Businesses [with $feature$ employees] in $area$ in $year$
+headlineNumCaption: >-
+  the number of businesses [with $feature$ employees] in $area$ in $year$.
+localNum:
+  caption: >-
+    the percentage of businesses in $area$ which had $feature$ employees in $year$.
+  transform: regionalPercentage
+nationalNum:
+  caption: >-
+    the percentage of the total number of businesses with $feature$ employees which were in $area$ in $year$.
+  transform: nationalPercentage
+units: count
+valueType: quantity
+absoluteLabel: businesses
+rightChart: barchart
+featureOrder:
+  - "0"
+  - 1-to-5
+  - 6-to-9
+  - 10-to-19
+  - 20-to-49
+  - 50-to-99
+  - 100plus
+charts:
+  - type: map
+    title: >-
+      businesses in $area$ with $feature$ employees, for $year$
+    transforms:
+      - name: regionalPercentage
+        caption: Percentage of businesses
+    facets:
+      - year
+  - type: timeseries
+    title: businesses with $feature$ employees, by year
+    transforms:
+      - name: absolute
+        caption: Number of businesses
+      - name: indexed
+        caption: Number of businesses, relative to $firstYear$
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: businesses with $feature$ employees in $area$, for $year$
+    transforms:
+      - name: absolute-tree
+        caption: Number of businesses
+    facet:
+      - year
+    axis:
+      - "0"
+      - 1-to-5
+      - 6-to-9
+      - 10-to-19
+      - 20-to-49
+      - 50-to-99
+      - 100plus
+

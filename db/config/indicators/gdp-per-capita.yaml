@@ -1,0 +1,55 @@
+name: GDP per capita
+language-config:
+  subject: GDP per capita
+themes:
+  - economic
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/economic_indicators/NationalAccounts/regional-gdp-info-releases.aspx" target="_blank">Regional GDP</a> and MBIE <a href="http://www.mbie.govt.nz/info-services/sectors-industries/regions-cities/research/modelled-territorial-authority-gross-domestic-product" target="_blank">Modelled Territorial Authority Gross Domestic Product (MTAGDP)</a>.
+notes:
+  - Nominal Gross Domestic Product (GDP). Regional Council estimates are derived by Statistics New Zealand, based on the Annual Enterprise Survey, Linked Employer–Employee Data, Crown Financial Information System, and Local Authority Census. Territorial Authority level GDP is modelled by MBIE. 
+headerTitle: GDP per capita in $area$
+slices:
+  - GDP per capita (annual-mar)
+summaryTitle: GDP per capita in $area$ for the year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  the GDP per capita in $area$ for the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >-
+    the percentage change in the GDP per capita in $area$
+    between $prevYear$ and $year$, year to $yearEndMonth$.
+  transform: rate
+nationalNum:
+  caption: >-
+    the ratio of the GDP per capita in $area$ to the national value, 
+    for the year to $yearEndMonth$ $year$.
+  transform: ratioNZ
+units: dollars
+valueType: aggregate
+absoluteLabel: Per capita
+charts:
+  - type: map
+    title: >-
+      GDP per capita, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute
+        caption: GDP per capita for the year to $yearEndMonth$ $year$
+    facets:
+      - year
+  - type: timeseries
+    title: Change in GDP per capita, for the year to $yearEndMonth$
+    transforms:
+      - name: absolute
+        caption: GDP per capita
+      - name: indexed
+        caption: GDP per capita indexed to $firstYear$
+        formatter: indexed
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: GDP per capita, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: GDP per capita
+    facet:
+      - year

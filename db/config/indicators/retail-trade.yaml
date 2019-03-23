@@ -1,0 +1,58 @@
+name: retail trade
+language-config:
+  subject: annual actual retail sales values
+  labels:
+      original: annual actual retail sales values in millions of dollars
+      ratio-nz: Percentage change in annual actual retail sales values between $prevYear$ and $year$
+themes:
+  - economic
+source: Statistics New Zealand <a href="https://www.stats.govt.nz/information-releases/retail-trade-survey-march-2018-quarter" target="_blank">Retail Trade Survey</a> custom dataset.
+notes:
+  - The Retail Trade Survey series is based largely on GST data, that is supplemented with survey data for large businesses.
+headerTitle: annual actual retail sales values in $area$
+slices:
+  - annual actual retail sales values
+summaryTitle: annual actual retail sales values in $area$ for the year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  the annual actual retail sales values in $area$ for the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >-
+    the percentage change in the annual actual retail sales values in $area$
+    between $prevYear$ and $year$, year to $yearEndMonth$.
+  transform: rate
+nationalNum:
+  caption: >-
+    the ratio of the annual actual retail sales values in $area$ to the national value,
+    for the year to $yearEndMonth$ $year$.
+  transform: ratioNZ
+units: milliondollars
+valueType: aggregate
+absoluteLabel: Actual values
+charts:
+  - type: map
+    title: >-
+      annual actual retail sales values, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: rate
+        caption: Percentage change in annual actual retail sales values between $prevYear$ and $year$
+    facets:
+      - year
+  - type: timeseries
+    title: Change in annual actual retail sales values, for the year to $yearEndMonth$
+    transforms:
+      - name: absolute
+        caption: annual actual retail sales values in millions of dollars
+      - name: indexed
+        caption: annual actual retail sales values indexed to $firstYear$
+        formatter: indexed
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: annual actual retail sales values, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: annual actual retail sales values
+    facet:
+      - year

@@ -1,0 +1,48 @@
+name: Tourism Spend as share of GDP
+themes:
+  - tourism
+source: MBIE Regional Tourism Estimates. Statistics New Zealand Regional GDP for main regions (regional council regions). MBIE Modelled TA GDP estimates for sub-regions (territorial authorities).
+notes: Annual figures. Nominal GDP. Tourism spend is expressed as a share of GDP for regional comparison of the strength of tourism. Tourism spending is not a production measure.
+headerTitle: international tourism spend as a share of GDP in $area$
+slices:
+  - international tourism expenditure as a share of regional GDP
+summaryTitle: international tourism as a share of GDP in $area$ in year to March $year$
+headlineNumCaption: >-
+  international tourism expenditure as a share of GDP in $area$ in year to March $year$
+localNum:
+  caption: >-
+    the percentage point difference in international tourism expenditure as 
+    as share of GDP in $area$ that between year to March $prevYear$ and year 
+    to March $year$
+  transform: difference
+nationalNum:
+  caption: >-
+    the ratio of international tourism spend as a share of GDP in $area$ 
+    the national share in year to March $year$
+  transform: ratioNZ
+units: percentage
+absoluteLabel: Share
+noTA: true
+charts:
+  - type: map
+    title: >-
+      international tourism spend as a share of GDP in year to March $year$
+    transforms:
+      - name: absolute
+    facets:
+      - year
+  - type: timeseries
+    title: international tourism spend as share of GDP time series
+    transforms:
+      - name: absolute
+      - name: indexed
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: international tourism spend as a share of GDP in year to March $year$
+    transforms:
+      - name: absolute-tree
+    facet:
+      - year

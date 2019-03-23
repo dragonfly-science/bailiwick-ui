@@ -1,0 +1,55 @@
+name: deprivation index
+language-config:
+  subject: deprivation index
+themes:
+  - social & income
+source: University of Otago, <a href="http://www.otago.ac.nz/wellington/departments/publichealth/research/hirp/otago020194.html" target="_blank">NZDep</a>.
+notes:
+  - The New Zealand deprivation index is an index of socioeconomic deprivation based on census information. Meshblocks (the smallest geographic area defined by Statistics New Zealand) are assigned to deciles, with 1 representing least-deprived areas, and 10 representing most deprived areas. The population-weighted deprivation is calculated by a weighted-average of the meshblock-level deprivation index.
+headerTitle: deprivation index in $area$
+slices:
+  - population weighted average deprivation index
+summaryTitle: deprivation index in $area$, for$year$
+headlineNumCaption: >-
+  the population weighted deprivation index in $area$, for $year$.
+localNum:
+  caption: >-
+    the change in the population weighted deprivation index
+    in $area$, between $prevYear$ and $year$.
+  transform: difference
+nationalNum:
+  caption: >-
+    the ratio of the population weighted deprivation index in $area$
+    to the national mean, for $year$.
+  transform: ratioNZ
+units: float
+valueType: aggregate
+absoluteLabel: Deprivation
+period: 7
+charts:
+  - type: map
+    title: >-
+      deprivation index, for $year$
+    transforms:
+      - name: absolute
+        caption: deprivation index
+    facets:
+      - year
+  - type: timeseries
+    title: deprivation index, by year
+    transforms:
+      - name: absolute
+        caption: deprivation index
+      - name: indexed
+        caption: deprivation index, relative to $firstYear$
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: deprivation index, for $year$
+    transforms:
+      - name: absolute-tree
+        caption: deprivation index
+    facet:
+      - year

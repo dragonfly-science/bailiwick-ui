@@ -1,0 +1,67 @@
+name: income estimates by sex
+language-config:
+  subject: Median Income Estimates by sex
+  subject-short: median annual income
+themes:
+  - social & income
+source: Stats NZ <a href="http://innovation.stats.govt.nz/initiatives/experimental-estimates-of-income-from-linked-administrative-data-methods-and-results/" target="_blank">Experimental estimates of income from linked administrative data</a>. 
+notes: 
+  - These are Experimental estimates of personal income from wages and salaries and self-employment derived from the IDI. Access to the data used to produce these estimates was provided by Stats NZ under conditions designed to give effect to the security and confidentiality provisions of the Statistics Act 1975.
+  - Experimental estimates are <strong>not</strong> Official statistics. These experimental income estimates are published as an example of the type and quality of information about income that can currently be obtained from administrative data sources.
+  - These estimates include income from wages and salaries and self-employment only. Others sources of income are not included.
+  - Stats NZ is seeking feedback on the usefulness of the series to customers. Any feedback received will help to drive and support future development of this series of income estimates. To submit feedback, <a href="https://www.surveygizmo.com/s3/3881180/Experimental-income-estimates-from-linked-administrative-data-2017-release" target="_blank">please complete this form</a>. 
+headerTitle: Median annual income [of $feature$] in $area$
+slices:
+  - median income estimates by sex
+summaryTitle: >-
+  Median annual income [of $feature$] in $area$, for $year$
+headlineNumCaption: >-
+  Median annual income [of $feature$] in $area$, for $year$.
+localNum:
+  caption: >-
+    The percentage change in median annual income [of $feature$] in $area$, from $prevYear$ to $year$.
+  transform: rate
+nationalNum:
+  caption: >-
+    The ratio of the median annual income [of $feature$] in $area$ to the national number in $year$.
+  transform: ratioNZ
+units: dollars
+valueType: aggregate
+absoluteLabel: Median Annual Income
+barchartLabelWidth: 240
+featureOrder:
+  - females
+  - males
+  - both-sexes
+charts:
+  - type: map
+    title: >-
+      Median annual income [of $feature$], for $year$
+    transforms:
+      - name: absolute
+        caption: Median Annual Income
+    facets:
+      - year
+  - type: timeseries
+    title: change in median annual income [of $feature$]
+    transforms:
+      - name: absolute
+        caption: Median Annual Income
+      - name: indexed
+        caption: Median Annual Income, indexed to $firstYear$
+        formatter: indexed
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: Median Annual Income [of $feature$] in $area$, in $year$
+    transforms:
+      - name: absolute-tree
+        caption: Median Annual Income
+    facet:
+      - year
+    axis:
+      - females
+      - males
+      - both-sexes

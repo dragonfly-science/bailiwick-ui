@@ -1,0 +1,50 @@
+name: housing affordability measure (Rent)
+language-config:
+  subject: housing affordability measure (Rent)
+themes:
+  - housing
+source: MBIE <a href="http://www.mbie.govt.nz/info-services/housing-property/sector-information-and-statistics/housing-affordability-measure" target="_blank">Housing Affordability Measure</a>.
+notes:
+  - Annual average figures. Percentage of renting households in the region that have a residual income (income less housing costs) BELOW the benchmark 2013 national median residual income for ALL households. Higher percentage means less affordable housing.
+headerTitle: housing affordability measure (Rent) in $area$.
+slices:
+  - HAM rent
+summaryTitle: housing affordability measure (Rent) in $area$ in the year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  the housing affordability measure (Rent) in $area$ in the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >-
+    the change in housing affordability measure (Rent) in $area$
+    between $prevYear$ and $year$ (year to $yearEndMonth$).
+  transform: difference
+nationalNum:
+  caption: >-
+    the ratio of the housing affordability measure (Rent) in $area$ to the housing affordability measure (Rent) in New Zealand, in the year to $yearEndMonth$ $year$.
+  transform: ratioNZ
+units: percentage
+valueType: aggregate
+absoluteLabel: affordability
+charts:
+  - type: map
+    title: >-
+      housing affordability measure (Rent), for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute
+        caption: housing affordability measure (Rent)
+    facets:
+      - year
+  - type: timeseries
+    title: housing affordability measure (Rent), by year
+    transforms:
+      - name: absolute
+        caption: housing affordability measure (Rent)
+    order:
+      - area
+      - year
+  - type: barchart
+    title: housing affordability measure (Rent), for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: housing affordability measure (Rent)
+    facet:
+      - year

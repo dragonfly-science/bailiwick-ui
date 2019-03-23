@@ -1,0 +1,52 @@
+name: rent
+themes:
+  - housing
+headerTitle: rent in $area$
+slices:
+  - mean weekly rent
+summaryTitle: weekly rent in $area$ in $year$
+headlineNumCaption: the estimated mean weekly rent in $area$ in $year$
+note: >
+    From MBIE Bond database.
+localNum:
+  caption: >
+    the increase in estimated mean weekly rent in $area$ since $prevYear$
+  transform: rate
+nationalNum:
+  caption: >
+    the ratio of estimated mean weekly rent in $year$ in $area$ to
+    New Zealand 
+  transform: nationalPercentage
+units: dollars
+absoluteLabel: rent
+charts:
+  - type: map
+    title: >
+       weekly rent in $year$
+    captions:
+      - key: shading
+        text: >
+          areas are shaded based on estimated mean weekly rent in $year$
+    transforms:
+      - absolute
+    facets:
+      - year
+
+  - type: timeseries
+    title: >
+      change in rent
+    transforms:
+      - absolute
+      - indexed
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: >
+      rent in $year$ in different areas of New Zealand
+    transforms:
+      - absolute-tree
+    facet:
+      - year
+

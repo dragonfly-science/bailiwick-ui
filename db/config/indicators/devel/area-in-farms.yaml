@@ -1,0 +1,49 @@
+name: area in farms
+themes:
+  - agriculture
+headerTitle: area in farms in $year$
+slices:
+  - area in farms
+summaryTitle: Area of $area$ that is farmland in $year$
+headlineNumCaption: >-
+  the area of $area$ that was used for farming in $year$
+localNum:
+  caption: >-
+    the percentage change in the area used for farming in $area$
+    between $prevYear$ and $year$
+  transform: rate
+nationalNum:
+  caption: >-
+    the percentage of the total area farmed in New Zealand in $year$
+    that is in $area$
+  transform: nationalPercentage
+units: hectares
+absoluteLabel: Area
+noTA: true
+charts:
+  - type: map
+    title: change in farming area in $year$
+    captions:
+      - key: shading
+        text: >-
+          areas are shaded based on the change in farming area
+    transforms:
+      - rate
+    facets:
+      - year
+  - type: timeseries
+    title: area farmed over time
+    transforms:
+      - absolute
+      - indexed
+      - percapita
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: area farmed in $year$
+    transforms:
+      - absolute-tree
+    facet:
+      - year

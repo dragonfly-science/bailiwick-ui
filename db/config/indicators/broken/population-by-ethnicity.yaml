@@ -1,0 +1,51 @@
+name: ethnicity of population
+themes:
+  - population
+headerTitle: ethnicity of population in $area$
+slices:
+  - share of population of ethnicity (%)
+summaryTitle: share of population of ethnicity $feature$ in $area$ in $year$
+headlineNumCaption: >-
+  the percentage of the population in $year$ of ethnicity $feature$ in $area$
+localNum:
+  caption: >-
+    the change in the percentage of the population in $area$ of ethnicity
+    $feature$ between $prevYear$ and $year$
+  transform: rate
+nationalNum:
+  caption: >-
+    the ratio of the percentage of the population in $area$ of ethnicity
+    $feature$ to the New Zealand percentage in $year$
+  transform: ratioNZ
+units: percentage
+absoluteLabel: percent
+featureName: ethnicity
+featureDropdownLabel: Select an ethnicity
+charts:
+  - type: map
+    title: >-
+      the percentage of the population of ethnicity $feature$
+    captions:
+      - key: shading
+        text: >-
+          areas are shaded based on the percentage of the population of
+          ethnicity $feature$
+    transforms:
+      - absolute
+    facets:
+      - year
+  - type: timeseries
+    title: percentage of the population of ethnicity $feature$ over time
+    transforms:
+      - absolute
+      - indexed
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: percentage of different ethnicities in $area$ in $year$
+    transforms:
+      - absolute-tree
+    facet:
+      - year

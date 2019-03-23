@@ -1,0 +1,60 @@
+name: population by ethnicity
+language-config:
+  subject-quantity: number
+  subject-short: people
+  feature-accessor: identifying as
+themes:
+  - population
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/Census.aspx" target="_blank">Census data</a>.
+notes:
+  - Census night population estimates by ethnicity. People may identify as being of more than one ethnicity, and so percentages may add to over 100%. 
+  - The ethnicity MELAA includes people identifying as Middle-Eastern, Latin American, or African ethnicity. 
+headerTitle: ethnicity in $area$
+slices:
+  - share of population by ethnicity (%)
+summaryTitle: People identifying as $feature$ ethnicity in $area$ in  $year$
+headlineNumCaption: >-
+  the percentage of people in $area$ that identify as
+  being of $feature$ ethnicity in $year$.
+localNum:
+  caption: >-
+    the change in the percentage of people in $area$
+    that identify as being of $feature$ ethnicity, between $prevYear$
+    and $year$.
+  transform: difference
+nationalNum:
+  caption: >-
+    the ratio of the percentage of people that identify as
+    being of $feature$ ethnicity in $area$ to the national percentage in $year$.
+  transform: ratioNZ
+units: percentage
+valueType: aggregate
+absoluteLabel: percent
+rightChart: barchart
+period: 7
+charts:
+  - type: map
+    title: >-
+      People identifying as $feature$ ethnicity, for $year$
+    transforms:
+      - name: absolute
+        caption: Percentage of people 
+    facets:
+      - year
+  - type: timeseries
+    title: people identifying as $feature$ ethnicity, by year
+    transforms:
+      - name: absolute
+        caption: Percentage of people
+      - name: indexed
+        caption: Percentage of people, relative to $firstYear$ 
+    order:
+      - area
+      - year
+  - type: barchart
+    title: Ethnicity in $area$, for $year$
+    transforms:
+      - name: absolute-tree
+        caption: Percentage of people
+    facet:
+      - year

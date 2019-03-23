@@ -1,0 +1,57 @@
+name: median house price
+language-config:
+  subject: median house price
+themes:
+  - housing
+headerTitle: house price in $area$
+source: REINZ
+notes:
+  - Annual median figures. Calendar years. Median house price data is only available for regional councils. The <a href="/theme/mean-house-value">mean house value</a> indicator is a related indicator with data for territorial authorities.
+  - Source data are copyright REINZ, and are not licensed for reuse.
+slices:
+  - median house price
+summaryTitle: median house price in $area$ in $year$
+headlineNumCaption: >-
+  the median house price in $area$ in $year$
+localNum:
+  caption: >-
+    the percentage change in the median house price between
+    $prevYear$ and $year$ in $area$
+  transform: rate
+nationalNum:
+  caption: >-
+    the ratio of the median house price in $area$ to the
+    national median house price, in $year$
+  transform: ratioNZ
+units: dollars
+valueType: aggregate
+absoluteLabel: Price
+noTA: true
+charts:
+  - type: map
+    title: >-
+      house price, for $year$
+    transforms:
+      - name: absolute
+        caption: median house price
+    facets:
+      - year
+  - type: timeseries
+    title: house price, by year
+    transforms:
+      - name: absolute
+        caption: median house price
+      - name: indexed
+        caption: median house price, relative to $firstYear$
+        formatter: indexed
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: house price, for $year$
+    transforms:
+      - name: absolute-tree
+        caption: median house price
+    facet:
+      - year

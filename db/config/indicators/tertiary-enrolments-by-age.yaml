@@ -1,0 +1,73 @@
+name: enrolments by age
+language-config:
+  subject: tertiary enrolments
+  feature-accessor: aged
+  subject-accessor: ""
+themes:
+  - education
+source: Tertiary Education Commission.
+notes:
+  - Data for regions (including TAs) has been derived from a mix of student-related indicators such as secondary school location, postcode of student's term or permanent address, and provider delivery site. Numbers should be taken as indicative only.
+headerTitle: tertiary enrolments[ aged $feature$] from $area$
+slices:
+  - tertiary enrolments by age (domestic)
+  - tertiary enrolments by age (domestic) - margin
+summaryTitle: tertiary enrolments[ aged $feature$] from $area$, in $year$
+headlineNumCaption: >-
+  tertiary enrolments[ aged $feature$] from $area$, in $year$.
+localNum:
+  caption: >
+    the percentage of tertiary enrolments from $area$[ aged $feature$], for $year$.
+  transform: regionalPercentage
+nationalNum:
+  caption: >
+    the percentage of the total tertiary enrolments for New Zealand
+    that was from $area$, in $year$.
+  transform: nationalPercentage
+units: count
+valueType: quantity
+barchartTicks: 3
+absoluteLabel: Age group
+featureDropdownLabel: select an age group
+topFeatureLabel: all age groups
+featureName: age group
+featureOrder:
+  - under-21-years
+  - 21-24-years
+  - 25-years-and-over
+charts:
+  - type: map
+    title: >-
+      the percentage of tertiary enrolments[ aged $feature$], for $year$
+    transforms:
+      - name: regionalPercentage
+        caption: percentage of tertiary enrolments[ aged $feature$]
+    facets:
+      - year
+  - type: timeseries
+    title: tertiary enrolments[ aged $feature$], by year
+    transforms:
+      - name: percapita
+        caption: per capita tertiary enrolments 
+      - name: absolute
+        caption: tertiary enrolments
+      - name: indexed
+        caption: tertiary enrolments, relative to $firstYear$
+    order:
+      - area
+      - year
+  - type: barchart
+    title: tertiary enrolments[ aged $feature$] from $area$, for $year$
+    transforms:
+      - name: absolute-tree
+        caption: tertiary enrolments
+      - name: percentage-tree
+        caption: percentage of tertiary enrolments
+    axis:
+      - under-21-years
+      - 21-24-years
+      - 25-years-and-over
+    facet:
+      - year
+
+

@@ -1,0 +1,49 @@
+name: retail spending
+themes:
+  - economic
+headerTitle: retail spending in $area$
+slices:
+  - retail spending at paymark merchants
+summaryTitle: retail spending in $area$ in $year$
+headlineNumCaption: >-
+  the total retail spending at Paymark merchants in $area$ in $year$
+localNum:
+  caption: >-
+    the percentage change in retail spending at Paymark merchants in $area$
+    between $prevYear$ and $year$
+  transform: rate
+nationalNum:
+  caption: >-
+    the fraction of the total national retail spending at Paymark merchants
+    that was spent in $area$ in $year$
+  transform: nationalPercentage
+units: million dollars
+absoluteLabel: Spend
+charts:
+  - type: map
+    title: >-
+      change in retail spending between $prevYear$ and $year$
+    captions:
+      - key: shading
+        text: >-
+          areas are shaded based on the change in retail spending at Paymark
+          merchants between $prevYear$ and $year$
+    transforms:
+      - rate
+    facets:
+      - year
+  - type: timeseries
+    title: retail spending over time
+    transforms:
+      - indexed
+      - absolute
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: retail spending in $year$
+    transforms:
+      - absolute-tree
+    facet:
+      - year

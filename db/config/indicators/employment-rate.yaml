@@ -1,0 +1,50 @@
+name: employment rate
+language-config:
+  subject: employment rate
+themes:
+  - workforce
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/income-and-work/employment_and_unemployment/labour-market-statistics-information-releases.aspx" target="_blank">Household Labour Force Survey</a>.
+notes:
+  - The employment rate is the number of employed, as a percentage of the working-age population. These are annual average figures. Results are subject to large sample errors, especially in smaller regions.
+headerTitle: employment rate in $area$
+slices:
+  - employment rate, annual average
+summaryTitle: employment rate in $area$ in the year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  the percentage of working-age people employed in $area$ in the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >-
+    the change in employment rate in $area$
+    between $prevYear$ and $year$ (year to $yearEndMonth$).
+  transform: difference
+nationalNum:
+  caption: >-
+    the ratio of the employment rate in $area$ to the employment rate in New Zealand, in the year to $yearEndMonth$ $year$.
+  transform: ratioNZ
+units: percentage
+valueType: aggregate
+absoluteLabel: employment
+charts:
+  - type: map
+    title: >-
+      employment rate, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute
+        caption: percentage of working-age population
+    facets:
+      - year
+  - type: timeseries
+    title: employment rate, by year
+    transforms:
+      - name: absolute
+        caption: percentage of working-age population
+    order:
+      - area
+      - year
+  - type: barchart
+    title: employment rate, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: percentage of working-age population
+    facet:
+      - year

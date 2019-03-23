@@ -1,0 +1,53 @@
+name: NEET rate
+language-config:
+  subject: NEET rate
+themes:
+  - workforce
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/income-and-work/employment_and_unemployment/labour-market-statistics-information-releases.aspx" target="_blank">Household Labour Force Survey</a>.
+notes:
+    - The NEET rate is the total number of youth (aged 15 to 24 years) who are not in education, employment, or training, as a percentage of the total youth working-age population. Data may be suppressed for some regions in some years. NEET rates for Nelson-Tasman-Marlborough-West Coast are for the combined region, as are NEET rates for Gisborne-Hawke's Bay. These are annual average figures.  Results are subject to large sample errors, especially in smaller regions.
+headerTitle: youth not in employment, education or training in $area$
+slices:
+  - NEET rate, population aged 15-24 years
+summaryTitle: >-
+  youth not in employment, education or training in $area$ in the year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  the percentage of 15 to 24 year-olds not in employment, education, or training (NEET rate)
+  in $area$, in the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >-
+    the change in the NEET rate in $area$ between $prevYear$ and $year$ (year to $yearEndMonth$).
+  transform: difference 
+nationalNum:
+  caption: >-
+    the ratio of the NEET rate in $area$ to the national percentage, in the year to $yearEndMonth$ $year$.
+  transform: ratioNZ
+units: percentage
+valueType: aggregate
+absoluteLabel: percent
+charts:
+  - type: map
+    title: >-
+      youth not in employment, education or training, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute
+        caption: percentage of youth aged 15 to 24 years
+    facets:
+      - year
+  - type: timeseries
+    title: youth not in employment, education or training, by year
+    transforms:
+      - name: absolute
+        caption: percentage of youth aged 15 to 24 years
+      - name: indexed
+        caption: NEET rate, relative to $firstYear$
+    order:
+      - area
+      - year
+  - type: barchart
+    title: youth not in employment, education or training, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: percentage of youth aged 15 to 24 years
+    facet:
+      - year

@@ -1,0 +1,60 @@
+name: international visitor nights
+language-config:
+  subject: visitor nights
+  feature-accessor: by visitors from
+themes:
+  - tourism
+source: MBIE <a href="http://www.mbie.govt.nz/info-services/sectors-industries/tourism/tourism-research-data/ivs" target="_blank">International Visitor Survey</a>.
+notes:
+  - Includes all nights by international visitors aged 15 years or more, not just those in commercial accommodation. Data may be suppressed for some regions in some years. Results are subject to large sample errors, especially in smaller regions.
+headerTitle: visitor nights from $feature$ in $area$
+slices:
+  - international visitor nights by origin
+  - international visitor nights by origin feature sum
+summaryTitle: visitor nights from $feature$ in $area$, for the year to $yearEndMonth$ $year$
+headlineNumCaption: >-
+  the number of visitor nights from $feature$ in $area$, for the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >-
+    the percentage of international visitor nights in $area$ that were from $feature$, for the year to $yearEndMonth$ $year$.
+  transform: regionalPercentage
+nationalNum:
+  caption: >-
+    the percentage of the total number of visitor nights from $feature$ that were in $area$, for the year to $yearEndMonth$ $year$.
+  transform: nationalPercentage
+units: count
+valueType: quantity
+absoluteLabel: nights
+featureDropdownLabel: select an origin
+topFeatureLabel: all international origins
+rightChart: barchart
+charts:
+  - type: map
+    title: >-
+      visitor nights from $feature$, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: regionalPercentage
+        caption: percentage of visitor nights
+        formatter: percentage
+    facets:
+      - year
+  - type: timeseries
+    title: visitor nights from $feature$, by year
+    transforms:
+      - name: absolute
+        caption: number of visitor nights
+      - name: indexed
+        caption: visitor nights, relative to $firstYear$
+      - name: percapita
+        caption: visitor nights, per 10,000 residents
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: visitor nights in $area$, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: number of visitor nights
+    facet:
+      - year

@@ -1,0 +1,53 @@
+name: rural - urban proportions
+language-config:
+  subject-quantity: proportion
+  subject-short: the population
+  feature-as-subject-label: true
+themes:
+  - population
+source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/Maps_and_geography/Geographic-areas/urban-rural-profile.aspx" target="_blank">Urban/Rural Profile</a> and  <a href="http://www.stats.govt.nz/browse_for_stats/population/estimates_and_projections.aspx" target="_blank">Population Estimates</a>.
+headerTitle: $feature$ proportion of population in $area$
+slices:
+  - per cent of urban population, by region
+summaryTitle: $feature$ proportion of population in $area$ at 30 June $year$
+headlineNumCaption: >-
+  the $feature$ proportion of the population in $area$ at 30 June $year$.
+localNum:
+  caption: >-
+    the change in $feature$ proportion of the population in $area$ 
+    between 30 June $prevYear$ and $year$.
+  transform: difference
+nationalNum:
+  caption: >-
+   the ratio of the $feature$ proportion of the population 
+   in $area$ and New Zealand, at 30 June $year$.
+  transform: ratioNZ
+units: percentage
+valueType: aggregate
+absoluteLabel: percent
+charts:
+  - type: map
+    title: >-
+      change in the $feature$ proportion of the population, between 30 June $prevYear$ and $year$
+    transforms:
+      - name: difference
+        caption: percentage change
+    facets:
+      - year
+  - type: timeseries
+    title: $feature$ proportion of the population, by year
+    transforms:
+      - name: absolute
+        caption: urban proportion (percentage)
+      - name: indexed
+        caption: urban proportion (relative to $firstYear$)
+    order:
+      - area
+      - year
+  - type: barchart
+    title: Rural-urban profile of the population in $area$, at 30 June $year$
+    transforms:
+      - name: absolute-tree
+        caption: Percentage of the population
+    facet:
+      - year

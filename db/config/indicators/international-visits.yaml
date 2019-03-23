@@ -1,0 +1,61 @@
+name: international visits
+language-config:
+  subject-quantity: number
+  subject-short: visits
+  feature-accessor: by visitors from
+themes:
+  - tourism
+source: MBIE <a href="http://www.mbie.govt.nz/info-services/sectors-industries/tourism/tourism-research-data/ivs" target="_blank">International Visitor Survey</a>.
+notes:
+  - Includes all international visitors aged 15 years or more, not just those in commercial accommodation. Data may be suppressed for some regions in some years. Results are subject to large sample errors, especially in smaller regions.
+headerTitle: visits from $feature$ to $area$
+slices:
+  - international visits by origin
+  - international visits by origin feature sum
+summaryTitle: visits from $feature$ to $area$, for $year$
+headlineNumCaption: >-
+  the number of visits from $feature$ to $area$, for the year to $yearEndMonth$ $year$.
+localNum:
+  caption: >-
+    the percentage of international visits to $area$ that were from $feature$, for the year to $yearEndMonth$ $year$.
+  transform: regionalPercentage
+nationalNum:
+  caption: >-
+    the percentage of the total number of visits from $feature$ that were to $area$, for the year to $yearEndMonth$ $year$.
+  transform: nationalPercentage
+units: count
+valueType: quantity
+absoluteLabel: visits
+topFeatureLabel: all international origins
+featureDropdownLabel: select an origin
+rightChart: barchart
+charts:
+  - type: map
+    title: >-
+      visits from $feature$, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: regionalPercentage
+        caption: percentage of visits that were from $feature$
+        formatter: percentage
+    facets:
+      - year
+  - type: timeseries
+    title: visits from $feature$, by year
+    transforms:
+      - name: absolute
+        caption: number of visits
+      - name: indexed
+        caption: number of visits, relative to $firstYear$
+      - name: percapita
+        caption: number of visits, per 10,000 residents
+    order:
+      - area
+      - year
+
+  - type: barchart
+    title: international visits to $area$, for the year to $yearEndMonth$ $year$
+    transforms:
+      - name: absolute-tree
+        caption: number of visits
+    facet:
+      - year
