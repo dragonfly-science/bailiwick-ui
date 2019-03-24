@@ -7,8 +7,6 @@
 module Bailiwick.View
 where
 
-import Debug.Trace
-
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Fix
 import Data.Bool (bool)
@@ -35,8 +33,9 @@ import Bailiwick.View.Indicators (indicators)
 --import Bailiwick.View.IndicatorChart (indicatorChart)
 import Bailiwick.View.ToolBar (toolBar)
 
-switchDynM :: (MonadHold t m, DomBuilder t m, PostBuild t m)
-         => Dynamic t (m (Event t a)) -> m (Event t a)
+switchDynM
+ :: (MonadHold t m, DomBuilder t m, PostBuild t m)
+ => Dynamic t (m (Event t a)) -> m (Event t a)
 switchDynM = (switchHold never =<<) . dyn
 
 windowScrolled
@@ -86,9 +85,16 @@ view stateD = do
             elDynClass "header" (mainHeaderClass <$> stateD <*> isOpen) $ do
               navBarE <- navbar
               headerE' <- switchDynM $ ffor stateD $ \case
-                  Waiting    -> return never
-                  State hs _ -> header hs
-              (toolBarE, isOpen') <- return (never, constDyn True) -- toolBar stateD
+                  Waiting      -> return never
+                  State _ hs _ _ -> header hs
+              (toolBarE, isOpen') <- mdo
+                  eithersE <-
+                     switchDynM $ ffor stateD $ \case
+                                      State _ _ _ tbs -> toolBar isOpen tbs
+                                      _             -> return never
+                  let (isOpenE, toolBarE) = fanEither eithersE
+                  isOpen <- foldDyn (const not) False $ isOpenE
+                  return (toolBarE, isOpen)
               return (leftmost [navBarE, headerE', toolBarE], isOpen')
     mainE <-
       elDynAttr "div" (("class" =: "content main-content" <>) .
@@ -96,8 +102,8 @@ view stateD = do
         --mainContent stateD
         return never
     indicatorsE <- switchDynM $ ffor stateD $ \case
-        Waiting     -> return never
-        State _ is  -> indicators is
+        Waiting      -> return never
+        State _ _ is _ -> indicators is
 
     -- We need to scroll up when these links are clicked (or you can't tell they do anything)
     performEvent_ $ ffor indicatorsE $ \case

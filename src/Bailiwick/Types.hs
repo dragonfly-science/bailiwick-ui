@@ -274,7 +274,6 @@ data Indicator = Indicator
 --  , indicatorLeftChart            :: Maybe Text
 --  , indicatorLanguageConfig       :: Language
 --  , indicatorRightChart           :: Maybe Text
---  , indicatorAbsoluteLabel        :: Maybe Text
 --  , indicatorTooltipExtra         :: Maybe Text
 --  , indicatorIcon                 :: Maybe Text
 --  , indicatorNotes                :: Maybe [Text]

@@ -1,12 +1,15 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE RecursiveDo         #-}
+{-# LANGUAGE RecordWildCards     #-}
 module Bailiwick.View.ToolBar (
     toolBar
+  , ToolBarState(..)
 ) where
 
+import Control.Monad (join)
 import Control.Monad.Fix (MonadFix)
 import Data.Monoid ((<>))
 import Data.Bool (bool)
@@ -20,7 +23,7 @@ import qualified Data.HashMap.Strict.InsOrd as OM (toList, fromList, lookup)
 import Text.Read (readMaybe)
 
 import Language.Javascript.JSaddle (MonadJSM)
-import Reflex (TriggerEvent, demuxed, demux, foldDyn)
+import Reflex (TriggerEvent, demuxed, demux)
 import Reflex.Dom.Core
        (elDynClass', GhcjsDomSpace, elAttr', MonadHold, PostBuild,
         DomBuilder, Event, Dynamic, divClass, el, elClass, text,
@@ -30,12 +33,15 @@ import Reflex.Dom.Core
         DomBuilderSpace)
 import Reflex.PerformEvent.Class (PerformEvent(..))
 import Reflex.FunctorMaybe (FunctorMaybe(..))
--- import Bailiwick.View.Header (dropdownMenu)
 
-import Bailiwick.State (State)
-import qualified Bailiwick.State as State
 import Bailiwick.Route
 import Bailiwick.Types
+
+data ToolBarState t
+  = ToolBarState
+  { themepageD  :: Dynamic t (Maybe ThemePageArgs)
+  , indicatorD  :: Dynamic t (Maybe Indicator)
+  }
 
 toolBar
     :: ( MonadFix m
@@ -47,28 +53,32 @@ toolBar
        , MonadJSM (Performable m)
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
-    => Dynamic t (State t) -> m (Event t Message, Dynamic t Bool)
-toolBar stateD = do
-  let areaTypes = OM.fromList [("nz", "New Zealand"), ("reg", "Regional Council"), ("ta", "Territorial Authority")]
-      transforms = (\n -> OM.fromList [("indexed", "indexed"), ("absolute", fromMaybe "absolute" n)]) <$> absoluteLabel
+    => Dynamic t Bool
+    -> ToolBarState t
+    -> m (Event t (Either () Message))
+toolBar isOpenD ToolBarState{..} = do
+  let areaTypes = OM.fromList [ ("nz", "New Zealand")
+                              , ("reg", "Regional Council")
+                              , ("ta", "Territorial Authority")]
       absoluteLabel = do
-         mtp <- State.getThemePage <$> stateD
-         indicators <- State.getIndicators <$> stateD
-         return $ do
-             themepage <- mtp
-             ind <- themePageIndicatorId themepage `OM.lookup` indicators
-             indicatorAbsoluteLabel ind
+        ind <- indicatorD
+        return (join $ fmap indicatorAbsoluteLabel ind)
+      transforms = (\n -> OM.fromList [ ("indexed", "indexed")
+                                      , ("absolute", fromMaybe "absolute" n)]
+                   ) <$> absoluteLabel
       years = OM.fromList [(T.pack $ show y, T.pack $ show y)
                           | y <- reverse ([1996..2017] :: [ Int ])] -- TODO fix range
-      areaTypeD = fmap themePageAreaType . State.getThemePage <$> stateD
-      leftTransformD = fmap themePageLeftTransform . State.getThemePage <$> stateD
-      rightChartD = fmap themePageRightChart . State.getThemePage <$> stateD
-      yearD = fmap (T.pack . show . themePageYear) . State.getThemePage <$> stateD
-      setAreaEvent = fmap (fmap SetAreaType . fmapMaybe id)
-      setLeftTransformEvent = fmap (fmap SetLeftTransform . fmapMaybe id)
-      setYearEvent = fmap (fmap SetYear . fmapMaybe id . fmap (readMaybe . T.unpack =<<))
+
+      areaTypeD              = fmap themePageAreaType <$> themepageD
+      leftTransformD         = fmap themePageLeftTransform <$> themepageD
+      rightChartD            = fmap themePageRightChart <$> themepageD
+      yearD                  = fmap (T.pack . show . themePageYear) <$> themepageD
+
+      setAreaEvent           = fmap (fmap SetAreaType . fmapMaybe id)
+      setLeftTransformEvent  = fmap (fmap SetLeftTransform . fmapMaybe id)
+      setYearEvent           = fmap (fmap SetYear . fmapMaybe id . fmap (readMaybe . T.unpack =<<))
   divClass "tool-bar" $ do
-    (dropdownsE, isOpen) <- divClass "summary content" $ do
+    dropdownsE <- divClass "summary content" $ do
       dropdownsE <- divClass "top" $ do
         elClass "span" "label" $ text "select:"
         divClass "elements" $ do
@@ -84,12 +94,11 @@ toolBar stateD = do
               toolbarDropdown "year" (constDyn "") never (constDyn True) yearD
                 (constDyn years)
           return $ leftmost [areaTypeE, transformE, yearE]
-      isOpen <- divClass "actions content" $ mdo
-        (b, _) <- elDynAttr' "button" (("class" =:) . bool "open-button" "close-button" <$> isOpen) $
+      isOpenE <- divClass "actions content" $ mdo
+        (b, _) <- elDynAttr' "button" (("class" =:) . bool "open-button" "close-button" <$> isOpenD) $
             el "i" $ return ()
-        isOpen <- foldDyn (const not) False $ domEvent Click b
-        return isOpen
-      return (dropdownsE, isOpen)
+        return $ () <$ domEvent Click b
+      return $ leftmost [Left <$> isOpenE, Right <$> dropdownsE]
     filterE <- divClass "filtering content" $
       divClass "filters" $ do
         divClass "filter-type view-by" $
@@ -110,7 +119,7 @@ toolBar stateD = do
                 , SetRightChart (ChartId "barchart") <$ domEvent Click bc
                 ]
         return $ leftmost [areaTypeE, transformE, yearE, rightTransformE]
-    return (leftmost [dropdownsE, filterE], isOpen)
+    return $ leftmost [dropdownsE, Right <$> filterE]
 
 toolbarDropdown
     :: ( MonadFix m
