@@ -1,4 +1,4 @@
-IMAGE := docker.dragonfly.co.nz/bailiwick-ui/nix-build:v4
+IMAGE := docker.dragonfly.co.nz/bailiwick-ui/nix-build:v5
 AWS_ACCESS_KEY_ID=$(shell cat .env/AWS_ACCESS_KEY_ID)
 AWS_SECRET_ACCESS_KEY=$(shell cat .env/AWS_SECRET_ACCESS_KEY)
 

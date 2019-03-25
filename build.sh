@@ -2,10 +2,14 @@
 
 set ex
 
+## make the javascript executible
 nix-build deploy.nix
 
+## Make the data assets
+nix-shell db/default.nix --run 'make -BC db'
+
 cd result/
-zip -qr /output/bailiwick-static.zip static 
+zip -qr /output/bailiwick-static.zip static
 
 aws s3 cp --recursive static/ s3://gorbachev.io/dragonfly-science/bailiwick-ui/
 

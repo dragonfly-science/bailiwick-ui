@@ -5,6 +5,7 @@ RUN nix-env -i zip
 RUN nix-env -i awscli
 RUN nix-env -i gnutar
 RUN nix-env -i gzip
+RUN nix-env -i gnumake
 
 COPY default.nix /setup/
 COPY deploy.nix /setup/
@@ -12,8 +13,10 @@ COPY bailiwick.cabal /setup/
 COPY app/ /setup/app/
 COPY src/ /setup/src/
 COPY static/ /setup/static/
-
+COPY db/ /setup/db/
 COPY nix.conf /etc/nix/nix.conf
+
+RUN nix-shell /setup/db/default.nix --run 'echo Installed R packages'
 
 RUN cd /setup/ && nix-shell -j6 -A shells.ghcjs --run exit
 

@@ -1,1 +1,1 @@
-docker: docker.dragonfly.co.nz/bailiwick-ui/nix-build:v4
+docker: docker.dragonfly.co.nz/bailiwick-ui/nix-build:v5
