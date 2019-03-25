@@ -7,6 +7,8 @@ nix-build deploy.nix
 
 ## Make the data assets
 nix-shell db/default.nix --run 'make -BC db'
+rm result/static/db
+mkdir result/static/db/
 cp -r db/dev result/static/db/
 
 cd result/
