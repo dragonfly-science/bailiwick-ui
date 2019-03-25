@@ -6,8 +6,8 @@ slugify <- function(name) {
     gsub('%',        'pc',
     gsub('\\+',      'plus',
     gsub('/',        'or',
-    chartr('āēīōū',  'aeiou',
-           tolower(name)))))))))
+#    chartr('āēīōū',  'aeiou',
+           tolower(name))))))))#)
 }
 
 fromMaybe <- function(def, val) if (is.null(val)) { def } else { val }

@@ -1,9 +1,10 @@
 **
 !nix.conf
+!nix-gorbachev.conf
 !default.nix
 !deploy.nix
 !bailiwick.cabal
 !app/
 !src/
 !static/
-!db/
+!db/default.nix
