@@ -35,3 +35,17 @@ Now you open your browser at http://localhost:3701
 
 Note, you also need to add a `127.0.0.1 jsaddle.locahost` to your `/etc/hosts` file
 
+
+## Building docker image for gorbachev
+
+There is `nix.conf` file that may need to be updated. It has a line to point at
+the local store. To setup the local store:
+
+```bash
+$ nix-store --generate-binary-cache-key nix-cache.kahu.dragonfly.co.nz-1 nix-serve.sec nix-serve.pub
+$ NIX_SECRET_KEY_FILE=nix-serve.sec nix-serve --host nix-cache.kahu.dragonfly.co.nz --port 8080
+```
+
+And in the `nix.conf` file you will need to update the lines that refer to the
+cache before running `make docker`.
+

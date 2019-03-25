@@ -1,12 +1,13 @@
 #!/bin/bash
 
-set ex
+set -ex
 
 ## make the javascript executible
 nix-build deploy.nix
 
 ## Make the data assets
 nix-shell db/default.nix --run 'make -BC db'
+cp -r db/dev result/static/db/
 
 cd result/
 zip -qr /output/bailiwick-static.zip static
