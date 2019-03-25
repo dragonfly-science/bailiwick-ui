@@ -14,19 +14,16 @@ import Control.Monad (void)
 import Control.Applicative (liftA2)
 import Data.Monoid ((<>))
 import Data.Maybe (isJust, fromMaybe)
-import Data.Text (Text)
 
-import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
+import Data.Text (Text)
+import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
+import qualified Data.HashMap.Strict.InsOrd as OM
 import Data.Aeson ((.:), Object, FromJSON, Value)
 import Data.Aeson.Types (parseMaybe)
 import Language.Javascript.JSaddle (jsg3, MonadJSM, liftJSM)
 import Reflex.PerformEvent.Class (PerformEvent(..))
-import Reflex (TriggerEvent, delay, leftmost, tagPromptlyDyn,
-       ffor, holdUniqDyn, PostBuild, updated, fmapMaybe)
-import Reflex.Dom.Core
-       (elAttr', elDynAttr',
-        GhcjsDomSpace, DomBuilderSpace, MonadHold, el, dynText, DomBuilder, elAttr,
-        text, (=:), divClass, Dynamic, _element_raw, Event, never)
+import Reflex
+import Reflex.Dom.Core hiding (Value)
 import Reflex.Dom.Builder.Class (HasDomEvent(..))
 import Reflex.Dom.Builder.Class.Events (EventName(..))
 import Reflex.PostBuild.Class (PostBuild(..))
@@ -35,34 +32,14 @@ import Bailiwick.State (State)
 import qualified Bailiwick.State as State
 import Bailiwick.Types
 import Bailiwick.Route
-       (ThemePageArgs(..), Message(..), Message, Page(..))
 
-indicatorSummary
-  :: (Monad m, PostBuild t m, DomBuilder t m)
-  => Text
-  -> Dynamic t (Maybe Indicator)
-  -> Dynamic t Text
-  -> m ()
-  -> m (Event t Indicator)
-indicatorSummary cssClass mbIndicator label content = do
-  (e, _) <- elAttr' "div" ("class" =: ("summary-item " <> cssClass <> "-item")) $ do
-      divClass "block-label" $ dynText label
-      content
-  return $ fmapMaybe id $ tagPromptlyDyn mbIndicator (domEvent Click e)
+data AreaSummaryState t
+  = AreaSummaryState
+  { area          :: Dynamic t Area
+  , areaSummaries :: InsOrdHashMap AreaId AreaSummary
+  }
 
-indicatorLatestYearSummary
-  :: (Monad m, PostBuild t m, DomBuilder t m)
-  => Text
-  -> Dynamic t (Maybe Indicator)
-  -> Text
-  -> Dynamic t (Maybe Text)
-  -> m ()
-  -> m (Event t Indicator)
-indicatorLatestYearSummary cssClass indicator label year numbers =
-  indicatorSummary cssClass indicator (maybe "" (\y -> label <> " (" <> y <> ")") <$> year) $
-    divClass ("summary-numbers " <> cssClass <> "-numbers") $ do
-      el "i" $ return ()
-      numbers
+
 
 areaSummary
   :: forall m t.
@@ -76,9 +53,9 @@ areaSummary
      , MonadFix m
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
-  => Dynamic t (State t)
+  => AreaSummaryState t
   -> m (Event t Message)
-areaSummary stateD = do
+areaSummary AreaSummaryState{..} = do
   let areaIdD = State.stateArea <$> stateD
       areaD :: Dynamic t (Maybe Area)
       areaD = OM.lookup <$> areaIdD <*> (unAreas . State.getAreas <$> stateD)
@@ -135,6 +112,35 @@ areaSummary stateD = do
         indicatorDefaultChartRight
         2017 Nothing Nothing "reg" "indexed" "indexed")
         ) <$> gotoIndicatorE
+
+-- Display indicator summary block
+indicatorSummary
+  :: (Monad m, PostBuild t m, DomBuilder t m)
+  => Text                                -- CSS class
+  -> Dynamic t (Maybe Indicator)         -- Indicator (for click message)
+  -> Dynamic t Text                      -- Label text
+  -> m ()                                -- Content
+  -> m (Event t Indicator)
+indicatorSummary cssClass mbIndicator label content = do
+  (e, _) <- elAttr' "div" ("class" =: ("summary-item " <> cssClass <> "-item")) $ do
+      divClass "block-label" $ dynText label
+      content
+  return $ fmapMaybe id $ tagPromptlyDyn mbIndicator (domEvent Click e)
+
+indicatorLatestYearSummary
+  :: (Monad m, PostBuild t m, DomBuilder t m)
+  => Text                              -- CSS class
+  -> Dynamic t (Maybe Indicator)       -- Indicator (for click message)
+  -> Text                              -- Label text
+  -> Dynamic t (Maybe Text)            -- Year
+  -> m ()                              -- Content
+  -> m (Event t Indicator)
+indicatorLatestYearSummary cssClass indicator label year numbers = do
+  let labelyear y = label <> " (" <> y <> ")"
+  indicatorSummary cssClass indicator (maybe "" labelyear <$> year) $
+    divClass ("summary-numbers " <> cssClass <> "-numbers") $ do
+      el "i" $ return ()
+      numbers
 
 housePriceTimeSeries
   :: ( Monad m

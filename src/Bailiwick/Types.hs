@@ -27,9 +27,10 @@ capitalize inp
      Nothing    -> ""
      Just (h,t) -> Text.cons (Char.toUpper h) t
 
+type AreaId = Text
 data Area
   = Area
-    { areaId       :: Text
+    { areaId       :: AreaId
     , areaName     :: Text
     , areaLevel    :: Text
     , areaChildren :: [ Text ]

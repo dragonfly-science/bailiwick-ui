@@ -91,7 +91,7 @@ view stateD = do
                   eithersE <-
                      switchDynM $ ffor stateD $ \case
                                       State _ _ _ tbs -> toolBar isOpen tbs
-                                      _             -> return never
+                                      _               -> return never
                   let (isOpenE, toolBarE) = fanEither eithersE
                   isOpen <- foldDyn (const not) False $ isOpenE
                   return (toolBarE, isOpen)
@@ -99,8 +99,7 @@ view stateD = do
     mainE <-
       elDynAttr "div" (("class" =: "content main-content" <>) .
              maybe mempty (("style" =:) . ("margin-top: " <>)) <$> marginTopD) $
-        --mainContent stateD
-        return never
+        mainContent stateD
     indicatorsE <- switchDynM $ ffor stateD $ \case
         Waiting      -> return never
         State _ _ is _ -> indicators is
@@ -173,7 +172,7 @@ summaryContent
     -> m (Event t Message)
 summaryContent stateD =
   divClass "central-content summary" $ do
-    messages
+    messagesE
      <-
        divClass "navigation-map base-map" $ do
          zoomClick <- summaryText stateD
@@ -182,9 +181,9 @@ summaryContent stateD =
              nzmap stateD
          return $ leftmost [zoomClick, mapClicks]
 
-    summaryMessages <- divClass "area-summary" $
+    summaryMessagesE <- divClass "area-summary" $
       areaSummary stateD
-    return $ leftmost [messages, summaryMessages]
+    return $ leftmost [messagesE, summaryMessagesE]
 
 indicatorContent
     :: ContentConstraints t m

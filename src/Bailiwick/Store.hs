@@ -108,7 +108,7 @@ getChartData filenameD = do
 
 type GetAreas = "db" :> "dev" :> "areas.json" :> Get '[JSON] Areas
 type GetThemes = "db" :> "dev" :> "themes.json" :> Get '[JSON] [Theme]
-type GetAreaSummaries = "data" :> "areaSummaries-11d88bc13.json" :> Get '[JSON] [AreaSummary]
+type GetAreaSummaries = "db" :> "dev" :> "area-summaries.json" :> Get '[JSON] [AreaSummary]
 type GetIndicators = "data" :> "indicators-11d88bc13.json" :> Get '[JSON] [Indicator]
 type GetAreaTrees = "data" :> "areaTrees-11d88bc13.json" :> Get '[JSON] [AreaTree]
 type GetFeatures = "data" :> "features-11d88bc13.json" :> Get '[JSON] [Feature]
