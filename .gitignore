@@ -5,3 +5,4 @@ result
 /dist-newstyle/
 node_modules
 db/dev/
+nix-serve.*
