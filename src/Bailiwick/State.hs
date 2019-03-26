@@ -15,11 +15,12 @@ import Bailiwick.Store (Store(..))
 import Bailiwick.View.Header (HeaderState(..))
 import Bailiwick.View.Indicators (IndicatorState(..))
 import Bailiwick.View.ToolBar (ToolBarState(..))
+import Bailiwick.View.AreaSummary (AreaSummaryState(..))
 import Bailiwick.Types
 
 data State t
   = Waiting
-  | State Page (HeaderState t) (IndicatorState t) (ToolBarState t)
+  | State Page (HeaderState t) (IndicatorState t) (ToolBarState t) (AreaSummaryState t)
 
 make
   :: (Reflex t)
@@ -29,8 +30,8 @@ make routeD storeD = do
   route <- routeD
   case store of
     Empty       -> return Waiting
-    Loading _ _ -> return Waiting
-    Loaded as@(Areas areas) ts -> do
+    Loading _ _ _ -> return Waiting
+    Loaded as@(Areas areas) ts summaries -> do
 
       -- Header state
       let pageD = routePage <$> routeD
@@ -55,7 +56,15 @@ make routeD storeD = do
           mindicator = join . fmap (findIndicator ts) <$> mthemepage
           toolbar_state = ToolBarState mthemepage mindicator
 
-      return $ State (routePage route) header_state indicator_state toolbar_state
+      let indicators = OMap.fromList $ [ (indicatorId i, i)
+                                       | i <- concat [ themeIndicators t | t <- ts]]
+          summaries_state = AreaSummaryState area summaries indicators
+
+      return $ State (routePage route)
+                     header_state
+                     indicator_state
+                     toolbar_state
+                     summaries_state
 
 findIndicator :: [Theme] -> ThemePageArgs -> Maybe Indicator
 findIndicator themes ThemePageArgs{themePageIndicatorId}
@@ -84,7 +93,7 @@ areaList (Areas areas) p = case (area, parent) of
 
 
 getPage :: State t -> Page
-getPage (State page _ _ _) = page
+getPage (State page _ _ _ _) = page
 getPage _ = Summary
 
 getRoute :: State t -> Route

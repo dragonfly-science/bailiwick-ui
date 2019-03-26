@@ -11,6 +11,8 @@ import Data.Maybe (listToMaybe, mapMaybe)
 import Data.Aeson
 import Data.Aeson.Types (FromJSONKeyFunction(FromJSONKeyText))
 import Data.Char as Char
+
+import Data.Scientific (Scientific)
 import Data.Hashable (Hashable)
 import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import Data.Map (Map)
@@ -55,24 +57,15 @@ instance FromJSON Areas where
       areas <- parseJSON v
       return $ Areas $ OMap.fromList [(areaId a, a) | a <- areas]
 
-data AreaSummary
-  = AreaSummary
-    { areaSummaryId :: Text
-    , areaSummaryIndicatorValues :: Object
-    } deriving (Eq, Show, Generic)
+type Year = Integer
+data ValueYear = ValueYear Scientific Year
+  deriving (Eq, Show, Generic)
+instance FromJSON ValueYear where
+    parseJSON = withObject "ValueYear" $ \v -> do
+        ValueYear <$> v .: "Value" <*> v .: "Year"
 
-instance FromJSON AreaSummary where
-    parseJSON = withObject "AreaSummary" $ \v -> do
-      aid <- v .: "id"
-      return $ AreaSummary aid v
-    parseJSONList = withObject "AreaSummaries" $ \v -> do
-      Array as <- v .: "areaSummaries"
-      mapM parseJSON $ V.toList as
-
-type AreaSummaries = InsOrdHashMap Text AreaSummary
-
-mkAreaSummaries :: [ AreaSummary ] -> AreaSummaries
-mkAreaSummaries summaries = OMap.fromList [(areaSummaryId a, a) | a <- summaries]
+type AreaSummary   = InsOrdHashMap IndicatorId (Maybe [ValueYear])
+type AreaSummaries = InsOrdHashMap AreaId AreaSummary
 
 data Theme
   = Theme
@@ -199,10 +192,8 @@ langOptions = defaultOptions
 instance FromJSON Language where
     parseJSON = genericParseJSON langOptions
 
-newtype IndicatorId = IndicatorId { unIndicatorId :: Text } deriving (Eq, Ord, Show, Generic)
-instance Hashable IndicatorId
-instance FromJSON IndicatorId where
-   parseJSON v = IndicatorId <$> parseJSON v
+newtype IndicatorId = IndicatorId { unIndicatorId :: Text }
+   deriving (Eq, Ord, Show, Generic, Hashable, FromJSONKey, FromJSON)
 newtype ChartId = ChartId Text deriving (Eq, Ord, Show, Generic)
 instance FromJSON ChartId where
    parseJSON v = ChartId <$> parseJSON v
@@ -298,9 +289,6 @@ instance FromJSON Indicator where
     parseJSON = genericParseJSON indicatorOptions
 
 type Indicators = InsOrdHashMap IndicatorId Indicator
-
-mkIndicators :: [ Indicator ] -> Indicators
-mkIndicators indicators = OMap.fromList [(indicatorId i, i) | i <- indicators]
 
 newtype FeatureId = FeatureId { featureIdText :: Text } deriving (Eq, Ord, Show, Generic)
 instance Hashable FeatureId

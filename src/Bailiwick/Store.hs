@@ -22,10 +22,11 @@ import Bailiwick.AreaTrees
 
 data Store
   = Empty
-  | Loading (Maybe Areas) (Maybe [Theme])
+  | Loading (Maybe Areas) (Maybe [Theme]) (Maybe AreaSummaries)
   | Loaded
-    { areas  :: Areas
-    , themes :: [Theme]
+    { areas     :: Areas
+    , themes    :: [Theme]
+    , summaries :: AreaSummaries
     }
     deriving (Show, Eq)
 
@@ -33,14 +34,25 @@ empty :: Store
 empty = Empty
 
 holdAreas :: Areas -> Store -> Store
-holdAreas as Empty                        = Loading (Just as) Nothing
-holdAreas as (Loading Nothing (Just ts))  = Loaded as ts
+holdAreas as Empty                                   = Loading (Just as) Nothing   Nothing
+holdAreas as (Loading Nothing Nothing (Just sms))    = Loading (Just as) Nothing   (Just sms)
+holdAreas as (Loading Nothing (Just ts) Nothing)     = Loading (Just as) (Just ts) Nothing
+holdAreas as (Loading Nothing (Just ts) (Just sms))  = Loaded as ts sms
 holdAreas _ s = s
 
 holdThemes  :: [Theme] -> Store -> Store
-holdThemes ts Empty                        = Loading Nothing (Just ts)
-holdThemes ts (Loading (Just as) Nothing)  = Loaded as ts
+holdThemes ts Empty                                  = Loading Nothing   (Just ts) Nothing
+holdThemes ts (Loading (Just as) Nothing Nothing)    = Loading (Just as) (Just ts) Nothing
+holdThemes ts (Loading Nothing   Nothing (Just sms)) = Loading Nothing   (Just ts) (Just sms)
+holdThemes ts (Loading (Just as) Nothing (Just sms)) = Loaded as ts sms
 holdThemes _ s = s
+
+holdSummaries  :: AreaSummaries -> Store -> Store
+holdSummaries sms Empty                                  = Loading Nothing   Nothing   (Just sms)
+holdSummaries sms (Loading (Just as) Nothing   Nothing)  = Loading (Just as) Nothing   (Just sms)
+holdSummaries sms (Loading Nothing   (Just ts) Nothing)  = Loading Nothing   (Just ts) (Just sms)
+holdSummaries sms (Loading (Just as) (Just ts)  Nothing) = Loaded as ts sms
+holdSummaries _ s = s
 
 run
   :: ( TriggerEvent t m
@@ -61,12 +73,12 @@ run messagesE = do
   foldDyn ($) empty responseE
 
 
-showReqResult :: ReqResult t a -> String
-showReqResult rr = unpack $
+showReqResult :: String -> ReqResult t a -> String
+showReqResult apiPrefix rr = (apiPrefix ++) . unpack $
     case rr of
-        ResponseSuccess _ _ _ -> "Success"
+        ResponseSuccess _ _ _   -> "Success"
         ResponseFailure _ msg _ -> "Response failure: " <> msg
-        RequestFailure _ msg -> "Request failure: " <> msg
+        RequestFailure _ msg    -> "Request failure: " <> msg
 
 
 makeRequest
@@ -80,9 +92,11 @@ makeRequest
 makeRequest messageE = do
   areasE  <- apiGetAreas  (() <$ ffilter (==Ready) messageE)
   themesE <- apiGetThemes (() <$ ffilter (==Ready) messageE)
+  summariesE <- apiGetAreaSummaries (() <$ ffilter (==Ready) messageE)
   return $ leftmost
-    [ fmap holdAreas  $ fmapMaybe reqSuccess areasE
-    , fmap holdThemes $ fmapMaybe reqSuccess (traceEventWith showReqResult themesE)
+    [ fmap holdAreas     $ fmapMaybe reqSuccess (traceEventWith (showReqResult "getAreas") areasE)
+    , fmap holdThemes    $ fmapMaybe reqSuccess (traceEventWith (showReqResult "getThemes") themesE)
+    , fmap holdSummaries $ fmapMaybe reqSuccess (traceEventWith (showReqResult "getAreaSummaries") summariesE)
     ]
 
 getChartData
@@ -108,7 +122,7 @@ getChartData filenameD = do
 
 type GetAreas = "db" :> "dev" :> "areas.json" :> Get '[JSON] Areas
 type GetThemes = "db" :> "dev" :> "themes.json" :> Get '[JSON] [Theme]
-type GetAreaSummaries = "db" :> "dev" :> "area-summaries.json" :> Get '[JSON] [AreaSummary]
+type GetAreaSummaries = "db" :> "dev" :> "area-summaries.json" :> Get '[JSON] AreaSummaries
 type GetIndicators = "data" :> "indicators-11d88bc13.json" :> Get '[JSON] [Indicator]
 type GetAreaTrees = "data" :> "areaTrees-11d88bc13.json" :> Get '[JSON] [AreaTree]
 type GetFeatures = "data" :> "features-11d88bc13.json" :> Get '[JSON] [Feature]

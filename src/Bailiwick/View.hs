@@ -86,11 +86,11 @@ view stateD = do
               navBarE <- navbar
               headerE' <- switchDynM $ ffor stateD $ \case
                   Waiting      -> return never
-                  State _ hs _ _ -> header hs
+                  State _ hs _ _ _ -> header hs
               (toolBarE, isOpen') <- mdo
                   eithersE <-
                      switchDynM $ ffor stateD $ \case
-                                      State _ _ _ tbs -> toolBar isOpen tbs
+                                      State _ _ _ tbs _ -> toolBar isOpen tbs
                                       _               -> return never
                   let (isOpenE, toolBarE) = fanEither eithersE
                   isOpen <- foldDyn (const not) False $ isOpenE
@@ -102,7 +102,7 @@ view stateD = do
         mainContent stateD
     indicatorsE <- switchDynM $ ffor stateD $ \case
         Waiting      -> return never
-        State _ _ is _ -> indicators is
+        State _ _ is _ _ -> indicators is
 
     -- We need to scroll up when these links are clicked (or you can't tell they do anything)
     performEvent_ $ ffor indicatorsE $ \case
@@ -175,14 +175,16 @@ summaryContent stateD =
     messagesE
      <-
        divClass "navigation-map base-map" $ do
-         zoomClick <- summaryText stateD
+         zoomClick <- return never --summaryText stateD
          mapClicks <-
            divClass "svg-wrapper" $
-             nzmap stateD
+             -- nzmap stateD
+             return never
          return $ leftmost [zoomClick, mapClicks]
 
-    summaryMessagesE <- divClass "area-summary" $
-      areaSummary stateD
+    summaryMessagesE <- divClass "area-summary" $ switchDynM $ ffor stateD $ \case
+          Waiting      -> return never
+          State _ _ _ _ summaries -> areaSummary summaries
     return $ leftmost [messagesE, summaryMessagesE]
 
 indicatorContent
