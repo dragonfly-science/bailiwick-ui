@@ -17,14 +17,9 @@ setDT(REARdb_Areas_Hierarchy)
 areas <- unique(REARdb_Areas_Hierarchy[
                 !(TA2015_label == 'Area Outside Territorial Authority' |
                   REGC2015_label == 'Area Outside Region'),
-                .(reg  = REGC2015_label,
-                  ta   = TA2015_label,
-                  ward = WARD2015_label)])
-
-areas[, reg := gsub(' Region', '', reg)]
-areas[!grepl('^(Southland|Waikato)', ta), ta := gsub(' District', '', ta)]
-areas[!grepl('^Wellington', ta), ta := gsub(' City', '', ta)]
-areas[, ward := gsub(' Ward', '', ward)]
+                .(reg  = standardise.areaname(REGC2015_label),
+                  ta   = standardise.areaname(TA2015_label),
+                  ward = standardise.areaname(WARD2015_label))])
 
 areas <- areas[!(
     ta == 'Taupo'      & !(reg == 'Waikato') |

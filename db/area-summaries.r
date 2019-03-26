@@ -18,16 +18,55 @@ if (length(args) >= 2) {
 
 load(dbfile)
 setDT(REARdb_Areas)
+areatypes <- c('Regional Council', 'Territorial Authority', 'Ward', 'Total')
+REARdb_Areas <- REARdb_Areas[AreaType %in% areatypes]
+REARdb_Areas[, areaname := slugify(standardise.areaname(Area))]
+setkey(REARdb_Areas, areaname)
+
 setDT(REARdb_Source)
+REARdb_Source[, slice:=tolower(ValueName)]
+setkey(REARdb_Source, slice)
+
 setDT(REARdb_Data)
+setkey(REARdb_Data, DatasetID, AreaID)
 
 areas <- read_json(areasjson)
 themes <- read_json(themesjson)
 
+indicators <- do.call(c, lapply(themes[['themes']], function(theme) theme$indicators))
+names(indicators) <- sapply(indicators, function (ind) ind$id)
 
-areaids <- sapply(areas[['areas']], function(area) area$id)
+areaids <- unique(sapply(areas[['areas']], function(area) area$id))
 
-str(themes)
+lookup <- function(areaname1, indicatorid) {
+  datasetid <- REARdb_Source[tolower(indicators[[indicatorid]]$slices), DatasetID]
+  aid <- REARdb_Areas[areaname1, AreaID]
+  all <- indicatorid == 'mean-house-value'
+  vals <- REARdb_Data[.(datasetid, aid)][
+                      if(all) {TRUE} else {which.max(Year)}, .(Value, Year)]
+  vals <- vals[!is.na(Value)]
+  if(nrow(vals) == 0) {
+      return(NULL)
+  } else if (nrow(vals) == 1) {
+      vals <- list(vals[1,Value], vals[1, Year])
+      names(vals) <- c('Value', 'Year')
+      return(vals)
+  } else {
+      return(vals)
+  }
+}
+
+summaryindicators <-
+  c('population-estimates', 'household-income-mean', 'mean-weekly-rent', 'gdp-per-capita', 'mean-house-value')
+
+summaries <- sapply(areaids, function(areaid) {
+  sapply(summaryindicators, function (ind) {
+    lookup(areaid, ind)
+  }, simplify=FALSE)
+}, simplify=FALSE)
+
+cat(as.character(toJSON(summaries
+    , null='null', auto_unbox=TRUE, pretty=T))) #, file=outputfile)
 
 
 
