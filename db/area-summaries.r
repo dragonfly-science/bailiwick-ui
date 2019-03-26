@@ -47,10 +47,6 @@ lookup <- function(areaname1, indicatorid) {
   vals <- vals[!is.na(Value)]
   if(nrow(vals) == 0) {
       return(NULL)
-  } else if (nrow(vals) == 1) {
-      vals <- list(vals[1,Value], vals[1, Year])
-      names(vals) <- c('Value', 'Year')
-      return(vals)
   } else {
       return(vals)
   }
@@ -66,7 +62,7 @@ summaries <- sapply(areaids, function(areaid) {
 }, simplify=FALSE)
 
 cat(as.character(toJSON(summaries
-    , null='null', auto_unbox=TRUE, pretty=T))) #, file=outputfile)
+    , null='null', auto_unbox=TRUE)), file=outputfile)
 
 
 
