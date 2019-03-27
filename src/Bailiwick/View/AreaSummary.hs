@@ -84,11 +84,11 @@ areaSummary AreaSummaryState{..} = do
         (lookupIndicatorById "gdp-per-capita")
         "GDP per capita"
         (lookupValueYear "gdp-per-capita")
---      , indicatorSummary
---          "house-price"
---          (lookupIndicatorById "mean-house-value")
---          "Mean house value"
---          (housePriceTimeSeries areaD $ lookupValue "housePriceSeries")
+    , indicatorSummary
+        "house-price"
+        (lookupIndicatorById "mean-house-value")
+        "Mean house value"
+        (housePriceTimeSeries area $ lookupIndicatorById  "mean-house-value")
     , divClass "summary-item button" $
         elAttr "a" ("class" =: "indicators right" <> "href" =: "#indicators") $
           el "span" $ do
@@ -144,7 +144,7 @@ housePriceTimeSeries
      , MonadFix m
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
-  => Dynamic t (Maybe Area)
+  => Dynamic t Area
   -> Dynamic t (Maybe Value)
   -> m ()
 housePriceTimeSeries areaD dataD = do
@@ -153,12 +153,19 @@ housePriceTimeSeries areaD dataD = do
   let inputValues = liftA2 (,) <$> dataD' <*> areaD'
       showAttr True  = mempty
       showAttr False = "style" =: "display: none"
-  (e, _) <- elDynAttr' "div" (("class" =: "houseprice-timeseries" <>) . showAttr . isJust <$> inputValues) $ do
-    elAttr "div" ("class"=:"d3-attach" <> "style"=:"width: 225px; height: 120px") $ return ()
+      showAttrD =  ("class" =: "houseprice-timeseries" <>) . showAttr . isJust
+  (e, _) <- elDynAttr' "div" (showAttrD <$> inputValues)  $ do
+    elAttr "div" (  "class" =: "d3-attach"
+                 <> "style" =: "width: 225px; height: 120px") $ return ()
     divClass "time-series-legend" $ do
-      el "span" $ dynText $ maybe "" (("— " <>) . areaName) <$> areaD
-      el "span" $ dynText $ maybe "" (\a -> if areaId a == "new-zealand" then "" else " — New Zealand") <$> areaD
+      el "span" $ dynText $ (("— " <>) . areaName) <$> areaD'
+      el "span" $ dynText $ (\a -> if areaId a == "new-zealand" then "" else " — New Zealand") <$> areaD'
   initialUpdate <- tagPromptlyDyn inputValues <$> (delay 0.5 =<< getPostBuild)
   performEvent_ $ ffor (leftmost [updated inputValues, initialUpdate]) $ \case
-    Just (d, area) -> liftJSM . void $ jsg3 ("updateTimeSeries" :: Text) (_element_raw e) d (areaName area)
+    Just (d, area) -> liftJSM . void $ do
+         jsg3 ("updateTimeSeries" :: Text) (_element_raw e) d (areaName area)
     _ -> return ()
+
+
+
+

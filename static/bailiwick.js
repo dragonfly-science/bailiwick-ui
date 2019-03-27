@@ -16,7 +16,7 @@ var updateTimeSeries = function(element, labelledData, activeLabelName) {
         width = baseW - margin.left - margin.right,
         height = baseH - margin.top - margin.bottom,
         _this = this;
-        
+
     svg.attr('width', baseW);
     svg.attr('height', baseH);
 
@@ -64,9 +64,6 @@ var updateTimeSeries = function(element, labelledData, activeLabelName) {
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     var yMax = Math.ceil(d3.max(d3.merge(data), function(d) {
-        return d[1];
-    }) / 100000) * 100000;
-    var yMin = Math.ceil(d3.min(d3.merge(data), function(d) {
         return d[1];
     }) / 100000) * 100000;
     x.domain(d3.extent(data[0], function(d) {
