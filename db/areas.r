@@ -30,15 +30,19 @@ areas <- areas[!(
     ta == 'Waitomo'    & !(reg == 'Waikato') |
     ta == 'Waitaki'    & !(reg == 'Otago'))]
 
+nz <- data.table(name='New Zealand', 'id'='new-zealand', level='nz')
+regions <-
+    areas[, .(name=unique(reg), id=slugify(unique(reg)), level='reg')][order(id)]
+tas <-
+    areas[ta!='Auckland' & !(ta %in% regions$name),
+          .(name=unique(ta), id=slugify(unique(ta)), level='ta')][order(id)]
+wards <-
+    areas[ta=='Auckland',
+          .(name=unique(ward), id=slugify(unique(ward)), level='ward')][order(id)]
 
-all = rbind(
-    data.table(name='New Zealand', 'id'='new-zealand', level='nz'),
-    areas[, .(name=unique(reg), id=slugify(unique(reg)), level='reg')][order(id)],
-    areas[ta!='Auckland', .(name=unique(ta), id=slugify(unique(ta)), level='ta')][order(id)],
-    areas[ta=='Auckland', .(name=unique(ward), id=slugify(unique(ward)), level='ward')][order(id)]
-    )
-cat(as.character(toJSON(
-    list("areas" =
+all = rbind(nz, regions, tas, wards)
+
+output <-
       lapply(1:nrow(all), function(i) {
         a <- all[i]
         list(
@@ -55,11 +59,14 @@ cat(as.character(toJSON(
                         list()
                     },
           children = if(a$level=='reg' & a$id != 'auckland') {
-                         as.list(areas[reg==a$name, slugify(unique(ta))])
+                         as.list(areas[reg==a$name & !(ta ==a$name),
+                                       slugify(unique(ta))])
                      } else if(a$level=='reg' & a$id == 'auckland') {
                          as.list(areas[reg==a$name, slugify(unique(ward))])
                      } else {
                          list()
                      }
           )
-      })), auto_unbox=TRUE)), file=outputfile)
+    })
+
+cat(as.character(toJSON(output, auto_unbox=TRUE)), file=outputfile)
