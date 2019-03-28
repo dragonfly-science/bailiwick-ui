@@ -43,23 +43,25 @@ lookup <- function(areaname1, indicatorid) {
   aid <- REARdb_Areas[areaname1, AreaID]
   all <- indicatorid == 'mean-house-value'
   vals <- REARdb_Data[.(datasetid, aid)][
-                      if(all) {TRUE} else {which.max(Year)}, .(Value, Year)]
+                      if(all) {TRUE} else {which.max(Year)}, .(Year, Value)][
+                      order(Year)]
   vals <- vals[!is.na(Value)]
   if(nrow(vals) == 0) {
       return(NULL)
   } else {
-      return(vals)
+      return(as.matrix(vals))
   }
 }
 
 summaryindicators <-
   c('population-estimates', 'household-income-mean', 'mean-weekly-rent', 'gdp-per-capita', 'mean-house-value')
 
-summaries <- sapply(areaids, function(areaid) {
+summaries <-
   sapply(summaryindicators, function (ind) {
-    lookup(areaid, ind)
+    sapply(areaids, function(areaid) {
+      lookup(areaid, ind)
+    }, simplify=FALSE)
   }, simplify=FALSE)
-}, simplify=FALSE)
 
 cat(as.character(toJSON(summaries
     , null='null', auto_unbox=TRUE)), file=outputfile)

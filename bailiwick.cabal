@@ -55,7 +55,6 @@ library
                      , reflex-dom-core
                      , servant
                      , servant-reflex
-                     , scientific
                      , text
                      , time
                      , transformers

@@ -7,12 +7,10 @@
 
 module Bailiwick.Types where
 
-import Data.Maybe (listToMaybe, mapMaybe)
 import Data.Aeson
 import Data.Aeson.Types (FromJSONKeyFunction(FromJSONKeyText))
 import Data.Char as Char
 
-import Data.Scientific (Scientific)
 import Data.Hashable (Hashable)
 import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import Data.Map (Map)
@@ -57,15 +55,11 @@ instance FromJSON Areas where
       areas <- parseJSON v
       return $ Areas $ OMap.fromList [(areaId a, a) | a <- areas]
 
-type Year = Integer
-data ValueYear = ValueYear Scientific Year
-  deriving (Eq, Show, Generic)
-instance FromJSON ValueYear where
-    parseJSON = withObject "ValueYear" $ \v -> do
-        ValueYear <$> v .: "Value" <*> v .: "Year"
-
-type AreaSummary   = InsOrdHashMap IndicatorId (Maybe [ValueYear])
-type AreaSummaries = InsOrdHashMap AreaId AreaSummary
+type Year = Int
+newtype YearValue = YearValue {unYearValue :: (Year, Double)}
+  deriving (Eq, Show, Generic, FromJSON)
+type AreaSummary   = InsOrdHashMap AreaId (Maybe [YearValue])
+type AreaSummaries = InsOrdHashMap IndicatorId AreaSummary
 
 data Theme
   = Theme

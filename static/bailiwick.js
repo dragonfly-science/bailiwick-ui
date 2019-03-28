@@ -17,6 +17,8 @@ var updateTimeSeries = function(element, labelledData, activeLabelName) {
         height = baseH - margin.top - margin.bottom,
         _this = this;
 
+    console.log(baseW);
+
     svg.attr('width', baseW);
     svg.attr('height', baseH);
 
@@ -52,7 +54,7 @@ var updateTimeSeries = function(element, labelledData, activeLabelName) {
 
     var line = d3.svg.line()
         .x(function(d) {
-            return x(yearFormat(d[0]));
+            return x(yearFormat(d[0].toString()));
         })
         .y(function(d) {
             return y(d[1]);
@@ -67,7 +69,7 @@ var updateTimeSeries = function(element, labelledData, activeLabelName) {
         return d[1];
     }) / 100000) * 100000;
     x.domain(d3.extent(data[0], function(d) {
-        return yearFormat(d[0]);
+        return yearFormat(d[0].toString());
     }));
     y.domain([0, yMax]);
 
