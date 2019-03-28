@@ -16,7 +16,6 @@ import Data.Monoid ((<>))
 import Data.Maybe (listToMaybe)
 
 import Data.Text (Text)
-import qualified Data.Text as T
 import qualified Data.HashMap.Strict.InsOrd as OM
 import Language.Javascript.JSaddle (jsg3, MonadJSM, liftJSM)
 import Reflex
@@ -125,8 +124,8 @@ indicatorLatestYearSummary cssClass indicator label areaIdD (Just summary) = do
           myearvalues <- OM.lookup areaid summary
           yearvalues <- myearvalues
           listToMaybe yearvalues
-      labelyear (YearValue (y, _)) = label <> " (" <> (T.pack $ show y) <> ")"
-      numbers   (YearValue (_, v)) = T.pack $ show v
+      labelyear (YearValueDisp (y, _, _)) = label <> " (" <> y <> ")"
+      numbers   (YearValueDisp (_, _, v)) = v
   indicatorSummary cssClass indicator (maybe "" labelyear <$> valueyearD) $
     divClass ("summary-numbers " <> cssClass <> "-numbers") $ do
       el "i" $ return ()
@@ -150,7 +149,7 @@ housePriceTimeSeries _ Nothing = return ()
 housePriceTimeSeries areaD (Just summary) = do
   areaD' <- holdUniqDyn areaD
   let nzvals = join $ OM.lookup "new-zealand" summary
-      un = maybe [] (map unYearValue)
+      un = maybe [] (map unYearValueDisp)
       inputValues = do
         area <- areaD'
         let areaid = areaId area
@@ -170,10 +169,11 @@ housePriceTimeSeries areaD (Just summary) = do
       el "span" $ dynText $ (\a -> if areaId a == "new-zealand"
                                      then ""
                                      else " — New Zealand") <$> areaD'
+
   initialUpdate <- tagPromptlyDyn inputValues <$> (delay 0.5 =<< getPostBuild)
   performEvent_ $ ffor (leftmost [updated inputValues, initialUpdate]) $ \case
     Just (d, area) -> liftJSM . void $ do
-         jsg3 ("updateTimeSeries" :: Text) (_element_raw e) d (areaName area)
+         jsg3 ("updateTimeSeries" :: Text) (_element_raw e) d (areaId area)
     _ -> return ()
 
 

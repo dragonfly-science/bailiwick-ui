@@ -55,10 +55,10 @@ instance FromJSON Areas where
       areas <- parseJSON v
       return $ Areas $ OMap.fromList [(areaId a, a) | a <- areas]
 
-type Year = Int
-newtype YearValue = YearValue {unYearValue :: (Year, Double)}
+type Year = Text
+newtype YearValueDisp = YearValueDisp {unYearValueDisp :: (Year, Double, Text)}
   deriving (Eq, Show, Generic, FromJSON)
-type AreaSummary   = InsOrdHashMap AreaId (Maybe [YearValue])
+type AreaSummary   = InsOrdHashMap AreaId (Maybe [YearValueDisp])
 type AreaSummaries = InsOrdHashMap IndicatorId AreaSummary
 
 data Theme
@@ -195,17 +195,19 @@ instance FromJSON ChartId where
 data Indicator = Indicator
   { indicatorId                     :: IndicatorId
   , indicatorName                   :: Text
---  , indicatorBarchartLabelWidth     :: Maybe Int
   , indicatorAbsoluteLabel          :: Maybe Text
---  , indicatorCaptions               :: Maybe (Map Text Text)
---  , indicatorCharts                 :: [Chart]
   , indicatorDefaultChartLeft       :: ChartId
   , indicatorDefaultChartRight      :: ChartId
+  , indicatorFeatures               :: [Text]
+  , indicatorUnits                  :: Units
+  , indicatorValueType              :: ValueType
+--  , indicatorBarchartLabelWidth     :: Maybe Int
+--  , indicatorCaptions               :: Maybe (Map Text Text)
+--  , indicatorCharts                 :: [Chart]
 --  , indicatorDetailName             :: Maybe Text
 --  , indicatorDetails                :: [Text]
 --  , indicatorEnableAreaToggle       :: Bool
 --  , indicatorFeatureName            :: Maybe Text
-  , indicatorFeatures               :: [Text]
 --  , indicatorFeatureText            :: Maybe (Map FeatureId Text)
 --  , indicatorFeatureDropdownLabel   :: Maybe Text
 --  , indicatorFirstYear              :: Text
@@ -230,7 +232,6 @@ data Indicator = Indicator
 --  , indicatorThemes                 :: [Text]
 --  , indicatorTopDetailLabel         :: Maybe Text
 --  , indicatorTopFeatureLabel        :: Maybe Text
---  , indicatorUnits                  :: Units
 --  , indicatorYearEndMonth           :: Maybe Text
 --  , indicatorYears                  :: [Text]
 --  , indicatorFeatureTrees           :: [Text]
@@ -247,8 +248,6 @@ data Indicator = Indicator
 --  , indicatorHeadlineNumCaption   :: Text
 --  , indicatorLocalNum             :: SecondaryNumber
 --  , indicatorNationalNum          :: SecondaryNumber
---  , indicatorUnits                :: Units
---  , indicatorValueType            :: ValueType
 --  , indicatorCharts               :: [Chart]
 --  , indicatorPeriod               :: Maybe Int
 --  , indicatorPrimaryYear          :: Maybe Text

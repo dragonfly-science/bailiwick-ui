@@ -4,12 +4,12 @@ language-config:
   subject-short: median annual income
 themes:
   - social & income
-source: Stats NZ <a href="http://innovation.stats.govt.nz/initiatives/experimental-estimates-of-income-from-linked-administrative-data-methods-and-results/" target="_blank">Experimental estimates of income from linked administrative data</a>. 
-notes: 
+source: Stats NZ <a href="http://innovation.stats.govt.nz/initiatives/experimental-estimates-of-income-from-linked-administrative-data-methods-and-results/" target="_blank">Experimental estimates of income from linked administrative data</a>.
+notes:
   - These are Experimental estimates of personal income from wages and salaries and self-employment derived from the IDI. Access to the data used to produce these estimates was provided by Stats NZ under conditions designed to give effect to the security and confidentiality provisions of the Statistics Act 1975.
   - Experimental estimates are <strong>not</strong> Official statistics. These experimental income estimates are published as an example of the type and quality of information about income that can currently be obtained from administrative data sources.
   - These estimates include income from wages and salaries and self-employment only. Others sources of income are not included.
-  - Stats NZ is seeking feedback on the usefulness of the series to customers. Any feedback received will help to drive and support future development of this series of income estimates. To submit feedback, <a href="https://www.surveygizmo.com/s3/3881180/Experimental-income-estimates-from-linked-administrative-data-2017-release" target="_blank">please complete this form</a>. 
+  - Stats NZ is seeking feedback on the usefulness of the series to customers. Any feedback received will help to drive and support future development of this series of income estimates. To submit feedback, <a href="https://www.surveygizmo.com/s3/3881180/Experimental-income-estimates-from-linked-administrative-data-2017-release" target="_blank">please complete this form</a>.
 headerTitle: Median annual income [of people in $feature$] in $area$
 slices:
   - median income estimates by age group
@@ -83,3 +83,4 @@ charts:
       - 60-64-age-group
       - 65-plus-age-group
       - all-age-groups-above-15
+

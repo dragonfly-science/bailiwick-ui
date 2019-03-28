@@ -37,6 +37,8 @@ indicators <-
       , "defaultChartRight"    = fromMaybe("timeseries", indicator$rightChart) # :: ChartId
       , "features"             = fromMaybe(features, indicator$sortedFeature)  # :: [Text]
       , "slices"               = slices
+      , "units"                = fromMaybe("count", indicator$units)
+      , "valueType"            = fromMaybe("quantity", indicator$valueType)
       ## , "featureText"          = indicator$featureText                         # :: Maybe (Map FeatureId Text)
       ## , "featureDropdownLabel" = indicator$featureDropdownLabel
       ## , "firstYear"            = indicator$firstYear

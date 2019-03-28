@@ -39,17 +39,20 @@ names(indicators) <- sapply(indicators, function (ind) ind$id)
 areaids <- unique(sapply(areas[['areas']], function(area) area$id))
 
 lookup <- function(areaname1, indicatorid) {
+  unit <- indicators[[indicatorid]]$unit
   datasetid <- REARdb_Source[tolower(indicators[[indicatorid]]$slices), DatasetID]
-  aid <- REARdb_Areas[areaname1, AreaID]
+  aid <- REARdb_Areas[areaname1, AreaID][1]
   all <- indicatorid == 'mean-house-value'
   vals <- REARdb_Data[.(datasetid, aid)][
-                      if(all) {TRUE} else {which.max(Year)}, .(Year, Value)][
+                      if(all) {TRUE} else {which.max(Year)},
+                      .(Year, Value, disp = formatValue(unit, Value))][
                       order(Year)]
   vals <- vals[!is.na(Value)]
   if(nrow(vals) == 0) {
       return(NULL)
   } else {
-      return(as.matrix(vals))
+      return(lapply(1:nrow(vals), function(i)
+         list(as.character(vals$Year[i]), vals$Value[i], vals$disp[i])))
   }
 }
 

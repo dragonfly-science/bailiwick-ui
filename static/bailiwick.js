@@ -9,7 +9,7 @@ var updateTimeSeries = function(element, labelledData, activeLabelName) {
             top: 15,
             right: 0,
             bottom: 30,
-            left: 43
+            left: 48
         },
         baseW = parseInt(base.style('width')),
         baseH = parseInt(base.style('height')),
@@ -17,14 +17,13 @@ var updateTimeSeries = function(element, labelledData, activeLabelName) {
         height = baseH - margin.top - margin.bottom,
         _this = this;
 
-    console.log(baseW);
-
     svg.attr('width', baseW);
     svg.attr('height', baseH);
 
     var data = labelledData.map(function(d) {
         return d[1];
     });
+    console.log(activeLabelName);
 
     var x = d3.time.scale()
         .range([0, width]);
@@ -54,7 +53,7 @@ var updateTimeSeries = function(element, labelledData, activeLabelName) {
 
     var line = d3.svg.line()
         .x(function(d) {
-            return x(yearFormat(d[0].toString()));
+            return x(yearFormat(d[0]));
         })
         .y(function(d) {
             return y(d[1]);
@@ -86,13 +85,7 @@ var updateTimeSeries = function(element, labelledData, activeLabelName) {
 
     gEnter.append("g")
         .attr("class", "y axis")
-        .attr("transform", "translate(-7,0)")
-        .append("text")
-        .attr("y", -1 * margin.left)
-        .attr("x", -5)
-        .attr("dy", function(d) {
-            return d3.select(this).style('line-height');
-        });
+        .attr("transform", "translate(-7,0)");
 
     g.selectAll("g.y")
         .call(yAxis);
