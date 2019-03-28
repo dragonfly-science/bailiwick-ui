@@ -4,6 +4,8 @@
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RecursiveDo         #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE TupleSections       #-}
 module Bailiwick.View
 where
 
@@ -85,13 +87,13 @@ view stateD = do
             elDynClass "header" (mainHeaderClass <$> stateD <*> isOpen) $ do
               navBarE <- navbar
               headerE' <- switchDynM $ ffor stateD $ \case
-                  Waiting      -> return never
-                  State _ hs _ _ _ -> header hs
+                  Waiting    -> return never
+                  State{..}  -> header headerState
               (toolBarE, isOpen') <- mdo
                   eithersE <-
                      switchDynM $ ffor stateD $ \case
-                                      State _ _ _ tbs _ -> toolBar isOpen tbs
-                                      _               -> return never
+                                      State{..} -> toolBar isOpen toolBarState
+                                      _         -> return never
                   let (isOpenE, toolBarE) = fanEither eithersE
                   isOpen <- foldDyn (const not) False $ isOpenE
                   return (toolBarE, isOpen)
@@ -101,8 +103,8 @@ view stateD = do
              maybe mempty (("style" =:) . ("margin-top: " <>)) <$> marginTopD) $
         mainContent stateD
     indicatorsE <- switchDynM $ ffor stateD $ \case
-        Waiting      -> return never
-        State _ _ is _ _ -> indicators is
+        Waiting   -> return never
+        State{..} -> indicators indicatorState
 
     -- We need to scroll up when these links are clicked (or you can't tell they do anything)
     performEvent_ $ ffor indicatorsE $ \case
@@ -163,7 +165,7 @@ mainContent
 mainContent stateD = do
   isSummary <- holdUniqDyn ((== Summary) . getPage <$> stateD)
   switchHold never =<< dyn (ffor isSummary $ \case
-    True -> summaryContent stateD
+    True  -> summaryContent stateD
     False -> indicatorContent stateD)
 
 summaryContent
@@ -175,7 +177,9 @@ summaryContent stateD =
     messagesE
      <-
        divClass "navigation-map base-map" $ do
-         zoomClick <- return never --summaryText stateD
+         zoomClick <- switchDynM $ ffor stateD $ \case
+                Waiting    -> return never
+                State{..}  -> summaryText route area
          mapClicks <-
            divClass "svg-wrapper" $
              -- nzmap stateD
@@ -183,8 +187,8 @@ summaryContent stateD =
          return $ leftmost [zoomClick, mapClicks]
 
     summaryMessagesE <- divClass "area-summary" $ switchDynM $ ffor stateD $ \case
-          Waiting      -> return never
-          State _ _ _ _ summaries -> areaSummary summaries
+          Waiting   -> return never
+          State{..} -> areaSummary areaSummaryState
     return $ leftmost [messagesE, summaryMessagesE]
 
 indicatorContent
@@ -221,39 +225,49 @@ indicatorContent stateD = do
 summaryText
   :: ( DomBuilder t m
      , PostBuild t m )
-  => Dynamic t (State t)
+  => Route
+  -> Dynamic t Area
   -> m (Event t Message)
-summaryText stateD = do
+summaryText route areaD = do
 
-  let homeAttr = stateD >>= \case
-            --State Summary [] _ _ -> return ("class" =: "text-wrapper" <> "style" =: "display: block")
-            _    -> return ("class" =: "text-wrapper" <> "style" =: "display: none")
-      summaryAttr = stateD >>= \case
-            -- State Summary [] _ _ -> return ("class" =: "text-wrapper" <> "style" =: "display: none")
-            _    -> return ("class" =: "text-wrapper" <> "style" =: "display: block")
+  let page = routePage route
+      homeAttr = case page of
+            Summary -> ("class" =: "text-wrapper" <> "style" =: "display: block")
+            _    -> ("class" =: "text-wrapper" <> "style" =: "display: none")
+      summaryAttr = case page of
+            Summary -> ("class" =: "text-wrapper" <> "style" =: "display: none")
+            _    -> ("class" =: "text-wrapper" <> "style" =: "display: block")
 
       -- Zoom in and out button
-      zoomed = hasAdapter Mapzoom . getRoute <$> stateD
-      zoomAttr = zoomed >>= \case
-                    True -> return ( "class" =: "zoom-out-small")
-                    False -> return ( "class" =: "zoom-in-small")
-      zoomText = zoomed >>= \case
-                    True -> return "Zoom out"
-                    False -> return "Zoom in"
+      zoomed = hasAdapter Mapzoom route
+      zoomAttr = case zoomed of
+                    True -> ( "class" =: "zoom-out-small")
+                    False -> ( "class" =: "zoom-in-small")
+      zoomText = case zoomed of
+                    True -> "Zoom out"
+                    False -> "Zoom in"
 
-      dispArea = maybe "" areaName . getArea <$> stateD
+      dispArea = areaName <$> areaD
 
-  elDynAttr "div" homeAttr $
+  elAttr "div" homeAttr $
     divClass "background-wrapper" $ do
       divClass "intro-paragraph" $
         text "Welcome to the interactive Regional Economic Activity Web Tool."
       elClass "p" "body-paragraph" $
-        text "This tool allows you to compare regions' economic performance, distinguish their attributes and specialisations, and understand the different roles they play in the New Zealand economy."
+        text $ "This tool allows you to compare regions' economic performance, "
+            <> "distinguish their attributes and specialisations, and "
+            <> "understand the different roles they play in the New Zealand economy."
       elClass "p" "body-paragraph" $
-        text "Click on regions to compare, or go straight into the detail by exploring the themed indicators. All data sets are annualised in order to make comparison easier and maximise the data available."
+        text $ "Click on regions to compare, or go straight into the detail "
+            <> "by exploring the themed indicators. All data sets are "
+            <> "annualised in order to make comparison easier and maximise "
+            <> "the data available."
       elClass "p" "body-paragraph" $
-        text "The tool is updated regularly, but more recent data may be available at its source, especially if it is frequently updated. Where possible, we include a link back to the source so you can check if more recent data is available."
-  elDynAttr "div" summaryAttr $ do
+        text $ "The tool is updated regularly, but more recent data may be "
+            <> "available at its source, especially if it is frequently "
+            <> "updated. Where possible, we include a link back to the source "
+            <> "so you can check if more recent data is available."
+  elAttr "div" summaryAttr $ do
     divClass "background-wrapper" $ do
       divClass "intro-paragraph" $
         dynText dispArea
@@ -264,10 +278,10 @@ summaryText stateD = do
         text "You can go into more detail by exploring the indicators below"
     (zoom, _)
        <- elAttr' "div" ("class" =: "map-zoom") $ do
-           dynText zoomText
-           elDynAttr "span" zoomAttr $ return ()
-    return $ ffor (tagPromptlyDyn stateD (domEvent Click zoom)) $ \case
-      s | hasAdapter Mapzoom (getRoute s) -> ZoomOut . fmap areaId $ getRegion s
+           text zoomText
+           elAttr "span" zoomAttr $ return ()
+    return $ ffor (tagPromptlyDyn ((route,) <$> areaD) (domEvent Click zoom)) $ \case
+      (r,a) | hasAdapter Mapzoom r -> ZoomOut (Just $ areaId a)
       _ -> ZoomIn
 
 footer :: (Monad m, DomBuilder t m) => m ()

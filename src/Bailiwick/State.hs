@@ -12,15 +12,23 @@ import Reflex.Dom.Core
 
 import Bailiwick.Route as Route (Route(..), Page(..), ThemePageArgs(..), themePageIndicatorId, getThemePage)
 import Bailiwick.Store (Store(..))
-import Bailiwick.View.Header (HeaderState(..))
-import Bailiwick.View.Indicators (IndicatorState(..))
-import Bailiwick.View.ToolBar (ToolBarState(..))
-import Bailiwick.View.AreaSummary (AreaSummaryState(..))
+import Bailiwick.View.Header (HeaderState(HeaderState))
+import Bailiwick.View.Indicators (IndicatorState(IndicatorState))
+import Bailiwick.View.ToolBar (ToolBarState(ToolBarState))
+import Bailiwick.View.AreaSummary (AreaSummaryState(AreaSummaryState))
 import Bailiwick.Types
 
 data State t
   = Waiting
-  | State Page (HeaderState t) (IndicatorState t) (ToolBarState t) (AreaSummaryState t)
+  | State
+    { route             :: Route
+    , area              :: Dynamic t Area
+    , region            :: Dynamic t Area
+    , headerState       :: HeaderState t
+    , indicatorState    :: IndicatorState t
+    , toolBarState      :: ToolBarState t
+    , areaSummaryState  :: AreaSummaryState t
+    }
 
 make
   :: (Reflex t)
@@ -60,11 +68,19 @@ make routeD storeD = do
                                        | i <- concat [ themeIndicators t | t <- ts]]
           summaries_state = AreaSummaryState area summaries indicators
 
-      return $ State (routePage route)
-                     header_state
-                     indicator_state
-                     toolbar_state
-                     summaries_state
+      return $ State
+                 { route             = route
+                 , area              = area
+                 , region            = reg
+                 , headerState       = header_state
+                 , indicatorState    = indicator_state
+                 , toolBarState      = toolbar_state
+                 , areaSummaryState  = summaries_state
+                 }
+
+
+
+
 
 findIndicator :: [Theme] -> ThemePageArgs -> Maybe Indicator
 findIndicator themes ThemePageArgs{themePageIndicatorId}
@@ -93,7 +109,7 @@ areaList (Areas areas) p = case (area, parent) of
 
 
 getPage :: State t -> Page
-getPage (State page _ _ _ _) = page
+getPage (State route _ _ _ _ _ _) = routePage route
 getPage _ = Summary
 
 getRoute :: State t -> Route
