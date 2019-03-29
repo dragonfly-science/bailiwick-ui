@@ -43,9 +43,6 @@ areaOptions = defaultOptions
 
 instance FromJSON Area where
     parseJSON = genericParseJSON areaOptions
-    parseJSONList = withObject "Areas" $ \v -> do
-      Array as <- v .: "areas"
-      mapM parseJSON $ V.toList as
 
 newtype Areas
   = Areas { unAreas :: InsOrdHashMap Text Area }

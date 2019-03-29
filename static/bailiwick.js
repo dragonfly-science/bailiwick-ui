@@ -23,7 +23,6 @@ var updateTimeSeries = function(element, labelledData, activeLabelName) {
     var data = labelledData.map(function(d) {
         return d[1];
     });
-    console.log(activeLabelName);
 
     var x = d3.time.scale()
         .range([0, width]);

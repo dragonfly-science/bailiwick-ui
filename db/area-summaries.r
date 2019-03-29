@@ -36,7 +36,7 @@ themes <- read_json(themesjson)
 indicators <- do.call(c, lapply(themes[['themes']], function(theme) theme$indicators))
 names(indicators) <- sapply(indicators, function (ind) ind$id)
 
-areaids <- unique(sapply(areas[['areas']], function(area) area$id))
+areaids <- unique(sapply(areas, function(area) area$id))
 
 lookup <- function(areaname1, indicatorid) {
   unit <- indicators[[indicatorid]]$unit
