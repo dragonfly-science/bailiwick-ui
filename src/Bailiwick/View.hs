@@ -230,13 +230,13 @@ summaryText
   -> m (Event t Message)
 summaryText route areaD = do
 
-  let page = routePage route
-      homeAttr = case page of
-            Summary -> ("class" =: "text-wrapper" <> "style" =: "display: block")
-            _    -> ("class" =: "text-wrapper" <> "style" =: "display: none")
-      summaryAttr = case page of
-            Summary -> ("class" =: "text-wrapper" <> "style" =: "display: none")
-            _    -> ("class" =: "text-wrapper" <> "style" =: "display: block")
+  let area = routeArea route
+      homeAttr = case area of
+            "new-zealand" -> ("class" =: "text-wrapper" <> "style" =: "display: block")
+            _             -> ("class" =: "text-wrapper" <> "style" =: "display: none")
+      summaryAttr = case area of
+            "new-zealand" -> ("class" =: "text-wrapper" <> "style" =: "display: none")
+            _             -> ("class" =: "text-wrapper" <> "style" =: "display: block")
 
       -- Zoom in and out button
       zoomed = hasAdapter Mapzoom route
