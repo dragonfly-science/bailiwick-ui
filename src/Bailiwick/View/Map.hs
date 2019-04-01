@@ -280,7 +280,10 @@ zoomState wide z selectedArea
     , _strokeWidth              = strokeWidth
     }
   where
-    (translate, scale, strokeWidth) = regionTransform $ slugify selectedArea
+    (translate, scale, strokeWidth)
+        = if z
+            then regionTransform $ slugify selectedArea
+            else transform 0 727.5 1 (-1) 0.8
 
     transform :: Double -> Double -> Double -> Double -> Double
               -> (Translate Double, Scale Double, Double)
@@ -348,7 +351,7 @@ forNodesSetAttribute
   -> value
   -> m ()
 forNodesSetAttribute nodeList name val = liftJSM $ do
-  f <- eval (  "(function(list, name, value) {" 
+  f <- eval (  "(function(list, name, value) {"
             <> "    for (var i = 0; i < list.length; i++) {"
             <> "        list[i].setAttribute(name, value);"
             <> "    }"
@@ -473,13 +476,12 @@ nzmap MapState{..} = mdo
         setAttr "polyline" "stroke-linecap" "butt"
         setAttr "polyline" "cursor" "pointer"
 
-      mapStateE
-         <- attachPrevious $
-             leftmost [ updated mapD
-                      , tagPromptlyDyn mapD postBuild
-                      ]
+      mapE <- attachPrevious $
+               leftmost [ updated mapD
+                        , tagPromptlyDyn mapD postBuild
+                        ]
 
-      performEvent . ffor mapStateE $ \(old, new) -> do
+      performEvent . ffor mapE $ \(old, new) -> do
         -- Update the transform, but only if it has changed
         when ((_zoomState <$> old) /= Just (_zoomState new)) $ do
           let transform = transformString (_translate $ _zoomState new)
@@ -551,7 +553,7 @@ nzmap MapState{..} = mdo
               setAttr ("g." <> regionClass <> " > path") "fill" srbg
               setAttr ("g.coastline." <> regionClass <> " > polyline")
                       "stroke" "none"
-              setAttr ("g.inbound." <> regionClass <> "[same_" 
+              setAttr ("g.inbound." <> regionClass <> "[same_"
                                     <> subareaType <> "=TRUE] > polyline")
                       "stroke" srbg
               setAttr ("g.inbound." <> regionClass <> "[same_reg=TRUE][same_"
@@ -667,7 +669,7 @@ nzmap MapState{..} = mdo
           "visibility:visible; left:" <> show (x + 8) <> "px; top:" <> show (y + 8) <> "px;"
   elDynAttr "div" (("class" =: "tooltip" <>) . ("style" =:) . showStyle <$> tooltipAreaD) $ do
     el "p" $ dynText $ maybe "" (areaName . snd) <$> tooltipAreaD
-    elDynAttr "p" (("class" =: ) <$> (fromMaybe "" <$> transformD) <> " number") $ text "Val"
+    --elDynAttr "p" (("class" =: ) <$> (fromMaybe "" <$> transformD) <> " number") $ text "Val"
 
   moveE
     :: Event t (Maybe (AreaInfo, (Int, Int)))
