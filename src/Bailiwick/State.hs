@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts        #-}
 {-# LANGUAGE OverloadedStrings       #-}
 {-# LANGUAGE NamedFieldPuns          #-}
 module Bailiwick.State
@@ -16,6 +17,7 @@ import Bailiwick.View.Header (HeaderState(HeaderState))
 import Bailiwick.View.Indicators (IndicatorState(IndicatorState))
 import Bailiwick.View.ToolBar (ToolBarState(ToolBarState))
 import Bailiwick.View.AreaSummary (AreaSummaryState(AreaSummaryState))
+import Bailiwick.View.Map (MapState(MapState))
 import Bailiwick.Types
 
 data State t
@@ -28,6 +30,7 @@ data State t
     , indicatorState    :: IndicatorState t
     , toolBarState      :: ToolBarState t
     , areaSummaryState  :: AreaSummaryState t
+    , mapState          :: MapState t
     }
 
 make
@@ -68,6 +71,8 @@ make routeD storeD = do
                                        | i <- concat [ themeIndicators t | t <- ts]]
           summaries_state = AreaSummaryState area summaries indicators
 
+      let map_state = MapState routeD reg mta area (Areas areas)
+
       return $ State
                  { route             = routeD
                  , area              = area
@@ -76,6 +81,7 @@ make routeD storeD = do
                  , indicatorState    = indicator_state
                  , toolBarState      = toolbar_state
                  , areaSummaryState  = summaries_state
+                 , mapState          = map_state
                  }
 
 
@@ -108,6 +114,11 @@ areaList (Areas areas) p = case (area, parent) of
         , areaLevel parentArea == "reg" ]
 
 
+getPage
+  :: Reflex t
+  => State t -> Dynamic t Page
+getPage Waiting = constDyn Summary
+getPage st@State{route = r } = routePage <$> r
 
 getRoute :: State t -> Route
 getRoute = undefined
