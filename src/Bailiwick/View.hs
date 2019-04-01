@@ -181,9 +181,9 @@ summaryContent stateD =
                 Waiting    -> return never
                 State{..}  -> summaryText route area
          mapClicks <-
-           divClass "svg-wrapper" $
-             -- nzmap stateD
-             return never
+           divClass "svg-wrapper" $ switchDynM $ ffor stateD $ \case
+                Waiting    -> return never
+                State{..}  -> nzmap stateD
          return $ leftmost [zoomClick, mapClicks]
 
     summaryMessagesE <- divClass "area-summary" $ switchDynM $ ffor stateD $ \case

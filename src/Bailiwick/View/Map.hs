@@ -336,6 +336,11 @@ mediaQueryDyn queryString = do
   initiallyMatches <- getMatches mediaQueryList
   holdDyn initiallyMatches =<< mediaQueryChange mediaQueryList
 
+data MapState t
+  = MapState
+    {
+    }
+
 nzmap
     :: forall m t.
        ( Monad m
@@ -350,21 +355,21 @@ nzmap
        , MonadHold t m
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
-    => Dynamic t (State t)
+    => Dynamic t Route
+    -> Dynamic t Area
+    -> Dynamic t Area
     -> m (Event t Message)
-nzmap state = mdo
+nzmap route selectedArea = mdo
 
-  zoomD <- holdUniqDyn $ (hasAdapter Mapzoom . State.getRoute) <$> state
-  let selectedArea = State.stateArea <$> state
-
-      regD = selectedArea >>= \case
+  zoomD <- holdUniqDyn ( hasAdapter Mapzoom <$> route)
+  let regD = selectedArea >>= \case
             (r:_) -> return . Just $ areaId r
             _             -> return Nothing
 
       regChildrenD = selectedArea >>= \case
             (r:_) -> return $ areaChildren r
             _             -> return []
-      subareaD = fmap areaId . State.getSubArea <$> state
+      --subareaD = fmap areaId . State.getSubArea <$> state
 
   svgVisibilityD <- holdDyn ("style"=:"visibility: hidden;") $ mempty <$ loadedSvg
   let svgObjectAttrD = (("type"=:"image/svg+xml" <> "data"=:"/assets/map.svg" <> "class" =: "map") <>) <$> svgVisibilityD
@@ -394,7 +399,7 @@ nzmap state = mdo
           forSelectionSetAttributes q = mapM_ (uncurry $ forSelectionSetAttribute q)
           set :: (MonadJSM m0, IsElement e) => Text -> Text -> e -> m0 ()
           set a v e = setAttribute e a v
-          mapStateD = MapState <$> zoomD <*> zoomStateT <*> mouseOverD <*> regD <*> subareaD <*> regChildrenD
+          mapStateD = MapState <$> zoomD <*> zoomStateT <*> mouseOverD <*> regD <*> selectedArea <*> regChildrenD
 
       postBuild <- getPostBuild
       performEvent_ $ postBuild $> do
@@ -505,7 +510,7 @@ nzmap state = mdo
               forSelectionSetAttributes ("g." <> cssClass <> "[same_reg=TRUE] > polyline") [("stroke", "rgb(0, 189, 233)"), ("stroke-width", "3.0")]
               forSelectionSetAttribute ("g." <> cssClass <> ".coastline > polyline") "stroke" "rgb(0, 189, 233)")
 
-  let transformD = fmap themePageLeftTransform . State.getThemePage <$> state
+  let transformD = fmap themePageLeftTransform . themePage <$> route
   let tooltipArea :: Areas -> (State t) -> Maybe (AreaInfo, (Int, Int)) -> Maybe ((AreaInfo, (Int, Int)), Area)
       tooltipArea _ _ Nothing = Nothing
       tooltipArea areas s (Just (ai, xy)) =

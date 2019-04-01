@@ -21,7 +21,7 @@ import Bailiwick.Types
 data State t
   = Waiting
   | State
-    { route             :: Route
+    { route             :: Dynamic t Route
     , area              :: Dynamic t Area
     , region            :: Dynamic t Area
     , headerState       :: HeaderState t
@@ -69,7 +69,7 @@ make routeD storeD = do
           summaries_state = AreaSummaryState area summaries indicators
 
       return $ State
-                 { route             = route
+                 { route             = routeD
                  , area              = area
                  , region            = reg
                  , headerState       = header_state
@@ -108,9 +108,6 @@ areaList (Areas areas) p = case (area, parent) of
         , areaLevel parentArea == "reg" ]
 
 
-getPage :: State t -> Page
-getPage (State route _ _ _ _ _ _) = routePage route
-getPage _ = Summary
 
 getRoute :: State t -> Route
 getRoute = undefined
