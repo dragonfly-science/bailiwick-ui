@@ -74,6 +74,12 @@ import Reflex.Dom.Builder.Immediate (wrapDomEvent)
 import Bailiwick.Route
 import Bailiwick.Types
 
+switchDynM
+ :: (MonadHold t m, DomBuilder t m, PostBuild t m)
+ => Dynamic t (m (Event t a)) -> m (Event t a)
+switchDynM = (switchHold never =<<) . dyn
+
+
 slugify :: Text -> Text
 slugify = Text.replace "'" ""
         . Text.replace " " "-"
@@ -389,10 +395,9 @@ mediaQueryDyn queryString = do
 data MapState t
   = MapState
     { routeD   :: Dynamic t Route
-    , regionD  :: Dynamic t Area
+    , regionD  :: Dynamic t (Maybe Area)
     , subareaD :: Dynamic t (Maybe Area)
-    , areaD    :: Dynamic t Area
-    , areas    :: Areas
+    , areasD   :: Dynamic t (Maybe Areas)
     }
 
 nzmap
@@ -414,6 +419,7 @@ nzmap
 nzmap MapState{..} = mdo
 
   zoomD <- holdUniqDyn ( hasAdapter Mapzoom <$> routeD)
+  let areaD = zipDynWith (<|>) subareaD regionD
 
   -- Show the svg when it is loaded
   svgVisibilityD
@@ -439,11 +445,11 @@ nzmap MapState{..} = mdo
   wide <- mediaQueryDyn ("(min-width: 1025px)" :: Text)
   let duration = 500
   frame <- animationFrame zoomAnimating
-  let zoomStateD = zoomState <$> wide <*> zoomD <*> (areaId <$> regionD)
+  let zoomStateD = zoomState <$> wide <*> zoomD <*> (maybe "nz" areaId <$> regionD)
   (zoomAnimating, zoomStateT) <- transitions frame duration zoomStateD
 
   svgBodyD <- holdDyn Nothing (Just <$> svgBodyE)
-  loadedSvg <- switchHold never =<< dyn (ffor svgBodyD $ \case
+  loadedSvg <- switchDynM $ ffor svgBodyD $ \case
     Nothing -> return never
     Just svgBody -> do
       let setAttr
@@ -463,9 +469,9 @@ nzmap MapState{..} = mdo
             = Map <$> zoomD
                   <*> zoomStateT
                   <*> mouseOverD
-                  <*> (Just . areaId <$> regionD)
+                  <*> (fmap areaId <$> regionD)
                   <*> (fmap areaId <$> subareaD)
-                  <*> (areaChildren <$> areaD)
+                  <*> (maybe [] areaChildren <$> areaD)
 
       postBuild <- getPostBuild
       performEvent_ $ postBuild $> do
@@ -647,23 +653,23 @@ nzmap MapState{..} = mdo
                        , ("stroke-width", "3.0")]
               setAttr ("g." <> cssClass <> ".coastline > polyline")
                       "stroke" "rgb(0, 189, 233)"
-    )  -- loadedSvg
 
   let transformD = fmap themePageLeftTransform . getThemePage <$> routeD
   let tooltipArea
-         :: Areas
+         :: Maybe Areas
          -> Route
          -> Maybe (AreaInfo, (Int, Int))
          -> Maybe ((AreaInfo, (Int, Int)), Area)
       tooltipArea _ _ Nothing = Nothing
-      tooltipArea areas route (Just (ai, xy)) =
+      tooltipArea Nothing _ _ = Nothing
+      tooltipArea (Just areas) route (Just (ai, xy)) =
         let maybeAreaId =
               if hasAdapter Mapzoom route
                 then areaWard ai <|> areaTa ai
                 else areaRegion ai
         in ((ai, xy),) <$> (((`OM.lookup` (unAreas areas)) . slugify) =<< maybeAreaId)
       tooltipAreaD :: Dynamic t (Maybe ((AreaInfo, (Int, Int)), Area))
-      tooltipAreaD = tooltipArea areas <$> routeD <*> mouseOverFullD
+      tooltipAreaD = tooltipArea <$> areasD <*> routeD <*> mouseOverFullD
       showStyle Nothing = "visibility:hidden;"
       showStyle (Just ((_, (x,y)), _)) = Text.pack $
           "visibility:visible; left:" <> show (x + 8) <> "px; top:" <> show (y + 8) <> "px;"
@@ -673,21 +679,21 @@ nzmap MapState{..} = mdo
 
   moveE
     :: Event t (Maybe (AreaInfo, (Int, Int)))
-    <- switchHold never =<< dyn (ffor svgBodyD $ \case
+    <- switchDynM $ ffor svgBodyD $ \case
          Just divElement ->
            wrapDomEvent divElement (`DOM.onSync` DOM.mouseMove) getAreaInfoFromSvg
-         _ -> return never)
+         _ -> return never
   clickE
     :: Event t (Maybe AreaInfo)
-    <- switchHold never =<< dyn (ffor svgBodyD $ \case
+    <- switchDynM $ ffor svgBodyD $ \case
          Just divElement ->
            fmap (fmap fst) <$> wrapDomEvent divElement (`DOM.on` DOM.click) getAreaInfoFromSvg
-         _ -> return never)
+         _ -> return never
   leaveE
-    <- switchHold never =<< dyn (ffor svgBodyD $ \case
+    <- switchDynM $ ffor svgBodyD $ \case
          Just divElement ->
            wrapDomEvent divElement (`DOM.onSync` DOM.mouseLeave) $ return ()
-         _ -> return never)
+         _ -> return never
 
   mouseOverFullD
     :: Dynamic t (Maybe (AreaInfo, (Int, Int)))
@@ -739,7 +745,7 @@ nzmap MapState{..} = mdo
         region  <- regionD
         subarea <- subareaD
         route   <- routeD
-        return (Just region, subarea, route)
+        return (region, subarea, route)
   return $ attachPromptlyDynWithMaybe makeMessages combinedD clickE
 
 data AreaInfo

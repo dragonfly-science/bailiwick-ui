@@ -5,6 +5,9 @@
 {-# LANGUAGE FlexibleContexts        #-}
 {-# LANGUAGE ScopedTypeVariables     #-}
 module Bailiwick.Store
+  ( Store(..)
+  , run
+  )
 where
 
 import Control.Monad.Fix (MonadFix)
@@ -21,38 +24,24 @@ import Bailiwick.Route (Message(..))
 import Bailiwick.AreaTrees
 
 data Store
-  = Empty
-  | Loading (Maybe Areas) (Maybe [Theme]) (Maybe AreaSummaries)
-  | Loaded
-    { areas     :: Areas
-    , themes    :: [Theme]
-    , summaries :: AreaSummaries
+  = Store
+    { storeAreas     :: Maybe Areas
+    , storeThemes    :: Maybe [Theme]
+    , storeSummaries :: Maybe AreaSummaries
     }
     deriving (Show, Eq)
 
 empty :: Store
-empty = Empty
+empty = Store Nothing Nothing Nothing
 
 holdAreas :: Areas -> Store -> Store
-holdAreas as Empty                                   = Loading (Just as) Nothing   Nothing
-holdAreas as (Loading Nothing Nothing (Just sms))    = Loading (Just as) Nothing   (Just sms)
-holdAreas as (Loading Nothing (Just ts) Nothing)     = Loading (Just as) (Just ts) Nothing
-holdAreas as (Loading Nothing (Just ts) (Just sms))  = Loaded as ts sms
-holdAreas _ s = s
+holdAreas as store = store { storeAreas = Just as }
 
 holdThemes  :: [Theme] -> Store -> Store
-holdThemes ts Empty                                  = Loading Nothing   (Just ts) Nothing
-holdThemes ts (Loading (Just as) Nothing Nothing)    = Loading (Just as) (Just ts) Nothing
-holdThemes ts (Loading Nothing   Nothing (Just sms)) = Loading Nothing   (Just ts) (Just sms)
-holdThemes ts (Loading (Just as) Nothing (Just sms)) = Loaded as ts sms
-holdThemes _ s = s
+holdThemes ts store = store { storeThemes = Just ts }
 
 holdSummaries  :: AreaSummaries -> Store -> Store
-holdSummaries sms Empty                                  = Loading Nothing   Nothing   (Just sms)
-holdSummaries sms (Loading (Just as) Nothing   Nothing)  = Loading (Just as) Nothing   (Just sms)
-holdSummaries sms (Loading Nothing   (Just ts) Nothing)  = Loading Nothing   (Just ts) (Just sms)
-holdSummaries sms (Loading (Just as) (Just ts)  Nothing) = Loaded as ts sms
-holdSummaries _ s = s
+holdSummaries sms store = store { storeSummaries = Just sms }
 
 run
   :: ( TriggerEvent t m
@@ -90,8 +79,8 @@ makeRequest
   => Event t Message
   -> m (Event t (Store -> Store))
 makeRequest messageE = do
-  areasE  <- apiGetAreas  (() <$ ffilter (==Ready) messageE)
-  themesE <- apiGetThemes (() <$ ffilter (==Ready) messageE)
+  areasE     <- apiGetAreas         (() <$ ffilter (==Ready) messageE)
+  themesE    <- apiGetThemes        (() <$ ffilter (==Ready) messageE)
   summariesE <- apiGetAreaSummaries (() <$ ffilter (==Ready) messageE)
   return $ leftmost
     [ fmap holdAreas     $ fmapMaybe reqSuccess (traceEventWith (showReqResult "getAreas") areasE)

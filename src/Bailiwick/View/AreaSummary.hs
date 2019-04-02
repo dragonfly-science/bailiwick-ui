@@ -13,7 +13,7 @@ module Bailiwick.View.AreaSummary (
 import Control.Monad.Fix (MonadFix)
 import Control.Monad (void, join)
 import Data.Monoid ((<>))
-import Data.Maybe (listToMaybe)
+import Data.Maybe (listToMaybe, isJust)
 
 import Data.Text (Text)
 import qualified Data.HashMap.Strict.InsOrd as OM
@@ -26,9 +26,9 @@ import Bailiwick.Route
 
 data AreaSummaryState t
   = AreaSummaryState
-  { area       :: Dynamic t Area
-  , summaries  :: AreaSummaries
-  , indicators :: Indicators
+  { area       :: Dynamic t (Maybe Area)
+  , summaries  :: Dynamic t AreaSummaries
+  , indicators :: Dynamic t Indicators
   }
 
 areaSummary
@@ -46,9 +46,9 @@ areaSummary
   => AreaSummaryState t
   -> m (Event t Message)
 areaSummary AreaSummaryState{..} = do
-  let lookupIndicatorById i = OM.lookup (IndicatorId i) indicators
-      lookupAreaSummary i   = OM.lookup (IndicatorId i) summaries
-      areaIdD = areaId <$> area
+  let lookupIndicatorById i = OM.lookup (IndicatorId i) <$> indicators
+      lookupAreaSummary i   = OM.lookup (IndicatorId i) <$> summaries
+      areaIdD = maybe "" areaId <$> area
   gotoIndicatorE <- leftmost <$> sequence
     [ indicatorLatestYearSummary
         "population"
@@ -97,36 +97,37 @@ areaSummary AreaSummaryState{..} = do
 -- Display indicator summary block
 indicatorSummary
   :: (Monad m, PostBuild t m, DomBuilder t m)
-  => Text                     -- CSS class
-  -> Maybe Indicator          -- Indicator (for click message)
-  -> Dynamic t Text           -- Label text
-  -> m ()                     -- Content
+  => Text                        -- CSS class
+  -> Dynamic t (Maybe Indicator) -- Indicator (for click message)
+  -> Dynamic t Text              -- Label text
+  -> m ()                        -- Content
   -> m (Event t Indicator)
-indicatorSummary cssClass mbIndicator label content = do
+indicatorSummary cssClass mbIndicatorD label content = do
   (e, _) <- elAttr' "div" ("class" =: ("summary-item " <> cssClass <> "-item")) $ do
       divClass "block-label" $ dynText label
       content
-  return $ fmapMaybe id $ (mbIndicator <$ domEvent Click e)
+  return $ fmapMaybe id $ tagPromptlyDyn mbIndicatorD (domEvent Click e)
 
 indicatorLatestYearSummary
   :: (Monad m, PostBuild t m, DomBuilder t m)
   => Text                          -- CSS class
-  -> Maybe Indicator               -- Indicator (for click message)
+  -> Dynamic t (Maybe Indicator)   -- Indicator (for click message)
   -> Text                          -- Label text
   -> Dynamic t AreaId              -- Which area ?
-  -> Maybe AreaSummary             -- Data
+  -> Dynamic t (Maybe AreaSummary) -- Data
   -> m (Event t Indicator)
-indicatorLatestYearSummary _ _ _ _ Nothing =do return never
-indicatorLatestYearSummary cssClass indicator label areaIdD (Just summary) = do
+indicatorLatestYearSummary cssClass indicatorD label areaIdD summaryD = do
   let valueyearD = do
         areaid <- areaIdD
+        msummary <- summaryD
         return $ do
+          summary <- msummary
           myearvalues <- OM.lookup areaid summary
           yearvalues <- myearvalues
           listToMaybe yearvalues
       labelyear (YearValueDisp (y, _, _)) = label <> " (" <> y <> ")"
       numbers   (YearValueDisp (_, _, v)) = v
-  indicatorSummary cssClass indicator (maybe "" labelyear <$> valueyearD) $
+  indicatorSummary cssClass indicatorD (maybe "" labelyear <$> valueyearD) $
     divClass ("summary-numbers " <> cssClass <> "-numbers") $ do
       el "i" $ return ()
       dynText (maybe "" numbers <$> valueyearD)
@@ -142,20 +143,20 @@ housePriceTimeSeries
      , MonadFix m
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
-  => Dynamic t Area
-  -> Maybe AreaSummary
+  => Dynamic t (Maybe Area)
+  -> Dynamic t (Maybe AreaSummary)
   -> m ()
-housePriceTimeSeries _ Nothing = return ()
-housePriceTimeSeries areaD (Just summary) = do
+housePriceTimeSeries areaD msummaryD = do
   areaD' <- holdUniqDyn areaD
-  let nzvals = join $ OM.lookup "new-zealand" summary
-      un = maybe [] (map unYearValueDisp)
+  let un = maybe [] (map unYearValueDisp)
       inputValues = do
         area <- areaD'
-        let areaid = areaId area
-            mvals = OM.lookup areaid summary
+        msummary <- msummaryD
+        let nzvals = join $ OM.lookup "new-zealand" =<< msummary
+            areaid = maybe "" areaId area
+            mvals = OM.lookup areaid =<< msummary
         case mvals of
-          Nothing -> return (Just ([], area))
+          Nothing -> return Nothing
           Just vals -> do
             if areaid == "new-zealand"
               then return (Just ([(areaid, un vals)], area))
@@ -165,15 +166,16 @@ housePriceTimeSeries areaD (Just summary) = do
     elAttr "div" (  "class" =: "d3-attach"
                  <> "style" =: "width: 225px; height: 120px") $ return ()
     divClass "time-series-legend" $ do
-      el "span" $ dynText $ (("— " <>) . areaName) <$> areaD'
-      el "span" $ dynText $ (\a -> if areaId a == "new-zealand"
+      el "span" $ dynText $ (("— " <>) . maybe "" areaName) <$> areaD'
+      el "span" $ dynText $ (\a -> if fmap areaId a == Just "new-zealand"
                                      then ""
                                      else " — New Zealand") <$> areaD'
 
   initialUpdate <- tagPromptlyDyn inputValues <$> (delay 0.5 =<< getPostBuild)
-  performEvent_ $ ffor (leftmost [updated inputValues, initialUpdate]) $ \case
+  let updateE = ffilter isJust $ leftmost [updated inputValues, initialUpdate]
+  performEvent_ $ ffor updateE $ \case
     Just (d, area) -> liftJSM . void $ do
-         jsg3 ("updateTimeSeries" :: Text) (_element_raw e) d (areaId area)
+         jsg3 ("updateTimeSeries" :: Text) (_element_raw e) d (maybe "" areaId area)
     _ -> return ()
 
 

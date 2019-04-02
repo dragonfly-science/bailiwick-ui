@@ -1,91 +1,112 @@
-{-# LANGUAGE FlexibleContexts        #-}
-{-# LANGUAGE OverloadedStrings       #-}
-{-# LANGUAGE NamedFieldPuns          #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards #-}
 module Bailiwick.State
 where
 
-import Control.Monad (join)
+import Control.Applicative ((<|>))
 import Data.Maybe (listToMaybe, mapMaybe, fromMaybe)
 
 import Data.Text (Text)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Reflex.Dom.Core
 
-import Bailiwick.Route as Route (Route(..), Page(..), ThemePageArgs(..), themePageIndicatorId, getThemePage)
-import Bailiwick.Store (Store(..))
 import Bailiwick.View.Header (HeaderState(HeaderState))
 import Bailiwick.View.Indicators (IndicatorState(IndicatorState))
 import Bailiwick.View.ToolBar (ToolBarState(ToolBarState))
 import Bailiwick.View.AreaSummary (AreaSummaryState(AreaSummaryState))
 import Bailiwick.View.Map (MapState(MapState))
+import Bailiwick.Route
+import Bailiwick.Store
 import Bailiwick.Types
 
 data State t
-  = Waiting
-  | State
-    { route             :: Dynamic t Route
-    , area              :: Dynamic t Area
-    , region            :: Dynamic t Area
-    , headerState       :: HeaderState t
-    , indicatorState    :: IndicatorState t
-    , toolBarState      :: ToolBarState t
-    , areaSummaryState  :: AreaSummaryState t
-    , mapState          :: MapState t
+  = State
+    { routeD  :: Dynamic t Route
+    , storeD  :: Dynamic t Store
+    , regionD :: Dynamic t (Maybe Area)
+    , areaD   :: Dynamic t (Maybe Area)
     }
 
 make
   :: (Reflex t)
-  => Dynamic t Route -> Dynamic t Store -> Dynamic t (State t)
-make routeD storeD = do
-  store <- storeD
-  route <- routeD
-  case store of
-    Empty       -> return Waiting
-    Loading _ _ _ -> return Waiting
-    Loaded as@(Areas areas) ts summaries -> do
-
-      -- Header state
-      let pageD = routePage <$> routeD
-          getRegandTa route =
-              let al = areaList as (routeArea route)
+  => Dynamic t Route -> Dynamic t Store -> State t
+make routeD storeD =
+  let regta = do
+          mareas <- storeAreas <$> storeD
+          case mareas of
+            Nothing -> return (Nothing, Nothing)
+            Just as@(Areas areas) -> do
+              route_area <- routeArea <$> routeD
+              let al = areaList as route_area
                   Just nz = OMap.lookup "new-zealand" areas
-              in case al of
-                  [r, t] -> (r, Just t)
-                  [r]    -> (r, Nothing)
-                  []     -> (nz, Nothing)
-          reg = fst . getRegandTa <$> routeD
-          mta = snd . getRegandTa <$> routeD
-          header_state = HeaderState pageD reg mta as
-
-      -- Indicator state
-      let area = zipDynWith fromMaybe reg mta
-          indId = fmap themePageIndicatorId . Route.getThemePage <$> routeD
-          indicator_state = IndicatorState area indId ts
-
-      -- ToolBar State
-      let mthemepage = Route.getThemePage <$> routeD
-          mindicator = join . fmap (findIndicator ts) <$> mthemepage
-          toolbar_state = ToolBarState mthemepage mindicator
-
-      let indicators = OMap.fromList $ [ (indicatorId i, i)
-                                       | i <- concat [ themeIndicators t | t <- ts]]
-          summaries_state = AreaSummaryState area summaries indicators
-
-      let map_state = MapState routeD reg mta area (Areas areas)
-
-      return $ State
-                 { route             = routeD
-                 , area              = area
-                 , region            = reg
-                 , headerState       = header_state
-                 , indicatorState    = indicator_state
-                 , toolBarState      = toolbar_state
-                 , areaSummaryState  = summaries_state
-                 , mapState          = map_state
-                 }
+              case al of
+                  [r, t] -> return (Just r, Just t)
+                  [r]    -> return (Just r, Nothing)
+                  _      -> return (Just nz, Nothing)
+  in State
+       { routeD  = routeD
+       , storeD  = storeD
+       , regionD = fst <$> regta
+       , areaD   = snd <$> regta
+       }
 
 
+-- Header state
+makeHeaderState
+  :: Reflex t
+  => State t -> HeaderState t
+makeHeaderState State{..} =
+  let pageD = routePage <$> routeD
+      areasD = storeAreas <$> storeD
+  in  HeaderState pageD areaD regionD areasD
 
+-- Indicator state
+makeIndicatorState
+  :: Reflex t
+  => State t -> IndicatorState t
+makeIndicatorState State{..} =
+  let selectedAreaD = zipDynWith (<|>) areaD regionD
+      indId = fmap themePageIndicatorId . getThemePage <$> routeD
+  in  IndicatorState selectedAreaD indId (storeThemes <$> storeD)
+
+-- ToolBar State
+makeToolBarState
+  :: Reflex t
+  => State t -> ToolBarState t
+makeToolBarState State{..} =
+  let mthemepageD = getThemePage <$> routeD
+      mindicatorD = do -- Dynamic t
+        mthemepage <- mthemepageD
+        mthemes <- storeThemes <$> storeD
+        return $ do -- Maybe
+            themes <- mthemes
+            themepage <- mthemepage
+            findIndicator themes themepage
+  in  ToolBarState mthemepageD mindicatorD
+
+-- Area Summary state
+makeSummaryState
+  :: Reflex t
+  => State t -> AreaSummaryState t
+makeSummaryState State{..} =
+  let selectedAreaD = zipDynWith (<|>) areaD regionD
+      summariesD = fromMaybe OMap.empty . storeSummaries <$> storeD
+      indicatorsD = do
+        mthemes <- storeThemes <$> storeD
+        return $ fromMaybe OMap.empty $ do
+           themes <- mthemes
+           return $ OMap.fromList $ [ (indicatorId i, i)
+                                    | i <- concat [ themeIndicators t
+                                                  | t <- themes]]
+  in  AreaSummaryState selectedAreaD summariesD indicatorsD
+
+-- Map state
+makeMapState
+  :: Reflex t
+  => State t -> MapState t
+makeMapState State{..} =
+  MapState routeD regionD areaD (storeAreas <$> storeD)
 
 
 findIndicator :: [Theme] -> ThemePageArgs -> Maybe Indicator
@@ -114,12 +135,6 @@ areaList (Areas areas) p = case (area, parent) of
         , areaLevel parentArea == "reg" ]
 
 
-getPage
-  :: Reflex t
-  => State t -> Dynamic t Page
-getPage Waiting = constDyn Summary
-getPage st@State{route = r } = routePage <$> r
-
 getRoute :: State t -> Route
 getRoute = undefined
 
@@ -138,8 +153,6 @@ getSubArea :: State t -> Maybe Area
 getSubArea _ = Nothing
 
 
-getThemePage :: State t -> Maybe ThemePageArgs
-getThemePage _ = Nothing
 
 getIndicators = undefined
 

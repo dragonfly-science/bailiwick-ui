@@ -24,9 +24,9 @@ import Bailiwick.Types
 data HeaderState t
   = HeaderState
   { pageD     :: Dynamic t Page
-  , areaD     :: Dynamic t Area
+  , areaD     :: Dynamic t (Maybe Area)
   , subareaD  :: Dynamic t (Maybe Area)
-  , areas     :: Areas
+  , areasD    :: Dynamic t (Maybe Areas)
   }
 
 header
@@ -38,32 +38,39 @@ header
     => HeaderState t -> m (Event t Message)
 header HeaderState{..} = mdo
   let background = do
-        area <- areaId <$> areaD
+        area <- maybe "new-zealand" areaId <$> areaD
         return $ (  "class" =: "title" <> "data-region" =: area)
 
-      dispRegion = areaName <$> areaD
+      dispRegion = maybe "" areaName <$> areaD
       dispConnect = maybe "" (const ":") <$> subareaD
       dispSubArea = maybe "" areaName <$> subareaD
 
       showSubareaD = not . ( == OMap.empty) <$> subareasD
 
       subAreaMessage = do
-        area <- areaId <$> areaD
-        if area == "auckland"
+        area <- fmap areaId <$> areaD
+        if area == Just "auckland"
             then return "Select a ward"
             else return "Select a territorial authority"
 
-      regionsD =
-        let regions = OMap.filter (\a -> areaLevel a == "reg") (unAreas areas)
-            Just nz = OMap.lookup "new-zealand" (unAreas areas)
-        in  constDyn $ OMap.singleton "new-zealand" nz <> regions
+      regionsD = do
+        mareas <- areasD
+        let areas = maybe OMap.empty unAreas mareas
+            regions = OMap.filter (\a -> areaLevel a == "reg") areas
+            mnz = OMap.lookup "new-zealand" areas
+        return $ case mnz of
+                    Just nz -> OMap.singleton "new-zealand" nz <> regions
+                    Nothing -> regions
 
       subareasD = do
         area <- areaD
+        mareas <- areasD
         return $
           fromMaybe OMap.empty $ do
-            thisArea <- OMap.lookup (areaId area) (unAreas areas)
-            return $ OMap.filter (\a -> areaId a `elem` areaChildren thisArea) (unAreas areas)
+            Areas areas <- mareas
+            aid <- areaId <$> area
+            thisArea <- OMap.lookup aid areas
+            return $ OMap.filter (\a -> areaId a `elem` areaChildren thisArea) areas
 
   elDynAttr "div" background $
     divClass "content" $ mdo
@@ -75,7 +82,7 @@ header HeaderState{..} = mdo
           divClass "title-menus" $ do
             (region, regionOpen) <-
               dropdownMenu (constDyn "Select a region") never
-                           (constDyn True) (Just . areaId <$> areaD)
+                           (constDyn True) (fmap areaId <$> areaD)
                            (fmap areaName <$> regionsD)
             (subarea, _) <-
               dropdownMenu subAreaMessage

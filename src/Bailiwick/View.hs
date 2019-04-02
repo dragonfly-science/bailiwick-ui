@@ -40,6 +40,7 @@ switchDynM
  => Dynamic t (m (Event t a)) -> m (Event t a)
 switchDynM = (switchHold never =<<) . dyn
 
+
 windowScrolled
   :: (Monad m, MonadJSM m, TriggerEvent t m)
   => m (Event t Double)
@@ -66,39 +67,30 @@ view
        , MonadIO m
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
-    => Dynamic t (State t) -> m (Event t Message)
-view stateD = do
+    => State t -> m (Event t Message)
+view st@State{..} = do
   scrollPosD <- windowScrollDyn
   let marginTop (ThemePage _) = bool Nothing (Just "349px") . (> 140)
       marginTop _ = bool Nothing (Just "279px") . (> 140)
-      marginTopD = marginTop <$> (getPage =<< stateD) <*> scrollPosD
-      wholeBodyClass s = do
-        page <- getPage s
-        return $ "whole-body " <> case page of
-                                      ThemePage _ -> "theme-whole-body"
-                                      Summary -> "summary-whole-body"
-      mainHeaderClass isOpenD s = do
-        page <- getPage s
-        isOpen <- isOpenD
-        return $ 
-         "main-header " <> case page of
+      marginTopD = marginTop <$> (routePage <$> routeD) <*> scrollPosD
+      wholeBodyClass route =
+        "whole-body " <> case routePage route of
+                              ThemePage _ -> "theme-whole-body"
+                              Summary -> "summary-whole-body"
+      mainHeaderClass isOpen route =
+         "main-header " <> case routePage route of
                               ThemePage _ -> if isOpen then "large" else "small"
                               Summary -> "closed"
   elDynAttr "div" (("class" =:) <$>
-         ((<>) <$> (wholeBodyClass =<< stateD)
+         ((<>) <$> (wholeBodyClass <$> routeD)
                <*> (bool "" " fixed" . isJust <$> marginTopD))) $ mdo
     (headerE, isOpen)
       <- divClass "main-header-area" $
-            elDynClass "header" (mainHeaderClass isOpen =<< stateD) $ do
+            elDynClass "header" (mainHeaderClass <$> isOpen <*> routeD) $ do
               navBarE <- navbar
-              headerE' <- switchDynM $ ffor stateD $ \case
-                  Waiting    -> return never
-                  State{..}  -> header headerState
+              headerE' <- header (makeHeaderState st)
               (toolBarE, isOpen') <- mdo
-                  eithersE <-
-                     switchDynM $ ffor stateD $ \case
-                                      State{..} -> toolBar isOpen toolBarState
-                                      _         -> return never
+                  eithersE <- toolBar isOpen (makeToolBarState st)
                   let (isOpenE, toolBarE) = fanEither eithersE
                   isOpen <- foldDyn (const not) False $ isOpenE
                   return (toolBarE, isOpen)
@@ -106,10 +98,8 @@ view stateD = do
     mainE <-
       elDynAttr "div" (("class" =: "content main-content" <>) .
              maybe mempty (("style" =:) . ("margin-top: " <>)) <$> marginTopD) $
-        switchDynM $ ffor stateD mainContent
-    indicatorsE <- switchDynM $ ffor stateD $ \case
-        Waiting   -> return never
-        State{..} -> indicators indicatorState
+        mainContent st
+    indicatorsE <- indicators (makeIndicatorState st)
 
     -- We need to scroll up when these links are clicked (or you can't tell they do anything)
     performEvent_ $ ffor indicatorsE $ \case
@@ -167,30 +157,32 @@ mainContent
     :: ContentConstraints t m
     => State t
     -> m (Event t Message)
-mainContent Waiting = return never
-mainContent State{..} = do
-  isSummary <- holdUniqDyn ((== Summary) . routePage <$> route)
-  switchDynM $ ffor isSummary $ \case
-    True  -> summaryContent route area mapState areaSummaryState
-    False -> indicatorContent mapState
+mainContent st@State{..} = do
+  isSummary <- holdUniqDyn ((== Summary) . routePage <$> routeD)
+  let mapState = makeMapState st
+      areaSummaryState = makeSummaryState st
+  switchDynM $
+     ffor isSummary $ \case
+        True  -> summaryContent routeD areaD mapState areaSummaryState
+        False -> indicatorContent mapState
 
 summaryContent
     :: ContentConstraints t m
     => Dynamic t Route
-    -> Dynamic t Area
+    -> Dynamic t (Maybe Area)
     -> MapState t
     -> AreaSummaryState t
     -> m (Event t Message)
-summaryContent route area map_state area_summary_state=
+summaryContent routeD areaD map_state area_summary_state=
   divClass "central-content summary" $ do
     messagesE
      <-
        divClass "navigation-map base-map" $ do
-         zoomClick <- summaryText route area
+         zoomClick <- summaryText routeD areaD
          mapClicks <- divClass "svg-wrapper" $ nzmap map_state
          return $ leftmost [zoomClick, mapClicks]
 
-    summaryMessagesE <- divClass "area-summary" $ 
+    summaryMessagesE <- divClass "area-summary" $
         areaSummary area_summary_state
     return $ leftmost [messagesE, summaryMessagesE]
 
@@ -227,11 +219,11 @@ summaryText
   :: ( DomBuilder t m
      , PostBuild t m )
   => Dynamic t Route
-  -> Dynamic t Area
+  -> Dynamic t (Maybe Area)
   -> m (Event t Message)
-summaryText route areaD = do
+summaryText routeD areaD = do
 
-  let area = routeArea <$> route
+  let area = routeArea <$> routeD
       homeAttr = ffor area $ \case
             "new-zealand" -> ("class" =: "text-wrapper" <> "style" =: "display: block")
             _             -> ("class" =: "text-wrapper" <> "style" =: "display: none")
@@ -240,7 +232,7 @@ summaryText route areaD = do
             _             -> ("class" =: "text-wrapper" <> "style" =: "display: block")
 
       -- Zoom in and out button
-      zoomed = hasAdapter Mapzoom <$> route
+      zoomed = hasAdapter Mapzoom <$> routeD
       zoomAttr = ffor zoomed $ \case
                     True -> ( "class" =: "zoom-out-small")
                     False -> ( "class" =: "zoom-in-small")
@@ -248,7 +240,7 @@ summaryText route areaD = do
                     True -> "Zoom out"
                     False -> "Zoom in"
 
-      dispArea = areaName <$> areaD
+      dispArea = maybe "" areaName <$> areaD
 
   elDynAttr "div" homeAttr $
     divClass "background-wrapper" $ do
@@ -281,8 +273,8 @@ summaryText route areaD = do
        <- elAttr' "div" ("class" =: "map-zoom") $ do
            dynText zoomText
            elDynAttr "span" zoomAttr $ return ()
-    return $ ffor (tagPromptlyDyn ((,) <$> route <*> areaD) (domEvent Click zoom)) $ \case
-      (r,a) | hasAdapter Mapzoom r -> ZoomOut (Just $ areaId a)
+    return $ ffor (tagPromptlyDyn ((,) <$> routeD <*> areaD) (domEvent Click zoom)) $ \case
+      (r,a) | hasAdapter Mapzoom r -> ZoomOut (areaId <$> a)
       _ -> ZoomIn
 
 footer :: (Monad m, DomBuilder t m) => m ()
