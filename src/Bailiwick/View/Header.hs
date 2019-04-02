@@ -41,7 +41,7 @@ header HeaderState{..} = mdo
         area <- maybe "new-zealand" areaId <$> areaD
         return $ (  "class" =: "title" <> "data-region" =: area)
 
-      dispRegion = maybe "" areaName <$> areaD
+      dispRegion  = maybe "" areaName <$> areaD
       dispConnect = maybe "" (const ":") <$> subareaD
       dispSubArea = maybe "" areaName <$> subareaD
 
