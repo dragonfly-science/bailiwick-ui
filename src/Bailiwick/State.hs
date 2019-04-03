@@ -59,8 +59,7 @@ makeHeaderState
 makeHeaderState State{..} =
   let pageD = routePage <$> routeD
       areasD = storeAreas <$> storeD
-      selectedAreaD = zipDynWith (<|>) areaD regionD
-  in  HeaderState pageD regionD selectedAreaD areasD
+  in  HeaderState pageD regionD areaD areasD
 
 -- Indicator state
 makeIndicatorState
