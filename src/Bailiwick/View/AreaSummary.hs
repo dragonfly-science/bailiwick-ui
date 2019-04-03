@@ -78,7 +78,7 @@ areaSummary AreaSummaryState{..} = do
         "house-price"
         (lookupIndicatorById "mean-house-value")
         "Mean house value"
-        (housePriceTimeSeries area $ lookupAreaSummary  "mean-house-value")
+        (return ()) -- (housePriceTimeSeries area $ lookupAreaSummary  "mean-house-value")
     , divClass "summary-item button" $
         elAttr "a" ("class" =: "indicators right" <> "href" =: "#indicators") $
           el "span" $ do
