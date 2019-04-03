@@ -38,7 +38,10 @@ tas <-
           .(name=unique(ta), id=slugify(unique(ta)), level='ta')][order(id)]
 wards <-
     areas[ta=='Auckland',
-          .(name=unique(ward), id=slugify(unique(ward)), level='ward')][order(id)]
+          .(name=unique(ward),
+            id=paste0('auckland--',slugify(unique(ward))),
+            level='ward')][
+          order(id)]
 
 all = rbind(nz, regions, tas, wards)
 
@@ -62,7 +65,8 @@ output <-
                          as.list(areas[reg==a$name & !(ta ==a$name),
                                        slugify(unique(ta))])
                      } else if(a$level=='reg' & a$id == 'auckland') {
-                         as.list(areas[reg==a$name, slugify(unique(ward))])
+                         as.list(areas[reg==a$name,
+                                 paste0('auckland--',slugify(unique(ward)))])
                      } else {
                          list()
                      }

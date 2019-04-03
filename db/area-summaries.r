@@ -39,6 +39,7 @@ names(indicators) <- sapply(indicators, function (ind) ind$id)
 areaids <- unique(sapply(areas, function(area) area$id))
 
 lookup <- function(areaname1, indicatorid) {
+  areaname1 <- gsub('auckland--', '', areaname1)
   unit <- indicators[[indicatorid]]$unit
   datasetid <- REARdb_Source[tolower(indicators[[indicatorid]]$slices), DatasetID]
   aid <- REARdb_Areas[areaname1, AreaID][1]
