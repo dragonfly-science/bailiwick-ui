@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE LambdaCase   #-}
 module Bailiwick.Route
   ( encodeUri
   , decodeUri
@@ -137,9 +138,12 @@ decodeUri uri =
       at = fromMaybe "reg" $ maybeDecodeUtf8 =<< M.lookup "areatype" flagMap
       lt = fromMaybe "absolute" $ maybeDecodeUtf8 =<< M.lookup "left-transform" flagMap
       rt = fromMaybe "absolute" $ maybeDecodeUtf8 =<< M.lookup "right-transform" flagMap
+      standardise = \case
+         "wanganui" -> "whanganui"
+         good       -> good
 
   in case segments of
-    ["summary", a] -> Route Summary a Nothing adapters
+    ["summary", a] -> Route Summary (standardise a) Nothing adapters
     ("theme":i:lc:rc:y:a:rest) ->
       let fd = case rest of
                      [f, d] -> Just (Just f, Just d)

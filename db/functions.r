@@ -17,6 +17,7 @@ standardise.areaname <- function(areaname) {
   areaname <- gsub(' Ward', '', areaname)
   areaname <- ifelse(!grepl('^(Southland|Waikato)', areaname), gsub(' District', '', areaname), areaname)
   areaname <- ifelse(!grepl('^Wellington', areaname), gsub(' City', '', areaname), areaname)
+  areaname <- gsub('^Wanganui', 'Whanganui', areaname)
   return(areaname)
 }
 
