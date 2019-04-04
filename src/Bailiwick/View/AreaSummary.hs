@@ -203,7 +203,7 @@ housePriceTimeSeries areaD inputValuesD = do
       el "span" $ dynText $ (\a -> if fmap areaId a == Just "new-zealand"
                                      then ""
                                      else " — New Zealand") <$> areaD
-  readyE <- (delay 0.5 =<< getPostBuild)
+  readyE <- getPostBuild
   let initialUpdate = tagPromptlyDyn inputValuesD readyE
   let updateValuesE = updated inputValuesD
   updateE <- switchHold initialUpdate (updateValuesE <$ readyE)
