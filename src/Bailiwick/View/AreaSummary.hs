@@ -159,27 +159,28 @@ indicatorHousePriceSeries
   -> Dynamic t (Maybe AreaSummary) -- Data
   -> m (Event t Indicator)
 indicatorHousePriceSeries cssClass indicatorD label areaD summaryD = do
-  areaD' <- holdUniqDyn areaD
-  let un = maybe [] (map unYearValueDisp)
-      inputValuesD = do
-        area <- areaD'
-        msummary <- summaryD
-        let nzvals = join $ OM.lookup "new-zealand" =<< msummary
-            areaid = maybe "" areaId area
-            mvals = OM.lookup areaid =<< msummary
-        case un <$> mvals of
-          Nothing -> return Nothing
-          Just [] -> return Nothing
-          Just vals -> do
-            if areaid == "new-zealand"
-              then return (Just ([(areaid, vals)], area))
-              else return (Just ([("new-zealand", un nzvals)
-                                 ,(areaid, vals)], area))
-  switchDynM $ ffor inputValuesD $ \case
-    Nothing -> elAttr "div" ("style" =: "height: 179px; width:10px;") $ return never
-    Just _ -> do
-      indicatorSummary cssClass indicatorD (constDyn label) $ do
-            (housePriceTimeSeries areaD' inputValuesD)
+  return never
+--  areaD' <- holdUniqDyn areaD
+--  let un = maybe [] (map unYearValueDisp)
+--      inputValuesD = do
+--        area <- areaD'
+--        msummary <- summaryD
+--        let nzvals = join $ OM.lookup "new-zealand" =<< msummary
+--            areaid = maybe "" areaId area
+--            mvals = OM.lookup areaid =<< msummary
+--        case un <$> mvals of
+--          Nothing -> return Nothing
+--          Just [] -> return Nothing
+--          Just vals -> do
+--            if areaid == "new-zealand"
+--              then return (Just ([(areaid, vals)], area))
+--              else return (Just ([("new-zealand", un nzvals)
+--                                 ,(areaid, vals)], area))
+--  switchDynM $ ffor inputValuesD $ \case
+--    Nothing -> elAttr "div" ("style" =: "height: 179px; width:10px;") $ return never
+--    Just _ -> do
+--      indicatorSummary cssClass indicatorD (constDyn label) $ do
+--            (housePriceTimeSeries areaD' inputValuesD)
 
 housePriceTimeSeries
   :: ( Monad m
