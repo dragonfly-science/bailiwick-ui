@@ -13,7 +13,7 @@ module Bailiwick.View.AreaSummary (
 import Control.Monad.Fix (MonadFix)
 import Control.Monad (void, join)
 import Data.Monoid ((<>))
-import Data.Maybe (listToMaybe, isJust)
+import Data.Maybe (listToMaybe)
 
 import Data.Text (Text)
 import qualified Data.HashMap.Strict.InsOrd as OM
@@ -74,11 +74,12 @@ areaSummary AreaSummaryState{..} = do
         "GDP per capita"
         areaIdD
         (lookupAreaSummary "gdp-per-capita")
-    , indicatorSummary
+    , indicatorHousePriceSeries
         "house-price"
         (lookupIndicatorById "mean-house-value")
         "Mean house value"
-        (return ()) -- (housePriceTimeSeries area $ lookupAreaSummary  "mean-house-value")
+        area
+        (lookupAreaSummary  "mean-house-value")
     , divClass "summary-item button" $
         elAttr "a" ("class" =: "indicators right" <> "href" =: "#indicators") $
           el "span" $ do
@@ -93,6 +94,11 @@ areaSummary AreaSummaryState{..} = do
         indicatorDefaultChartRight
         2017 Nothing Nothing "reg" "indexed" "indexed")
         ) <$> gotoIndicatorE
+
+switchDynM
+ :: (MonadHold t m, DomBuilder t m, PostBuild t m)
+ => Dynamic t (m (Event t a)) -> m (Event t a)
+switchDynM = (switchHold never =<<) . dyn
 
 -- Display indicator summary block
 indicatorSummary
@@ -109,7 +115,7 @@ indicatorSummary cssClass mbIndicatorD label content = do
   return $ fmapMaybe id $ tagPromptlyDyn mbIndicatorD (domEvent Click e)
 
 indicatorLatestYearSummary
-  :: (Monad m, PostBuild t m, DomBuilder t m)
+  :: (Monad m, MonadHold t m, PostBuild t m, DomBuilder t m)
   => Text                          -- CSS class
   -> Dynamic t (Maybe Indicator)   -- Indicator (for click message)
   -> Text                          -- Label text
@@ -127,10 +133,53 @@ indicatorLatestYearSummary cssClass indicatorD label areaIdD summaryD = do
           listToMaybe yearvalues
       labelyear (YearValueDisp (y, _, _)) = label <> " (" <> y <> ")"
       numbers   (YearValueDisp (_, _, v)) = v
-  indicatorSummary cssClass indicatorD (maybe "" labelyear <$> valueyearD) $
-    divClass ("summary-numbers " <> cssClass <> "-numbers") $ do
-      el "i" $ return ()
-      dynText (maybe "" numbers <$> valueyearD)
+  switchDynM $ ffor valueyearD $ \case
+    Nothing -> elAttr "div" ("style" =: "height: 74px; width:10px;") $ return never
+    Just valueyear -> do
+      indicatorSummary cssClass indicatorD (constDyn $ labelyear valueyear) $
+        divClass ("summary-numbers " <> cssClass <> "-numbers") $ do
+          el "i" $ return ()
+          text $ numbers valueyear
+
+indicatorHousePriceSeries
+  :: ( Monad m
+     , MonadHold t m
+     , PostBuild t m
+     , DomBuilder t m
+     , PerformEvent t m
+     , TriggerEvent t m
+     , MonadJSM (Performable m)
+     , MonadFix m
+     , DomBuilderSpace m ~ GhcjsDomSpace
+     )
+  => Text                          -- CSS class
+  -> Dynamic t (Maybe Indicator)   -- Indicator (for click message)
+  -> Text                          -- Label text
+  -> Dynamic t (Maybe Area)        -- Which area ?
+  -> Dynamic t (Maybe AreaSummary) -- Data
+  -> m (Event t Indicator)
+indicatorHousePriceSeries cssClass indicatorD label areaD summaryD = do
+  areaD' <- holdUniqDyn areaD
+  let un = maybe [] (map unYearValueDisp)
+      inputValuesD = do
+        area <- areaD'
+        msummary <- summaryD
+        let nzvals = join $ OM.lookup "new-zealand" =<< msummary
+            areaid = maybe "" areaId area
+            mvals = OM.lookup areaid =<< msummary
+        case un <$> mvals of
+          Nothing -> return Nothing
+          Just [] -> return Nothing
+          Just vals -> do
+            if areaid == "new-zealand"
+              then return (Just ([(areaid, vals)], area))
+              else return (Just ([("new-zealand", un nzvals)
+                                 ,(areaid, vals)], area))
+  switchDynM $ ffor inputValuesD $ \case
+    Nothing -> elAttr "div" ("style" =: "height: 179px; width:10px;") $ return never
+    Just _ -> do
+      indicatorSummary cssClass indicatorD (constDyn label) $ do
+            (housePriceTimeSeries areaD' inputValuesD)
 
 housePriceTimeSeries
   :: ( Monad m
@@ -140,39 +189,24 @@ housePriceTimeSeries
      , TriggerEvent t m
      , MonadJSM (Performable m)
      , MonadHold t m
-     , MonadFix m
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
   => Dynamic t (Maybe Area)
-  -> Dynamic t (Maybe AreaSummary)
+  -> Dynamic t (Maybe ([(AreaId, [(Year, Double, Text)])], Maybe Area))
   -> m ()
-housePriceTimeSeries areaD msummaryD = do
-  areaD' <- holdUniqDyn areaD
-  let un = maybe [] (map unYearValueDisp)
-      inputValues = do
-        area <- areaD'
-        msummary <- msummaryD
-        let nzvals = join $ OM.lookup "new-zealand" =<< msummary
-            areaid = maybe "" areaId area
-            mvals = OM.lookup areaid =<< msummary
-        case mvals of
-          Nothing -> return Nothing
-          Just vals -> do
-            if areaid == "new-zealand"
-              then return (Just ([(areaid, un vals)], area))
-              else return (Just ([("new-zealand", un nzvals)
-                                 ,(areaid, un vals)], area))
+housePriceTimeSeries areaD inputValuesD = do
   (e, _) <- elAttr' "div" ("class" =: "houseprice-timeseries") $ do
     elAttr "div" (  "class" =: "d3-attach"
                  <> "style" =: "width: 225px; height: 120px") $ return ()
     divClass "time-series-legend" $ do
-      el "span" $ dynText $ (("— " <>) . maybe "" areaName) <$> areaD'
+      el "span" $ dynText $ (("— " <>) . maybe "" areaName) <$> areaD
       el "span" $ dynText $ (\a -> if fmap areaId a == Just "new-zealand"
                                      then ""
-                                     else " — New Zealand") <$> areaD'
-
-  initialUpdate <- tagPromptlyDyn inputValues <$> (delay 0.5 =<< getPostBuild)
-  let updateE = ffilter isJust $ leftmost [updated inputValues, initialUpdate]
+                                     else " — New Zealand") <$> areaD
+  readyE <- getPostBuild
+  let initialUpdate = tagPromptlyDyn inputValuesD readyE
+  let updateValuesE = updated inputValuesD
+  updateE <- switchHold initialUpdate (updateValuesE <$ readyE)
   performEvent_ $ ffor updateE $ \case
     Just (d, area) -> liftJSM . void $ do
          jsg3 ("updateTimeSeries" :: Text) (_element_raw e) d (maybe "" areaId area)

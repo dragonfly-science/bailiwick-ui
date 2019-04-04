@@ -11,8 +11,8 @@ var updateTimeSeries = function(element, labelledData, activeLabelName) {
             bottom: 30,
             left: 48
         },
-        baseW = parseInt(base.style('width')),
-        baseH = parseInt(base.style('height')),
+        baseW = 225,
+        baseH = 120,
         width = baseW - margin.left - margin.right,
         height = baseH - margin.top - margin.bottom,
         _this = this;
