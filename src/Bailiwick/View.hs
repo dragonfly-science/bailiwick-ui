@@ -11,6 +11,7 @@ where
 
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Fix
+import Control.Applicative ((<|>))
 import Data.Bool (bool)
 import Data.Maybe (isJust)
 import Data.Monoid ((<>))
@@ -163,22 +164,23 @@ mainContent st@State{..} = do
       areaSummaryState = makeSummaryState st
   switchDynM $
      ffor isSummary $ \case
-        True  -> summaryContent routeD areaD mapState areaSummaryState
+        True  -> summaryContent routeD regionD areaD mapState areaSummaryState
         False -> indicatorContent mapState
 
 summaryContent
     :: ContentConstraints t m
     => Dynamic t Route
     -> Dynamic t (Maybe Area)
+    -> Dynamic t (Maybe Area)
     -> MapState t
     -> AreaSummaryState t
     -> m (Event t Message)
-summaryContent routeD areaD map_state area_summary_state=
+summaryContent routeD regionD areaD map_state area_summary_state=
   divClass "central-content summary" $ do
     messagesE
      <-
        divClass "navigation-map base-map" $ do
-         zoomClick <- summaryText routeD areaD
+         zoomClick <- summaryText routeD regionD areaD
          mapClicks <- divClass "svg-wrapper" $ nzmap map_state
          return $ leftmost [zoomClick, mapClicks]
 
@@ -220,8 +222,9 @@ summaryText
      , PostBuild t m )
   => Dynamic t Route
   -> Dynamic t (Maybe Area)
+  -> Dynamic t (Maybe Area)
   -> m (Event t Message)
-summaryText routeD areaD = do
+summaryText routeD regionD areaD = do
 
   let area = routeArea <$> routeD
       homeAttr = ffor area $ \case
@@ -240,7 +243,7 @@ summaryText routeD areaD = do
                     True -> "Zoom out"
                     False -> "Zoom in"
 
-      dispArea = maybe "" areaName <$> areaD
+      dispArea = maybe "" areaName <$> (zipDynWith (<|>) areaD regionD)
 
   elDynAttr "div" homeAttr $
     divClass "background-wrapper" $ do
@@ -273,7 +276,7 @@ summaryText routeD areaD = do
        <- elAttr' "div" ("class" =: "map-zoom") $ do
            dynText zoomText
            elDynAttr "span" zoomAttr $ return ()
-    return $ ffor (tagPromptlyDyn ((,) <$> routeD <*> areaD) (domEvent Click zoom)) $ \case
+    return $ ffor (tagPromptlyDyn ((,) <$> routeD <*> regionD) (domEvent Click zoom)) $ \case
       (r,a) | hasAdapter Mapzoom r -> ZoomOut (areaId <$> a)
       _ -> ZoomIn
 

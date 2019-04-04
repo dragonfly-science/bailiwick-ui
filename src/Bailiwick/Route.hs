@@ -92,14 +92,17 @@ step route message =
   case message of
     Ready                -> route
     SetRegion reg        -> route { routeArea = reg }
-    SetSubArea sa        -> route { routeArea = sa }
+    SetSubArea sa        -> route { routeArea = sa
+                                  , routeAdapters = routeAdapters route <> [Mapzoom] }
     SetAreaType at       -> updateThemePage route $ \args -> args { themePageAreaType = at }
     SetRightChart c      -> updateThemePage route $ \args -> args { themePageRightChart = c }
     SetLeftTransform lt  -> updateThemePage route $ \args -> args { themePageLeftTransform = lt }
     SetRightTransform rt -> updateThemePage route $ \args -> args { themePageRightTransform = rt }
     SetYear y            -> updateThemePage route $ \args -> args { themePageYear = y }
     GoTo page            -> route { routePage = page }
-    GoToHomePage         -> route { routeArea = "new-zealand", routePage = Summary }
+    GoToHomePage         -> route { routeArea = "new-zealand"
+                                  , routePage = Summary
+                                  , routeAdapters = routeAdapters route \\ [Mapzoom] }
     ZoomIn               -> route { routeAdapters = routeAdapters route <> [Mapzoom] }
     ZoomOut (Just reg)   -> route { routeArea = reg
                                   , routeAdapters = routeAdapters route \\ [Mapzoom] }
