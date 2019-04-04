@@ -32,7 +32,7 @@ import Bailiwick.View.Header (header)
 import Bailiwick.View.Map
 import Bailiwick.View.AreaSummary (areaSummary, AreaSummaryState)
 import Bailiwick.View.Indicators (indicators)
---import Bailiwick.View.IndicatorSummary (indicatorSummary)
+import Bailiwick.View.IndicatorSummary
 --import Bailiwick.View.IndicatorChart (indicatorChart)
 import Bailiwick.View.ToolBar (toolBar)
 
@@ -162,10 +162,11 @@ mainContent st@State{..} = do
   isSummary <- holdUniqDyn ((== Summary) . routePage <$> routeD)
   let mapState = makeMapState st
       areaSummaryState = makeSummaryState st
+      indicatorSummaryState = makeIndicatorSummaryState st
   switchDynM $
      ffor isSummary $ \case
         True  -> summaryContent routeD regionD areaD mapState areaSummaryState
-        False -> indicatorContent mapState
+        False -> indicatorContent mapState indicatorSummaryState
 
 summaryContent
     :: ContentConstraints t m
@@ -191,8 +192,9 @@ summaryContent routeD regionD areaD map_state area_summary_state=
 indicatorContent
     :: ContentConstraints t m
     => MapState t
+    -> IndicatorSummaryState t
     -> m (Event t Message)
-indicatorContent map_state = do
+indicatorContent map_state indicator_summary_state = do
   contentE <- divClass "central-content indicator" $ do
     mapE <- divClass "indicator-map base-map" $
       divClass "map-wrapper" $ do
@@ -213,8 +215,7 @@ indicatorContent map_state = do
       return never
     return $ leftmost [ mapE, chartE ]
   summaryE <- divClass "indicator-summary hide-table no-compare" $
-    --indicatorSummary stateD
-    return never
+    indicatorSummary indicator_summary_state
   return $ leftmost [contentE, summaryE]
 
 summaryText

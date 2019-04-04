@@ -16,6 +16,7 @@ import Bailiwick.View.Indicators (IndicatorState(IndicatorState))
 import Bailiwick.View.ToolBar (ToolBarState(ToolBarState))
 import Bailiwick.View.AreaSummary (AreaSummaryState(AreaSummaryState))
 import Bailiwick.View.Map (MapState(MapState))
+import Bailiwick.View.IndicatorSummary (IndicatorSummaryState(IndicatorSummaryState))
 import Bailiwick.Route
 import Bailiwick.Store
 import Bailiwick.Types
@@ -107,6 +108,19 @@ makeMapState
   => State t -> MapState t
 makeMapState State{..} =
   MapState routeD regionD areaD (storeAreas <$> storeD)
+
+
+-- make IndicatorSummaryState
+makeIndicatorSummaryState
+  :: Reflex t
+  => State t -> IndicatorSummaryState t
+makeIndicatorSummaryState State{..} =
+  let selectedAreaD = zipDynWith (<|>) areaD regionD
+  in IndicatorSummaryState routeD selectedAreaD
+         (constDyn Nothing) -- TODO compare area
+         (constDyn Nothing) -- TODO indicator
+         (constDyn Nothing) -- TODO feature
+
 
 
 findIndicator :: [Theme] -> ThemePageArgs -> Maybe Indicator

@@ -8,6 +8,7 @@
 {-# LANGUAGE RecursiveDo #-}
 module Bailiwick.View.IndicatorSummary (
     indicatorSummary
+  , IndicatorSummaryState(..)
 ) where
 
 import Control.Applicative ((<|>))
@@ -24,24 +25,12 @@ import qualified Data.Text as T (pack, strip, replace, unpack)
 import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
 
 import Reflex
-       (constDyn, PerformEvent, PostBuild, TriggerEvent, ffor,
-        tag, leftmost, Event(..), Dynamic(..), Performable)
-import Reflex.Dom.Core
-       (elClass', (=:), el, elDynAttr', dyn, EventResult,
-        dynText, text, divClass, GhcjsDomSpace, DomBuilder,
-        DomBuilderSpace, Element, _element_raw, EventName(Click),
-        elDynClass, elAttr)
-import Reflex.Class (MonadHold(..))
-import Reflex.Dom.Builder.Class (HasDomEvent(..))
-import Reflex.PostBuild.Class (PostBuild(..))
-import Reflex.PerformEvent.Class (PerformEvent(..))
+import Reflex.Dom.Core hiding (elDynHtmlAttr')
 import GHCJS.DOM.Types (liftJSM, MonadJSM)
 import GHCJS.DOM.Element (setInnerHTML)
 
-import Bailiwick.State (State)
-import qualified Bailiwick.State as State
-import Bailiwick.Types (Area(..), Indicators, Indicator(..), Features, Feature(..))
-import Bailiwick.Route (ThemePageArgs(..), Message)
+import Bailiwick.Types
+import Bailiwick.Route
 
 elDynHtmlAttr'
   :: ( Monad m
@@ -61,65 +50,14 @@ elDynHtmlAttr' elementTag attrs html = do
   performEvent_ $ liftJSM . setInnerHTML (_element_raw e) <$> leftmost [updated html, tag (current html) postBuild]
   return e
 
-textSubstitution :: Bool -> Indicators -> Features -> State t -> Text -> Text
-textSubstitution addCompareArea indicators features state = id
---    let themePage = State.getThemePage state
---        indicator = (`OM.lookup` indicators) =<< themePageIndicatorId <$> themePage
---        y = themePageYear <$> themePage
---        fy = indicatorFirstYear <$> indicator
---        yem = indicatorYearEndMonth =<< indicator
---        sa = maybe "New Zealand" areaName $ State.getArea state
---        feature = (`OM.lookup` features) =<< themePageFeatureId =<< themePage
---        f = featureName <$> feature
---        fp = if isJust f then featureParent =<< feature else Just ""
---        d = themePageDetailId <$> themePage --
---        dl = Nothing -- TODO d <|> (indicatorTopDetailLabel =<< indicator)
---        ip = indicatorPeriod =<< indicator
---        p = (-) <$> y <*> ip
---        ca = areaName <$> State.stateCompareArea state
---        a = case (addCompareArea, ca) of
---              (True, Just ca') -> "<span class='active'>" <> sa <> "</span><span class='compare'> (and " <> ca' <> ")</span>"
---              _ -> sa
---        fl = case indicatorFeatureText =<< indicator of
---              Just ft -> (`M.lookup` ft) =<< themePageFeatureId =<< themePage
---              _ -> f <|> (indicatorTopFeatureLabel =<< indicator)
---        replace findStr (Just replaceStr) = T.replace findStr replaceStr
---        replace _ _ = id
---        removeFeatureBrackets :: String -> String
---        removeFeatureBrackets =
---          if isJust f
---            then filter (\c -> c /= '[' && c /= ']')
---            else removeFeatureBrackets'
---        removeFeatureBrackets' :: String -> String
---        removeFeatureBrackets' "" = ""
---        removeFeatureBrackets' ('[':xs) = removeFeatureBrackets' . drop 1 $ dropWhile (/= ']') xs
---        removeFeatureBrackets' (x:xs) = x:removeFeatureBrackets' xs
---        removeDetailBrackets :: String -> String
---        removeDetailBrackets =
---          if isJust d
---            then filter (\c -> c /= '{' && c /= '}')
---            else removeDetailBrackets'
---        removeDetailBrackets' :: String -> String
---        removeDetailBrackets' "" = ""
---        removeDetailBrackets' ('{':xs) = removeDetailBrackets' . drop 1 $ dropWhile (/= '}') xs
---        removeDetailBrackets' (s:'{':xs) | isSpace s = removeDetailBrackets' . drop 1 $ dropWhile (/= '}') xs
---        removeDetailBrackets' (x:xs) = x:removeDetailBrackets' xs
---    in T.strip
---      . replace "$year$" (T.pack . show <$> y)
---      . replace "$firstYear$" fy
---      . replace "$yearEndMonth$" yem
---      . T.replace "$area$" a
---      . T.replace "$selectedArea$" sa
---      . replace "$compareArea$" ca
---      . replace "$prevYear$" (T.pack . show <$> p)
---      . replace "$feature$" fl
---      . replace "$featureType$" fp
---      . replace "$detail$" dl
---      . T.pack
---      . removeDetailBrackets
---      . removeFeatureBrackets
---      . T.unpack
-
+data IndicatorSummaryState t
+  = IndicatorSummaryState
+  { routeD        :: Dynamic t Route
+  , areaD         :: Dynamic t (Maybe Area) 
+  , compareAreaD  :: Dynamic t (Maybe Area) 
+  , featureD      :: Dynamic t (Maybe Feature)
+  , indicatorD    :: Dynamic t (Maybe Indicator)
+  }
 
 
 indicatorSummary
@@ -134,59 +72,131 @@ indicatorSummary
      , MonadJSM (Performable m)
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
-  => Dynamic t (State t)
+  => IndicatorSummaryState t
   -> m (Event t Message)
-indicatorSummary stateD = mdo
---  let indicatorD = do
---        state <- stateD
---        indicators <- State.getIndicators <$> stateD
---        return $ do
---            tp <- State.getThemePage state
---            themePageIndicatorId tp `OM.lookup` indicators
---      subs = (textSubstitution True <$> (State.getIndicators <$> stateD)
---                                    <*> (State.getFeatures <$> stateD)
---                                    <*> stateD <*>)
---
---  divClass "summary" $
---    divClass "intersection" $ do
---      divClass "intersection-number headline-number" $ do
---        divClass "number" $ text "TODO"
---        divClass "comparison-number" $ text "TODO"
---        void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
---          subs $ maybe "" indicatorHeadlineNumCaption <$> indicatorD
---      divClass "intersection-number regional-value" $ do
---        divClass "number" $ text "TODO"
---        divClass "comparison-number" $ text "TODO"
---        void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
---          subs $ maybe "" indicatorLocalNumCaption <$> indicatorD
---      divClass "intersection-number national-value" $ do
---        divClass "number" $ text "TODO"
---        divClass "comparison-number" $ text "TODO"
---        void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
---          subs $ maybe "" indicatorNationalNumCaption <$> indicatorD
---  divClass "summary-links" $ do
---    void . elDynHtmlAttr' "div" (constDyn $ "class" =: "source") $
---           ("Source: " <>) <$> subs (maybe "" indicatorPublishers <$> indicatorD)
---    divClass "notes" $
---      el "div" $ do
---        text "Notes:"
---        void . dyn $ ffor (fromMaybe [] . (indicatorNotes =<<) <$> indicatorD)
---                       (mapM_ $ elDynHtmlAttr' "p" (constDyn mempty) . subs . constDyn)
---  elDynClass "div" (("table-view " <>) . bool "hide" "show" <$> showTableD) $
---    elAttr "div" ("class" =: "panel" <> "style" =: "height: 799px;") $ do
---      el "header" $
---        divClass "table-caption text" $
---          text "TODO"
---      elAttr "div" ("class" =: "table-container" <> "style" =: "height: 657px;") $
---        el "div" $
---          text "TODO"
---
---  showTableD <- holdDyn False $ not <$> tag (current showTableD) showTableE
---  showTableE <- fmap (domEvent Click . fst) $
---    divClass "table-button" $
---      elClass' "button" "show-table" $
---        el "span" $ do
---          el "i" $ return ()
---          dynText (bool "show table" "hide table" <$> showTableD)
+indicatorSummary IndicatorSummaryState{..} = mdo
+
+  let subs = (textSubstitution
+                <$> areaD
+                <*> compareAreaD
+                <*> indicatorD
+                <*> featureD
+                <*> (getThemePage <$> routeD)
+                <*>) 
+
+  divClass "summary" $
+    divClass "intersection" $ do
+      divClass "intersection-number headline-number" $ do
+        divClass "number" $ text "TODO"
+        divClass "comparison-number" $ text "TODO"
+        void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
+          subs $ maybe "" indicatorHeadlineNumCaption <$> indicatorD
+      divClass "intersection-number regional-value" $ do
+        divClass "number" $ text "TODO"
+        divClass "comparison-number" $ text "TODO"
+        void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
+          subs $ maybe "" indicatorLocalNumCaption <$> indicatorD
+      divClass "intersection-number national-value" $ do
+        divClass "number" $ text "TODO"
+        divClass "comparison-number" $ text "TODO"
+        void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
+          subs $ maybe "" indicatorNationalNumCaption <$> indicatorD
+  divClass "summary-links" $ do
+    void . elDynHtmlAttr' "div" (constDyn $ "class" =: "source") $
+           ("Source: " <>) <$> subs (maybe "" indicatorPublishers <$> indicatorD)
+    divClass "notes" $
+      el "div" $ do
+        text "Notes:"
+        void . dyn $ ffor (fromMaybe [] . (indicatorNotes =<<) <$> indicatorD)
+                       (mapM_ $ elDynHtmlAttr' "p" (constDyn mempty) . subs . constDyn)
+  elDynClass "div" (("table-view " <>) . bool "hide" "show" <$> showTableD) $
+    elAttr "div" ("class" =: "panel" <> "style" =: "height: 799px;") $ do
+      el "header" $
+        divClass "table-caption text" $
+          text "TODO"
+      elAttr "div" ("class" =: "table-container" <> "style" =: "height: 657px;") $
+        el "div" $
+          text "TODO"
+
+  showTableD <- holdDyn False $ not <$> tag (current showTableD) showTableE
+  showTableE <- fmap (domEvent Click . fst) $
+    divClass "table-button" $
+      elClass' "button" "show-table" $
+        el "span" $ do
+          el "i" $ return ()
+          dynText (bool "show table" "hide table" <$> showTableD)
+
   return never
+
+
+
+
+textSubstitution
+  :: Maybe Area
+  -> Maybe Area
+  -> Maybe Indicator
+  -> Maybe Feature
+  -> Maybe ThemePageArgs
+  -> Text
+  -> Text
+textSubstitution area compareArea indicator feature themePage =
+    let y = themePageYear <$> themePage
+        fy = indicatorFirstYear <$> indicator
+        yem = indicatorYearEndMonth =<< indicator
+        sa = maybe "New Zealand" areaName area
+        f = featureName <$> feature
+        fp = if isJust f then featureParent =<< feature else Just ""
+        d = themePageDetailId <$> themePage --
+        dl = Nothing -- TODO d <|> (indicatorTopDetailLabel =<< indicator)
+        ip = indicatorPeriod =<< indicator
+        p = (-) <$> y <*> ip
+        a = case (areaName <$> compareArea) of
+              Just ca' ->
+                     "<span class='active'>" <> sa <> 
+                     "</span><span class='compare'> (and " <> ca' <> ")</span>"
+              _ -> sa
+        fl = case indicatorFeatureText =<< indicator of
+              Just ft -> (`M.lookup` ft) =<< themePageFeatureId =<< themePage
+              _ -> f <|> (indicatorTopFeatureLabel =<< indicator)
+        replace findStr (Just replaceStr) = T.replace findStr replaceStr
+        replace _ _ = id
+    in T.strip
+      . replace "$year$" (T.pack . show <$> y)
+      . replace "$firstYear$" fy
+      . replace "$yearEndMonth$" yem
+      . T.replace "$area$" a
+      . T.replace "$selectedArea$" sa
+      . replace "$compareArea$" (areaName <$> compareArea)
+      . replace "$prevYear$" (T.pack . show <$> p)
+      . replace "$feature$" fl
+      . replace "$featureType$" fp
+      . replace "$detail$" dl
+      . T.pack
+      . removeDetailBrackets (themePageDetailId =<< themePage)
+      . removeFeatureBrackets (featureName <$> feature)
+      . T.unpack
+
+
+removeFeatureBrackets :: Maybe Text -> String -> String
+removeFeatureBrackets feature =
+  if isJust feature
+    then filter (\c -> c /= '[' && c /= ']')
+    else go
+  where
+    go :: String -> String
+    go "" = ""
+    go ('[':xs) = go . drop 1 $ dropWhile (/= ']') xs
+    go (x:xs) = x:go xs
+
+removeDetailBrackets :: Maybe Text -> String -> String
+removeDetailBrackets detail =
+  if isJust detail
+    then filter (\c -> c /= '{' && c /= '}')
+    else go
+  where
+    go :: String -> String
+    go "" = ""
+    go ('{':xs) = go . drop 1 $ dropWhile (/= '}') xs
+    go (s:'{':xs) | isSpace s = go . drop 1 $ dropWhile (/= '}') xs
+    go (x:xs) = x:go xs
 

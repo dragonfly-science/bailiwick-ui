@@ -39,11 +39,27 @@ indicators <-
       , "slices"               = slices
       , "units"                = fromMaybe("count", indicator$units)
       , "valueType"            = fromMaybe("quantity", indicator$valueType)
-      ## , "featureText"          = indicator$featureText                         # :: Maybe (Map FeatureId Text)
-      ## , "featureDropdownLabel" = indicator$featureDropdownLabel
-      ## , "firstYear"            = indicator$firstYear
-      ## , "headlineNumCaption"   = indicator$headlineNumCaption
-      ## , "localNumCaption"      = indicator$secNumCaption
+
+      , "topDetailLabel"       = indicator$topDetailLabel       # :: Maybe Text
+      , "topFeatureLabel"      = indicator$topFeatureLabel      # :: Maybe Text
+      , "yearEndMonth"         = indicator$yearEndMonth         # :: Maybe Text
+      , "featureText"          = indicator$featureText          # :: Maybe (Map FeatureId Text)
+      , "firstYear"            = fromMaybe("2018", indicator$firstYear)            # :: Text
+      , "period"               = indicator$period               # :: Maybe Int
+      , "notes"                = if (length(indicator$notes) == 1 ) {
+                                     list(indicator$notes) 
+                                 } else {
+                                     indicator$notes
+                                 }       # :: Maybe [Text]
+      , "publishers"           = fromMaybe("TODO (publishers)",
+                                           indicator$publishers)           # :: Text
+      , "nationalNumCaption"   = fromMaybe("TODO nationalNumCaption",
+                                           indicator$nationalNumCaption)   # :: Text
+      , "localNumCaption"      = fromMaybe("TODO localNumCaption",
+                                           indicator$localNumCaption)      # :: Text
+      , "headlineNumCaption"   = fromMaybe("TODO headlineNumCaption", 
+                                           indicator$headlineNumCaption)   # :: Text
+
       ))
   })
 names(indicators) <- sapply(indicators, function(ind) ind$name)
@@ -64,7 +80,7 @@ cat(as.character(toJSON(
               }
             })
           )
-      })), auto_unbox=TRUE))
+      })), auto_unbox=TRUE, null="null"))
     , file=outputfile)
 
 

@@ -198,6 +198,17 @@ data Indicator = Indicator
   , indicatorFeatures               :: [Text]
   , indicatorUnits                  :: Units
   , indicatorValueType              :: ValueType
+  , indicatorTopDetailLabel         :: Maybe Text
+  , indicatorTopFeatureLabel        :: Maybe Text
+  , indicatorYearEndMonth           :: Maybe Text
+  , indicatorFeatureText            :: Maybe (Map FeatureId Text)
+  , indicatorFirstYear              :: Text
+  , indicatorPeriod                 :: Maybe Int
+  , indicatorNotes                  :: Maybe [Text]
+  , indicatorPublishers             :: Text
+  , indicatorNationalNumCaption     :: Text
+  , indicatorLocalNumCaption        :: Text
+  , indicatorHeadlineNumCaption     :: Text
 --  , indicatorBarchartLabelWidth     :: Maybe Int
 --  , indicatorCaptions               :: Maybe (Map Text Text)
 --  , indicatorCharts                 :: [Chart]
@@ -205,21 +216,13 @@ data Indicator = Indicator
 --  , indicatorDetails                :: [Text]
 --  , indicatorEnableAreaToggle       :: Bool
 --  , indicatorFeatureName            :: Maybe Text
---  , indicatorFeatureText            :: Maybe (Map FeatureId Text)
 --  , indicatorFeatureDropdownLabel   :: Maybe Text
---  , indicatorFirstYear              :: Text
 --  , indicatorHeaderTitle            :: Text
---  , indicatorHeadlineNumCaption     :: Text
 --  , indicatorIcon                   :: Maybe Text
 --  , indicatorLabels                 :: Maybe (Map Text Text)
---  , indicatorLocalNumCaption        :: Text
 --  , indicatorMaxFeatures            :: Maybe (Map Text Text)
---  , indicatorNationalNumCaption     :: Text
---  , indicatorNotes                  :: [Text]
 --  , indicatorNz                     :: Text
---  , indicatorPeriod                 :: Maybe Int
 --  , indicatorPrimaryYear            :: Maybe Text
---  , indicatorPublishers             :: Text
 --  , indicatorRegions                :: [Text]
 --  , indicatorScale                  :: Maybe Text
 --  , indicatorSlices                 :: [Text]
@@ -227,9 +230,6 @@ data Indicator = Indicator
 --  , indicatorTerritorialAuthorities :: [Text]
 --  , indicatorTooltipExtra           :: Maybe Text
 --  , indicatorThemes                 :: [Text]
---  , indicatorTopDetailLabel         :: Maybe Text
---  , indicatorTopFeatureLabel        :: Maybe Text
---  , indicatorYearEndMonth           :: Maybe Text
 --  , indicatorYears                  :: [Text]
 --  , indicatorFeatureTrees           :: [Text]
 --  , indicatorAreaTrees              :: [Text]
@@ -250,7 +250,6 @@ data Indicator = Indicator
 --  , indicatorPrimaryYear          :: Maybe Text
 --  , indicatorFeatureName          :: Maybe Text
 --  , indicatorFeatureDropdownLabel :: Maybe Text
---  , indicatorTopFeatureLabel      :: Maybe Text
 --  , indicatorDetailName           :: Maybe Text
 --  , indicatorTopDetailLabel       :: Maybe Text
 --  , indicatorLeftChart            :: Maybe Text
