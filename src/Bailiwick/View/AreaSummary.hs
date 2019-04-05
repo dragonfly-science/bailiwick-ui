@@ -16,6 +16,7 @@ import Data.Monoid ((<>))
 import Data.Maybe (listToMaybe)
 
 import Data.Text (Text)
+import qualified Data.Text as Text
 import qualified Data.HashMap.Strict.InsOrd as OM
 import Language.Javascript.JSaddle (jsg3, MonadJSM, liftJSM)
 import Reflex
@@ -131,7 +132,7 @@ indicatorLatestYearSummary cssClass indicatorD label areaIdD summaryD = do
           myearvalues <- OM.lookup areaid summary
           yearvalues <- myearvalues
           listToMaybe yearvalues
-      labelyear (YearValueDisp (y, _, _)) = label <> " (" <> y <> ")"
+      labelyear (YearValueDisp (y, _, _)) = label <> " (" <> (Text.pack $ show y) <> ")"
       numbers   (YearValueDisp (_, _, v)) = v
   switchDynM $ ffor valueyearD $ \case
     Nothing -> elAttr "div" ("style" =: "height: 74px; width:10px;") $ return never

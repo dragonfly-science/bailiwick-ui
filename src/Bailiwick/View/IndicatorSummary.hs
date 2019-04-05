@@ -52,11 +52,12 @@ elDynHtmlAttr' elementTag attrs html = do
 
 data IndicatorSummaryState t
   = IndicatorSummaryState
-  { routeD        :: Dynamic t Route
-  , areaD         :: Dynamic t (Maybe Area) 
-  , compareAreaD  :: Dynamic t (Maybe Area) 
-  , featureD      :: Dynamic t (Maybe Feature)
-  , indicatorD    :: Dynamic t (Maybe Indicator)
+  { routeD             :: Dynamic t Route
+  , areaD              :: Dynamic t (Maybe Area)
+  , compareAreaD       :: Dynamic t (Maybe Area)
+  , featureD           :: Dynamic t (Maybe Feature)
+  , indicatorD         :: Dynamic t (Maybe Indicator)
+  , indicatorSummaryD  :: Dynamic t IndicatorSummary
   }
 
 
@@ -82,22 +83,30 @@ indicatorSummary IndicatorSummaryState{..} = mdo
                 <*> indicatorD
                 <*> featureD
                 <*> (getThemePage <$> routeD)
-                <*>) 
+                <*>)
+      summaryNumsD = do
+        mareaid <- fmap areaId <$> areaD
+        myear   <- fmap themePageYear . getThemePage <$> routeD
+        indicatorSummaryNumbers <- indicatorSummaryD
+        return $ fromMaybe (SummaryNums ["", "", ""]) $ do
+          areaid <- mareaid
+          year <- myear
+          OM.lookup (areaid, year) indicatorSummaryNumbers
 
   divClass "summary" $
     divClass "intersection" $ do
       divClass "intersection-number headline-number" $ do
-        divClass "number" $ text "TODO"
+        divClass "number" $ dynText (headlineNum <$> summaryNumsD)
         divClass "comparison-number" $ text "TODO"
         void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
           subs $ maybe "" indicatorHeadlineNumCaption <$> indicatorD
       divClass "intersection-number regional-value" $ do
-        divClass "number" $ text "TODO"
+        divClass "number" $ dynText (localNum <$> summaryNumsD)
         divClass "comparison-number" $ text "TODO"
         void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
           subs $ maybe "" indicatorLocalNumCaption <$> indicatorD
       divClass "intersection-number national-value" $ do
-        divClass "number" $ text "TODO"
+        divClass "number" $ dynText (nationalNum <$> summaryNumsD)
         divClass "comparison-number" $ text "TODO"
         void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
           subs $ maybe "" indicatorNationalNumCaption <$> indicatorD
@@ -146,13 +155,13 @@ textSubstitution area compareArea indicator feature themePage =
         sa = maybe "New Zealand" areaName area
         f = featureName <$> feature
         fp = if isJust f then featureParent =<< feature else Just ""
-        d = themePageDetailId <$> themePage --
+        _d = themePageDetailId <$> themePage --
         dl = Nothing -- TODO d <|> (indicatorTopDetailLabel =<< indicator)
         ip = indicatorPeriod =<< indicator
         p = (-) <$> y <*> ip
         a = case (areaName <$> compareArea) of
               Just ca' ->
-                     "<span class='active'>" <> sa <> 
+                     "<span class='active'>" <> sa <>
                      "</span><span class='compare'> (and " <> ca' <> ")</span>"
               _ -> sa
         fl = case indicatorFeatureText =<< indicator of

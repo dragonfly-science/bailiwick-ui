@@ -39,7 +39,7 @@ data Message
   | SetRightChart ChartId
   | SetLeftTransform Text
   | SetRightTransform Text
-  | SetYear Int
+  | SetYear Year
   | GoTo Page
   | GoToHomePage
   | ZoomIn
@@ -59,7 +59,7 @@ data ThemePageArgs
   { themePageIndicatorId    :: IndicatorId
   , themePageLeftChart      :: ChartId
   , themePageRightChart     :: ChartId
-  , themePageYear           :: Int
+  , themePageYear           :: Year
   , themePageFeatureId      :: Maybe FeatureId
   , themePageDetailId       :: Maybe Text
   , themePageAreaType       :: Text

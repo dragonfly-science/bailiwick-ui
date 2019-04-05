@@ -25,14 +25,15 @@ import Bailiwick.AreaTrees
 
 data Store
   = Store
-    { storeAreas     :: Maybe Areas
-    , storeThemes    :: Maybe [Theme]
-    , storeSummaries :: Maybe AreaSummaries
+    { storeAreas          :: Maybe Areas
+    , storeThemes         :: Maybe [Theme]
+    , storeSummaries      :: Maybe AreaSummaries
+    , storeSummaryNumbers :: SummaryNumbers
     }
     deriving (Show, Eq)
 
 empty :: Store
-empty = Store Nothing Nothing Nothing
+empty = Store Nothing Nothing Nothing emptySummaryNumbers
 
 holdAreas :: Areas -> Store -> Store
 holdAreas as store = store { storeAreas = Just as }
@@ -82,10 +83,12 @@ makeRequest messageE = do
   areasE     <- apiGetAreas         (() <$ ffilter (==Ready) messageE)
   themesE    <- apiGetThemes        (() <$ ffilter (==Ready) messageE)
   summariesE <- apiGetAreaSummaries (() <$ ffilter (==Ready) messageE)
+  summaryNumbersE <- apiGetIndicatorSummaryNumbers (() <$ ffilter (==Ready) messageE)
   return $ leftmost
     [ fmap holdAreas     $ fmapMaybe reqSuccess (traceEventWith (showReqResult "getAreas") areasE)
     , fmap holdThemes    $ fmapMaybe reqSuccess (traceEventWith (showReqResult "getThemes") themesE)
     , fmap holdSummaries $ fmapMaybe reqSuccess (traceEventWith (showReqResult "getAreaSummaries") summariesE)
+    , fmap holdSummaryNumbers $ fmapMaybe reqSuccess (traceEventWith (showReqResult "getInidcatorSummaryNumbers ") summaryNumbersE)
     ]
 
 getChartData
@@ -112,12 +115,12 @@ getChartData filenameD = do
 type GetAreas = "db" :> "dev" :> "areas.json" :> Get '[JSON] Areas
 type GetThemes = "db" :> "dev" :> "themes.json" :> Get '[JSON] [Theme]
 type GetAreaSummaries = "db" :> "dev" :> "area-summaries.json" :> Get '[JSON] AreaSummaries
-type GetIndicators = "data" :> "indicators-11d88bc13.json" :> Get '[JSON] [Indicator]
 type GetAreaTrees = "data" :> "areaTrees-11d88bc13.json" :> Get '[JSON] [AreaTree]
 type GetFeatures = "data" :> "features-11d88bc13.json" :> Get '[JSON] [Feature]
 
 type GetMapSummaries = "data" :> Capture "filename" Text :> Get '[JSON] MapSummary
 type GetChartData = "chartdata" :> Capture "filename" Text :> Get '[JSON] ChartData
+type GetIndicatorSummaryNumbers = "db" :> "dev" :> Capture "<indicator>.json" Text :> Get '[JSON] IndicatorSummary
 
 apiGetAreas
     :: forall t m . SupportsServantReflex t m => Client t m GetAreas ()
@@ -143,12 +146,6 @@ apiGetThemes
     = client (Proxy :: Proxy GetThemes) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
-apiGetIndicators
-    :: forall t m . SupportsServantReflex t m => Client t m GetIndicators ()
-apiGetIndicators
-    = client (Proxy :: Proxy GetIndicators) (Proxy :: Proxy m)
-        (Proxy :: Proxy ()) (constDyn (BasePath "/"))
-
 apiGetAreaTrees
     :: forall t m . SupportsServantReflex t m => Client t m GetAreaTrees ()
 apiGetAreaTrees
@@ -166,5 +163,12 @@ apiGetChartData
 apiGetChartData
     = client (Proxy :: Proxy GetChartData) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/data"))
+
+
+apiGetIndicatorSummaryNumbers
+    :: forall t m . SupportsServantReflex t m => Client t m GetIndicatorSummaryNumbers ()
+apiGetIndicatorSummaryNumbers
+    = client (Proxy :: Proxy GetChartData) (Proxy :: Proxy m)
+        (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
 

@@ -52,7 +52,7 @@ instance FromJSON Areas where
       areas <- parseJSON v
       return $ Areas $ OMap.fromList [(areaId a, a) | a <- areas]
 
-type Year = Text
+type Year = Int
 newtype YearValueDisp = YearValueDisp {unYearValueDisp :: (Year, Double, Text)}
   deriving (Eq, Show, Generic, FromJSON)
 type AreaSummary   = InsOrdHashMap AreaId (Maybe [YearValueDisp])
@@ -378,5 +378,28 @@ instance FromJSON ChartData where
       chartVals <- chartdata .: "values"
 
       return (ChartData chartId chartVals)
+
+
+-- Indicator Summary Numbers
+type SummaryNumbers = InsOrdHashMap IndicatorId IndicatorSummary
+emptySummaryNumbers :: SummaryNumbers
+emptySummaryNumbers = OMap.empty
+type IndicatorSummary = InsOrdHashMap (AreaId, Year) SummaryNums
+
+newtype SummaryNums = SummaryNums [Text]
+  deriving (Eq, Show, Generic, FromJSON)
+
+headlineNum :: SummaryNums -> Text
+headlineNum (SummaryNums [n,_,_]) = n
+headlineNum _ = ""
+
+localNum :: SummaryNums -> Text
+localNum (SummaryNums [_,n,_]) = n
+localNum _ = ""
+
+nationalNum :: SummaryNums -> Text
+nationalNum (SummaryNums [_,_,n]) = n
+nationalNum _ = ""
+
 
 

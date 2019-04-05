@@ -25,6 +25,7 @@ indicators <-
     indicator <- yaml.load_file(paste0(indicatorsdir, indicatorfile))
     cat("processing indicator: ", indicator$name, "\n")
     slices <- indicator$slices
+    sources <- REARdb_Source[tolower(ValueName) %in% tolower(slices)]
     features <- as.character(unique(
       REARdb_Data[DatasetID %in% REARdb_Source[tolower(ValueName) %in% slices, DatasetID], Dimension1]
     ))
@@ -40,24 +41,20 @@ indicators <-
       , "units"                = fromMaybe("count", indicator$units)
       , "valueType"            = fromMaybe("quantity", indicator$valueType)
 
-      , "topDetailLabel"       = indicator$topDetailLabel       # :: Maybe Text
-      , "topFeatureLabel"      = indicator$topFeatureLabel      # :: Maybe Text
-      , "yearEndMonth"         = indicator$yearEndMonth         # :: Maybe Text
-      , "featureText"          = indicator$featureText          # :: Maybe (Map FeatureId Text)
-      , "firstYear"            = fromMaybe("2018", indicator$firstYear)            # :: Text
-      , "period"               = indicator$period               # :: Maybe Int
-      , "notes"                = if (length(indicator$notes) == 1 ) {
-                                     list(indicator$notes) 
-                                 } else {
-                                     indicator$notes
-                                 }       # :: Maybe [Text]
-      , "publishers"           = fromMaybe("TODO (publishers)",
-                                           indicator$publishers)           # :: Text
+      , "topDetailLabel"       = indicator$topDetailLabel                      # :: Maybe Text
+      , "topFeatureLabel"      = indicator$topFeatureLabel                     # :: Maybe Text
+      , "yearEndMonth"         = formatYearEndMonth(sources$YrEndingMth)       # :: Maybe Text
+      , "featureText"          = indicator$featureText                         # :: Maybe (Map FeatureId Text)
+      , "firstYear"            = fromMaybe("2018", indicator$firstYear)        # :: Text
+      , "period"               = fromMaybe(1, indicator$period)                # :: Maybe Int
+      , "notes"                = makeList(indicator$notes)                     # :: Maybe [Text]
+      , "publishers"           = fromMaybe("unknown publisher",
+                                           unique(as.character(sources$Publisher)))      # :: Text
       , "nationalNumCaption"   = fromMaybe("TODO nationalNumCaption",
-                                           indicator$nationalNumCaption)   # :: Text
+                                           indicator$nationalNum$caption)   # :: Text
       , "localNumCaption"      = fromMaybe("TODO localNumCaption",
-                                           indicator$localNumCaption)      # :: Text
-      , "headlineNumCaption"   = fromMaybe("TODO headlineNumCaption", 
+                                           indicator$localNum$caption)      # :: Text
+      , "headlineNumCaption"   = fromMaybe("TODO headlineNumCaption",
                                            indicator$headlineNumCaption)   # :: Text
 
       ))

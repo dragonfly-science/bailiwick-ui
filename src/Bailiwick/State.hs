@@ -4,6 +4,8 @@
 module Bailiwick.State
 where
 
+import Debug.Trace
+
 import Control.Applicative ((<|>))
 import Data.Maybe (listToMaybe, mapMaybe, fromMaybe)
 
@@ -82,7 +84,7 @@ makeToolBarState State{..} =
         mthemes <- storeThemes <$> storeD
         return $ do -- Maybe
             themes <- mthemes
-            themepage <- mthemepage
+            themepage <- (traceShow mthemepage mthemepage)
             findIndicator themes themepage
   in  ToolBarState mthemepageD mindicatorD
 
@@ -116,10 +118,19 @@ makeIndicatorSummaryState
   => State t -> IndicatorSummaryState t
 makeIndicatorSummaryState State{..} =
   let selectedAreaD = zipDynWith (<|>) areaD regionD
+      mthemepageD = getThemePage <$> routeD
+      mindicatorD = do -- Dynamic t
+        mthemepage <- mthemepageD
+        mthemes <- storeThemes <$> storeD
+        return $ do -- Maybe
+            themes <- mthemes
+            themepage <- mthemepage
+            findIndicator themes themepage
   in IndicatorSummaryState routeD selectedAreaD
-         (constDyn Nothing) -- TODO compare area
-         (constDyn Nothing) -- TODO indicator
-         (constDyn Nothing) -- TODO feature
+         (constDyn Nothing)  -- TODO compare area
+         (constDyn Nothing)  -- TODO feature
+         mindicatorD         -- indicator
+         (constDyn OMap.empty) -- TODO indicatorSummary numbers
 
 
 
@@ -152,7 +163,6 @@ areaList (Areas areas) p = case (area, parent) of
 getRoute :: State t -> Route
 getRoute = undefined
 
-getArea = undefined
 
 getAreas :: State t -> Areas
 getAreas _ = Areas OMap.empty
@@ -168,17 +178,6 @@ getSubArea _ = Nothing
 
 
 
-getIndicators = undefined
-
-getThemes = undefined
-
-stateArea = undefined
-
-getAreaTrees = undefined
-
-getChartData = undefined
-
-getFeatures = undefined
 
 stateCompareArea :: State t -> Maybe Area
 stateCompareArea = undefined

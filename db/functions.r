@@ -39,3 +39,35 @@ formatValue <- function(unit, value) {
   }
 
 }
+
+formatYearEndMonth <- function(yearendmonth) {
+  res <-
+    sapply(yearendmonth, function(yem) {
+      list(
+        "jan" = "January",
+        "feb" = "February",
+        "mar" = "March",
+        "apr" = "April",
+        "may" = "May",
+        "jun" = "June",
+        "jul" = "July",
+        "aug" = "August",
+        "sep" = "September",
+        "oct" = "October",
+        "nov" = "November",
+        "dec" = "December"
+      )[[yem]]})[1]
+  if(!is.list(res)) {
+      return(res)
+  } else {
+      return(NULL)
+  }
+}
+
+makeList <- function(vals) {
+  if (length(vals) == 1 ) {
+    list(vals)
+  } else {
+    vals
+  }
+}
