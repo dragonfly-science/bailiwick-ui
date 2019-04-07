@@ -5,6 +5,8 @@
 {-# LANGUAGE FlexibleContexts        #-}
 {-# LANGUAGE ScopedTypeVariables     #-}
 {-# LANGUAGE RecordWildCards         #-}
+{-# LANGUAGE LambdaCase              #-}
+{-# LANGUAGE TupleSections           #-}
 module Bailiwick.Store
   ( Store(..)
   , run
@@ -20,17 +22,18 @@ import Servant.API
 import Servant.Reflex
 import Reflex.Dom.Core
 import Language.Javascript.JSaddle.Types (MonadJSM)
+import qualified Data.HashMap.Strict.InsOrd as OM
 
 import Bailiwick.Types
-import Bailiwick.Route (Message(..))
+import Bailiwick.Route
 import Bailiwick.AreaTrees
 
 data Store t
   = Store 
-    { storeAreasD         :: Dynamic t (Maybe Areas)
-    , storeThemesD        :: Dynamic t (Maybe [Theme])
-    , storeSummariesD     :: Dynamic t (Maybe AreaSummaries)
-    , storeSummaryNumbers :: SummaryNumbers
+    { storeAreasD          :: Dynamic t (Maybe Areas)
+    , storeThemesD         :: Dynamic t (Maybe [Theme])
+    , storeSummariesD      :: Dynamic t (Maybe AreaSummaries)
+    , storeSummaryNumbersD :: Dynamic t SummaryNumbers
     }
 
 empty :: Reflex t => Store t
@@ -39,7 +42,7 @@ empty
     { storeAreasD          = constDyn Nothing
     , storeThemesD         = constDyn Nothing
     , storeSummariesD      = constDyn Nothing
-    , storeSummaryNumbers  = emptySummaryNumbers
+    , storeSummaryNumbersD = constDyn emptySummaryNumbers
     }
 
 run
@@ -72,17 +75,14 @@ initialData
   -> m (Store t)
 initialData messagesE store = do
   let triggerE = () <$ ffilter (== Ready) messagesE
-      runApi msg eveE
-        = let tracedEventE = traceEventWith (showReqResult msg) eveE
-          in  fmap reqSuccess tracedEventE
 
-  areasE <- apiGetAreas triggerE
-  themesE <- apiGetThemes triggerE
+  areasE     <- apiGetAreas triggerE
+  themesE    <- apiGetThemes triggerE
   summariesE <- apiGetAreaSummaries triggerE
 
-  areasD <- holdDyn Nothing $ runApi "getAreas" areasE
-  themesD <- holdDyn Nothing $ runApi "getThemes" themesE
-  summariesD <- holdDyn Nothing $ runApi "getAreaSummaries" summariesE
+  areasD     <- holdDyn Nothing $ catchApi "getAreas" areasE
+  themesD    <- holdDyn Nothing $ catchApi "getThemes" themesE
+  summariesD <- holdDyn Nothing $ catchApi "getAreaSummaries" summariesE
 
   return $
     store 
@@ -94,6 +94,8 @@ initialData messagesE store = do
 summaryNumbers
   :: ( TriggerEvent t m
      , PerformEvent t m
+     , MonadHold t m
+     , MonadFix m
      , HasJSContext (Performable m)
      , MonadJSM (Performable m)
      )
@@ -101,27 +103,68 @@ summaryNumbers
   -> Store t
   -> m (Store t)
 summaryNumbers messageE store@Store{..} = do
-  return store
 
-getChartData
-  :: ( MonadHold t m
-     , Reflex t
-     , SupportsServantReflex t m
-     , HasJSContext (Performable m)
-     )
-  =>  Dynamic t Text -> m (Dynamic t (Maybe ChartData))
-getChartData filenameD = do
+  let test numbers message =
+        case getIndicatorId message of
+          Nothing -> Nothing
+          Just indid ->
+            case OM.lookup indid numbers of
+              Just _ -> Nothing
+              Nothing -> Just indid
+  let indicatorE = attachPromptlyDynWithMaybe test storeSummaryNumbersD messageE
 
---   updated filenameD ...
---       lookInMemory ... <|>
---       lookInLocalStorate ... <|>
---       lookOnDisk ... <|>
---       fetchUsing servant <|>
+  indicatorD <- holdDyn Nothing (Just <$> indicatorE)
 
-  chartDataE <- apiGetChartData (Right <$> filenameD) (() <$ updated filenameD)
+  numbersE <- do
+    let jsonfileD
+          = ffor indicatorD $ \case
+                Nothing -> Left "indicator-not-defined"        
+                Just (IndicatorId ind) -> Right (ind <> ".json")
+    apiGetIndicatorSummaryNumbers jsonfileD (() <$ indicatorE)
 
-  holdDyn Nothing $ fmap reqSuccess chartDataE
+  numbersD <-
+    foldDyn (uncurry OM.insert) OM.empty
+                 $ attachPromptlyDynWithMaybe (\mind i -> (,i) <$> mind) indicatorD
+                 $ fmapMaybe id
+                 $ catchApi "getIndicatorSummaryNumbers" numbersE
 
+  return $ store { storeSummaryNumbersD = numbersD }
+
+-- getChartData
+--   :: ( MonadHold t m
+--      , Reflex t
+--      , SupportsServantReflex t m
+--      , HasJSContext (Performable m)
+--      )
+--   =>  Dynamic t Text -> m (Dynamic t (Maybe ChartData))
+-- getChartData filenameD = do
+-- 
+-- --   updated filenameD ...
+-- --       lookInMemory ... <|>
+-- --       lookInLocalStorate ... <|>
+-- --       lookOnDisk ... <|>
+-- --       fetchUsing servant <|>
+-- 
+--   chartDataE <- apiGetChartData (Right <$> filenameD) (() <$ updated filenameD)
+-- 
+--   holdDyn Nothing $ fmap reqSuccess chartDataE
+
+
+catchApi
+  :: Reflex t
+  => String
+  -> Event t (ReqResult () a)
+  -> Event t (Maybe a)
+catchApi msg eveE =
+  let tracedEventE = traceEventWith (showReqResult msg) eveE
+  in  fmap reqSuccess tracedEventE
+
+showReqResult :: String -> ReqResult t a -> String
+showReqResult apiPrefix rr = (apiPrefix ++) . unpack $
+    case rr of
+        ResponseSuccess _ _ _   -> "Success"
+        ResponseFailure _ msg _ -> "Response failure: " <> msg
+        RequestFailure _ msg    -> "Request failure: " <> msg
 
 
 type GetAreas = "db" :> "dev" :> "areas.json" :> Get '[JSON] Areas
@@ -132,7 +175,9 @@ type GetFeatures = "data" :> "features-11d88bc13.json" :> Get '[JSON] [Feature]
 
 type GetMapSummaries = "data" :> Capture "filename" Text :> Get '[JSON] MapSummary
 type GetChartData = "chartdata" :> Capture "filename" Text :> Get '[JSON] ChartData
-type GetIndicatorSummaryNumbers = "db" :> "dev" :> Capture "<indicator>.json" Text :> Get '[JSON] IndicatorSummary
+type GetIndicatorSummaryNumbers
+  = "db" :> "dev" :> Capture "<indicator>.json" Text
+                  :> Get '[JSON] IndicatorSummary
 
 apiGetAreas
     :: forall t m . SupportsServantReflex t m => Client t m GetAreas ()
@@ -158,21 +203,21 @@ apiGetThemes
     = client (Proxy :: Proxy GetThemes) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
-apiGetAreaTrees
+_apiGetAreaTrees
     :: forall t m . SupportsServantReflex t m => Client t m GetAreaTrees ()
-apiGetAreaTrees
+_apiGetAreaTrees
     = client (Proxy :: Proxy GetAreaTrees) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
-apiGetFeatures
+_apiGetFeatures
     :: forall t m . SupportsServantReflex t m => Client t m GetFeatures ()
-apiGetFeatures
+_apiGetFeatures
     = client (Proxy :: Proxy GetFeatures) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
-apiGetChartData
+_apiGetChartData
     :: forall t m . SupportsServantReflex t m => Client t m GetChartData ()
-apiGetChartData
+_apiGetChartData
     = client (Proxy :: Proxy GetChartData) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/data"))
 
@@ -182,12 +227,4 @@ apiGetIndicatorSummaryNumbers
 apiGetIndicatorSummaryNumbers
     = client (Proxy :: Proxy GetIndicatorSummaryNumbers) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
-
-
-showReqResult :: String -> ReqResult t a -> String
-showReqResult apiPrefix rr = (apiPrefix ++) . unpack $
-    case rr of
-        ResponseSuccess _ _ _   -> "Success"
-        ResponseFailure _ msg _ -> "Response failure: " <> msg
-        RequestFailure _ msg    -> "Request failure: " <> msg
 

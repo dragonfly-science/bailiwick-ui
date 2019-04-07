@@ -10,6 +10,7 @@ module Bailiwick.Types where
 import Data.Aeson
 import Data.Aeson.Types (FromJSONKeyFunction(FromJSONKeyText))
 import Data.Char as Char
+import Data.String (IsString)
 
 import Data.Hashable (Hashable)
 import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
@@ -184,7 +185,8 @@ instance FromJSON Language where
     parseJSON = genericParseJSON langOptions
 
 newtype IndicatorId = IndicatorId { unIndicatorId :: Text }
-   deriving (Eq, Ord, Show, Generic, Hashable, FromJSONKey, FromJSON)
+   deriving (Eq, Ord, Show, Generic, Hashable,
+             FromJSONKey, FromJSON, IsString)
 newtype ChartId = ChartId Text deriving (Eq, Ord, Show, Generic)
 instance FromJSON ChartId where
    parseJSON v = ChartId <$> parseJSON v

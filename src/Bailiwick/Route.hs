@@ -6,6 +6,7 @@ module Bailiwick.Route
   ( encodeUri
   , decodeUri
   , Message(..)
+  , getIndicatorId
   , Route(..)
   , ThemePageArgs(..)
   , getThemePage
@@ -85,6 +86,12 @@ getThemePage _ = Nothing
 updateThemePage :: Route -> (ThemePageArgs -> ThemePageArgs) -> Route
 updateThemePage s@Route{routePage = ThemePage args} f = s{ routePage = ThemePage $ f args }
 updateThemePage s _ = s
+
+getIndicatorId :: Message -> Maybe IndicatorId
+getIndicatorId = \case
+  GoTo (ThemePage ThemePageArgs{..})
+     -> Just themePageIndicatorId
+  _  -> Nothing
 
 
 -- import Debug.Trace
