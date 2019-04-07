@@ -52,7 +52,7 @@ var updateTimeSeries = function(element, labelledData, activeLabelName) {
 
     var line = d3.svg.line()
         .x(function(d) {
-            return x(yearFormat(d[0]));
+            return x(yearFormat(d[0].toString()));
         })
         .y(function(d) {
             return y(d[1]);

@@ -4,15 +4,17 @@
 {-# LANGUAGE TypeOperators           #-}
 {-# LANGUAGE FlexibleContexts        #-}
 {-# LANGUAGE ScopedTypeVariables     #-}
+{-# LANGUAGE RecordWildCards         #-}
 module Bailiwick.Store
   ( Store(..)
   , run
   )
 where
 
+import Control.Monad ((>=>))
 import Control.Monad.Fix (MonadFix)
 import Data.Proxy
-import Data.Text hiding (empty)
+import Data.Text hiding (empty, foldr1)
 
 import Servant.API
 import Servant.Reflex
@@ -23,26 +25,22 @@ import Bailiwick.Types
 import Bailiwick.Route (Message(..))
 import Bailiwick.AreaTrees
 
-data Store
-  = Store
-    { storeAreas          :: Maybe Areas
-    , storeThemes         :: Maybe [Theme]
-    , storeSummaries      :: Maybe AreaSummaries
+data Store t
+  = Store 
+    { storeAreasD         :: Dynamic t (Maybe Areas)
+    , storeThemesD        :: Dynamic t (Maybe [Theme])
+    , storeSummariesD     :: Dynamic t (Maybe AreaSummaries)
     , storeSummaryNumbers :: SummaryNumbers
     }
-    deriving (Show, Eq)
 
-empty :: Store
-empty = Store Nothing Nothing Nothing emptySummaryNumbers
-
-holdAreas :: Areas -> Store -> Store
-holdAreas as store = store { storeAreas = Just as }
-
-holdThemes  :: [Theme] -> Store -> Store
-holdThemes ts store = store { storeThemes = Just ts }
-
-holdSummaries  :: AreaSummaries -> Store -> Store
-holdSummaries sms store = store { storeSummaries = Just sms }
+empty :: Reflex t => Store t
+empty
+  = Store
+    { storeAreasD          = constDyn Nothing
+    , storeThemesD         = constDyn Nothing
+    , storeSummariesD      = constDyn Nothing
+    , storeSummaryNumbers  = emptySummaryNumbers
+    }
 
 run
   :: ( TriggerEvent t m
@@ -53,43 +51,57 @@ run
      , MonadJSM (Performable m)
      )
   => Event t Message
-  -> m (Dynamic t Store)
-run messagesE = do
+  -> m (Store t)
+run messagesE =
+  let watchers
+       = [ initialData messagesE
+         , summaryNumbers messagesE
+         ]
 
-  -- Create API request, and capture the response
-  responseE <- makeRequest messagesE
+  in foldr1 (>=>) watchers empty
 
-  -- Pull them back together to create the dynamic store
-  foldDyn ($) empty responseE
+initialData
+  :: ( TriggerEvent t m
+     , PerformEvent t m
+     , MonadHold t m
+     , HasJSContext (Performable m)
+     , MonadJSM (Performable m)
+     )
+  => Event t Message
+  -> Store t
+  -> m (Store t)
+initialData messagesE store = do
+  let triggerE = () <$ ffilter (== Ready) messagesE
+      runApi msg eveE
+        = let tracedEventE = traceEventWith (showReqResult msg) eveE
+          in  fmap reqSuccess tracedEventE
 
+  areasE <- apiGetAreas triggerE
+  themesE <- apiGetThemes triggerE
+  summariesE <- apiGetAreaSummaries triggerE
 
-showReqResult :: String -> ReqResult t a -> String
-showReqResult apiPrefix rr = (apiPrefix ++) . unpack $
-    case rr of
-        ResponseSuccess _ _ _   -> "Success"
-        ResponseFailure _ msg _ -> "Response failure: " <> msg
-        RequestFailure _ msg    -> "Request failure: " <> msg
+  areasD <- holdDyn Nothing $ runApi "getAreas" areasE
+  themesD <- holdDyn Nothing $ runApi "getThemes" themesE
+  summariesD <- holdDyn Nothing $ runApi "getAreaSummaries" summariesE
 
+  return $
+    store 
+      { storeAreasD     = areasD
+      , storeThemesD    = themesD
+      , storeSummariesD = summariesD
+      }
 
-makeRequest
+summaryNumbers
   :: ( TriggerEvent t m
      , PerformEvent t m
      , HasJSContext (Performable m)
      , MonadJSM (Performable m)
      )
   => Event t Message
-  -> m (Event t (Store -> Store))
-makeRequest messageE = do
-  areasE     <- apiGetAreas         (() <$ ffilter (==Ready) messageE)
-  themesE    <- apiGetThemes        (() <$ ffilter (==Ready) messageE)
-  summariesE <- apiGetAreaSummaries (() <$ ffilter (==Ready) messageE)
-  summaryNumbersE <- apiGetIndicatorSummaryNumbers (() <$ ffilter (==Ready) messageE)
-  return $ leftmost
-    [ fmap holdAreas     $ fmapMaybe reqSuccess (traceEventWith (showReqResult "getAreas") areasE)
-    , fmap holdThemes    $ fmapMaybe reqSuccess (traceEventWith (showReqResult "getThemes") themesE)
-    , fmap holdSummaries $ fmapMaybe reqSuccess (traceEventWith (showReqResult "getAreaSummaries") summariesE)
-    , fmap holdSummaryNumbers $ fmapMaybe reqSuccess (traceEventWith (showReqResult "getInidcatorSummaryNumbers ") summaryNumbersE)
-    ]
+  -> Store t
+  -> m (Store t)
+summaryNumbers messageE store@Store{..} = do
+  return store
 
 getChartData
   :: ( MonadHold t m
@@ -168,7 +180,14 @@ apiGetChartData
 apiGetIndicatorSummaryNumbers
     :: forall t m . SupportsServantReflex t m => Client t m GetIndicatorSummaryNumbers ()
 apiGetIndicatorSummaryNumbers
-    = client (Proxy :: Proxy GetChartData) (Proxy :: Proxy m)
+    = client (Proxy :: Proxy GetIndicatorSummaryNumbers) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
+
+showReqResult :: String -> ReqResult t a -> String
+showReqResult apiPrefix rr = (apiPrefix ++) . unpack $
+    case rr of
+        ResponseSuccess _ _ _   -> "Success"
+        ResponseFailure _ msg _ -> "Response failure: " <> msg
+        RequestFailure _ msg    -> "Request failure: " <> msg
 

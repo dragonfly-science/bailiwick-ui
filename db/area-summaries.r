@@ -53,7 +53,7 @@ lookup <- function(areaname1, indicatorid) {
       return(NULL)
   } else {
       return(lapply(1:nrow(vals), function(i)
-         list(as.character(vals$Year[i]), vals$Value[i], vals$disp[i])))
+         list(vals$Year[i], vals$Value[i], vals$disp[i])))
   }
 }
 

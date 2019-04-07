@@ -26,17 +26,17 @@ import Bailiwick.Types
 data State t
   = State
     { routeD  :: Dynamic t Route
-    , storeD  :: Dynamic t Store
+    , store   :: Store t
     , regionD :: Dynamic t (Maybe Area)
     , areaD   :: Dynamic t (Maybe Area)
     }
 
 make
   :: (Reflex t)
-  => Dynamic t Route -> Dynamic t Store -> State t
-make routeD storeD =
+  => Dynamic t Route -> Store t -> State t
+make routeD store@Store{..} =
   let regta = do
-          mareas <- storeAreas <$> storeD
+          mareas <- storeAreasD
           case mareas of
             Nothing -> return (Nothing, Nothing)
             Just as@(Areas areas) -> do
@@ -49,7 +49,7 @@ make routeD storeD =
                   _      -> return (Just nz, Nothing)
   in State
        { routeD  = routeD
-       , storeD  = storeD
+       , store   = store
        , regionD = fst <$> regta
        , areaD   = snd <$> regta
        }
@@ -61,7 +61,7 @@ makeHeaderState
   => State t -> HeaderState t
 makeHeaderState State{..} =
   let pageD = routePage <$> routeD
-      areasD = storeAreas <$> storeD
+      areasD = storeAreasD store
   in  HeaderState pageD regionD areaD areasD
 
 -- Indicator state
@@ -71,7 +71,7 @@ makeIndicatorState
 makeIndicatorState State{..} =
   let selectedAreaD = zipDynWith (<|>) areaD regionD
       indId = fmap themePageIndicatorId . getThemePage <$> routeD
-  in  IndicatorState selectedAreaD indId (storeThemes <$> storeD)
+  in  IndicatorState selectedAreaD indId (storeThemesD $ store)
 
 -- ToolBar State
 makeToolBarState
@@ -81,7 +81,7 @@ makeToolBarState State{..} =
   let mthemepageD = getThemePage <$> routeD
       mindicatorD = do -- Dynamic t
         mthemepage <- mthemepageD
-        mthemes <- storeThemes <$> storeD
+        mthemes <- storeThemesD $ store
         return $ do -- Maybe
             themes <- mthemes
             themepage <- (traceShow mthemepage mthemepage)
@@ -94,9 +94,9 @@ makeSummaryState
   => State t -> AreaSummaryState t
 makeSummaryState State{..} =
   let selectedAreaD = zipDynWith (<|>) areaD regionD
-      summariesD = fromMaybe OMap.empty . storeSummaries <$> storeD
+      summariesD = fromMaybe OMap.empty <$> storeSummariesD store
       indicatorsD = do
-        mthemes <- storeThemes <$> storeD
+        mthemes <- storeThemesD $ store
         return $ fromMaybe OMap.empty $ do
            themes <- mthemes
            return $ OMap.fromList $ [ (indicatorId i, i)
@@ -109,7 +109,7 @@ makeMapState
   :: Reflex t
   => State t -> MapState t
 makeMapState State{..} =
-  MapState routeD regionD areaD (storeAreas <$> storeD)
+  MapState routeD regionD areaD (storeAreasD $ store)
 
 
 -- make IndicatorSummaryState
@@ -121,7 +121,7 @@ makeIndicatorSummaryState State{..} =
       mthemepageD = getThemePage <$> routeD
       mindicatorD = do -- Dynamic t
         mthemepage <- mthemepageD
-        mthemes <- storeThemes <$> storeD
+        mthemes <- storeThemesD $ store
         return $ do -- Maybe
             themes <- mthemes
             themepage <- mthemepage
