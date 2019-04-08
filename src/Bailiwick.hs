@@ -25,6 +25,10 @@ ui = mdo
   storeD <- Store.run messagesE
   readyE <- getPostBuild
   interactE <- View.view (State.make routeD storeD)
-  let messagesE = leftmost [Route.Ready <$ readyE, traceEvent "interactE: " interactE]
+  let messagesE =
+         leftmost
+            [ let mkMessage r _ = Route.Ready (Route.routePage r)
+              in  attachPromptlyDynWith mkMessage routeD readyE
+            , traceEvent "interactE: " interactE]
   return ()
 

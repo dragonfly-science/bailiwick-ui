@@ -33,7 +33,7 @@ import qualified Data.Map as M (lookup, fromList)
 import Bailiwick.Types
 
 data Message
-  = Ready
+  = Ready Page
   | SetRegion Text
   | SetSubArea Text
   | SetAreaType Text
@@ -91,6 +91,8 @@ getIndicatorId :: Message -> Maybe IndicatorId
 getIndicatorId = \case
   GoTo (ThemePage ThemePageArgs{..})
      -> Just themePageIndicatorId
+  Ready (ThemePage ThemePageArgs{..})
+     -> Just themePageIndicatorId
   _  -> Nothing
 
 
@@ -98,7 +100,7 @@ getIndicatorId = \case
 step :: Route -> Message -> Route
 step route message =
   case message of
-    Ready                -> route
+    Ready _page          -> route
     SetRegion reg        -> route { routeArea = reg }
     SetSubArea sa        -> route { routeArea = sa
                                   , routeAdapters = routeAdapters route <> [Mapzoom] }

@@ -394,12 +394,12 @@ instance FromJSON IndicatorSummary where
     = (IndicatorSummary . OMap.fromList . V.toList <$>) .
         (withArray "indicatorsummary" $ mapM $
             (withObject "indicatorsummary" $ \value -> do
-              areaid   <- value .: "areaid"
-              year     <- value .: "year"
+              areaid   <- value .:  "areaid"
+              year     <- value .:  "year"
               feature  <- value .:? "feature"
-              headline <- value .: "headline"
-              local    <- value .: "local"
-              national <- value .: "national"
+              headline <- value .:  "headline"
+              local    <- value .:  "local"
+              national <- value .:  "national"
               return ( (areaid, year, feature)
                      , SummaryNums [headline, local, national])))
 

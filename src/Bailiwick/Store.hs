@@ -74,7 +74,9 @@ initialData
   -> Store t
   -> m (Store t)
 initialData messagesE store = do
-  let triggerE = () <$ ffilter (== Ready) messagesE
+  let isReady (Ready _) = True
+      isReady _ = False  
+  let triggerE = () <$ ffilter isReady messagesE
 
   areasE     <- apiGetAreas triggerE
   themesE    <- apiGetThemes triggerE

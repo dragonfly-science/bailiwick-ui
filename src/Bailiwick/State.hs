@@ -84,7 +84,7 @@ makeToolBarState State{..} =
         mthemes <- storeThemesD $ store
         return $ do -- Maybe
             themes <- mthemes
-            themepage <- (traceShow mthemepage mthemepage)
+            themepage <- mthemepage
             findIndicator themes themepage
   in  ToolBarState mthemepageD mindicatorD
 
@@ -126,11 +126,18 @@ makeIndicatorSummaryState State{..} =
             themes <- mthemes
             themepage <- mthemepage
             findIndicator themes themepage
+      indicatorSummaryD = do
+        mindicator <- mindicatorD
+        summaryNumbers <- storeSummaryNumbersD $ store
+        return $ fromMaybe (IndicatorSummary OMap.empty) $ do
+          indid <- indicatorId <$> mindicator
+          OMap.lookup indid summaryNumbers
+        
   in IndicatorSummaryState routeD selectedAreaD
          (constDyn Nothing)  -- TODO compare area
          (constDyn Nothing)  -- TODO feature
          mindicatorD         -- indicator
-         (constDyn (IndicatorSummary OMap.empty))  -- TODO
+         indicatorSummaryD   -- numbers
 
 
 
