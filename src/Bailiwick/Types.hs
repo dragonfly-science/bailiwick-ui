@@ -13,10 +13,10 @@ import Data.Char as Char
 import Data.String (IsString)
 
 import Data.Hashable (Hashable)
-import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import Data.Map (Map)
 import Data.Text (Text)
 import qualified Data.Text as Text
+import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import qualified Data.Vector as V
 
@@ -386,7 +386,22 @@ instance FromJSON ChartData where
 type SummaryNumbers = InsOrdHashMap IndicatorId IndicatorSummary
 emptySummaryNumbers :: SummaryNumbers
 emptySummaryNumbers = OMap.empty
-type IndicatorSummary = InsOrdHashMap (AreaId, Year) SummaryNums
+newtype IndicatorSummary =
+  IndicatorSummary (InsOrdHashMap (AreaId, Year, Maybe FeatureId) SummaryNums)
+  deriving (Eq, Show, Generic)
+instance FromJSON IndicatorSummary where
+  parseJSON
+    = (IndicatorSummary . OMap.fromList . V.toList <$>) .
+        (withArray "indicatorsummary" $ mapM $
+            (withObject "indicatorsummary" $ \value -> do
+              areaid   <- value .: "areaid"
+              year     <- value .: "year"
+              feature  <- value .:? "feature"
+              headline <- value .: "headline"
+              local    <- value .: "local"
+              national <- value .: "national"
+              return ( (areaid, year, feature)
+                     , SummaryNums [headline, local, national])))
 
 newtype SummaryNums = SummaryNums [Text]
   deriving (Eq, Show, Generic, FromJSON)

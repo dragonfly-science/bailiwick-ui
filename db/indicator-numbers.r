@@ -26,32 +26,27 @@ REARdb_Source[, slice:=tolower(ValueName)]
 setkey(REARdb_Source, slice)
 
 setDT(REARdb_Data)
-setkey(REARdb_Data, DatasetID, AreaID, Dimension1)
+setkey(REARdb_Data, DatasetID, AreaID)
 
 themes <- read_json(themesjson)
 indicators <- do.call(c, lapply(themes[['themes']], function(theme) theme$indicators))
 names(indicators) <- sapply(indicators, function (ind) ind$id)
-
-
 
 ## Types
 ## type SummaryNumbers = InsOrdHashMap IndicatorId IndicatorSummary
 ## type IndicatorSummary = InsOrdHashMap (AreaId, Year, Maybe Feature) SummaryNums
 ## newtype SummaryNums = SummaryNums [Text] -- [HeadlineNum, LocalNum, NationalNum]
 
-lookupnums <- function(datasetid, areaname1, feature) {
-
-  aid <- REARdb_Areas[areaname1, AreaID][1]
-
-  vals <- REARdb_Data[.(datasetid,aid, feature)][order(Year),
-                      .(Year, headline=Value, local = Value - shift(Value))]
-  nzid <- REARdb_Areas[areaname=='new-zealand', AreaID]
-
-  vals <- REARdb_Data[.(datasetid, nzid, feature)][vals, on=.(Year)][
-                    ,.(Year, headline, local, national= headline/Value)]
-  return(vals)
+localformat <- function(unit, previous, value) {
+    ifelse(is.na(previous), '...',
+    ifelse(rep(unit, length(previous)) == 'percentage',
+        formatValue('points', value-previous),
+        formatValue('percentage', 100*(value-previous)/previous)))
 }
 
+nationalformat <- function(unit, national, value) {
+    formatValue('ratio', value/national)
+}
 
 for (indid in names(indicators)) {
 
@@ -60,30 +55,28 @@ for (indid in names(indicators)) {
 
   unit <- indicators[[indid]]$unit
   datasetid <- REARdb_Source[tolower(indicators[[indid]]$slices), DatasetID]
-  years <- sort(unique(REARdb_Data[DatasetID == datasetid, Year]))
-  aids <- sort(unique(REARdb_Data[DatasetID == datasetid, AreaID]))
-  areanames <- unique(REARdb_Areas[AreaID %in% aids, areaname])
-  features <- unique(REARdb_Data[DatasetID == datasetid, as.character(Dimension1)])
-  grid <- expand.grid(areaname=areanames, year=years, feature=features)
+
+  nzid <- REARdb_Areas[areaname=='new-zealand', AreaID]
+  nzdata <- REARdb_Data[.(datasetid, nzid), .(Year, Dimension1, national=Value)]
+  values <-
+      REARdb_Data[.(datasetid)][
+        REARdb_Areas, on=.(AreaID)][
+        !is.na(Value)][
+        nzdata, on=.(Year, Dimension1)]
+  setkey(values, AreaID, Dimension1, Year)
+  values[, previous := shift(Value,1), by=.(AreaID, Dimension1)]
 
   summarynumbers <-
-      lapply(1:nrow(grid), function (i) {
-        vals <- lookupnums(datasetid,
-                              as.character(grid$areaname[i]),
-                              as.character(grid$feature[i])
-                              )
-        return(list(
-            areaname = as.character(grid$areaname[i]),
-            feature  = as.character(grid$feature[i]),
-            year     = grid$year[i],
-            numbers  = vals[Year==grid$year[i],
-                           .(formatValue(unit, headline),
-                             formatValue('pp',local),
-                             formatValue('number', national))]
-            ))
-      })
+      values[,
+        .(areaid   = areaname,
+          year     = Year,
+          feature  = slugify(Dimension1),
+          headline = formatValue(unit, Value),
+          local    = localformat(unit, previous, Value),
+          national = nationalformat(unit, national, Value)
+          )]
 
-  cat("Done\n")
   cat(as.character(toJSON(summarynumbers, null='null', auto_unbox=TRUE)), file=outputfile)
+  cat(" Done\n")
 
 }

@@ -27,7 +27,7 @@ formatValue <- function(unit, value) {
   } else if (unit == "milliondollars") {
     paste0("$", format(round(value), big.mark =',', trim=T))
   } else if (unit == "percentage") {
-    paste0(format(round(value), big.mark =','), ' %')
+    sprintf('%0.1f %%', value)
   } else if (unit == "points") {
     paste0(format(round(value,1), big.mark =','), ' pp')
   } else if (unit == "ratio") {
@@ -41,7 +41,6 @@ formatValue <- function(unit, value) {
   } else {
       as.character(value)
   }
-
 }
 
 formatYearEndMonth <- function(yearendmonth) {

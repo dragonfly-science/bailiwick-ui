@@ -130,7 +130,7 @@ makeIndicatorSummaryState State{..} =
          (constDyn Nothing)  -- TODO compare area
          (constDyn Nothing)  -- TODO feature
          mindicatorD         -- indicator
-         (constDyn OMap.empty) -- TODO indicatorSummary numbers
+         (constDyn (IndicatorSummary OMap.empty))  -- TODO
 
 
 
