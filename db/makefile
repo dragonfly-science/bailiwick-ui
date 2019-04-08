@@ -23,5 +23,5 @@ $(PREFIX)/area-summaries.json: area-summaries.r data/REARdb.rda \
 $(PREFIX)/.indicators: indicator-numbers.r data/REARdb.rda \
 			$(PREFIX)/themes.json functions.r
 	mkdir -p $(PREFIX)
-	Rscript $^
+	Rscript indicator-numbers.r data/REARdb.rda $(PREFIX)/themes.json $(PREFIX)
 	touch $@

@@ -27,7 +27,11 @@ formatValue <- function(unit, value) {
   } else if (unit == "milliondollars") {
     paste0("$", format(round(value), big.mark =',', trim=T))
   } else if (unit == "percentage") {
-    paste0(format(round(value), big.mark =','), '%')
+    paste0(format(round(value), big.mark =','), ' %')
+  } else if (unit == "points") {
+    paste0(format(round(value,1), big.mark =','), ' pp')
+  } else if (unit == "ratio") {
+    paste0(format(round(value,2), big.mark =','), '')
   } else if (unit == "count") {
     paste0(format(round(value), big.mark =','))
   } else if (unit == "hectares") {
