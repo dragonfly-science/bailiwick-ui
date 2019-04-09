@@ -32,8 +32,8 @@ import Bailiwick.View.Header (header)
 import Bailiwick.View.Map
 import Bailiwick.View.AreaSummary (areaSummary, AreaSummaryState)
 import Bailiwick.View.Indicators (indicators)
+import Bailiwick.View.IndicatorChart
 import Bailiwick.View.IndicatorSummary
---import Bailiwick.View.IndicatorChart (indicatorChart)
 import Bailiwick.View.ToolBar (toolBar)
 
 switchDynM
@@ -163,10 +163,11 @@ mainContent st@State{..} = do
   let mapState = makeMapState st
       areaSummaryState = makeSummaryState st
       indicatorSummaryState = makeIndicatorSummaryState st
+      indicatorChartState = makeIndicatorChartState st
   switchDynM $
      ffor isSummary $ \case
         True  -> summaryContent routeD regionD areaD mapState areaSummaryState
-        False -> indicatorContent mapState indicatorSummaryState
+        False -> indicatorContent regionD mapState indicatorChartState indicatorSummaryState
 
 summaryContent
     :: ContentConstraints t m
@@ -191,28 +192,39 @@ summaryContent routeD regionD areaD map_state area_summary_state=
 
 indicatorContent
     :: ContentConstraints t m
-    => MapState t
+    => Dynamic t (Maybe Area)
+    -> MapState t
+    -> IndicatorChartState t
     -> IndicatorSummaryState t
     -> m (Event t Message)
-indicatorContent map_state indicator_summary_state = do
+indicatorContent regionD map_state indicator_chart_state indicator_summary_state = do
   contentE <- divClass "central-content indicator" $ do
     mapE <- divClass "indicator-map base-map" $
       divClass "map-wrapper" $ do
         zoomClick <- divClass "map-options" $ do
           divClass "zoom-controls map-zoom active" $ do
-            el "label" $ do
-              elAttr "input" ("type" =: "radio" <> "name" =: "map-zoom-left") $ return ()
-              elClass "span" "zoom-in" $ return ()
-            el "label" $ do
-              elAttr "input" ("type" =: "radio" <> "name" =: "map-zoom-left") $ return ()
-              elClass "span" "zoom-out" $ return ()
-          return never --TODO
+            (eZoomIn, _) <-
+              el' "label" $ do
+                elAttr "input" ("type" =: "radio" <> "name" =: "map-zoom-left") $
+                   return ()
+                elClass "span" "zoom-in" $
+                   return ()
+            (eZoomOut, _) <-
+              el' "label" $ do
+                elAttr "input" ("type" =: "radio" <> "name" =: "map-zoom-left") $
+                   return ()
+                elClass "span" "zoom-out" $
+                   return ()
+            return $ leftmost [ tagPromptlyDyn
+                                    (ZoomOut . fmap areaId <$> regionD)
+                                    (domEvent Click eZoomOut)
+                              , ZoomIn  <$ domEvent Click eZoomIn
+                              ]
 
         mapClicks <- divClass "svg-wrapper" $ nzmap map_state
         return $ leftmost [zoomClick, mapClicks]
     chartE <- divClass "indicator-chart" $
-      --indicatorChart stateD
-      return never
+      indicatorChart indicator_chart_state
     return $ leftmost [ mapE, chartE ]
   summaryE <- divClass "indicator-summary hide-table no-compare" $
     indicatorSummary indicator_summary_state

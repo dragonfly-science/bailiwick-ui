@@ -8,6 +8,7 @@ module Bailiwick.View.Header
 where
 
 import Control.Monad.Fix
+import Control.Applicative ((<|>))
 import Data.Monoid ((<>))
 import Data.Maybe (fromMaybe, listToMaybe)
 
@@ -116,7 +117,7 @@ backToSummary HeaderState{..} = do
       notSummaryD = (Summary /=) <$> pageD
 
   let subs = (textSubstitution
-                <$> areaD
+                <$> ((<|>) <$> subareaD <*> areaD)
                 <*> (constDyn Nothing)
                 <*> indicatorD
                 <*> (constDyn Nothing)

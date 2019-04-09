@@ -16,6 +16,7 @@ import Bailiwick.View.Indicators (IndicatorState(IndicatorState))
 import Bailiwick.View.ToolBar (ToolBarState(ToolBarState))
 import Bailiwick.View.AreaSummary (AreaSummaryState(AreaSummaryState))
 import Bailiwick.View.Map (MapState(MapState))
+import Bailiwick.View.IndicatorChart (IndicatorChartState(IndicatorChartState))
 import Bailiwick.View.IndicatorSummary (IndicatorSummaryState(IndicatorSummaryState))
 import Bailiwick.Route
 import Bailiwick.Store
@@ -111,6 +112,14 @@ makeMapState
   => State t -> MapState t
 makeMapState State{..} =
   MapState routeD regionD areaD (storeAreasD $ store)
+
+
+-- IndicatorChart state
+makeIndicatorChartState
+  :: Reflex t
+  => State t -> IndicatorChartState t
+makeIndicatorChartState State{..} =
+  IndicatorChartState routeD
 
 
 -- make IndicatorSummaryState
