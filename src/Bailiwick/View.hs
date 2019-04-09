@@ -218,10 +218,11 @@ indicatorContent regionD map_state indicator_chart_state indicator_summary_state
             return $ leftmost [ tagPromptlyDyn
                                     (ZoomOut . fmap areaId <$> regionD)
                                     (domEvent Click eZoomOut)
-                              , ZoomIn  <$ domEvent Click eZoomIn
+                              , ZoomIn <$ domEvent Click eZoomIn
                               ]
 
         mapClicks <- divClass "svg-wrapper" $ nzmap map_state
+        divClass "legend" $ return ()
         return $ leftmost [zoomClick, mapClicks]
     chartE <- divClass "indicator-chart" $
       indicatorChart indicator_chart_state
