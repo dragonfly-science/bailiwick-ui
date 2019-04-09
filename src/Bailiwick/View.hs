@@ -160,14 +160,15 @@ mainContent
     -> m (Event t Message)
 mainContent st@State{..} = do
   isSummary <- holdUniqDyn ((== Summary) . routePage <$> routeD)
-  let mapState = makeMapState st
+  let zoomD = hasAdapter Mapzoom <$> routeD
+      mapState = makeMapState st
       areaSummaryState = makeSummaryState st
       indicatorSummaryState = makeIndicatorSummaryState st
       indicatorChartState = makeIndicatorChartState st
   switchDynM $
      ffor isSummary $ \case
         True  -> summaryContent routeD regionD areaD mapState areaSummaryState
-        False -> indicatorContent regionD mapState indicatorChartState indicatorSummaryState
+        False -> indicatorContent zoomD regionD mapState indicatorChartState indicatorSummaryState
 
 summaryContent
     :: ContentConstraints t m
@@ -192,26 +193,30 @@ summaryContent routeD regionD areaD map_state area_summary_state=
 
 indicatorContent
     :: ContentConstraints t m
-    => Dynamic t (Maybe Area)
+    => Dynamic t Bool
+    -> Dynamic t (Maybe Area)
     -> MapState t
     -> IndicatorChartState t
     -> IndicatorSummaryState t
     -> m (Event t Message)
-indicatorContent regionD map_state indicator_chart_state indicator_summary_state = do
+indicatorContent zoomD regionD map_state indicator_chart_state indicator_summary_state = do
   contentE <- divClass "central-content indicator" $ do
     mapE <- divClass "indicator-map base-map" $
       divClass "map-wrapper" $ do
         zoomClick <- divClass "map-options" $ do
           divClass "zoom-controls map-zoom active" $ do
+            let inpAttrD switchD = ffor switchD $ \case
+                    True  -> ("type" =: "radio" <> "selected" =: "selected")
+                    False -> ("type" =: "radio")
             (eZoomIn, _) <-
               el' "label" $ do
-                elAttr "input" ("type" =: "radio" <> "name" =: "map-zoom-left") $
+                elDynAttr "input" (inpAttrD zoomD) $
                    return ()
                 elClass "span" "zoom-in" $
                    return ()
             (eZoomOut, _) <-
               el' "label" $ do
-                elAttr "input" ("type" =: "radio" <> "name" =: "map-zoom-left") $
+                elDynAttr "input" (inpAttrD (not <$> zoomD)) $
                    return ()
                 elClass "span" "zoom-out" $
                    return ()
