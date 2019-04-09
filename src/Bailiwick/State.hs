@@ -24,11 +24,12 @@ import Bailiwick.Types
 
 data State t
   = State
-    { routeD      :: Dynamic t Route
-    , store       :: Store t
-    , regionD     :: Dynamic t (Maybe Area)
-    , areaD       :: Dynamic t (Maybe Area)
-    , indicatorD  :: Dynamic t (Maybe Indicator)
+    { routeD             :: Dynamic t Route
+    , store              :: Store t
+    , regionD            :: Dynamic t (Maybe Area)
+    , areaD              :: Dynamic t (Maybe Area)
+    , indicatorD         :: Dynamic t (Maybe Indicator)
+    , indicatorSummaryD  :: Dynamic t IndicatorSummary
     }
 
 make
@@ -49,19 +50,27 @@ make routeD store@Store{..} =
                   _      -> return (Just nz, Nothing)
 
       mthemepageD = getThemePage <$> routeD
-      mindicatorD = do -- Dynamic t
+      indicatorD = do -- Dynamic t
         mthemepage <- mthemepageD
         mthemes <- storeThemesD
         return $ do -- Maybe
             themes <- mthemes
             themepage <- mthemepage
             findIndicator themes themepage
+
+      indicatorSummaryD = do
+        mindicator <- indicatorD
+        summaryNumbers <- storeSummaryNumbersD
+        return $ fromMaybe (IndicatorSummary OMap.empty) $ do
+          indid <- indicatorId <$> mindicator
+          OMap.lookup indid summaryNumbers
   in State
-       { routeD      = routeD
-       , store       = store
-       , regionD     = fst <$> regta
-       , areaD       = snd <$> regta
-       , indicatorD  = mindicatorD
+       { routeD             = routeD
+       , store              = store
+       , regionD            = fst <$> regta
+       , areaD              = snd <$> regta
+       , indicatorD         = indicatorD
+       , indicatorSummaryD  = indicatorSummaryD
        }
 
 
@@ -111,7 +120,7 @@ makeMapState
   :: Reflex t
   => State t -> MapState t
 makeMapState State{..} =
-  MapState routeD regionD areaD (storeAreasD $ store)
+  MapState routeD regionD areaD (storeAreasD $ store) indicatorSummaryD
 
 
 -- IndicatorChart state
@@ -128,14 +137,6 @@ makeIndicatorSummaryState
   => State t -> IndicatorSummaryState t
 makeIndicatorSummaryState State{..} =
   let selectedAreaD = zipDynWith (<|>) areaD regionD
-      mthemepageD = getThemePage <$> routeD
-      indicatorSummaryD = do
-        mindicator <- indicatorD
-        summaryNumbers <- storeSummaryNumbersD $ store
-        return $ fromMaybe (IndicatorSummary OMap.empty) $ do
-          indid <- indicatorId <$> mindicator
-          OMap.lookup indid summaryNumbers
-
   in IndicatorSummaryState routeD selectedAreaD
          (constDyn Nothing)  -- TODO compare area
          (constDyn Nothing)  -- TODO feature

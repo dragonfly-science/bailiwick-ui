@@ -74,6 +74,15 @@ import Reflex.Dom.Builder.Immediate (wrapDomEvent)
 import Bailiwick.Route
 import Bailiwick.Types
 
+data MapState t
+  = MapState
+    { routeD             :: Dynamic t Route
+    , regionD            :: Dynamic t (Maybe Area)
+    , subareaD           :: Dynamic t (Maybe Area)
+    , areasD             :: Dynamic t (Maybe Areas)
+    , indicatorSummaryD  :: Dynamic t IndicatorSummary
+    }
+
 switchDynM
  :: (MonadHold t m, DomBuilder t m, PostBuild t m)
  => Dynamic t (m (Event t a)) -> m (Event t a)
@@ -324,6 +333,7 @@ data Map
     , _region         :: Maybe Text
     , _subarea        :: Maybe Text
     , _regionChildren :: [Text]
+    , _numbers        :: IndicatorSummary
     }
    deriving (Show, Eq)
 
@@ -392,13 +402,6 @@ mediaQueryDyn queryString = do
   initiallyMatches <- getMatches mediaQueryList
   holdDyn initiallyMatches =<< mediaQueryChange mediaQueryList
 
-data MapState t
-  = MapState
-    { routeD   :: Dynamic t Route
-    , regionD  :: Dynamic t (Maybe Area)
-    , subareaD :: Dynamic t (Maybe Area)
-    , areasD   :: Dynamic t (Maybe Areas)
-    }
 
 nzmap
     :: forall m t.
@@ -448,213 +451,32 @@ nzmap MapState{..} = mdo
   let zoomStateD = zoomState <$> wide <*> zoomD <*> (maybe "nz" areaId <$> regionD)
   (zoomAnimating, zoomStateT) <- transitions frame duration zoomStateD
 
+  let isSummaryD = (Summary ==) . routePage <$> routeD
   svgBodyD <- holdDyn Nothing (Just <$> svgBodyE)
-  loadedSvg <- switchDynM $ ffor svgBodyD $ \case
-    Nothing -> return never
-    Just svgBody -> do
-      let setAttr
-             :: (MonadJSM m0)
-             => Text -> Text -> Text -> m0 ()
-          setAttr q name val = do
-            nodeList <- querySelectorAll svgBody q
-            forNodesSetAttribute nodeList name val
-
-          setAttrs :: (MonadJSM m0) => Text -> [(Text, Text)] -> m0 ()
-          setAttrs q = mapM_ (uncurry $ setAttr q)
-
-          set :: (MonadJSM m0, IsElement e) => Text -> Text -> e -> m0 ()
-          set a v e = setAttribute e a v
-
-          mapD
+  loadedSvg <- switchDynM $ ffor ((,) <$> isSummaryD <*> svgBodyD) $ \case
+    (_, Nothing) -> return never
+    (True, Just svgBody) -> do
+      let mapD
             = Map <$> zoomD
                   <*> zoomStateT
                   <*> mouseOverD
                   <*> (fmap areaId <$> regionD)
                   <*> (fmap areaId <$> subareaD)
                   <*> (maybe [] areaChildren <$> areaD)
+                  <*> indicatorSummaryD
+      updateMapSummary svgBody mapD
+    (False, Just svgBody) -> do
+      let mapD
+            = Map <$> zoomD
+                  <*> zoomStateT
+                  <*> mouseOverD
+                  <*> (fmap areaId <$> regionD)
+                  <*> (fmap areaId <$> subareaD)
+                  <*> (maybe [] areaChildren <$> areaD)
+                  <*> indicatorSummaryD
+      updateMapIndicator svgBody mapD
 
-      postBuild <- getPostBuild
-      performEvent_ $ postBuild $> do
-        set "height" "550px" svgBody
-        setAttr "path" "stroke" "none"
-        setAttr "path" "stroke-width" "0.001"
-        setAttr "path" "cursor" "pointer"
-        setAttr "polyline" "stroke-linecap" "butt"
-        setAttr "polyline" "cursor" "pointer"
 
-      mapE <- attachPrevious $
-               leftmost [ updated mapD
-                        , tagPromptlyDyn mapD postBuild
-                        ]
-
-      performEvent . ffor mapE $ \(old, new) -> do
-        -- Update the transform, but only if it has changed
-        when ((_zoomState <$> old) /= Just (_zoomState new)) $ do
-          let transform = transformString (_translate $ _zoomState new)
-                                              (_scale $ _zoomState new)
-          querySelector svgBody ("g" :: Text) >>= mapM_
-            (set "transform" transform)
-
-        let bg   = rgbString . _defaultBackground $ _zoomState new
-            srbg = rgbString . _selectedRegionBackground $ _zoomState new
-            ol   = rgbString . _defaultOutline $ _zoomState new
-            srol = rgbString . _sameRegionOutline $ _zoomState new
-            cl   = rgbString . _coastline $ _zoomState new
-            sw   = _strokeWidth $ _zoomState new
-            changed = if (_zoomState <$> old) /= Just (_zoomState new)  ||
-                         (_region    <$> old) /= Just (_region new)     ||
-                         (_subarea   <$> old) /= Just (_subarea new)
-                        then ""
-                        else maybe "" ("." <>) $ mouseOverRegionClass =<< old
-
-        -- Reset the properties of the changed elements
-        setAttr ("g" <> changed <> " > polyline") "stroke-width" (Text.pack . show $ sw * 2)
-        if _zoom new
-          then
-            forM_ (_region new) $ \r -> do
-              let subareaType = if r == "auckland" then "ward" else "ta"
-              setAttr ("g" <> changed <> "[same_reg=TRUE] > polyline")
-                      "stroke-width" (Text.pack . show $ sw)
-              setAttr ("g" <> changed <> ".inbound[same_reg=FALSE] > polyline")
-                      "stroke" ol
-              setAttr ("g" <> changed <> ".inbound[same_reg=TRUE] > polyline")
-                      "stroke" srol
-              setAttr ("g" <> changed <> ".inbound[same_reg=TRUE][same_"
-                                      <> subareaType <> "=TRUE] > polyline")
-                      "stroke-width" "1.0"
-          else do
-            setAttr ("g" <> changed <> ".inbound[same_reg=FALSE] > polyline")
-                    "stroke" ol
-            setAttrs ("g" <> changed <> ".inbound[same_reg=TRUE] > polyline")
-                     [ ("stroke", srol)
-                     , ("stroke-width", "1.5")]
-        setAttr ("g" <> changed <> ".coastline > polyline")
-                "stroke" cl
-        setAttr ("g" <> changed <> " > path")
-                "fill" bg
-
-        if _zoom new
-          then do
-            -- Clear old mouse over subarea that is outside the selected region
-            --  (and so will not be included when we clear the selected region)
-            forM_ (_region =<< old) $ \r -> do
-              let regionClass = slugify r <> "-region"
-              case _mouseAreaInfo =<< old of
-                Just AreaInfo{..} | (slugify <$> areaRegion) == Just r ->
-                  forM_ (mouseOverSubareaClass =<< old) $ \cssClass -> do
-                    setAttr ("g:not(." <> regionClass <> ")." <> cssClass <> " > path")
-                            "fill" bg
-                    setAttr ("g:not(." <> regionClass <> ")." <> cssClass <> " > polyline")
-                            "stroke" ol
-                    setAttr ("g:not(." <> regionClass <> ")." <> cssClass
-                                       <> "[same_reg=TRUE] > polyline")
-                            "stroke" bg
-                _ -> return ()
-
-            forM_ (_region new) $ \r -> do
-              let regionClass = slugify r <> "-region"
-                  subareaType = if r == "auckland" then "ward" else "ta"
-
-              -- Selected region
-              setAttr ("g." <> regionClass <> " > path") "fill" srbg
-              setAttr ("g.coastline." <> regionClass <> " > polyline")
-                      "stroke" "none"
-              setAttr ("g.inbound." <> regionClass <> "[same_"
-                                    <> subareaType <> "=TRUE] > polyline")
-                      "stroke" srbg
-              setAttr ("g.inbound." <> regionClass <> "[same_reg=TRUE][same_"
-                                    <> subareaType <> "=FALSE] > polyline")
-                      "stroke" "rgb(106,142,156)"
-              setAttr ("g.inbound." <> regionClass <> "[same_reg=FALSE][same_"
-                                    <> subareaType <> "=FALSE] > polyline")
-                      "stroke" "none"
-
-              -- Remainder of subareas with some part the seleced region
-              forM_ (_regionChildren new) $ \child -> do
-                setAttr ("g:not(." <> regionClass <> ")."
-                             <> slugify child <> "-" <> subareaType <> " > path")
-                        "fill" "rgb(181,209, 223)"
-                setAttr ("g:not(." <> regionClass <> ")."
-                             <> slugify child <> "-" <> subareaType <> "[same_"
-                             <> subareaType <> "=TRUE][same_reg=TRUE] > polyline")
-                        "stroke" "rgb(181,209, 223)"
-                setAttr ("g:not(." <> regionClass <> ")."
-                             <> slugify child <> "-" <> subareaType <> "[same_"
-                             <> subareaType <> "=TRUE][same_reg=FALSE] > polyline")
-                        "stroke" ol
-
-              -- New mouse over region
-              forM_ (mouseOverRegionClass new) $ \cssClass -> when (cssClass /= regionClass) $ do
-                let mouseOverZoomBackground = "rgb(174, 227, 248)"
-                setAttr ("g." <> cssClass <> " > path") "fill" mouseOverZoomBackground
-                setAttr ("g.inbound." <> cssClass <> "[same_reg=TRUE] > polyline")
-                        "stroke" "rgb(160,214,236)"
-                setAttr ("g.inbound." <> cssClass <> "[same_reg=TRUE][same_"
-                                      <> subareaType <> "=TRUE] > polyline")
-                        "stroke" mouseOverZoomBackground
-
-              -- Mouse over subarea
-              case _mouseAreaInfo new of
-                Just AreaInfo{..} | (slugify <$> areaRegion) == Just r ->
-                  forM_ (mouseOverSubareaClass new) $ \cssClass -> do
-                    setAttr ("g." <> regionClass <> "." <> cssClass <> " > path")
-                            "fill" "rgb(0, 189, 233)"
-                    setAttr ("g.inbound." <> regionClass <> "."
-                                 <> cssClass <> "[same_"
-                                 <> subareaType <> "=TRUE] > polyline")
-                            "stroke" "rgb(0, 189, 233)"
-                    setAttr ("g:not(." <> regionClass <> ")."
-                                 <> cssClass <> " > path")
-                            "fill" "rgb(174, 227, 248)"
-                    setAttr ("g.inbound:not(." <> regionClass <> ")."
-                                 <> cssClass <> "[same_"
-                                 <> subareaType
-                                 <> "=TRUE][same_reg=TRUE] > polyline")
-                            "stroke" "rgb(174, 227, 248)"
-                    setAttr ("g.inbound:not(." <> regionClass <> ")."
-                                 <> cssClass <> "[same_"
-                                 <> subareaType <> "=TRUE][same_reg=FALSE] > polyline")
-                            "stroke" "rgb(0, 189, 233)"
-                _ -> return ()
-
-              -- Selected subarea
-              forM_ (_selectedSubareaClass new) $ \cssClass -> do
-                setAttr ("g." <> regionClass <> "." <> cssClass <> " > path")
-                        "fill" "rgb(0, 189, 233)"
-                setAttr ("g.inbound." <> regionClass <> "."
-                             <> cssClass <> "[same_"
-                             <> subareaType <> "=TRUE] > polyline")
-                        "stroke" "rgb(0, 189, 233)"
-                setAttr ("g:not(." <> regionClass <> ")."
-                             <> cssClass <> " > path")
-                        "fill" "rgb(174, 227, 248)"
-                setAttr ("g.inbound:not(." <> regionClass <> ")."
-                             <> cssClass <> "[same_"
-                             <> subareaType <> "=TRUE][same_reg=TRUE] > polyline")
-                        "stroke" "rgb(174, 227, 248)"
-                setAttr ("g.inbound:not(." <> regionClass <> ")."
-                             <> cssClass <> "[same_"
-                             <> subareaType <> "=TRUE][same_reg=FALSE] > polyline")
-                        "stroke" "rgb(0, 189, 233)"
-          else do
-            forM_ (_region new) $ \r -> do
-              setAttr ("g." <> slugify r <> "-region > path")
-                      "fill" srbg
-              setAttrs ("g." <> slugify r <> "-region[same_reg=TRUE] > polyline")
-                       [ ("stroke", srbg)
-                       , ("stroke-width", "3.0")]
-              setAttr ("g." <> slugify r <> "-region.coastline > polyline")
-                      "stroke" srbg
-            forM_ (mouseOverRegionClass new) $ \cssClass -> do
-              setAttr ("g." <> cssClass <> " > path")
-                      "fill" "rgb(0, 189, 233)"
-              setAttrs ("g." <> cssClass <> "[same_reg=TRUE] > polyline")
-                       [ ("stroke", "rgb(0, 189, 233)")
-                       , ("stroke-width", "3.0")]
-              setAttr ("g." <> cssClass <> ".coastline > polyline")
-                      "stroke" "rgb(0, 189, 233)"
-
-  let transformD = fmap themePageLeftTransform . getThemePage <$> routeD
   let tooltipArea
          :: Maybe Areas
          -> Route
@@ -747,6 +569,301 @@ nzmap MapState{..} = mdo
         route   <- routeD
         return (region, subarea, route)
   return $ attachPromptlyDynWithMaybe makeMessages combinedD clickE
+
+
+
+updateMapSummary
+  :: ( PostBuild t m
+     , PerformEvent t m
+     , MonadJSM (Performable m)
+     , IsElement self
+     , MonadHold t m
+     )
+  => self -> Dynamic t Map -> m (Event t ())
+updateMapSummary svgBody mapD = do
+  let setAttr
+         :: (MonadJSM m0)
+         => Text -> Text -> Text -> m0 ()
+      setAttr q name val = do
+        nodeList <- querySelectorAll svgBody q
+        forNodesSetAttribute nodeList name val
+
+      setAttrs :: (MonadJSM m0) => Text -> [(Text, Text)] -> m0 ()
+      setAttrs q = mapM_ (uncurry $ setAttr q)
+
+      set :: (MonadJSM m0, IsElement e) => Text -> Text -> e -> m0 ()
+      set a v e = setAttribute e a v
+
+
+  postBuild <- getPostBuild
+  performEvent_ $ postBuild $> do
+    set "height" "550px" svgBody
+    setAttr "path" "stroke" "none"
+    setAttr "path" "stroke-width" "0.001"
+    setAttr "path" "cursor" "pointer"
+    setAttr "polyline" "stroke-linecap" "butt"
+    setAttr "polyline" "cursor" "pointer"
+
+  mapE <- attachPrevious $
+           leftmost [ updated mapD
+                    , tagPromptlyDyn mapD postBuild
+                    ]
+
+  -- Main update function
+  performEvent . ffor mapE $ \(old, new) -> do
+
+    -- Update the transform, but only if it has changed
+    when ((_zoomState <$> old) /= Just (_zoomState new)) $ do
+      let transform = transformString (_translate $ _zoomState new)
+                                          (_scale $ _zoomState new)
+      querySelector svgBody ("g" :: Text) >>= mapM_
+        (set "transform" transform)
+
+    let bg   = rgbString . _defaultBackground $ _zoomState new
+        srbg = rgbString . _selectedRegionBackground $ _zoomState new
+        ol   = rgbString . _defaultOutline $ _zoomState new
+        srol = rgbString . _sameRegionOutline $ _zoomState new
+        cl   = rgbString . _coastline $ _zoomState new
+        sw   = _strokeWidth $ _zoomState new
+        changed = if (_zoomState <$> old) /= Just (_zoomState new)  ||
+                     (_region    <$> old) /= Just (_region new)     ||
+                     (_subarea   <$> old) /= Just (_subarea new)
+                    then ""
+                    else maybe "" ("." <>) $ mouseOverRegionClass =<< old
+
+    -- Reset the properties of the changed elements
+    setAttr ("g" <> changed <> " > polyline") "stroke-width" (Text.pack . show $ sw * 2)
+    if _zoom new
+      then
+        forM_ (_region new) $ \r -> do
+          let subareaType = if r == "auckland" then "ward" else "ta"
+          setAttr ("g" <> changed <> "[same_reg=TRUE] > polyline")
+                  "stroke-width" (Text.pack . show $ sw)
+          setAttr ("g" <> changed <> ".inbound[same_reg=FALSE] > polyline")
+                  "stroke" ol
+          setAttr ("g" <> changed <> ".inbound[same_reg=TRUE] > polyline")
+                  "stroke" srol
+          setAttr ("g" <> changed <> ".inbound[same_reg=TRUE][same_"
+                                  <> subareaType <> "=TRUE] > polyline")
+                  "stroke-width" "1.0"
+      else do
+        setAttr ("g" <> changed <> ".inbound[same_reg=FALSE] > polyline")
+                "stroke" ol
+        setAttrs ("g" <> changed <> ".inbound[same_reg=TRUE] > polyline")
+                 [ ("stroke", srol)
+                 , ("stroke-width", "1.5")]
+    setAttr ("g" <> changed <> ".coastline > polyline")
+            "stroke" cl
+    setAttr ("g" <> changed <> " > path")
+            "fill" bg
+
+    if _zoom new
+      then do
+        -- Clear old mouse over subarea that is outside the selected region
+        --  (and so will not be included when we clear the selected region)
+        forM_ (_region =<< old) $ \r -> do
+          let regionClass = slugify r <> "-region"
+          case _mouseAreaInfo =<< old of
+            Just AreaInfo{..} | (slugify <$> areaRegion) == Just r ->
+              forM_ (mouseOverSubareaClass =<< old) $ \cssClass -> do
+                setAttr ("g:not(." <> regionClass <> ")." <> cssClass <> " > path")
+                        "fill" bg
+                setAttr ("g:not(." <> regionClass <> ")." <> cssClass <> " > polyline")
+                        "stroke" ol
+                setAttr ("g:not(." <> regionClass <> ")." <> cssClass
+                                   <> "[same_reg=TRUE] > polyline")
+                        "stroke" bg
+            _ -> return ()
+
+        forM_ (_region new) $ \r -> do
+          let regionClass = slugify r <> "-region"
+              subareaType = if r == "auckland" then "ward" else "ta"
+
+          -- Selected region
+          setAttr ("g." <> regionClass <> " > path") "fill" srbg
+          setAttr ("g.coastline." <> regionClass <> " > polyline")
+                  "stroke" "none"
+          setAttr ("g.inbound." <> regionClass <> "[same_"
+                                <> subareaType <> "=TRUE] > polyline")
+                  "stroke" srbg
+          setAttr ("g.inbound." <> regionClass <> "[same_reg=TRUE][same_"
+                                <> subareaType <> "=FALSE] > polyline")
+                  "stroke" "rgb(106,142,156)"
+          setAttr ("g.inbound." <> regionClass <> "[same_reg=FALSE][same_"
+                                <> subareaType <> "=FALSE] > polyline")
+                  "stroke" "none"
+
+          -- Remainder of subareas with some part the seleced region
+          forM_ (_regionChildren new) $ \child -> do
+            setAttr ("g:not(." <> regionClass <> ")."
+                         <> slugify child <> "-" <> subareaType <> " > path")
+                    "fill" "rgb(181,209, 223)"
+            setAttr ("g:not(." <> regionClass <> ")."
+                         <> slugify child <> "-" <> subareaType <> "[same_"
+                         <> subareaType <> "=TRUE][same_reg=TRUE] > polyline")
+                    "stroke" "rgb(181,209, 223)"
+            setAttr ("g:not(." <> regionClass <> ")."
+                         <> slugify child <> "-" <> subareaType <> "[same_"
+                         <> subareaType <> "=TRUE][same_reg=FALSE] > polyline")
+                    "stroke" ol
+
+          -- New mouse over region
+          forM_ (mouseOverRegionClass new) $ \cssClass -> when (cssClass /= regionClass) $ do
+            let mouseOverZoomBackground = "rgb(174, 227, 248)"
+            setAttr ("g." <> cssClass <> " > path") "fill" mouseOverZoomBackground
+            setAttr ("g.inbound." <> cssClass <> "[same_reg=TRUE] > polyline")
+                    "stroke" "rgb(160,214,236)"
+            setAttr ("g.inbound." <> cssClass <> "[same_reg=TRUE][same_"
+                                  <> subareaType <> "=TRUE] > polyline")
+                    "stroke" mouseOverZoomBackground
+
+          -- Mouse over subarea
+          case _mouseAreaInfo new of
+            Just AreaInfo{..} | (slugify <$> areaRegion) == Just r ->
+              forM_ (mouseOverSubareaClass new) $ \cssClass -> do
+                setAttr ("g." <> regionClass <> "." <> cssClass <> " > path")
+                        "fill" "rgb(0, 189, 233)"
+                setAttr ("g.inbound." <> regionClass <> "."
+                             <> cssClass <> "[same_"
+                             <> subareaType <> "=TRUE] > polyline")
+                        "stroke" "rgb(0, 189, 233)"
+                setAttr ("g:not(." <> regionClass <> ")."
+                             <> cssClass <> " > path")
+                        "fill" "rgb(174, 227, 248)"
+                setAttr ("g.inbound:not(." <> regionClass <> ")."
+                             <> cssClass <> "[same_"
+                             <> subareaType
+                             <> "=TRUE][same_reg=TRUE] > polyline")
+                        "stroke" "rgb(174, 227, 248)"
+                setAttr ("g.inbound:not(." <> regionClass <> ")."
+                             <> cssClass <> "[same_"
+                             <> subareaType <> "=TRUE][same_reg=FALSE] > polyline")
+                        "stroke" "rgb(0, 189, 233)"
+            _ -> return ()
+
+          -- Selected subarea
+          forM_ (_selectedSubareaClass new) $ \cssClass -> do
+            setAttr ("g." <> regionClass <> "." <> cssClass <> " > path")
+                    "fill" "rgb(0, 189, 233)"
+            setAttr ("g.inbound." <> regionClass <> "."
+                         <> cssClass <> "[same_"
+                         <> subareaType <> "=TRUE] > polyline")
+                    "stroke" "rgb(0, 189, 233)"
+            setAttr ("g:not(." <> regionClass <> ")."
+                         <> cssClass <> " > path")
+                    "fill" "rgb(174, 227, 248)"
+            setAttr ("g.inbound:not(." <> regionClass <> ")."
+                         <> cssClass <> "[same_"
+                         <> subareaType <> "=TRUE][same_reg=TRUE] > polyline")
+                    "stroke" "rgb(174, 227, 248)"
+            setAttr ("g.inbound:not(." <> regionClass <> ")."
+                         <> cssClass <> "[same_"
+                         <> subareaType <> "=TRUE][same_reg=FALSE] > polyline")
+                    "stroke" "rgb(0, 189, 233)"
+      else do
+        forM_ (_region new) $ \r -> do
+          setAttr ("g." <> slugify r <> "-region > path")
+                  "fill" srbg
+          setAttrs ("g." <> slugify r <> "-region[same_reg=TRUE] > polyline")
+                   [ ("stroke", srbg)
+                   , ("stroke-width", "3.0")]
+          setAttr ("g." <> slugify r <> "-region.coastline > polyline")
+                  "stroke" srbg
+        forM_ (mouseOverRegionClass new) $ \cssClass -> do
+          setAttr ("g." <> cssClass <> " > path")
+                  "fill" "rgb(0, 189, 233)"
+          setAttrs ("g." <> cssClass <> "[same_reg=TRUE] > polyline")
+                   [ ("stroke", "rgb(0, 189, 233)")
+                   , ("stroke-width", "3.0")]
+          setAttr ("g." <> cssClass <> ".coastline > polyline")
+                  "stroke" "rgb(0, 189, 233)"
+
+updateMapIndicator
+  :: ( PostBuild t m
+     , PerformEvent t m
+     , MonadJSM (Performable m)
+     , IsElement self
+     , MonadHold t m
+     )
+  => self -> Dynamic t Map -> m (Event t ())
+updateMapIndicator svgBody mapD = do
+  let setAttr
+         :: (MonadJSM m0)
+         => Text -> Text -> Text -> m0 ()
+      setAttr q name val = do
+        nodeList <- querySelectorAll svgBody q
+        forNodesSetAttribute nodeList name val
+
+      setAttrs :: (MonadJSM m0) => Text -> [(Text, Text)] -> m0 ()
+      setAttrs q = mapM_ (uncurry $ setAttr q)
+
+      set :: (MonadJSM m0, IsElement e) => Text -> Text -> e -> m0 ()
+      set a v e = setAttribute e a v
+
+
+  postBuild <- getPostBuild
+  performEvent_ $ postBuild $> do
+    set "height" "550px" svgBody
+    setAttr "path" "stroke" "none"
+    setAttr "path" "stroke-width" "0.001"
+    setAttr "path" "cursor" "pointer"
+    setAttr "polyline" "stroke-linecap" "butt"
+    setAttr "polyline" "cursor" "pointer"
+
+  mapE <- attachPrevious $
+           leftmost [ updated mapD
+                    , tagPromptlyDyn mapD postBuild
+                    ]
+
+  -- Main update function
+  performEvent . ffor mapE $ \(old, new) -> do
+
+    -- Update the transform, but only if it has changed
+    when ((_zoomState <$> old) /= Just (_zoomState new)) $ do
+      let transform = transformString (_translate $ _zoomState new)
+                                          (_scale $ _zoomState new)
+      querySelector svgBody ("g" :: Text) >>= mapM_
+        (set "transform" transform)
+
+    let bg   = rgbString . _defaultBackground $ _zoomState new
+        srbg = rgbString . _selectedRegionBackground $ _zoomState new
+        ol   = rgbString . _defaultOutline $ _zoomState new
+        srol = rgbString . _sameRegionOutline $ _zoomState new
+        cl   = rgbString . _coastline $ _zoomState new
+        sw   = _strokeWidth $ _zoomState new
+        changed = if (_zoomState <$> old) /= Just (_zoomState new)  ||
+                     (_region    <$> old) /= Just (_region new)     ||
+                     (_subarea   <$> old) /= Just (_subarea new)
+                    then ""
+                    else maybe "" ("." <>) $ mouseOverRegionClass =<< old
+
+    -- Reset the properties of the changed elements
+    setAttr ("g" <> changed <> " > polyline") "stroke-width" (Text.pack . show $ sw * 2)
+    if _zoom new
+      then
+        forM_ (_region new) $ \r -> do
+          let subareaType = if r == "auckland" then "ward" else "ta"
+          setAttr ("g" <> changed <> "[same_reg=TRUE] > polyline")
+                  "stroke-width" (Text.pack . show $ sw)
+          setAttr ("g" <> changed <> ".inbound[same_reg=FALSE] > polyline")
+                  "stroke" ol
+          setAttr ("g" <> changed <> ".inbound[same_reg=TRUE] > polyline")
+                  "stroke" srol
+          setAttr ("g" <> changed <> ".inbound[same_reg=TRUE][same_"
+                                  <> subareaType <> "=TRUE] > polyline")
+                  "stroke-width" "1.0"
+      else do
+        setAttr ("g" <> changed <> ".inbound[same_reg=FALSE] > polyline")
+                "stroke" ol
+        setAttrs ("g" <> changed <> ".inbound[same_reg=TRUE] > polyline")
+                 [ ("stroke", srol)
+                 , ("stroke-width", "1.5")]
+    setAttr ("g" <> changed <> ".coastline > polyline")
+            "stroke" cl
+    setAttr ("g" <> changed <> " > path")
+            "fill" bg
+
+
 
 data AreaInfo
   = AreaInfo
