@@ -2,26 +2,20 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecursiveDo #-}
 module Bailiwick.View.IndicatorSummary (
     indicatorSummary
   , IndicatorSummaryState(..)
 ) where
 
-import Control.Applicative ((<|>))
 import Control.Monad (void)
 import Control.Monad.Fix (MonadFix)
 import Data.Bool (bool)
-import Data.Char (isSpace)
 import Data.Monoid ((<>))
-import Data.Maybe (fromMaybe, isJust)
+import Data.Maybe (fromMaybe)
 import Data.Map (Map)
-import qualified Data.Map as M (lookup)
 import Data.Text (Text)
-import qualified Data.Text as T (pack, strip, replace, unpack)
 import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
 
 import Reflex
@@ -29,6 +23,7 @@ import Reflex.Dom.Core hiding (elDynHtmlAttr')
 import GHCJS.DOM.Types (liftJSM, MonadJSM)
 import GHCJS.DOM.Element (setInnerHTML)
 
+import Bailiwick.View.Text
 import Bailiwick.Types
 import Bailiwick.Route
 
@@ -138,74 +133,4 @@ indicatorSummary IndicatorSummaryState{..} = mdo
   return never
 
 
-
-
-textSubstitution
-  :: Maybe Area
-  -> Maybe Area
-  -> Maybe Indicator
-  -> Maybe Feature
-  -> Maybe ThemePageArgs
-  -> Text
-  -> Text
-textSubstitution area compareArea indicator feature themePage =
-    let y = themePageYear <$> themePage
-        fy = indicatorFirstYear <$> indicator
-        yem = indicatorYearEndMonth =<< indicator
-        sa = maybe "New Zealand" areaName area
-        f = featureName <$> feature
-        fp = if isJust f then featureParent =<< feature else Just ""
-        _d = themePageDetailId <$> themePage --
-        dl = Nothing -- TODO d <|> (indicatorTopDetailLabel =<< indicator)
-        ip = indicatorPeriod =<< indicator
-        p = (-) <$> y <*> ip
-        a = case (areaName <$> compareArea) of
-              Just ca' ->
-                     "<span class='active'>" <> sa <>
-                     "</span><span class='compare'> (and " <> ca' <> ")</span>"
-              _ -> sa
-        fl = case indicatorFeatureText =<< indicator of
-              Just ft -> (`M.lookup` ft) =<< themePageFeatureId =<< themePage
-              _ -> f <|> (indicatorTopFeatureLabel =<< indicator)
-        replace findStr (Just replaceStr) = T.replace findStr replaceStr
-        replace _ _ = id
-    in T.strip
-      . replace "$year$" (T.pack . show <$> y)
-      . replace "$firstYear$" fy
-      . replace "$yearEndMonth$" yem
-      . T.replace "$area$" a
-      . T.replace "$selectedArea$" sa
-      . replace "$compareArea$" (areaName <$> compareArea)
-      . replace "$prevYear$" (T.pack . show <$> p)
-      . replace "$feature$" fl
-      . replace "$featureType$" fp
-      . replace "$detail$" dl
-      . T.pack
-      . removeDetailBrackets (themePageDetailId =<< themePage)
-      . removeFeatureBrackets (featureName <$> feature)
-      . T.unpack
-
-
-removeFeatureBrackets :: Maybe Text -> String -> String
-removeFeatureBrackets feature =
-  if isJust feature
-    then filter (\c -> c /= '[' && c /= ']')
-    else go
-  where
-    go :: String -> String
-    go "" = ""
-    go ('[':xs) = go . drop 1 $ dropWhile (/= ']') xs
-    go (x:xs) = x:go xs
-
-removeDetailBrackets :: Maybe Text -> String -> String
-removeDetailBrackets detail =
-  if isJust detail
-    then filter (\c -> c /= '{' && c /= '}')
-    else go
-  where
-    go :: String -> String
-    go "" = ""
-    go ('{':xs) = go . drop 1 $ dropWhile (/= '}') xs
-    go (s:'{':xs) | isSpace s = go . drop 1 $ dropWhile (/= '}') xs
-    go (x:xs) = x:go xs
 

@@ -15,18 +15,11 @@ import Data.String (IsString)
 import Data.Hashable (Hashable)
 import Data.Map (Map)
 import Data.Text (Text)
-import qualified Data.Text as Text
 import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import qualified Data.Vector as V
 
 import GHC.Generics
-
-capitalize :: Text -> Text
-capitalize inp
- = case Text.uncons inp of
-     Nothing    -> ""
-     Just (h,t) -> Text.cons (Char.toUpper h) t
 
 type AreaId = Text
 data Area
@@ -194,6 +187,7 @@ instance FromJSON ChartId where
 data Indicator = Indicator
   { indicatorId                     :: IndicatorId
   , indicatorName                   :: Text
+  , indicatorHeaderTitle            :: Text
   , indicatorSummaryTitle           :: Text
   , indicatorAbsoluteLabel          :: Maybe Text
   , indicatorDefaultChartLeft       :: ChartId
@@ -220,7 +214,6 @@ data Indicator = Indicator
 --  , indicatorEnableAreaToggle       :: Bool
 --  , indicatorFeatureName            :: Maybe Text
 --  , indicatorFeatureDropdownLabel   :: Maybe Text
---  , indicatorHeaderTitle            :: Text
 --  , indicatorIcon                   :: Maybe Text
 --  , indicatorLabels                 :: Maybe (Map Text Text)
 --  , indicatorMaxFeatures            :: Maybe (Map Text Text)

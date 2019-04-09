@@ -13,6 +13,7 @@ import Data.Traversable (forM)
 import Reflex
 import Reflex.Dom.Core
 
+import Bailiwick.View.Text (capitalize)
 import Bailiwick.Types
 import Bailiwick.Route
 

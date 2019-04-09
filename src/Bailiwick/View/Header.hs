@@ -18,12 +18,13 @@ import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Reflex.Dom.Core hiding (Home)
 
+import Bailiwick.View.Text
 import Bailiwick.Route
 import Bailiwick.Types
 
 data HeaderState t
   = HeaderState
-  { pageD      :: Dynamic t Page
+  { routeD     :: Dynamic t Route
   , areaD      :: Dynamic t (Maybe Area)
   , subareaD   :: Dynamic t (Maybe Area)
   , areasD     :: Dynamic t (Maybe Areas)
@@ -110,8 +111,17 @@ backToSummary HeaderState{..} = do
           if bool
             then "class" =: cssclass <> mempty
             else "class" =: cssclass <> displayNone
+      pageD = routePage <$> routeD
       isSummaryD  = (Summary ==) <$> pageD
       notSummaryD = (Summary /=) <$> pageD
+
+  let subs = (textSubstitution
+                <$> areaD
+                <*> (constDyn Nothing)
+                <*> indicatorD
+                <*> (constDyn Nothing)
+                <*> (getThemePage <$> routeD)
+                <*>)
 
   (e, _) <-
     elDynAttr' "div" (disp notSummaryD "back-to-summary context-text") $
@@ -120,7 +130,7 @@ backToSummary HeaderState{..} = do
         text " Back to summary page"
   elDynAttr "div" (disp notSummaryD "page-header indicator-page-header") $ do
     el "div" $ do
-      dynText $ maybe "" indicatorSummaryTitle <$> indicatorD
+      dynText $ fmap capitalize $ subs $ maybe "" indicatorHeaderTitle <$> indicatorD
   elDynAttr "span" (disp isSummaryD "block-label context-text") $ text "You're looking at"
   elDynAttr "div" (disp isSummaryD "page-header summary-page-header") $ do
     el "div" $ do

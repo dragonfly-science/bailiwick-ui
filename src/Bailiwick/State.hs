@@ -4,8 +4,6 @@
 module Bailiwick.State
 where
 
-import Debug.Trace
-
 import Control.Applicative ((<|>))
 import Data.Maybe (listToMaybe, mapMaybe, fromMaybe)
 
@@ -71,9 +69,8 @@ makeHeaderState
   :: Reflex t
   => State t -> HeaderState t
 makeHeaderState State{..} =
-  let pageD = routePage <$> routeD
-      areasD = storeAreasD store
-  in  HeaderState pageD regionD areaD areasD indicatorD
+  let areasD = storeAreasD store
+  in  HeaderState routeD regionD areaD areasD indicatorD
 
 -- Indicator state
 makeIndicatorState
