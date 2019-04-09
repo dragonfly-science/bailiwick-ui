@@ -25,10 +25,11 @@ import Bailiwick.Types
 
 data State t
   = State
-    { routeD  :: Dynamic t Route
-    , store   :: Store t
-    , regionD :: Dynamic t (Maybe Area)
-    , areaD   :: Dynamic t (Maybe Area)
+    { routeD      :: Dynamic t Route
+    , store       :: Store t
+    , regionD     :: Dynamic t (Maybe Area)
+    , areaD       :: Dynamic t (Maybe Area)
+    , indicatorD  :: Dynamic t (Maybe Indicator)
     }
 
 make
@@ -47,11 +48,21 @@ make routeD store@Store{..} =
                   [r, t] -> return (Just r, Just t)
                   [r]    -> return (Just r, Nothing)
                   _      -> return (Just nz, Nothing)
+
+      mthemepageD = getThemePage <$> routeD
+      mindicatorD = do -- Dynamic t
+        mthemepage <- mthemepageD
+        mthemes <- storeThemesD
+        return $ do -- Maybe
+            themes <- mthemes
+            themepage <- mthemepage
+            findIndicator themes themepage
   in State
-       { routeD  = routeD
-       , store   = store
-       , regionD = fst <$> regta
-       , areaD   = snd <$> regta
+       { routeD      = routeD
+       , store       = store
+       , regionD     = fst <$> regta
+       , areaD       = snd <$> regta
+       , indicatorD  = mindicatorD
        }
 
 
@@ -62,7 +73,7 @@ makeHeaderState
 makeHeaderState State{..} =
   let pageD = routePage <$> routeD
       areasD = storeAreasD store
-  in  HeaderState pageD regionD areaD areasD
+  in  HeaderState pageD regionD areaD areasD indicatorD
 
 -- Indicator state
 makeIndicatorState
@@ -79,14 +90,7 @@ makeToolBarState
   => State t -> ToolBarState t
 makeToolBarState State{..} =
   let mthemepageD = getThemePage <$> routeD
-      mindicatorD = do -- Dynamic t
-        mthemepage <- mthemepageD
-        mthemes <- storeThemesD $ store
-        return $ do -- Maybe
-            themes <- mthemes
-            themepage <- mthemepage
-            findIndicator themes themepage
-  in  ToolBarState mthemepageD mindicatorD
+  in  ToolBarState mthemepageD indicatorD
 
 -- Area Summary state
 makeSummaryState
@@ -119,24 +123,17 @@ makeIndicatorSummaryState
 makeIndicatorSummaryState State{..} =
   let selectedAreaD = zipDynWith (<|>) areaD regionD
       mthemepageD = getThemePage <$> routeD
-      mindicatorD = do -- Dynamic t
-        mthemepage <- mthemepageD
-        mthemes <- storeThemesD $ store
-        return $ do -- Maybe
-            themes <- mthemes
-            themepage <- mthemepage
-            findIndicator themes themepage
       indicatorSummaryD = do
-        mindicator <- mindicatorD
+        mindicator <- indicatorD
         summaryNumbers <- storeSummaryNumbersD $ store
         return $ fromMaybe (IndicatorSummary OMap.empty) $ do
           indid <- indicatorId <$> mindicator
           OMap.lookup indid summaryNumbers
-        
+
   in IndicatorSummaryState routeD selectedAreaD
          (constDyn Nothing)  -- TODO compare area
          (constDyn Nothing)  -- TODO feature
-         mindicatorD         -- indicator
+         indicatorD          -- indicator
          indicatorSummaryD   -- numbers
 
 

@@ -194,6 +194,7 @@ instance FromJSON ChartId where
 data Indicator = Indicator
   { indicatorId                     :: IndicatorId
   , indicatorName                   :: Text
+  , indicatorSummaryTitle           :: Text
   , indicatorAbsoluteLabel          :: Maybe Text
   , indicatorDefaultChartLeft       :: ChartId
   , indicatorDefaultChartRight      :: ChartId
@@ -228,7 +229,6 @@ data Indicator = Indicator
 --  , indicatorRegions                :: [Text]
 --  , indicatorScale                  :: Maybe Text
 --  , indicatorSlices                 :: [Text]
---  , indicatorSummaryTitle           :: Text
 --  , indicatorTerritorialAuthorities :: [Text]
 --  , indicatorTooltipExtra           :: Maybe Text
 --  , indicatorThemes                 :: [Text]

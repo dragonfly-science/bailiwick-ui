@@ -23,10 +23,11 @@ import Bailiwick.Types
 
 data HeaderState t
   = HeaderState
-  { pageD     :: Dynamic t Page
-  , areaD     :: Dynamic t (Maybe Area)
-  , subareaD  :: Dynamic t (Maybe Area)
-  , areasD    :: Dynamic t (Maybe Areas)
+  { pageD      :: Dynamic t Page
+  , areaD      :: Dynamic t (Maybe Area)
+  , subareaD   :: Dynamic t (Maybe Area)
+  , areasD     :: Dynamic t (Maybe Areas)
+  , indicatorD :: Dynamic t (Maybe Indicator)
   }
 
 header
@@ -36,14 +37,10 @@ header
        , DomBuilder t m
        )
     => HeaderState t -> m (Event t Message)
-header HeaderState{..} = mdo
+header hs@HeaderState{..} = mdo
   let background = do
         area <- maybe "new-zealand" areaId <$> areaD
         return $ (  "class" =: "title" <> "data-region" =: area)
-
-      dispRegion  = maybe "" areaName <$> areaD
-      dispConnect = maybe "" (const ":") <$> subareaD
-      dispSubArea = maybe "" areaName <$> subareaD
 
       showSubareaD = not . ( == OMap.empty) <$> subareasD
 
@@ -76,7 +73,7 @@ header HeaderState{..} = mdo
     divClass "content" $ mdo
       backToSummaryE <-
         divClass "left" $ do
-          backToSummary pageD dispRegion dispConnect dispSubArea
+          backToSummary hs
       menuE <-
         divClass "right" $
           divClass "title-menus" $ do
@@ -104,36 +101,32 @@ backToSummary
        , PostBuild t m
        , DomBuilder t m
        )
-    => Dynamic t Page              -- current page
-    -> Dynamic t Text              -- region
-    -> Dynamic t Text              -- connect
-    -> Dynamic t Text              -- subarea
-    -> m (Event t Message)
-backToSummary pageD regionD connectD subAreaD= do
+    => HeaderState t -> m (Event t Message)
+backToSummary HeaderState{..} = do
   let displayNone = "style" =: "display: none;"
-      backcssD = do
-        page <- pageD
+      disp boolD cssclass  = do
+        bool <- boolD
         return $
-          if page == Summary
-            then "class" =: "back-to-summary context-text" <> displayNone
-            else "class" =: "back-to-summary context-text" <> mempty
-      lookcssD = do
-        page <- pageD
-        return $
-          if page == Summary
-            then "class" =: "block-label context-text" <> mempty
-            else "class" =: "block-label context-text" <> displayNone
+          if bool
+            then "class" =: cssclass <> mempty
+            else "class" =: cssclass <> displayNone
+      isSummaryD  = (Summary ==) <$> pageD
+      notSummaryD = (Summary /=) <$> pageD
+
   (e, _) <-
-    elDynAttr' "div" backcssD $
+    elDynAttr' "div" (disp notSummaryD "back-to-summary context-text") $
       el "a" $ do
         elClass "i" "fa fa-arrow-left" $ return ()
-        text "Back to summary page"
-  elDynAttr "span" lookcssD $ text "You're looking at"
-  divClass "page-header summary-page-header" $ do
+        text " Back to summary page"
+  elDynAttr "div" (disp notSummaryD "page-header indicator-page-header") $ do
     el "div" $ do
-      dynText regionD
-      dynText connectD
-    el "div" $ dynText subAreaD
+      dynText $ maybe "" indicatorSummaryTitle <$> indicatorD
+  elDynAttr "span" (disp isSummaryD "block-label context-text") $ text "You're looking at"
+  elDynAttr "div" (disp isSummaryD "page-header summary-page-header") $ do
+    el "div" $ do
+      dynText $ maybe "" areaName <$> areaD
+      dynText $ maybe "" (const ":") <$> subareaD
+    el "div" $ dynText $ maybe "" areaName <$> subareaD
   return $ GoTo Summary <$ domEvent Click e
 
 dropdownMenu

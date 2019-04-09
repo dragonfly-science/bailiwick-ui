@@ -33,6 +33,7 @@ indicators <-
     return( list(
         "id"                   = slugify(indicator$name)                       # :: IndicatorId
       , "name"                 = indicator$name                                # :: Text
+      , "summaryTitle"         = indicator$summaryTitle                        # :: Text
       , "absoluteLabel"        = indicator$absoluteLabel                       # :: Maybe Text
       , "defaultChartLeft"     = fromMaybe("map", indicator$leftChart)         # :: ChartId
       , "defaultChartRight"    = fromMaybe("timeseries", indicator$rightChart) # :: ChartId
