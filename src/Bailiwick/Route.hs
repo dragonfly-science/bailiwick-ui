@@ -16,7 +16,7 @@ module Bailiwick.Route
   )
 where
 
-import Data.Maybe (mapMaybe, fromMaybe, maybeToList)
+import Data.Maybe (mapMaybe, fromMaybe, maybeToList, isNothing)
 import Data.Monoid ((<>))
 import Data.List ((\\))
 
@@ -83,6 +83,9 @@ getThemePage :: Route -> Maybe ThemePageArgs
 getThemePage Route{routePage = ThemePage args} = Just args
 getThemePage _ = Nothing
 
+isSummary :: Route -> Bool
+isSummary = isNothing . getThemePage
+
 updateThemePage :: Route -> (ThemePageArgs -> ThemePageArgs) -> Route
 updateThemePage s@Route{routePage = ThemePage args} f = s{ routePage = ThemePage $ f args }
 updateThemePage s _ = s
@@ -114,8 +117,10 @@ step route message =
                                   , routePage = Summary
                                   , routeAdapters = routeAdapters route \\ [Mapzoom] }
     ZoomIn               -> route { routeAdapters = routeAdapters route <> [Mapzoom] }
-    ZoomOut (Just reg)   -> route { routeArea = reg
-                                  , routeAdapters = routeAdapters route \\ [Mapzoom] }
+    ZoomOut (Just reg)   -> if isSummary route
+                             then route { routeArea = reg
+                                        , routeAdapters = routeAdapters route \\ [Mapzoom] }
+                             else route { routeAdapters = routeAdapters route \\ [Mapzoom] }
     ZoomOut Nothing      -> route { routeAdapters = routeAdapters route \\ [Mapzoom] }
 
 encodeRoute :: Route -> URI -> URI

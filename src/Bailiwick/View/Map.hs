@@ -299,7 +299,7 @@ zoomState wide z selectedArea
     transform x y sx sy _sw
          = ( Translate (x + if wide then 113 else 0) y
            , Scale sx sy
-           , if z then 1.2/sx else 0.6
+           , if z then 1.4/sx else 0.7
            )
     regionTransform "auckland"          = transform (-3080) 6370 10   (-10)   0.3
     regionTransform "bay-of-plenty"     = transform (-2050) 3240  5.5 ( -5.5) 0.3
@@ -323,6 +323,7 @@ data Map
   = Map
     { _zoom           :: Bool
     , _zoomState      :: ZoomState Double
+    , _zoomAnimating  :: Bool
     , _mouseAreaInfo  :: Maybe AreaInfo
     , _region         :: Maybe Text
     , _subarea        :: Maybe Text
@@ -443,10 +444,13 @@ nzmap MapState{..} = mdo
               querySelectorUnsafe svgDoc ("svg" :: Text)
 
   -- Setup the zoom state dyanmic, and transitions
+  let isSummaryD = (Summary ==) . routePage <$> routeD
   wide <- mediaQueryDyn ("(min-width: 1025px)" :: Text)
   let duration = 500
   frame <- animationFrame zoomAnimating
-  let zoomStateD = zoomState <$> wide <*> zoomD <*> (maybe "nz" areaId <$> regionD)
+
+  let wideAndSummaryD = (&&) <$> wide <*> isSummaryD
+  let zoomStateD = zoomState <$> wideAndSummaryD <*> zoomD <*> (maybe "nz" areaId <$> regionD)
   (zoomAnimating, zoomStateT) <- transitions frame duration zoomStateD
 
   let level2type a "reg" = (a, "region")
@@ -458,6 +462,7 @@ nzmap MapState{..} = mdo
   let mapD
         = Map <$> zoomD
               <*> zoomStateT
+              <*> zoomAnimating
               <*> mouseOverD
               <*> (fmap areaId <$> regionD)
               <*> (fmap areaId <$> subareaD)
@@ -468,7 +473,6 @@ nzmap MapState{..} = mdo
               <*> (fmap themePageYear . getThemePage <$> routeD)
               <*> indicatorSummaryD
 
-  let isSummaryD = (Summary ==) . routePage <$> routeD
   svgBodyD <- holdDyn Nothing (Just <$> svgBodyE)
   loadedSvg <- switchDynM $ ffor ((,) <$> isSummaryD <*> svgBodyD) $ \case
     (_, Nothing)          -> return never
@@ -823,9 +827,12 @@ updateMapIndicator svgBody mapD = do
 
     let ol   = rgbString . _defaultOutline $ _zoomState new
         sw   = _strokeWidth $ _zoomState new
-        changed = (_feature <$> old) /= Just (_feature new) ||
-                  (_year    <$> old) /= Just (_year new) ||
-                  (_areaType <$> old) /= Just (_areaType new)
+
+        showsw  = Text.pack $ show $ sw
+        coversw = Text.pack $ show $ if _zoom new then sw * 2 else sw*3
+        changed = (_feature   <$> old) /= Just (_feature new) ||
+                  (_year      <$> old) /= Just (_year new) ||
+                  (_areaType  <$> old) /= Just (_areaType new)
 
         getColour area = fromMaybe "#000000" $ do
             year <- _year new
@@ -833,9 +840,20 @@ updateMapIndicator svgBody mapD = do
             nums <- OM.lookup (area, year, _feature new) ismap
             return (colourNum nums)
 
-        areas = if _areaType new == Just "reg"
-                    then [ a | a <- _areas new, snd a == "region" ]
-                    else [ a | a <- _areas new, snd a /= "region" ]
+        selectReg (_,t) = t == "region"
+        unitary = ["auckland", "nelson", "gisborne", "marlborough", "tasman"]
+        selectTa (a,t) = t == "ta" || a `elem` unitary
+        areas =
+            case _areaType new of
+              Just "reg" -> filter selectReg $ _areas new
+              Just "ta"  -> filter selectTa  $ _areas new
+              _          -> filter selectReg $ _areas new
+
+    -- Update stroke widths
+    when ((_zoomState <$> old) /= Just (_zoomState new)) $ do
+       setAttr ("g.inbound[show=FALSE] > polyline") "stroke-width" coversw
+       setAttr ("g.inbound[show=TRUE] > polyline") "stroke-width" showsw
+
 
     -- Reset the properties of the changed elements
     if changed
@@ -843,16 +861,19 @@ updateMapIndicator svgBody mapD = do
         forM_ areas $ \(area, areatype) -> do
           let colour = getColour area
               sel = "g." <> area <> "-" <> areatype
-          setAttr (sel <> ".inbound[same_reg=FALSE] > polyline")
-                  "stroke" ol
-          setAttr (sel <> ".inbound[same_reg=TRUE] > polyline")
-                  "stroke" colour
-          setAttr (sel <> ".coastline > polyline")
-                  "stroke" colour
-          setAttr (sel <> "[same_reg=TRUE] > polyline")
-                  "stroke-width" (Text.pack . show $ sw)
-          setAttr (sel <> " > path")
-                  "fill" colour
+          if areatype == "region"
+            then do
+              setAttr (sel <> ".inbound[same_reg=TRUE] > polyline") "stroke" colour
+              setAttr (sel <> ".inbound[same_reg=TRUE]") "show" "FALSE"
+              setAttr (sel <> ".inbound[same_reg=FALSE] > polyline") "stroke" ol
+              setAttr (sel <> ".inbound[same_reg=FALSE]") "show" "TRUE"
+            else do
+              setAttr (sel <> ".inbound[same_ta=TRUE] > polyline") "stroke" colour
+              setAttr (sel <> ".inbound[same_ta=TRUE]") "show" "FALSE"
+              setAttr (sel <> ".inbound[same_ta=FALSE] > polyline") "stroke" ol
+              setAttr (sel <> ".inbound[same_ta=FALSE]") "show" "TRUE"
+          setAttr (sel <> ".coastline > polyline") "stroke" "none"
+          setAttr (sel <> " > path") "fill" colour
       else
         return ()
 
