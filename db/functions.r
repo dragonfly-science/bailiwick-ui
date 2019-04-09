@@ -74,3 +74,10 @@ makeList <- function(vals) {
     vals
   }
 }
+
+colour.teal <- function(val, min.val=min(val,na.rm=T), max.val=max(val,na.rm=T)) {
+  ramp <- colorRamp(c(rgb(185, 214, 221, maxColorValue=255),
+                      rgb( 41, 101, 117, maxColorValue=255)))
+  rgb(ramp((val-min.val)/(max.val-min.val)), maxColorValue=255)
+}
+

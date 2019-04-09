@@ -65,6 +65,9 @@ for (indid in names(indicators)) {
         nzdata, on=.(Year, Dimension1)]
   setkey(values, AreaID, Dimension1, Year)
   values[, previous := shift(Value,1), by=.(AreaID, Dimension1)]
+  values[, max.val := max(Value, na.rm=T)]
+  values[, min.val := min(Value, na.rm=T)]
+  values[!is.na(Value), colour := colour.teal(Value, min.val, max.val)]
 
   summarynumbers <-
       values[,
@@ -73,7 +76,8 @@ for (indid in names(indicators)) {
           feature  = slugify(Dimension1),
           headline = formatValue(unit, Value),
           local    = localformat(unit, previous, Value),
-          national = nationalformat(unit, national, Value)
+          national = nationalformat(unit, national, Value),
+          colour   = colour
           )]
 
   cat(as.character(toJSON(summarynumbers, null='null', auto_unbox=TRUE)), file=outputfile)

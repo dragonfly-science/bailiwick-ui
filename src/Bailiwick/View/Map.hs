@@ -20,15 +20,9 @@ module Bailiwick.View.Map
   )
 where
 
-import Control.Monad ((>=>), forever, void, when)
+import Control.Monad ((>=>), (<=<), forever, void, when)
 import Control.Monad.IO.Class (MonadIO(..))
-#ifdef ghcjs_HOST_OS
 import Control.Concurrent
-       (tryPutMVar, takeMVar, forkIO, newEmptyMVar)
-#else
-import Control.Concurrent
-       (threadDelay, tryPutMVar, takeMVar, forkIO, newEmptyMVar)
-#endif
 import Control.Applicative (liftA2, Alternative(..))
 import Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
 import Control.Monad.Fix
@@ -38,7 +32,7 @@ import Data.Maybe (fromMaybe, isNothing, isJust, fromJust)
 import Data.Foldable (Foldable(..), forM_)
 import Data.Text (Text)
 import qualified Data.Text as Text
-import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
+import qualified Data.HashMap.Strict.InsOrd as OM (lookup, elems)
 
 import qualified GHCJS.DOM.Element as DOM
 import qualified GHCJS.DOM.Node as DOM
@@ -333,6 +327,10 @@ data Map
     , _region         :: Maybe Text
     , _subarea        :: Maybe Text
     , _regionChildren :: [Text]
+    , _areas          :: [(Text, Text)]
+    , _areaType       :: Maybe Text
+    , _feature        :: Maybe FeatureId
+    , _year           :: Maybe Year
     , _numbers        :: IndicatorSummary
     }
    deriving (Show, Eq)
@@ -451,30 +449,31 @@ nzmap MapState{..} = mdo
   let zoomStateD = zoomState <$> wide <*> zoomD <*> (maybe "nz" areaId <$> regionD)
   (zoomAnimating, zoomStateT) <- transitions frame duration zoomStateD
 
+  let level2type a "reg" = (a, "region")
+      level2type a "ward" = ("auckland--" <> a, "ward")
+      level2type a lvl = (a, lvl)
+      areaAreaTypes :: Areas -> [(Text, Text)]
+      areaAreaTypes (Areas as) = [ level2type areaId areaLevel
+                                 | Area{..} <- OM.elems as ]
+  let mapD
+        = Map <$> zoomD
+              <*> zoomStateT
+              <*> mouseOverD
+              <*> (fmap areaId <$> regionD)
+              <*> (fmap areaId <$> subareaD)
+              <*> (maybe [] areaChildren <$> areaD)
+              <*> (maybe [] areaAreaTypes <$> areasD)
+              <*> ((fmap themePageAreaType . getThemePage) <$> routeD)
+              <*> ((themePageFeatureId <=< getThemePage) <$> routeD)
+              <*> (fmap themePageYear . getThemePage <$> routeD)
+              <*> indicatorSummaryD
+
   let isSummaryD = (Summary ==) . routePage <$> routeD
   svgBodyD <- holdDyn Nothing (Just <$> svgBodyE)
   loadedSvg <- switchDynM $ ffor ((,) <$> isSummaryD <*> svgBodyD) $ \case
-    (_, Nothing) -> return never
-    (True, Just svgBody) -> do
-      let mapD
-            = Map <$> zoomD
-                  <*> zoomStateT
-                  <*> mouseOverD
-                  <*> (fmap areaId <$> regionD)
-                  <*> (fmap areaId <$> subareaD)
-                  <*> (maybe [] areaChildren <$> areaD)
-                  <*> indicatorSummaryD
-      updateMapSummary svgBody mapD
-    (False, Just svgBody) -> do
-      let mapD
-            = Map <$> zoomD
-                  <*> zoomStateT
-                  <*> mouseOverD
-                  <*> (fmap areaId <$> regionD)
-                  <*> (fmap areaId <$> subareaD)
-                  <*> (maybe [] areaChildren <$> areaD)
-                  <*> indicatorSummaryD
-      updateMapIndicator svgBody mapD
+    (_, Nothing)          -> return never
+    (True, Just svgBody)  -> updateMapSummary svgBody mapD
+    (False, Just svgBody) -> updateMapIndicator svgBody mapD
 
 
   let tooltipArea
@@ -794,9 +793,6 @@ updateMapIndicator svgBody mapD = do
         nodeList <- querySelectorAll svgBody q
         forNodesSetAttribute nodeList name val
 
-      setAttrs :: (MonadJSM m0) => Text -> [(Text, Text)] -> m0 ()
-      setAttrs q = mapM_ (uncurry $ setAttr q)
-
       set :: (MonadJSM m0, IsElement e) => Text -> Text -> e -> m0 ()
       set a v e = setAttribute e a v
 
@@ -825,43 +821,40 @@ updateMapIndicator svgBody mapD = do
       querySelector svgBody ("g" :: Text) >>= mapM_
         (set "transform" transform)
 
-    let bg   = rgbString . _defaultBackground $ _zoomState new
-        srbg = rgbString . _selectedRegionBackground $ _zoomState new
-        ol   = rgbString . _defaultOutline $ _zoomState new
-        srol = rgbString . _sameRegionOutline $ _zoomState new
-        cl   = rgbString . _coastline $ _zoomState new
+    let ol   = rgbString . _defaultOutline $ _zoomState new
         sw   = _strokeWidth $ _zoomState new
-        changed = if (_zoomState <$> old) /= Just (_zoomState new)  ||
-                     (_region    <$> old) /= Just (_region new)     ||
-                     (_subarea   <$> old) /= Just (_subarea new)
-                    then ""
-                    else maybe "" ("." <>) $ mouseOverRegionClass =<< old
+        changed = (_feature <$> old) /= Just (_feature new) ||
+                  (_year    <$> old) /= Just (_year new) ||
+                  (_areaType <$> old) /= Just (_areaType new)
+
+        getColour area = fromMaybe "#000000" $ do
+            year <- _year new
+            let IndicatorSummary ismap = _numbers new
+            nums <- OM.lookup (area, year, _feature new) ismap
+            return (colourNum nums)
+
+        areas = if _areaType new == Just "reg"
+                    then [ a | a <- _areas new, snd a == "region" ]
+                    else [ a | a <- _areas new, snd a /= "region" ]
 
     -- Reset the properties of the changed elements
-    setAttr ("g" <> changed <> " > polyline") "stroke-width" (Text.pack . show $ sw * 2)
-    if _zoom new
-      then
-        forM_ (_region new) $ \r -> do
-          let subareaType = if r == "auckland" then "ward" else "ta"
-          setAttr ("g" <> changed <> "[same_reg=TRUE] > polyline")
-                  "stroke-width" (Text.pack . show $ sw)
-          setAttr ("g" <> changed <> ".inbound[same_reg=FALSE] > polyline")
+    if changed
+      then do
+        forM_ areas $ \(area, areatype) -> do
+          let colour = getColour area
+              sel = "g." <> area <> "-" <> areatype
+          setAttr (sel <> ".inbound[same_reg=FALSE] > polyline")
                   "stroke" ol
-          setAttr ("g" <> changed <> ".inbound[same_reg=TRUE] > polyline")
-                  "stroke" srol
-          setAttr ("g" <> changed <> ".inbound[same_reg=TRUE][same_"
-                                  <> subareaType <> "=TRUE] > polyline")
-                  "stroke-width" "1.0"
-      else do
-        setAttr ("g" <> changed <> ".inbound[same_reg=FALSE] > polyline")
-                "stroke" ol
-        setAttrs ("g" <> changed <> ".inbound[same_reg=TRUE] > polyline")
-                 [ ("stroke", srol)
-                 , ("stroke-width", "1.5")]
-    setAttr ("g" <> changed <> ".coastline > polyline")
-            "stroke" cl
-    setAttr ("g" <> changed <> " > path")
-            "fill" bg
+          setAttr (sel <> ".inbound[same_reg=TRUE] > polyline")
+                  "stroke" colour
+          setAttr (sel <> ".coastline > polyline")
+                  "stroke" colour
+          setAttr (sel <> "[same_reg=TRUE] > polyline")
+                  "stroke-width" (Text.pack . show $ sw)
+          setAttr (sel <> " > path")
+                  "fill" colour
+      else
+        return ()
 
 
 

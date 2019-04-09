@@ -393,23 +393,28 @@ instance FromJSON IndicatorSummary where
               headline <- value .:  "headline"
               local    <- value .:  "local"
               national <- value .:  "national"
+              colour   <- value .:  "colour"
               return ( (areaid, year, feature)
-                     , SummaryNums [headline, local, national])))
+                     , SummaryNums [headline, local, national, colour])))
 
 newtype SummaryNums = SummaryNums [Text]
   deriving (Eq, Show, Generic, FromJSON)
 
 headlineNum :: SummaryNums -> Text
-headlineNum (SummaryNums [n,_,_]) = n
+headlineNum (SummaryNums [n,_,_,_]) = n
 headlineNum _ = ""
 
 localNum :: SummaryNums -> Text
-localNum (SummaryNums [_,n,_]) = n
+localNum (SummaryNums [_,n,_,_]) = n
 localNum _ = ""
 
 nationalNum :: SummaryNums -> Text
-nationalNum (SummaryNums [_,_,n]) = n
+nationalNum (SummaryNums [_,_,n,_]) = n
 nationalNum _ = ""
+
+colourNum :: SummaryNums -> Text
+colourNum (SummaryNums [_,_,_,n]) = n
+colourNum _ = ""
 
 
 
