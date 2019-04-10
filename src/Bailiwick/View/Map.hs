@@ -323,7 +323,6 @@ data Map
   = Map
     { _zoom           :: Bool
     , _zoomState      :: ZoomState Double
-    , _zoomAnimating  :: Bool
     , _mouseAreaInfo  :: Maybe AreaInfo
     , _region         :: Maybe Text
     , _subarea        :: Maybe Text
@@ -471,25 +470,35 @@ nzmap MapState{..} = mdo
       areaAreaTypes :: Areas -> [(Text, Text)]
       areaAreaTypes (Areas as) = [ level2type areaId areaLevel
                                  | Area{..} <- OM.elems as ]
+  -- Unique dyns
+  mapregionidD  <- holdUniqDyn $ fmap areaId <$> regionD
+  mapsubareaidD <- holdUniqDyn $ fmap areaId <$> subareaD
+  mapareatypeD  <- holdUniqDyn $ fmap themePageAreaType . getThemePage <$> routeD
+  mapfeatureD   <- holdUniqDyn $ (themePageFeatureId <=< getThemePage) <$> routeD
+  mapyearD      <- holdUniqDyn $ fmap themePageYear . getThemePage <$> routeD
   let mapD
         = Map <$> zoomD
               <*> zoomStateT
-              <*> zoomAnimating
               <*> mouseOverD
-              <*> (fmap areaId <$> regionD)
-              <*> (fmap areaId <$> subareaD)
+              <*> mapregionidD
+              <*> mapsubareaidD
               <*> (maybe [] areaChildren <$> areaD)
               <*> (maybe [] areaAreaTypes <$> areasD)
-              <*> ((fmap themePageAreaType . getThemePage) <$> routeD)
-              <*> ((themePageFeatureId <=< getThemePage) <$> routeD)
-              <*> (fmap themePageYear . getThemePage <$> routeD)
+              <*> mapareatypeD
+              <*> mapfeatureD
+              <*> mapyearD
               <*> indicatorSummaryD
 
   svgBodyD <- holdDyn Nothing (Just <$> svgBodyE)
-  loadedSvg <- switchDynM $ ffor ((,) <$> isSummaryD <*> svgBodyD) $ \case
+
+  isSummaryHD <- holdUniqDyn $ isSummaryD
+  svgBodyHD <- holdUniqDyn $ svgBodyD
+  loadedSvg <- switchDynM $ ffor ((,) <$> isSummaryHD <*> svgBodyHD) $ \case
     (_, Nothing)          -> return never
-    (True, Just svgBody)  -> updateMapSummary svgBody mapD
-    (False, Just svgBody) -> updateMapIndicator svgBody mapD
+    (True, Just svgBody)  -> do
+      updateMapSummary svgBody mapD
+    (False, Just svgBody) -> do
+      updateMapIndicator svgBody mapD
 
 
   let tooltipArea
@@ -807,7 +816,7 @@ updateMapIndicator svgBody mapD = do
          => Text -> Text -> Text -> m0 ()
       setAttr q name val = do
         nodeList <- querySelectorAll svgBody q
-        forNodesSetAttribute nodeList name val
+        forNodesSetAttribute nodeList name val --(trace ("q = " ++ show q ++ ", name = " ++ show name ++ ", val = " ++ show val) val)
 
       set :: (MonadJSM m0, IsElement e) => Text -> Text -> e -> m0 ()
       set a v e = setAttribute e a v
@@ -870,45 +879,44 @@ updateMapIndicator svgBody mapD = do
         nonaucklandtas = filter selectNonAucklandTa $ _areas new
 
 
-    -- Reset the properties of the changed elements
     let changed = (_feature   <$> old) /= Just (_feature new) ||
                   (_year      <$> old) /= Just (_year new) ||
                   (_areaType  <$> old) /= Just (_areaType new)
-    if changed
-      then do
-        forM_ areas $ \(area, areatype) -> do
-          let colour = getColour area
-              sel = "g." <> area <> "-" <>  areatype
-          when (areatype  == "region") $ do
-              setAttr (sel <> ".inbound[same_reg=TRUE] > polyline") "stroke" colour
-              setAttr (sel <> ".inbound[same_reg=TRUE]") "show" "FALSE"
-              setAttr (sel <> ".inbound[same_reg=FALSE] > polyline") "stroke" ol
-              setAttr (sel <> ".inbound[same_reg=FALSE]") "show" "TRUE"
-          when (areatype  == "ta") $ do
-              setAttr (sel <> ".inbound[same_ta=TRUE] > polyline") "stroke" colour
-              setAttr (sel <> ".inbound[same_ta=TRUE]") "show" "FALSE"
-              setAttr (sel <> ".inbound[same_ta=FALSE] > polyline") "stroke" ol
-              setAttr (sel <> ".inbound[same_ta=FALSE]") "show" "TRUE"
-          when (areatype  == "ward") $ do
-              setAttr (sel <> ".inbound[same_ward=TRUE] > polyline") "stroke" colour
-              setAttr (sel <> ".inbound[same_ward=TRUE]") "show" "FALSE"
-              setAttr (sel <> ".inbound[same_ward=FALSE] > polyline") "stroke" ol
-              setAttr (sel <> ".inbound[same_ward=FALSE]") "show" "TRUE"
-              forM_ nonaucklandtas $ \(ta, _) -> do
-                let tacolour = getColour ta
-                    tasel = "g." <> area <> "-" <> "ta"
-                setAttr (tasel <> ".inbound[same_ta=TRUE] > polyline") "stroke" tacolour
-                setAttr (tasel <> ".inbound[same_ta=TRUE]") "show" "FALSE"
-                setAttr (tasel <> ".inbound[same_ta=FALSE] > polyline") "stroke" ol
-                setAttr (tasel <> ".inbound[same_ta=FALSE]") "show" "TRUE"
-          setAttr (sel <> ".coastline > polyline") "stroke" "none"
-          setAttr (sel <> " > path") "fill" colour
-      else
-        return ()
+    when (changed) $ do
+      forM_ areas $ \(area, areatype) -> do
+        let colour = getColour area
+            sel = "g." <> area <> "-" <>  areatype
+        when (areatype  == "region") $ do
+            setAttr (sel <> ".inbound[same_reg=TRUE] > polyline") "stroke" colour
+            setAttr (sel <> ".inbound[same_reg=TRUE]") "show" "FALSE"
+            setAttr (sel <> ".inbound[same_reg=FALSE] > polyline") "stroke" ol
+            setAttr (sel <> ".inbound[same_reg=FALSE]") "show" "TRUE"
+        when (areatype  == "ta") $ do
+            setAttr (sel <> ".inbound[same_ta=TRUE] > polyline") "stroke" colour
+            setAttr (sel <> ".inbound[same_ta=TRUE]") "show" "FALSE"
+            setAttr (sel <> ".inbound[same_ta=FALSE] > polyline") "stroke" ol
+            setAttr (sel <> ".inbound[same_ta=FALSE]") "show" "TRUE"
+        when (areatype  == "ward") $ do
+            setAttr (sel <> ".inbound[same_ward=TRUE] > polyline") "stroke" colour
+            setAttr (sel <> ".inbound[same_ward=TRUE]") "show" "FALSE"
+            setAttr (sel <> ".inbound[same_ward=FALSE] > polyline") "stroke" ol
+            setAttr (sel <> ".inbound[same_ward=FALSE]") "show" "TRUE"
+        setAttr (sel <> " > path") "fill" colour
+    setAttr ("g.coastline > polyline") "stroke" "none"
+
+    when (changed && (_areaType new == Just "ward")) $ do
+      forM_ nonaucklandtas $ \(ta, _) -> do
+        let tacolour = getColour ta
+            tasel = "g." <> ta <> "-" <> "ta"
+        setAttr (tasel <> ".inbound[same_ta=TRUE] > polyline") "stroke" tacolour
+        setAttr (tasel <> ".inbound[same_ta=TRUE]") "show" "FALSE"
+        setAttr (tasel <> ".inbound[same_ta=FALSE] > polyline") "stroke" ol
+        setAttr (tasel <> ".inbound[same_ta=FALSE]") "show" "TRUE"
+        setAttr (tasel <> " > path") "fill" tacolour
 
     -- Update stroke widths when animating, or at start
-    when ((_zoomState <$> old) /= Just (_zoomState new) ||
-          (_zoomState <$> old) == Nothing) $ do
+    let initial = (_zoomState <$> old) == Nothing
+    when ((_zoomState <$> old) /= Just (_zoomState new) || initial) $ do
        setAttr ("g.inbound[show=FALSE] > polyline") "stroke-width" coversw
        setAttr ("g.inbound[show=TRUE] > polyline") "stroke-width" showsw
 

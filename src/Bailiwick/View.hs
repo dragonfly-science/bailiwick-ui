@@ -209,16 +209,16 @@ indicatorContent zoomD regionD map_state indicator_chart_state indicator_summary
                     True  -> ("type" =: "checkbox" <> "class" =: "checked")
                     False -> ("type" =: "checkbox")
             (eZoomIn, _) <-
-              el' "label" $ do
+              el "label" $ do
                 elDynAttr "input" (inpAttrD zoomD) $
                    return ()
-                elClass "span" "zoom-in" $
+                elClass' "span" "zoom-in" $
                    return ()
             (eZoomOut, _) <-
-              el' "label" $ do
+              el "label" $ do
                 elDynAttr "input" (inpAttrD (not <$> zoomD)) $
                    return ()
-                elClass "span" "zoom-out" $
+                elClass' "span" "zoom-out" $
                    return ()
             return $ leftmost [ tagPromptlyDyn
                                     (ZoomOut . fmap areaId <$> regionD)
