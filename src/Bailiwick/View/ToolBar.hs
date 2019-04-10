@@ -57,9 +57,9 @@ toolBar
     -> ToolBarState t
     -> m (Event t (Either () Message))
 toolBar isOpenD ToolBarState{..} = do
-  let areaTypes = OM.fromList [ ("nz", "New Zealand")
-                              , ("reg", "Regional Council")
-                              , ("ta", "Territorial Authority")]
+  let areaTypes = OM.fromList [ ("reg", "Regional Council")
+                              , ("ta", "Territorial Authority")
+                              , ("ward", "Auckland wards")]
       absoluteLabel = do
         ind <- indicatorD
         return (join $ fmap indicatorAbsoluteLabel ind)

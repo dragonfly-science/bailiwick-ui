@@ -19,6 +19,7 @@ setDT(REARdb_Areas)
 areatypes <- c('Regional Council', 'Territorial Authority', 'Ward', 'Total')
 REARdb_Areas <- REARdb_Areas[AreaType %in% areatypes]
 REARdb_Areas[, areaname := slugify(standardise.areaname(Area))]
+REARdb_Areas[AreaType == 'Ward', areaname := paste0("auckland--", areaname)]
 setkey(REARdb_Areas, areaname)
 
 setDT(REARdb_Source)
