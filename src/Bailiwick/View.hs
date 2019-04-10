@@ -206,8 +206,8 @@ indicatorContent zoomD regionD map_state indicator_chart_state indicator_summary
         zoomClick <- divClass "map-options" $ do
           divClass "zoom-controls map-zoom active" $ do
             let inpAttrD switchD = ffor switchD $ \case
-                    True  -> ("type" =: "radio" <> "selected" =: "selected")
-                    False -> ("type" =: "radio")
+                    True  -> ("type" =: "checkbox" <> "class" =: "checked")
+                    False -> ("type" =: "checkbox")
             (eZoomIn, _) <-
               el' "label" $ do
                 elDynAttr "input" (inpAttrD zoomD) $

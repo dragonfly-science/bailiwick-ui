@@ -849,11 +849,6 @@ updateMapIndicator svgBody mapD = do
               Just "ta"  -> filter selectTa  $ _areas new
               _          -> filter selectReg $ _areas new
 
-    -- Update stroke widths
-    when ((_zoomState <$> old) /= Just (_zoomState new)) $ do
-       setAttr ("g.inbound[show=FALSE] > polyline") "stroke-width" coversw
-       setAttr ("g.inbound[show=TRUE] > polyline") "stroke-width" showsw
-
 
     -- Reset the properties of the changed elements
     if changed
@@ -876,6 +871,12 @@ updateMapIndicator svgBody mapD = do
           setAttr (sel <> " > path") "fill" colour
       else
         return ()
+
+    -- Update stroke widths when animating, or at start
+    when ((_zoomState <$> old) /= Just (_zoomState new) ||
+          (_zoomState <$> old) == Nothing) $ do
+       setAttr ("g.inbound[show=FALSE] > polyline") "stroke-width" coversw
+       setAttr ("g.inbound[show=TRUE] > polyline") "stroke-width" showsw
 
 
 

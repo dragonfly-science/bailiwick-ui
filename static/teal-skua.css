@@ -1720,7 +1720,7 @@ strong, b { font-family: 'gustan-bold'; }
 .chart-options .chart-selector label:first-child, .zoom-controls label:first-child { margin-left: 0; }
 .chart-options .chart-selector label span, .zoom-controls label span { -webkit-transition: all 0.25s; -moz-transition: all 0.25s; transition: all 0.25s; background-color: #296575; text-align: center; line-height: 45px; font-size: 30px; color: #FFFFFF; display: inline-block; padding: 0 10px; cursor: pointer; }
 .chart-options .chart-selector label span:hover, .zoom-controls label span:hover { background: #00BDE9; }
-.chart-options .chart-selector label input:checked + span, .zoom-controls label input:checked + span { background-color: #BAD4E0; cursor: default; pointer-events: none; }
+.chart-options .chart-selector label input.checked + span, .zoom-controls label input.checked + span { background-color: #BAD4E0; cursor: default; pointer-events: none; }
 
 .indicator-chart .chart-wrapper .d3-attach, .indicator-map .map-wrapper { width: 90vw; /* @media (min-width: 600px) { width: 520px; } @media (min-width: 992px) { width: 700px; }
 */ }
