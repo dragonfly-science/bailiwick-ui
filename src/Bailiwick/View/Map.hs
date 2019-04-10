@@ -914,13 +914,6 @@ updateMapIndicator svgBody mapD = do
         setAttr (tasel <> ".inbound[same_ta=FALSE]") "show" "TRUE"
         setAttr (tasel <> " > path") "fill" tacolour
 
-    -- Update stroke widths when animating, or at start
-    let initial = (_zoomState <$> old) == Nothing
-    when ((_zoomState <$> old) /= Just (_zoomState new) || initial) $ do
-       setAttr ("g.inbound[show=FALSE] > polyline") "stroke-width" coversw
-       setAttr ("g.inbound[show=TRUE] > polyline") "stroke-width" showsw
-
-
     -- Mouse overs
     let updateMouseOver selector = do
           let oldarea = join $ selector <$> old
@@ -946,15 +939,15 @@ updateMapIndicator svgBody mapD = do
                           "stroke-width" coversw
             forM_ newarea $ \cssClass -> do
               setAttr ("g." <> cssClass <> " > path") "fill" "rgb(0, 189, 233)"
-              when (Text.isSuffixOf "-ta" cssClass) $ do
-                  setAttr ("g." <> cssClass <> "[same_ta=TRUE] > polyline")
-                          "stroke" "rgb(0, 189, 233)"
-                  setAttr ("g." <> cssClass <> "[same_ta=TRUE] > polyline")
-                          "stroke-width" coversw
               when (Text.isSuffixOf "-region" cssClass) $ do
                   setAttr ("g." <> cssClass <> "[same_reg=TRUE] > polyline")
                           "stroke" "rgb(0, 189, 233)"
                   setAttr ("g." <> cssClass <> "[same_reg=TRUE] > polyline")
+                          "stroke-width" coversw
+              when (Text.isSuffixOf "-ta" cssClass) $ do
+                  setAttr ("g." <> cssClass <> "[same_ta=TRUE] > polyline")
+                          "stroke" "rgb(0, 189, 233)"
+                  setAttr ("g." <> cssClass <> "[same_ta=TRUE] > polyline")
                           "stroke-width" coversw
               when (Text.isSuffixOf "-ward" cssClass) $ do
                   setAttr ("g." <> cssClass <> "[same_ward=TRUE] > polyline")
@@ -970,6 +963,33 @@ updateMapIndicator svgBody mapD = do
 
     when (_areaType new == Just "ward") $ do
       updateMouseOver mouseOverWardClass
+
+    -- Highlight selected area
+    let areaChanged = (_region    <$> old) /= Just (_region new)     ||
+                      (_subarea   <$> old) /= Just (_subarea new)
+
+    when (areaChanged) $ do
+      let oldregion = join $ _region <$> old
+          newregion = _region new
+          oldsubarea = join $ _subarea <$> old
+          newsubarea = _subarea new
+      forM_ oldregion $ \area -> do
+        let sel = "g." <> area <> "-region.inbound"
+        setAttr (sel <> "[same_reg=TRUE][same_ta=FALSE] > polyline") "stroke" (getColour area)
+        setAttr (sel <> "[same_reg=TRUE][same_ta=FALSE]") "show" "FALSE"
+
+      when (_areaType new == Just "reg") $ do
+        forM_ newregion $ \area -> do
+          let sel = "g." <> area <> "-region.inbound"
+          setAttr (sel <> "[same_reg=TRUE][same_ta=FALSE] > polyline") "stroke" "rgb(0, 189, 233)"
+          setAttr (sel <> "[same_reg=TRUE][same_ta=FALSE]") "show" "TRUE"
+
+    -- Update stroke widths when animating, or at start
+    let initial = (_zoomState <$> old) == Nothing
+    when ((_zoomState <$> old) /= Just (_zoomState new) || initial) $ do
+       setAttr ("g.inbound[show=FALSE] > polyline") "stroke-width" coversw
+       setAttr ("g.inbound[show=TRUE] > polyline") "stroke-width" showsw
+
 
 
 
