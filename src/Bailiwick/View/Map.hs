@@ -20,7 +20,7 @@ module Bailiwick.View.Map
   )
 where
 
-import Control.Monad ((>=>), (<=<), forever, void, when)
+import Control.Monad ((>=>), (<=<), forever, void, when, join)
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Concurrent
 import Control.Applicative (liftA2, Alternative(..))
@@ -356,6 +356,18 @@ aiSubareaClass AreaInfo{..}
 
 mouseOverSubareaClass :: Map -> Maybe Text
 mouseOverSubareaClass Map{_mouseAreaInfo = ai} = ai >>= aiSubareaClass
+
+aiTaClass :: AreaInfo -> Maybe Text
+aiTaClass AreaInfo{..} = (slugify . (<> "-ta") <$> areaTa)
+
+mouseOverTaClass :: Map -> Maybe Text
+mouseOverTaClass Map{_mouseAreaInfo = ai} = ai >>= aiTaClass
+
+aiWardClass :: AreaInfo -> Maybe Text
+aiWardClass AreaInfo{..} = (slugify . (<> "-ward") <$> areaWard)
+
+mouseOverWardClass :: Map -> Maybe Text
+mouseOverWardClass Map{_mouseAreaInfo = ai} = ai >>= aiWardClass
 
 forNodesSetAttribute
   :: ( MonadJSM m
@@ -834,7 +846,7 @@ updateMapIndicator svgBody mapD = do
                   (_year      <$> old) /= Just (_year new) ||
                   (_areaType  <$> old) /= Just (_areaType new)
 
-        getColour area = fromMaybe "#000000" $ do
+        getColour area = fromMaybe "#FFFFFF" $ do
             year <- _year new
             let IndicatorSummary ismap = _numbers new
             nums <- OM.lookup (area, year, _feature new) ismap
@@ -877,6 +889,61 @@ updateMapIndicator svgBody mapD = do
           (_zoomState <$> old) == Nothing) $ do
        setAttr ("g.inbound[show=FALSE] > polyline") "stroke-width" coversw
        setAttr ("g.inbound[show=TRUE] > polyline") "stroke-width" showsw
+
+
+    -- Mouse overs
+    when (_areaType new == Just "reg") $ do
+      let oldRegion = join $ mouseOverRegionClass <$> old
+          newRegion = mouseOverRegionClass new
+      when (oldRegion /= newRegion) $ do
+        forM_ oldRegion $ \cssClass -> do
+          let colour = getColour (Text.replace "-region" "" cssClass)
+          setAttr ("g." <> cssClass <> " > path")
+                  "fill" colour
+          setAttr ("g." <> cssClass <> "[same_reg=TRUE] > polyline")
+                  "stroke" colour
+          setAttr ("g." <> cssClass <> "[same_reg=TRUE] > polyline")
+                  "stroke-width" coversw
+        forM_ newRegion $ \cssClass -> do
+          setAttr ("g." <> cssClass <> " > path")
+                  "fill" "rgb(0, 189, 233)"
+          setAttr ("g." <> cssClass <> "[same_reg=TRUE] > polyline")
+                  "stroke" "rgb(0, 189, 233)"
+          setAttr ("g." <> cssClass <> "[same_reg=TRUE] > polyline")
+                  "stroke-width" coversw
+
+    when (_areaType new == Just "ta") $ do
+      let oldSubarea = join $ mouseOverTaClass <$> old
+          newSubarea = mouseOverTaClass new
+      when (oldSubarea /= newSubarea) $ do
+        forM_ oldSubarea $ \cssClass -> do
+          let area = Text.replace "-ta" "" $ Text.replace "-region" "" cssClass
+              colour = getColour area
+          setAttr ("g." <> cssClass <> " > path") "fill" colour
+          if Text.isSuffixOf "-ta" cssClass
+            then do
+              setAttr ("g." <> cssClass <> "[same_ta=TRUE] > polyline")
+                      "stroke" colour
+              setAttr ("g." <> cssClass <> "[same_ta=TRUE] > polyline")
+                      "stroke-width" coversw
+            else do
+              setAttr ("g." <> cssClass <> "[same_reg=TRUE] > polyline")
+                      "stroke" colour
+              setAttr ("g." <> cssClass <> "[same_reg=TRUE] > polyline")
+                      "stroke-width" coversw
+        forM_ newSubarea $ \cssClass -> do
+          setAttr ("g." <> cssClass <> " > path") "fill" "rgb(0, 189, 233)"
+          if Text.isSuffixOf "-ta" cssClass
+            then do
+              setAttr ("g." <> cssClass <> "[same_ta=TRUE] > polyline")
+                      "stroke" "rgb(0, 189, 233)"
+              setAttr ("g." <> cssClass <> "[same_ta=TRUE] > polyline")
+                      "stroke-width" coversw
+            else do
+              setAttr ("g." <> cssClass <> "[same_reg=TRUE] > polyline")
+                      "stroke" "rgb(0, 189, 233)"
+              setAttr ("g." <> cssClass <> "[same_reg=TRUE] > polyline")
+                      "stroke-width" coversw
 
 
 
