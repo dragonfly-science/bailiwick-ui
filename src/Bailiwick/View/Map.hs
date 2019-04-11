@@ -588,7 +588,7 @@ nzmap isSummary MapState{..} = mdo
               (areatype == Just "reg" || isSummary)
                 -> Just (SetRegion (fromJust region))
             | currentSubarea /= subarea &&
-              iszoomed &&
+              (iszoomed || not isSummary) &&
               isJust subarea
                 -> Just (SetSubArea $ fromJust subarea)
             | isNothing region &&
