@@ -50,6 +50,7 @@ areaSummary AreaSummaryState{..} = do
   let lookupIndicatorById i = OM.lookup (IndicatorId i) <$> indicators
       lookupAreaSummary i   = OM.lookup (IndicatorId i) <$> summaries
       areaIdD = maybe "" areaId <$> area
+      areaTypeD = maybe "reg" areaLevel <$> area
   gotoIndicatorE <- leftmost <$> sequence
     [ indicatorLatestYearSummary
         "population"
@@ -88,13 +89,13 @@ areaSummary AreaSummaryState{..} = do
             el "i" $ return ()
             return never
     ]
-  return $ (\Indicator{..} ->
+  return $ (\(areatype, Indicator{..}) ->
       GoTo (ThemePage $ ThemePageArgs
         indicatorId
         indicatorDefaultChartLeft
         indicatorDefaultChartRight
-        2017 Nothing Nothing "reg" "indexed" "indexed")
-        ) <$> gotoIndicatorE
+        2017 Nothing Nothing areatype "indexed" "indexed")
+        ) <$> (attachPromptlyDyn areaTypeD gotoIndicatorE)
 
 switchDynM
  :: (MonadHold t m, DomBuilder t m, PostBuild t m)
