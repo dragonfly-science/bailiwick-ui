@@ -299,7 +299,7 @@ zoomState wide z selectedArea
     transform x y sx sy _sw
          = ( Translate (x + if wide then 113 else 0) y
            , Scale sx sy
-           , if z then 1.4/sx else 0.7
+           , if z then 1.3/sx else 0.65
            )
     regionTransform "auckland"          = transform (-3080) 6370 10   (-10)   0.3
     regionTransform "bay-of-plenty"     = transform (-2050) 3240  5.5 ( -5.5) 0.3
@@ -567,10 +567,10 @@ nzmap isSummary MapState{..} = mdo
 
   -- The click event depends on the state
   let makeMessages
-        :: (Maybe Area, Maybe Area, Route)
+        :: (Maybe Area, Maybe Area, Route, Maybe Text)
         -> Maybe AreaInfo
         -> Maybe Message
-      makeMessages (mregion, msubarea, route) ai =
+      makeMessages (mregion, msubarea, route, areatype) ai =
         let region         = slugify <$> (areaRegion =<< ai)
             ta             = slugify <$> (areaTa =<< ai)
             ward           = slugify <$> (areaWard =<< ai)
@@ -584,12 +584,9 @@ nzmap isSummary MapState{..} = mdo
               not iszoomed
                 -> Just ZoomIn
             | currentRegion /= region &&
-              isJust region
+              isJust region &&
+              (areatype == Just "reg" || isSummary)
                 -> Just (SetRegion (fromJust region))
-            | currentRegion /= region &&
-              isJust currentRegion &&
-              isJust currentSubarea
-                -> Just (SetRegion (fromJust currentRegion))
             | currentSubarea /= subarea &&
               iszoomed &&
               isJust subarea
@@ -604,7 +601,8 @@ nzmap isSummary MapState{..} = mdo
         region  <- regionD
         subarea <- subareaD
         route   <- routeD
-        return (region, subarea, route)
+        areatype <- mapareatypeD
+        return (region, subarea, route, areatype)
   return $ attachPromptlyDynWithMaybe makeMessages combinedD clickE
 
 
