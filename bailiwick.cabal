@@ -71,48 +71,6 @@ library
   default-language:    Haskell2010
   ghc-options: -Wall
 
-executable bailiwick
-  hs-source-dirs: app
-  main-is: Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
-  build-depends:       base
-                     , aeson
-                     , bytestring
-                     , containers
-                     , data-default
-                     , directory
-                     , filepath
-                     , ghcjs-dom
-                     , http-types
-                     , jsaddle-warp
-                     , mtl
-                     , reflex-dom-core
-                     , text
-                     , bailiwick
-  if impl(ghcjs)
-    ghc-options:       -dedupe
-    cpp-options:       -DGHCJS_BROWSER
-    -- -DGHCJS_GC_INTERVAL=60000 -DGHCJS_SCHED_CHECK=100000
-  else
-    ghc-options:       -dynamic
-  default-language: Haskell2010
-
-executable make-map-css
-  if impl( ghcjs )
-    buildable: False
-  hs-source-dirs: app
-  main-is: MakeMapCss.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
-  build-depends:       base
-                     , aeson
-                     , bytestring
-                     , containers
-                     , directory
-                     , filepath
-                     , mtl
-                     , text
-                     , bailiwick
-  default-language: Haskell2010
 
 source-repository head
   type:     git
