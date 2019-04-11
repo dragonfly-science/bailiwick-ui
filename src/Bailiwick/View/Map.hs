@@ -997,7 +997,7 @@ updateMapIndicator svgBody mapD = do
                 setAttr (sel <> "[same_ward=FALSE] > polyline") "stroke" highlight
                 setAttr (sel <> "[same_ward=FALSE]") "show" "FALSE"
             setAttr (sel <> ".coastline > polyline") "stroke" highlight
-            setAttr (sel <> ".coastline") "show" "TRUE"
+            setAttr (sel <> ".coastline") "show" "FALSE"
         selectArea Map{..} =
            case _subarea of
              Just a -> if _region == Just "auckland"
