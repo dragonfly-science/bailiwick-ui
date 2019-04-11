@@ -20,8 +20,6 @@ module Bailiwick.View.Map
   )
 where
 
-import Debug.Trace
-
 import Control.Monad ((>=>), (<=<), forever, void, when, join)
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Concurrent
@@ -817,7 +815,8 @@ updateMapIndicator svgBody mapD = do
          => Text -> Text -> Text -> m0 ()
       setAttr q name val = do
         nodeList <- querySelectorAll svgBody q
-        forNodesSetAttribute nodeList name (trace ("q = " ++ show q ++ ", name = " ++ show name ++ ", val = " ++ show val) val)
+        forNodesSetAttribute nodeList name val 
+            --(trace ("q = " ++ show q ++ ", name = " ++ show name ++ ", val = " ++ show val) val)
 
       set :: (MonadJSM m0, IsElement e) => Text -> Text -> e -> m0 ()
       set a v e = setAttribute e a v
@@ -962,30 +961,29 @@ updateMapIndicator svgBody mapD = do
     -- Highlight selected area
     let highlightSelected newarea oldarea = do
           forM_ oldarea $ \area -> do
-            let colour = getColour area
-                sel = "g." <> area
+            let sel = "g." <> area
             when (Text.isSuffixOf "-ta" area) $ do
-                setAttr (sel <> "[same_ta=FALSE] > polyline") "stroke" colour
-                setAttr (sel <> "[same_ta=FALSE]") "show" "FALSE"
+                setAttr (sel <> "[same_ta=FALSE] > polyline") "stroke" ol
+                setAttr (sel <> "[same_ta=FALSE]") "show" "TRUE"
             when (Text.isSuffixOf "-region" area) $ do
-                setAttr (sel <> "[same_reg=FALSE] > polyline") "stroke" colour
-                setAttr (sel <> "[same_reg=FALSE]") "show" "FALSE"
+                setAttr (sel <> "[same_reg=FALSE] > polyline") "stroke" ol
+                setAttr (sel <> "[same_reg=FALSE]") "show" "TRUE"
             when (Text.isSuffixOf "-ward" area) $ do
-                setAttr (sel <> "[same_ward=FALSE] > polyline") "stroke" colour
-                setAttr (sel <> "[same_ward=FALSE]") "show" "FALSE"
+                setAttr (sel <> "[same_ward=FALSE] > polyline") "stroke" ol
+                setAttr (sel <> "[same_ward=FALSE]") "show" "TRUE"
             setAttr (sel <> ".coastline > polyline") "stroke" "none"
           forM_ newarea $ \area -> do
             let highlight = "rgb(0, 189, 233)"
                 sel = "g." <> area
             when (Text.isSuffixOf "-region" area) $ do
                 setAttr (sel <> "[same_reg=FALSE] > polyline") "stroke" highlight
-                setAttr (sel <> "[same_reg=FALSE]") "show" "TRUE"
+                setAttr (sel <> "[same_reg=FALSE]") "show" "FALSE"
             when (Text.isSuffixOf "-ta" area) $ do
                 setAttr (sel <> "[same_ta=FALSE] > polyline") "stroke" highlight
-                setAttr (sel <> "[same_ta=FALSE]") "show" "TRUE"
+                setAttr (sel <> "[same_ta=FALSE]") "show" "FALSE"
             when (Text.isSuffixOf "-ward" area) $ do
                 setAttr (sel <> "[same_ward=FALSE] > polyline") "stroke" highlight
-                setAttr (sel <> "[same_ward=FALSE]") "show" "TRUE"
+                setAttr (sel <> "[same_ward=FALSE]") "show" "FALSE"
             setAttr (sel <> ".coastline > polyline") "stroke" highlight
             setAttr (sel <> ".coastline") "show" "TRUE"
         selectArea Map{..} =

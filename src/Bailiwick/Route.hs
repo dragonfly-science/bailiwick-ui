@@ -21,7 +21,7 @@ import Data.Monoid ((<>))
 import Data.List ((\\))
 
 import Data.Text (Text)
-import qualified Data.Text as T (pack, unpack)
+import qualified Data.Text as T (pack, unpack, isPrefixOf)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Text.Read (readMaybe)
 import qualified Data.ByteString.Lazy as B
@@ -86,9 +86,10 @@ getThemePage _ = Nothing
 isSummary :: Route -> Bool
 isSummary = isNothing . getThemePage
 
-updateThemePage :: Route -> (ThemePageArgs -> ThemePageArgs) -> Route
-updateThemePage s@Route{routePage = ThemePage args} f = s{ routePage = ThemePage $ f args }
-updateThemePage s _ = s
+updateTP :: (ThemePageArgs -> ThemePageArgs) -> Route -> Route
+updateTP f s@Route{routePage = ThemePage args} 
+    = s{ routePage = ThemePage $ f args }
+updateTP _ s = s
 
 getIndicatorId :: Message -> Maybe IndicatorId
 getIndicatorId = \case
@@ -103,25 +104,66 @@ getIndicatorId = \case
 step :: Route -> Message -> Route
 step route message =
   case message of
-    Ready _page          -> route
-    SetRegion reg        -> route { routeArea = reg }
-    SetSubArea sa        -> route { routeArea = sa
-                                  , routeAdapters = routeAdapters route <> [Mapzoom] }
-    SetAreaType at       -> updateThemePage route $ \args -> args { themePageAreaType = at }
-    SetRightChart c      -> updateThemePage route $ \args -> args { themePageRightChart = c }
-    SetLeftTransform lt  -> updateThemePage route $ \args -> args { themePageLeftTransform = lt }
-    SetRightTransform rt -> updateThemePage route $ \args -> args { themePageRightTransform = rt }
-    SetYear y            -> updateThemePage route $ \args -> args { themePageYear = y }
-    GoTo page            -> route { routePage = page }
-    GoToHomePage         -> route { routeArea = "new-zealand"
-                                  , routePage = Summary
-                                  , routeAdapters = routeAdapters route \\ [Mapzoom] }
-    ZoomIn               -> route { routeAdapters = routeAdapters route <> [Mapzoom] }
-    ZoomOut (Just reg)   -> if isSummary route
-                             then route { routeArea = reg
-                                        , routeAdapters = routeAdapters route \\ [Mapzoom] }
-                             else route { routeAdapters = routeAdapters route \\ [Mapzoom] }
-    ZoomOut Nothing      -> route { routeAdapters = routeAdapters route \\ [Mapzoom] }
+
+    Ready _page 
+        -> route
+    
+    SetRegion reg
+        -> let route' = route { routeArea = reg }
+               update args = args { themePageAreaType = "reg" }
+           in  updateTP update route'
+
+    SetSubArea sa
+        -> let route' = route { routeArea = sa
+                              , routeAdapters = routeAdapters route <> [Mapzoom]
+                              }
+               at = if T.isPrefixOf "auckland" sa
+                      then "ward"
+                      else "ta"  
+               update args = args { themePageAreaType = at }
+           in  updateTP update route'
+
+    SetAreaType at
+        -> let update args = args { themePageAreaType = at }
+           in  updateTP update route
+
+    SetRightChart c
+        -> let update args = args { themePageRightChart = c }
+           in  updateTP update route
+
+    SetLeftTransform lt
+        -> let update args = args { themePageLeftTransform = lt }
+           in  updateTP update route
+
+    SetRightTransform rt
+        -> let update args = args { themePageRightTransform = rt }
+           in  updateTP update route
+
+    SetYear y
+        -> let update args = args { themePageYear = y }
+           in  updateTP update route
+
+    GoTo page
+        -> route { routePage = page }
+
+    GoToHomePage
+        -> route { routeArea = "new-zealand"
+                 , routePage = Summary
+                 , routeAdapters = routeAdapters route \\ [Mapzoom]
+                 }
+
+    ZoomIn
+        -> route { routeAdapters = routeAdapters route <> [Mapzoom] }
+
+    ZoomOut (Just reg)
+        -> if isSummary route
+             then route { routeArea = reg
+                        , routeAdapters = routeAdapters route \\ [Mapzoom]
+                        }
+             else route { routeAdapters = routeAdapters route \\ [Mapzoom] }
+
+    ZoomOut Nothing
+        -> route { routeAdapters = routeAdapters route \\ [Mapzoom] }
 
 encodeRoute :: Route -> URI -> URI
 encodeRoute route uri =
