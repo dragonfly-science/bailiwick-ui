@@ -20,6 +20,8 @@ module Bailiwick.View.Map
   )
 where
 
+import Debug.Trace
+
 import Control.Monad ((>=>), (<=<), forever, void, when, join)
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Concurrent
@@ -492,8 +494,7 @@ nzmap MapState{..} = mdo
   svgBodyD <- holdDyn Nothing (Just <$> svgBodyE)
 
   isSummaryHD <- holdUniqDyn $ isSummaryD
-  svgBodyHD <- holdUniqDyn $ svgBodyD
-  loadedSvg <- switchDynM $ ffor ((,) <$> isSummaryHD <*> svgBodyHD) $ \case
+  loadedSvg <- switchDynM $ ffor ((,) <$> isSummaryHD <*> svgBodyD) $ \case
     (_, Nothing)          -> return never
     (True, Just svgBody)  -> do
       updateMapSummary svgBody mapD
@@ -816,7 +817,7 @@ updateMapIndicator svgBody mapD = do
          => Text -> Text -> Text -> m0 ()
       setAttr q name val = do
         nodeList <- querySelectorAll svgBody q
-        forNodesSetAttribute nodeList name val --(trace ("q = " ++ show q ++ ", name = " ++ show name ++ ", val = " ++ show val) val)
+        forNodesSetAttribute nodeList name (trace ("q = " ++ show q ++ ", name = " ++ show name ++ ", val = " ++ show val) val)
 
       set :: (MonadJSM m0, IsElement e) => Text -> Text -> e -> m0 ()
       set a v e = setAttribute e a v
@@ -902,7 +903,10 @@ updateMapIndicator svgBody mapD = do
             setAttr (sel <> ".inbound[same_ward=FALSE] > polyline") "stroke" ol
             setAttr (sel <> ".inbound[same_ward=FALSE]") "show" "TRUE"
         setAttr (sel <> " > path") "fill" colour
-    setAttr ("g.coastline > polyline") "stroke" "none"
+
+    let initial = (_zoomState <$> old) == Nothing
+    when (initial) $ do
+      setAttr ("g.coastline > polyline") "stroke" "none"
 
     when (changed && (_areaType new == Just "ward")) $ do
       forM_ nonaucklandtas $ \(ta, _) -> do
@@ -921,39 +925,30 @@ updateMapIndicator svgBody mapD = do
           when (oldarea /= newarea) $ do
             forM_ oldarea $ \cssClass -> do
               let colour = getColour cssClass
-              setAttr ("g." <> cssClass <> " > path") "fill" colour
+                  sel = "g." <> cssClass
+              setAttr (sel <> " > path") "fill" colour
               when (Text.isSuffixOf "-ta" cssClass) $ do
-                  setAttr ("g." <> cssClass <> "[same_ta=TRUE] > polyline")
-                          "stroke" colour
-                  setAttr ("g." <> cssClass <> "[same_ta=TRUE] > polyline")
-                          "stroke-width" coversw
+                  setAttr (sel <> "[same_ta=TRUE] > polyline") "stroke" colour
+                  setAttr (sel <> "[same_ta=TRUE]") "show" "FALSE"
               when (Text.isSuffixOf "-region" cssClass) $ do
-                  setAttr ("g." <> cssClass <> "[same_reg=TRUE] > polyline")
-                          "stroke" colour
-                  setAttr ("g." <> cssClass <> "[same_reg=TRUE] > polyline")
-                          "stroke-width" coversw
+                  setAttr (sel <> "[same_reg=TRUE] > polyline") "stroke" colour
+                  setAttr (sel <> "[same_reg=TRUE]") "show" "FALSE"
               when (Text.isSuffixOf "-ward" cssClass) $ do
-                  setAttr ("g." <> cssClass <> "[same_ward=TRUE] > polyline")
-                          "stroke" colour
-                  setAttr ("g." <> cssClass <> "[same_ward=TRUE] > polyline")
-                          "stroke-width" coversw
+                  setAttr (sel <> "[same_ward=TRUE] > polyline") "stroke" colour
+                  setAttr (sel <> "[same_ward=TRUE]") "show" "FALSE"
             forM_ newarea $ \cssClass -> do
-              setAttr ("g." <> cssClass <> " > path") "fill" "rgb(0, 189, 233)"
+              let highlight = "rgb(0, 189, 233)"
+                  sel = "g." <> cssClass
+              setAttr (sel <> " > path") "fill" highlight
               when (Text.isSuffixOf "-region" cssClass) $ do
-                  setAttr ("g." <> cssClass <> "[same_reg=TRUE] > polyline")
-                          "stroke" "rgb(0, 189, 233)"
-                  setAttr ("g." <> cssClass <> "[same_reg=TRUE] > polyline")
-                          "stroke-width" coversw
+                  setAttr (sel <> "[same_reg=TRUE] > polyline") "stroke" highlight
+                  setAttr (sel <> "[same_reg=TRUE]") "show" "TRUE"
               when (Text.isSuffixOf "-ta" cssClass) $ do
-                  setAttr ("g." <> cssClass <> "[same_ta=TRUE] > polyline")
-                          "stroke" "rgb(0, 189, 233)"
-                  setAttr ("g." <> cssClass <> "[same_ta=TRUE] > polyline")
-                          "stroke-width" coversw
+                  setAttr (sel <> "[same_ta=TRUE] > polyline") "stroke" highlight
+                  setAttr (sel <> "[same_ta=TRUE]") "show" "TRUE"
               when (Text.isSuffixOf "-ward" cssClass) $ do
-                  setAttr ("g." <> cssClass <> "[same_ward=TRUE] > polyline")
-                          "stroke" "rgb(0, 189, 233)"
-                  setAttr ("g." <> cssClass <> "[same_ward=TRUE] > polyline")
-                          "stroke-width" coversw
+                  setAttr (sel <> "[same_ward=TRUE] > polyline") "stroke" highlight
+                  setAttr (sel <> "[same_ward=TRUE]") "show" "TRUE"
 
     when (_areaType new == Just "reg") $ do
       updateMouseOver mouseOverRegionClass
@@ -965,30 +960,50 @@ updateMapIndicator svgBody mapD = do
       updateMouseOver mouseOverWardClass
 
     -- Highlight selected area
-    let areaChanged = (_region    <$> old) /= Just (_region new)     ||
-                      (_subarea   <$> old) /= Just (_subarea new)
-
-    when (areaChanged) $ do
-      let oldregion = join $ _region <$> old
-          newregion = _region new
-          oldsubarea = join $ _subarea <$> old
-          newsubarea = _subarea new
-      forM_ oldregion $ \area -> do
-        let sel = "g." <> area <> "-region.inbound"
-        setAttr (sel <> "[same_reg=TRUE][same_ta=FALSE] > polyline") "stroke" (getColour area)
-        setAttr (sel <> "[same_reg=TRUE][same_ta=FALSE]") "show" "FALSE"
-
-      when (_areaType new == Just "reg") $ do
-        forM_ newregion $ \area -> do
-          let sel = "g." <> area <> "-region.inbound"
-          setAttr (sel <> "[same_reg=TRUE][same_ta=FALSE] > polyline") "stroke" "rgb(0, 189, 233)"
-          setAttr (sel <> "[same_reg=TRUE][same_ta=FALSE]") "show" "TRUE"
+    let highlightSelected newarea oldarea = do
+          forM_ oldarea $ \area -> do
+            let colour = getColour area
+                sel = "g." <> area
+            when (Text.isSuffixOf "-ta" area) $ do
+                setAttr (sel <> "[same_ta=FALSE] > polyline") "stroke" colour
+                setAttr (sel <> "[same_ta=FALSE]") "show" "FALSE"
+            when (Text.isSuffixOf "-region" area) $ do
+                setAttr (sel <> "[same_reg=FALSE] > polyline") "stroke" colour
+                setAttr (sel <> "[same_reg=FALSE]") "show" "FALSE"
+            when (Text.isSuffixOf "-ward" area) $ do
+                setAttr (sel <> "[same_ward=FALSE] > polyline") "stroke" colour
+                setAttr (sel <> "[same_ward=FALSE]") "show" "FALSE"
+            setAttr (sel <> ".coastline > polyline") "stroke" "none"
+          forM_ newarea $ \area -> do
+            let highlight = "rgb(0, 189, 233)"
+                sel = "g." <> area
+            when (Text.isSuffixOf "-region" area) $ do
+                setAttr (sel <> "[same_reg=FALSE] > polyline") "stroke" highlight
+                setAttr (sel <> "[same_reg=FALSE]") "show" "TRUE"
+            when (Text.isSuffixOf "-ta" area) $ do
+                setAttr (sel <> "[same_ta=FALSE] > polyline") "stroke" highlight
+                setAttr (sel <> "[same_ta=FALSE]") "show" "TRUE"
+            when (Text.isSuffixOf "-ward" area) $ do
+                setAttr (sel <> "[same_ward=FALSE] > polyline") "stroke" highlight
+                setAttr (sel <> "[same_ward=FALSE]") "show" "TRUE"
+            setAttr (sel <> ".coastline > polyline") "stroke" highlight
+            setAttr (sel <> ".coastline") "show" "TRUE"
+        selectArea Map{..} =
+           case _subarea of
+             Just a -> if _region == Just "auckland"
+                         then Just $ a <> "-ward"
+                         else Just $ a <> "-ta"
+             Nothing -> fmap (<> "-region") _region
+        oldselected = join $ selectArea <$> old
+        newselected = selectArea new
+        areachanged = oldselected /= newselected
+    when (areachanged || changed) $ do
+        highlightSelected newselected oldselected
 
     -- Update stroke widths when animating, or at start
-    let initial = (_zoomState <$> old) == Nothing
-    when ((_zoomState <$> old) /= Just (_zoomState new) || initial) $ do
-       setAttr ("g.inbound[show=FALSE] > polyline") "stroke-width" coversw
-       setAttr ("g.inbound[show=TRUE] > polyline") "stroke-width" showsw
+    when ((_zoomState <$> old) /= Just (_zoomState new) || initial || areachanged) $ do
+       setAttr ("g[show=FALSE] > polyline") "stroke-width" coversw
+       setAttr ("g[show=TRUE] > polyline") "stroke-width" showsw
 
 
 
