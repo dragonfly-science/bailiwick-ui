@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ASCII"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="504px" height="729.1px" viewBox="0 0 504 729.1" version="1.1">
   <metadata xmlns:gridsvg="http://www.stat.auckland.ac.nz/~paul/R/gridSVG/">
-    <gridsvg:generator name="gridSVG" version="1.5-1" time="2019-04-11 09:22:47"/>
+    <gridsvg:generator name="gridSVG" version="1.5-1" time="2019-04-11 09:31:23"/>
     <gridsvg:argument name="name" value="output/map_tas_regions_paths.svg"/>
     <gridsvg:argument name="exportCoords" value="none"/>
     <gridsvg:argument name="exportMappings" value="none"/>
@@ -3961,7 +3961,7 @@
           </g>
         </g>
         <g id="GRID.VP.1::GRID.VP.1.789">
-          <g id="Auckland!Franklin|Auckland|Auckland__Waikato District!Awaroa ki Tuakau|Waikato district|Waikato region:312.1.1" ta_reg="Auckland!Franklin|Auckland|Auckland__Waikato District!Awaroa ki Tuakau|Waikato district|Waikato region" wrd1="Auckland--Franklin" ta1="Auckland" reg1="Auckland" wrd2="Waikato District--Awaroa ki Tuakau" ta2="Waikato district" reg2="Waikato" same_ward="FALSE" same_ta="FALSE" same_reg="FALSE" class="inbound auckland-ta waikato-district-ta auckland-region waikato-region ">
+          <g id="Auckland!Franklin|Auckland|Auckland__Waikato District!Awaroa ki Tuakau|Waikato district|Waikato region:312.1.1" ta_reg="Auckland!Franklin|Auckland|Auckland__Waikato District!Awaroa ki Tuakau|Waikato district|Waikato region" wrd1="Auckland--Franklin" ta1="Auckland" reg1="Auckland" wrd2="Waikato District--Awaroa ki Tuakau" ta2="Waikato district" reg2="Waikato" same_ward="FALSE" same_ta="FALSE" same_reg="FALSE" class="inbound auckland-ta waikato-district-ta auckland-region waikato-region auckland--franklin-ward ">
             <polyline id="Auckland!Franklin|Auckland|Auckland__Waikato District!Awaroa ki Tuakau|Waikato district|Waikato region:312.1.1.1" points="350.56,571.5 349.97,571.38 349.66,571.6 349.64,572.11 349.3,572.21 348.84,572.1 348.69,571.78 348.37,571.77 348.36,571.6 348.18,571.63 347.98,571.75 347.99,571.34 347.58,571.16 347.47,571.37 347.27,571.29 346.99,570.87 346.21,570.24 345.82,570.72 345.74,570.66 345.54,571.12 345.47,571.48 345.03,571.31 344.74,571.28 344.47,571.45 344.37,571.32 343.88,571.23 343.91,571.08 343.52,570.87 343.79,570.4 343.6,570.16 343.54,569.85 343.62,569.45 343.18,569.31 343.01,569.19 342.76,569.44 341.89,569.47 341.67,569.4 341.56,569.55 341.21,569.33 341.32,569.2 341.05,569 340.92,569.13 340.75,568.76 340.51,568.83 340.3,568.74 340.14,568.82 339.97,568.45 339.82,568.52 339.8,568.66 339.95,569.07 339.75,569.14 339.77,569.2 339.6,569.32 338.91,569.57 338.74,569.49 338.38,569.72 338.2,569.6 338.03,569.71 337.66,569.49 337.34,569.41 337.29,569.12 336.95,569 336.7,569.05 336.39,568.86 336.29,568.69 335.74,568.49 335.64,568.33 335.15,567.88 334.92,567.59 334.64,567.56 334.58,567.88 334.33,567.88 334.19,568.15 333.76,568.09 333.59,567.95 333.17,567.98 332.43,567.54 332.34,567.42 332.02,567.22 331.56,567 331.5,566.93 331.29,566.87 331.44,566.51 331.32,566.27" stroke="rgb(255,255,255)" stroke-width="1.2" stroke-opacity="1" fill="none"/>
           </g>
         </g>
@@ -3976,7 +3976,7 @@
           </g>
         </g>
         <g id="GRID.VP.1::GRID.VP.1.792">
-          <g id="Auckland!Franklin|Auckland|Auckland__Waikato District!Whangamarino|Waikato district|Waikato region:504.1.1" ta_reg="Auckland!Franklin|Auckland|Auckland__Waikato District!Whangamarino|Waikato district|Waikato region" wrd1="Auckland--Franklin" ta1="Auckland" reg1="Auckland" wrd2="Waikato District--Whangamarino" ta2="Waikato district" reg2="Waikato" same_ward="FALSE" same_ta="FALSE" same_reg="FALSE" class="inbound auckland-ta waikato-district-ta auckland-region waikato-region ">
+          <g id="Auckland!Franklin|Auckland|Auckland__Waikato District!Whangamarino|Waikato district|Waikato region:504.1.1" ta_reg="Auckland!Franklin|Auckland|Auckland__Waikato District!Whangamarino|Waikato district|Waikato region" wrd1="Auckland--Franklin" ta1="Auckland" reg1="Auckland" wrd2="Waikato District--Whangamarino" ta2="Waikato district" reg2="Waikato" same_ward="FALSE" same_ta="FALSE" same_reg="FALSE" class="inbound auckland-ta waikato-district-ta auckland-region waikato-region auckland--franklin-ward ">
             <polyline id="Auckland!Franklin|Auckland|Auckland__Waikato District!Whangamarino|Waikato district|Waikato region:504.1.1.1" points="358.88,580.54 356.18,580.46 355.95,580.13 355.92,579.98 355.7,580.14 355.5,579.95 355.13,579.92 354.94,580.16 354.75,580.64 354.63,580.66 354.32,580.99 354.28,581.22 354.09,581.3 353.7,580.99 353.67,580.82 353.84,580.56 353.83,580.38 353.72,580.11 353.73,579.78 353.82,579.58 353.47,579.21 353.41,578.57 353.51,578.24 353.46,577.95 353.35,577.96 353.26,577.59 353.35,577.17 353.25,577.07 353.13,576.67 353.26,576.54 353.21,576.1 353.37,576.05 353.48,575.51 353.67,575.43 353.57,575.07 353.63,574.58 353.55,574.2 353.23,574.12 353.27,573.68 353.16,572.82 352.85,572.71 353.01,572.38 352.58,572.05 352.53,571.79 352.2,571.82 352.09,571.62 351.76,571.81 351.61,571.73 351.4,572.1 351,572.06 350.69,572.22 350.57,572.07 350.56,571.5" stroke="rgb(255,255,255)" stroke-width="1.2" stroke-opacity="1" fill="none"/>
           </g>
         </g>
@@ -3991,7 +3991,7 @@
           </g>
         </g>
         <g id="GRID.VP.1::GRID.VP.1.795">
-          <g id="Auckland!Franklin|Auckland|Auckland__Hauraki!Plains|Hauraki|Waikato region:462.1.1" ta_reg="Auckland!Franklin|Auckland|Auckland__Hauraki!Plains|Hauraki|Waikato region" wrd1="Auckland--Franklin" ta1="Auckland" reg1="Auckland" wrd2="Hauraki--Plains" ta2="Hauraki" reg2="Waikato" same_ward="FALSE" same_ta="FALSE" same_reg="FALSE" class="inbound auckland-ta hauraki-ta auckland-region waikato-region ">
+          <g id="Auckland!Franklin|Auckland|Auckland__Hauraki!Plains|Hauraki|Waikato region:462.1.1" ta_reg="Auckland!Franklin|Auckland|Auckland__Hauraki!Plains|Hauraki|Waikato region" wrd1="Auckland--Franklin" ta1="Auckland" reg1="Auckland" wrd2="Hauraki--Plains" ta2="Hauraki" reg2="Waikato" same_ward="FALSE" same_ta="FALSE" same_reg="FALSE" class="inbound auckland-ta hauraki-ta auckland-region waikato-region auckland--franklin-ward ">
             <polyline id="Auckland!Franklin|Auckland|Auckland__Hauraki!Plains|Hauraki|Waikato region:462.1.1.1" points="359.94,580.71 358.88,580.54" stroke="rgb(255,255,255)" stroke-width="1.2" stroke-opacity="1" fill="none"/>
           </g>
         </g>
@@ -4111,7 +4111,7 @@
           </g>
         </g>
         <g id="GRID.VP.1::GRID.VP.1.819">
-          <g id="Auckland!Rodney|Auckland|Auckland__Kaipara!Otamatea|Kaipara|Northland:286.1.1" ta_reg="Auckland!Rodney|Auckland|Auckland__Kaipara!Otamatea|Kaipara|Northland" wrd1="Auckland--Rodney" ta1="Auckland" reg1="Auckland" wrd2="Kaipara--Otamatea" ta2="Kaipara" reg2="Northland" same_ward="FALSE" same_ta="FALSE" same_reg="FALSE" class="inbound auckland-ta kaipara-ta auckland-region northland-region ">
+          <g id="Auckland!Rodney|Auckland|Auckland__Kaipara!Otamatea|Kaipara|Northland:286.1.1" ta_reg="Auckland!Rodney|Auckland|Auckland__Kaipara!Otamatea|Kaipara|Northland" wrd1="Auckland--Rodney" ta1="Auckland" reg1="Auckland" wrd2="Kaipara--Otamatea" ta2="Kaipara" reg2="Northland" same_ward="FALSE" same_ta="FALSE" same_reg="FALSE" class="inbound auckland-ta kaipara-ta auckland-region northland-region auckland--rodney-ward ">
             <polyline id="Auckland!Rodney|Auckland|Auckland__Kaipara!Otamatea|Kaipara|Northland:286.1.1.1" points="324.31,625.94 324.5,626.06 324.5,626.08 324.66,626.17 325.06,626.16 325.3,626.39 325.43,626.4 325.69,626.67 325.99,626.91 326.29,627.03 326.21,627.23 326.24,627.29 326.18,627.65 326.36,627.91 326.55,628.07 326.67,628.34 326.98,628.44 327.26,628.62 327.3,628.61 327.53,628.73 328.03,628.64 328.09,628.93 328.2,629.07 328.37,629.03 328.42,629.35 328.82,629.3 329.13,629.79 329.01,629.91 328.95,630.34 329.1,630.69 329.23,630.77 329.34,630.72 329.69,630.78 329.83,630.97 329.8,631.17 330.05,631.2 329.97,631.51 330.04,631.82 330.53,632.03" stroke="rgb(255,255,255)" stroke-width="1.2" stroke-opacity="1" fill="none"/>
           </g>
         </g>
