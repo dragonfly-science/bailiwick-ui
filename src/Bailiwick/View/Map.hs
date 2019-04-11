@@ -427,9 +427,10 @@ nzmap
        , MonadHold t m
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
-    => MapState t
+    => Bool
+    -> MapState t
     -> m (Event t Message)
-nzmap MapState{..} = mdo
+nzmap isSummary MapState{..} = mdo
 
   zoomD <- holdUniqDyn ( hasAdapter Mapzoom <$> routeD)
   let areaD = zipDynWith (<|>) subareaD regionD
@@ -455,12 +456,11 @@ nzmap MapState{..} = mdo
               querySelectorUnsafe svgDoc ("svg" :: Text)
 
   -- Setup the zoom state dyanmic, and transitions
-  let isSummaryD = (Summary ==) . routePage <$> routeD
   wide <- mediaQueryDyn ("(min-width: 1025px)" :: Text)
   let duration = 500
   frame <- animationFrame zoomAnimating
 
-  let wideAndSummaryD = (&&) <$> wide <*> isSummaryD
+  let wideAndSummaryD = (&& isSummary) <$> wide
   let zoomStateD = zoomState <$> wideAndSummaryD <*> zoomD <*> (maybe "nz" areaId <$> regionD)
   (zoomAnimating, zoomStateT) <- transitions frame duration zoomStateD
 
@@ -491,8 +491,7 @@ nzmap MapState{..} = mdo
 
   svgBodyD <- holdDyn Nothing (Just <$> svgBodyE)
 
-  isSummaryHD <- holdUniqDyn $ isSummaryD
-  loadedSvg <- switchDynM $ ffor ((,) <$> isSummaryHD <*> svgBodyD) $ \case
+  loadedSvg <- switchDynM $ ffor ((isSummary,) <$> svgBodyD) $ \case
     (_, Nothing)          -> return never
     (True, Just svgBody)  -> do
       updateMapSummary svgBody mapD
@@ -518,9 +517,24 @@ nzmap MapState{..} = mdo
       showStyle Nothing = "visibility:hidden;"
       showStyle (Just ((_, (x,y)), _)) = Text.pack $
           "visibility:visible; left:" <> show (x + 8) <> "px; top:" <> show (y + 8) <> "px;"
+
+      getValue area = do
+        mtooltiparea <- area
+        myear <- mapyearD
+        feature <- mapfeatureD
+        IndicatorSummary ismap <- indicatorSummaryD
+        return $ do
+          (_, Area{..}) <- mtooltiparea
+          year <- myear
+          nums <- OM.lookup (areaId, year, feature) ismap
+          return $ headlineNum nums
+
   elDynAttr "div" (("class" =: "tooltip" <>) . ("style" =:) . showStyle <$> tooltipAreaD) $ do
     el "p" $ dynText $ maybe "" (areaName . snd) <$> tooltipAreaD
-    --elDynAttr "p" (("class" =: ) <$> (fromMaybe "" <$> transformD) <> " number") $ text "Val"
+    when (not isSummary) $ do
+      let transformD = fmap themePageLeftTransform . getThemePage <$> routeD
+      elDynAttr "p" (("class" =: ) <$> (fromMaybe "" <$> transformD) <> " number") $ do
+        dynText $ fromMaybe "" <$> getValue tooltipAreaD
 
   moveE
     :: Event t (Maybe (AreaInfo, (Int, Int)))
@@ -815,7 +829,7 @@ updateMapIndicator svgBody mapD = do
          => Text -> Text -> Text -> m0 ()
       setAttr q name val = do
         nodeList <- querySelectorAll svgBody q
-        forNodesSetAttribute nodeList name val 
+        forNodesSetAttribute nodeList name val
             --(trace ("q = " ++ show q ++ ", name = " ++ show name ++ ", val = " ++ show val) val)
 
       set :: (MonadJSM m0, IsElement e) => Text -> Text -> e -> m0 ()
