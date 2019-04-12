@@ -1,9 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RecordWildCards #-}
 module Bailiwick.View.MapLegend
   ( mapLegend
+  , MapLegendState(..)
   )
 where
 
@@ -17,6 +19,11 @@ import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
 
 import Bailiwick.Types
 
+data MapLegendState t
+  = MapLegendState
+    { inputValuesD :: Dynamic t (Maybe [(Double, Maybe Display, Colour)])
+    }
+
 mapLegend
   :: ( Monad m
      , PostBuild t m
@@ -27,9 +34,9 @@ mapLegend
      , MonadHold t m
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
-  => Dynamic t (Maybe [(Double, Text, Text)])
+  => MapLegendState t
   -> m ()
-mapLegend inputValuesD = do
+mapLegend MapLegendState{..} = do
   (e, _) <- elAttr' "div" (  "class" =: "d3-attach"
                           <> "style" =: "width: 481px; height: 120px") $ return ()
   readyE <- getPostBuild
@@ -37,7 +44,7 @@ mapLegend inputValuesD = do
   let updateValuesE = updated inputValuesD
   updateE <- switchHold initialUpdate (updateValuesE <$ readyE)
   performEvent_ $ ffor updateE $ \case
-    Just (d) -> liftJSM . void $ do
-         jsg2 ("updateMapLegend" :: Text) (_element_raw e) d
+    Just d -> liftJSM . void $ do
+        jsg2 ("updateMapLegend" :: Text) (_element_raw e) d
     _ -> return ()
 

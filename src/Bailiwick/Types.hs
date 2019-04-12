@@ -376,10 +376,12 @@ instance FromJSON ChartData where
 
 
 -- Indicator Data
+type Colour = Text
+type Display = Text
 data IndicatorData
   = IndicatorData
     { indicatorNumbers  :: IndicatorNumbers
-    , indicatorScale    :: [(Double, Text, Text)]
+    , indicatorScale    :: [(Double, Maybe Display, Colour)]
     } deriving (Eq, Show, Generic)
 instance FromJSON IndicatorData where
   parseJSON = genericParseJSON options

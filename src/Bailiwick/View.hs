@@ -163,13 +163,16 @@ mainContent st@State{..} = do
   isSummary <- holdUniqDyn ((== Summary) . routePage <$> routeD)
   let zoomD = hasAdapter Mapzoom <$> routeD
       mapState = makeMapState st
+      mapLegendState = makeMapLegendState st
       areaSummaryState = makeSummaryState st
       indicatorSummaryState = makeIndicatorSummaryState st
       indicatorChartState = makeIndicatorChartState st
   switchDynM $
      ffor isSummary $ \case
         True  -> summaryContent routeD regionD areaD mapState areaSummaryState
-        False -> indicatorContent zoomD regionD mapState indicatorChartState indicatorSummaryState
+        False -> indicatorContent zoomD regionD
+                                  mapState mapLegendState
+                                  indicatorChartState indicatorSummaryState
 
 summaryContent
     :: ContentConstraints t m
@@ -197,10 +200,11 @@ indicatorContent
     => Dynamic t Bool
     -> Dynamic t (Maybe Area)
     -> MapState t
+    -> MapLegendState t
     -> IndicatorChartState t
     -> IndicatorSummaryState t
     -> m (Event t Message)
-indicatorContent zoomD regionD map_state indicator_chart_state indicator_summary_state = do
+indicatorContent zoomD regionD map_state map_legend_state indicator_chart_state indicator_summary_state = do
   contentE <- divClass "central-content indicator" $ do
     mapE <- divClass "indicator-map base-map" $
       divClass "map-wrapper" $ do
@@ -228,7 +232,7 @@ indicatorContent zoomD regionD map_state indicator_chart_state indicator_summary
                               ]
 
         mapClicks <- divClass "svg-wrapper" $ nzmap False map_state
-        divClass "legend" $ mapLegend (constDyn Nothing)
+        divClass "legend" $ mapLegend map_legend_state
         return $ leftmost [zoomClick, mapClicks]
     chartE <- divClass "indicator-chart" $
       indicatorChart indicator_chart_state

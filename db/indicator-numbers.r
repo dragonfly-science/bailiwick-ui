@@ -84,8 +84,8 @@ for (indid in names(indicators)) {
           colour   = colour
           )]
 
-  colourscale <- lapply(seq(min(range), max(range), 100), function(val) {
-    list(val,formatValue(unit,val), colour.teal(val,min.range, max.range))
+  colourscale <- lapply(seq(min(range), max(range), length.out=100), function(val) {
+    list(val, if(val %in% range) { formatValue(unit,val) } else {NULL}, colour.teal(val,min.range, max.range))
   })
 
   cat(as.character(toJSON(list(scale=colourscale, numbers=summarynumbers),

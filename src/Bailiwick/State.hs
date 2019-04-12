@@ -16,6 +16,7 @@ import Bailiwick.View.Indicators (IndicatorState(IndicatorState))
 import Bailiwick.View.ToolBar (ToolBarState(ToolBarState))
 import Bailiwick.View.AreaSummary (AreaSummaryState(AreaSummaryState))
 import Bailiwick.View.Map (MapState(MapState))
+import Bailiwick.View.MapLegend (MapLegendState(MapLegendState))
 import Bailiwick.View.IndicatorChart (IndicatorChartState(IndicatorChartState))
 import Bailiwick.View.IndicatorSummary (IndicatorSummaryState(IndicatorSummaryState))
 import Bailiwick.Route
@@ -122,6 +123,20 @@ makeMapState
   => State t -> MapState t
 makeMapState State{..} =
   MapState routeD regionD areaD (storeAreasD $ store) indicatorNumbersD
+
+-- Map Legend state
+makeMapLegendState
+  :: Reflex t
+  => State t -> MapLegendState t
+makeMapLegendState State{..} =
+  let indicatorScaleD = do
+        mindicator <- indicatorD
+        indicatorsData <- storeIndicatorsDataD store
+        return $ do
+          indid <- indicatorId <$> mindicator
+          IndicatorData{..} <- OMap.lookup indid indicatorsData
+          return indicatorScale
+  in MapLegendState indicatorScaleD
 
 
 -- IndicatorChart state
