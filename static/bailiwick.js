@@ -106,6 +106,13 @@ var updateTimeSeries = function(element, labelledData, activeLabelName) {
 }
 
 /**
+ * Legend for the map
+ **/
+var updateMapLegend = function(element, data) {
+    console.log('updateMapLegend', element, data);
+}
+
+/**
  * Initialise a bar chart - used on the indicator.
  **/
 var updateAreaBarchart = function(element, data) {
@@ -129,3 +136,7 @@ var updateAreaBarchart = function(element, data) {
 var updateIndicatorTimeSeries = function(element, label, ) {
 
 }
+
+
+
+

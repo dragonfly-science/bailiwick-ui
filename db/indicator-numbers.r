@@ -66,9 +66,12 @@ for (indid in names(indicators)) {
         nzdata, on=.(Year, Dimension1)]
   setkey(values, AreaID, Dimension1, Year)
   values[, previous := shift(Value,1), by=.(AreaID, Dimension1)]
-  values[, max.val := max(Value, na.rm=T)]
-  values[, min.val := min(Value, na.rm=T)]
-  values[!is.na(Value), colour := colour.teal(Value, min.val, max.val)]
+  range <- pretty(values[,Value])
+  min.range <- min(range)
+  max.range <- max(range)
+  values[,min.range:=min.range]
+  values[,max.range:=max.range]
+  values[!is.na(Value), colour := colour.teal(Value, min.range, max.range)]
 
   summarynumbers <-
       values[,
@@ -81,7 +84,12 @@ for (indid in names(indicators)) {
           colour   = colour
           )]
 
-  cat(as.character(toJSON(summarynumbers, null='null', auto_unbox=TRUE)), file=outputfile)
+  colourscale <- lapply(seq(min(range), max(range), 100), function(val) {
+    list(val,formatValue(unit,val), colour.teal(val,min.range, max.range))
+  })
+
+  cat(as.character(toJSON(list(scale=colourscale, numbers=summarynumbers),
+                          null='null', auto_unbox=TRUE)), file=outputfile)
   cat(" Done\n")
 
 }

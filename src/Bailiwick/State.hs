@@ -29,7 +29,7 @@ data State t
     , regionD            :: Dynamic t (Maybe Area)
     , areaD              :: Dynamic t (Maybe Area)
     , indicatorD         :: Dynamic t (Maybe Indicator)
-    , indicatorSummaryD  :: Dynamic t IndicatorSummary
+    , indicatorNumbersD  :: Dynamic t IndicatorNumbers
     }
 
 make
@@ -58,19 +58,20 @@ make routeD store@Store{..} =
             themepage <- mthemepage
             findIndicator themes themepage
 
-      indicatorSummaryD = do
+      indicatorNumbersD = do
         mindicator <- indicatorD
-        summaryNumbers <- storeSummaryNumbersD
-        return $ fromMaybe (IndicatorSummary OMap.empty) $ do
+        indicatorsData <- storeIndicatorsDataD
+        return $ fromMaybe (IndicatorNumbers OMap.empty) $ do
           indid <- indicatorId <$> mindicator
-          OMap.lookup indid summaryNumbers
+          IndicatorData{..} <- OMap.lookup indid indicatorsData
+          return indicatorNumbers
   in State
        { routeD             = routeD
        , store              = store
        , regionD            = fst <$> regta
        , areaD              = snd <$> regta
        , indicatorD         = indicatorD
-       , indicatorSummaryD  = indicatorSummaryD
+       , indicatorNumbersD  = indicatorNumbersD
        }
 
 
@@ -120,7 +121,7 @@ makeMapState
   :: Reflex t
   => State t -> MapState t
 makeMapState State{..} =
-  MapState routeD regionD areaD (storeAreasD $ store) indicatorSummaryD
+  MapState routeD regionD areaD (storeAreasD $ store) indicatorNumbersD
 
 
 -- IndicatorChart state
@@ -141,7 +142,7 @@ makeIndicatorSummaryState State{..} =
          (constDyn Nothing)  -- TODO compare area
          (constDyn Nothing)  -- TODO feature
          indicatorD          -- indicator
-         indicatorSummaryD   -- numbers
+         indicatorNumbersD   -- numbers
 
 
 

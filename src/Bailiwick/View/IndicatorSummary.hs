@@ -52,7 +52,7 @@ data IndicatorSummaryState t
   , compareAreaD       :: Dynamic t (Maybe Area)
   , featureD           :: Dynamic t (Maybe Feature)
   , indicatorD         :: Dynamic t (Maybe Indicator)
-  , indicatorSummaryD  :: Dynamic t IndicatorSummary
+  , indicatorNumbersD  :: Dynamic t IndicatorNumbers
   }
 
 
@@ -82,8 +82,8 @@ indicatorSummary IndicatorSummaryState{..} = mdo
       summaryNumsD = do
         mareaid <- fmap areaId <$> areaD
         myear   <- fmap themePageYear . getThemePage <$> routeD
-        IndicatorSummary ismap <- indicatorSummaryD
-        return $ fromMaybe (SummaryNums ["", "", ""]) $ do
+        IndicatorNumbers ismap <- indicatorNumbersD
+        return $ fromMaybe (Numbers ["", "", "", ""]) $ do
           areaid <- mareaid
           year <- myear
           OM.lookup (areaid, year, Nothing) ismap

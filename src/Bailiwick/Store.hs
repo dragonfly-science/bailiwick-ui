@@ -29,11 +29,11 @@ import Bailiwick.Route
 import Bailiwick.AreaTrees
 
 data Store t
-  = Store 
+  = Store
     { storeAreasD          :: Dynamic t (Maybe Areas)
     , storeThemesD         :: Dynamic t (Maybe [Theme])
     , storeSummariesD      :: Dynamic t (Maybe AreaSummaries)
-    , storeSummaryNumbersD :: Dynamic t SummaryNumbers
+    , storeIndicatorsDataD :: Dynamic t (OM.InsOrdHashMap IndicatorId IndicatorData)
     }
 
 empty :: Reflex t => Store t
@@ -42,7 +42,7 @@ empty
     { storeAreasD          = constDyn Nothing
     , storeThemesD         = constDyn Nothing
     , storeSummariesD      = constDyn Nothing
-    , storeSummaryNumbersD = constDyn emptySummaryNumbers
+    , storeIndicatorsDataD = constDyn OM.empty
     }
 
 run
@@ -75,7 +75,7 @@ initialData
   -> m (Store t)
 initialData messagesE store = do
   let isReady (Ready _) = True
-      isReady _ = False  
+      isReady _ = False
   let triggerE = () <$ ffilter isReady messagesE
 
   areasE     <- apiGetAreas triggerE
@@ -87,7 +87,7 @@ initialData messagesE store = do
   summariesD <- holdDyn Nothing $ catchApi "getAreaSummaries" summariesE
 
   return $
-    store 
+    store
       { storeAreasD     = areasD
       , storeThemesD    = themesD
       , storeSummariesD = summariesD
@@ -113,24 +113,24 @@ summaryNumbers messageE store@Store{..} = do
             case OM.lookup indid numbers of
               Just _ -> Nothing
               Nothing -> Just indid
-  let indicatorE = attachPromptlyDynWithMaybe test storeSummaryNumbersD messageE
+  let indicatorE = attachPromptlyDynWithMaybe test storeIndicatorsDataD messageE
 
   indicatorD <- holdDyn Nothing (Just <$> indicatorE)
 
   numbersE <- do
     let jsonfileD
           = ffor indicatorD $ \case
-                Nothing -> Left "indicator-not-defined"        
+                Nothing -> Left "indicator-not-defined"
                 Just (IndicatorId ind) -> Right (ind <> ".json")
-    apiGetIndicatorSummaryNumbers jsonfileD (() <$ indicatorE)
+    apiGetIndicatorData jsonfileD (() <$ indicatorE)
 
   numbersD <-
     foldDyn (uncurry OM.insert) OM.empty
                  $ attachPromptlyDynWithMaybe (\mind i -> (,i) <$> mind) indicatorD
                  $ fmapMaybe id
-                 $ catchApi "getIndicatorSummaryNumbers" numbersE
+                 $ catchApi "getIndicatorData" numbersE
 
-  return $ store { storeSummaryNumbersD = numbersD }
+  return $ store { storeIndicatorsDataD = numbersD }
 
 -- getChartData
 --   :: ( MonadHold t m
@@ -140,15 +140,15 @@ summaryNumbers messageE store@Store{..} = do
 --      )
 --   =>  Dynamic t Text -> m (Dynamic t (Maybe ChartData))
 -- getChartData filenameD = do
--- 
+--
 -- --   updated filenameD ...
 -- --       lookInMemory ... <|>
 -- --       lookInLocalStorate ... <|>
 -- --       lookOnDisk ... <|>
 -- --       fetchUsing servant <|>
--- 
+--
 --   chartDataE <- apiGetChartData (Right <$> filenameD) (() <$ updated filenameD)
--- 
+--
 --   holdDyn Nothing $ fmap reqSuccess chartDataE
 
 
@@ -177,9 +177,7 @@ type GetFeatures = "data" :> "features-11d88bc13.json" :> Get '[JSON] [Feature]
 
 type GetMapSummaries = "data" :> Capture "filename" Text :> Get '[JSON] MapSummary
 type GetChartData = "chartdata" :> Capture "filename" Text :> Get '[JSON] ChartData
-type GetIndicatorSummaryNumbers
-  = "db" :> "dev" :> Capture "<indicator>.json" Text
-                  :> Get '[JSON] IndicatorSummary
+type GetIndicatorData = "db" :> "dev" :> Capture "<indicator>.json" Text :> Get '[JSON] IndicatorData
 
 apiGetAreas
     :: forall t m . SupportsServantReflex t m => Client t m GetAreas ()
@@ -224,9 +222,9 @@ _apiGetChartData
         (Proxy :: Proxy ()) (constDyn (BasePath "/data"))
 
 
-apiGetIndicatorSummaryNumbers
-    :: forall t m . SupportsServantReflex t m => Client t m GetIndicatorSummaryNumbers ()
-apiGetIndicatorSummaryNumbers
-    = client (Proxy :: Proxy GetIndicatorSummaryNumbers) (Proxy :: Proxy m)
+apiGetIndicatorData
+    :: forall t m . SupportsServantReflex t m => Client t m GetIndicatorData ()
+apiGetIndicatorData
+    = client (Proxy :: Proxy GetIndicatorData) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 

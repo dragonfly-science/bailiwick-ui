@@ -30,6 +30,7 @@ import Bailiwick.Route
 import Bailiwick.Types
 import Bailiwick.View.Header (header)
 import Bailiwick.View.Map
+import Bailiwick.View.MapLegend
 import Bailiwick.View.AreaSummary (areaSummary, AreaSummaryState)
 import Bailiwick.View.Indicators (indicators)
 import Bailiwick.View.IndicatorChart
@@ -227,7 +228,7 @@ indicatorContent zoomD regionD map_state indicator_chart_state indicator_summary
                               ]
 
         mapClicks <- divClass "svg-wrapper" $ nzmap False map_state
-        divClass "legend" $ return ()
+        divClass "legend" $ mapLegend (constDyn Nothing)
         return $ leftmost [zoomClick, mapClicks]
     chartE <- divClass "indicator-chart" $
       indicatorChart indicator_chart_state

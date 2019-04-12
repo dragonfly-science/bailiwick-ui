@@ -24,6 +24,7 @@ library
                        Bailiwick.View.IndicatorSummary
                        Bailiwick.View.Indicators
                        Bailiwick.View.Map
+                       Bailiwick.View.MapLegend
                        Bailiwick.View.ToolBar
                        Bailiwick.View.Text
                        Bailiwick.Application

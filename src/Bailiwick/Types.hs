@@ -375,18 +375,25 @@ instance FromJSON ChartData where
       return (ChartData chartId chartVals)
 
 
--- Indicator Summary Numbers
-type SummaryNumbers = InsOrdHashMap IndicatorId IndicatorSummary
-emptySummaryNumbers :: SummaryNumbers
-emptySummaryNumbers = OMap.empty
-newtype IndicatorSummary =
-  IndicatorSummary (InsOrdHashMap (AreaId, Year, Maybe FeatureId) SummaryNums)
+-- Indicator Data
+data IndicatorData
+  = IndicatorData
+    { indicatorNumbers  :: IndicatorNumbers
+    , indicatorScale    :: [(Double, Text, Text)]
+    } deriving (Eq, Show, Generic)
+instance FromJSON IndicatorData where
+  parseJSON = genericParseJSON options
+      where
+        options = defaultOptions { fieldLabelModifier = map toLower . drop 9 }
+
+newtype IndicatorNumbers =
+  IndicatorNumbers (InsOrdHashMap (AreaId, Year, Maybe FeatureId) Numbers)
   deriving (Eq, Show, Generic)
-instance FromJSON IndicatorSummary where
+instance FromJSON IndicatorNumbers where
   parseJSON
-    = (IndicatorSummary . OMap.fromList . V.toList <$>) .
-        (withArray "indicatorsummary" $ mapM $
-            (withObject "indicatorsummary" $ \value -> do
+    = (IndicatorNumbers . OMap.fromList . V.toList <$>) .
+        (withArray "indicatornumbers" $ mapM $
+            (withObject "indicatornumbers" $ \value -> do
               areaid   <- value .:  "areaid"
               year     <- value .:  "year"
               feature  <- value .:? "feature"
@@ -395,25 +402,25 @@ instance FromJSON IndicatorSummary where
               national <- value .:  "national"
               colour   <- value .:  "colour"
               return ( (areaid, year, feature)
-                     , SummaryNums [headline, local, national, colour])))
+                     , Numbers [headline, local, national, colour])))
 
-newtype SummaryNums = SummaryNums [Text]
+newtype Numbers = Numbers [Text]
   deriving (Eq, Show, Generic, FromJSON)
 
-headlineNum :: SummaryNums -> Text
-headlineNum (SummaryNums [n,_,_,_]) = n
+headlineNum :: Numbers -> Text
+headlineNum (Numbers [n,_,_,_]) = n
 headlineNum _ = ""
 
-localNum :: SummaryNums -> Text
-localNum (SummaryNums [_,n,_,_]) = n
+localNum :: Numbers -> Text
+localNum (Numbers [_,n,_,_]) = n
 localNum _ = ""
 
-nationalNum :: SummaryNums -> Text
-nationalNum (SummaryNums [_,_,n,_]) = n
+nationalNum :: Numbers -> Text
+nationalNum (Numbers [_,_,n,_]) = n
 nationalNum _ = ""
 
-colourNum :: SummaryNums -> Text
-colourNum (SummaryNums [_,_,_,n]) = n
+colourNum :: Numbers -> Text
+colourNum (Numbers [_,_,_,n]) = n
 colourNum _ = ""
 
 
