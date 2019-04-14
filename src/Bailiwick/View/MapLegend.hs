@@ -15,7 +15,7 @@ import Data.Text (Text)
 
 import Reflex
 import Reflex.Dom.Core
-import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
+import Language.Javascript.JSaddle (jsg3, MonadJSM, liftJSM)
 
 import Bailiwick.Types
 
@@ -37,14 +37,13 @@ mapLegend
   => MapLegendState t
   -> m ()
 mapLegend MapLegendState{..} = do
-  (e, _) <- elAttr' "div" (  "class" =: "d3-attach"
-                          <> "style" =: "width: 481px; height: 120px") $ return ()
   readyE <- getPostBuild
   let initialUpdate = tagPromptlyDyn inputValuesD readyE
-  let updateValuesE = updated inputValuesD
-  updateE <- switchHold initialUpdate (updateValuesE <$ readyE)
+      width  = 481 :: Int
+      height = 120 :: Int
+  updateE <- switchHold initialUpdate (updated inputValuesD <$ readyE)
   performEvent_ $ ffor updateE $ \case
     Just d -> liftJSM . void $ do
-        jsg2 ("updateMapLegend" :: Text) (_element_raw e) d
+        jsg3 ("updateMapLegend" :: Text) width height d
     _ -> return ()
 

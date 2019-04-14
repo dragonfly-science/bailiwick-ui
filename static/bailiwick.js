@@ -108,8 +108,35 @@ var updateTimeSeries = function(element, labelledData, activeLabelName) {
 /**
  * Legend for the map
  **/
-var updateMapLegend = function(element, data) {
-    console.log('updateMapLegend', element, data);
+var updateMapLegend = function(width, height, scaledata) {
+    var svg = d3.select(".legend").selectAll("svg")
+      .data([scaledata])
+      .enter()
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height);
+    var step = (width-100)/100;
+
+    var sd = Array.from(Array(100).keys(),
+                 i => [i*step, scaledata[i][2]]);
+    console.log(sd);
+
+    var g = svg.selectAll("g")
+      .data([sd])
+      .enter()
+      .append("g")
+      .attr("class", "key")
+      .attr("transform", "translate(50," + height * 1 / 3 + ")");
+
+    var legend = g.selectAll("rect")
+      .data(sd)
+      .enter()
+      .append("rect")
+      .attr("height", 8)
+      .attr("x", function(d) { return d[0]; })
+      .attr("width", step)
+      .style("fill", function(d) { return d[1]; })
+      .style("stroke", function(d) { return d[1]; });
 }
 
 /**
