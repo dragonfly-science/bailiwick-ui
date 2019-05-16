@@ -23,7 +23,7 @@
 
           .title {
             @include backface-visibility(hidden);
-            background-position: center bottom;
+            background-position: center rem(-40px);
             min-height: 0;
             position: fixed;
             width: 100%;

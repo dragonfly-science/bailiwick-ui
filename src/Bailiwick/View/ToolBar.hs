@@ -220,7 +220,7 @@ toolbarList dropdownClass emptyPresentD closeE seenD currentValue valuesD =
 
       elClass "span" "label" $ text dropdownClass
       (_, selectedValue :: Event t (Map (Int, Text) Text))
-          <- elAttr' "div" ("style" =: "overflow: scroll") $ -- ("class" =: "ps-content ps-container ps-theme-default") $
+          <- elAttr' "div" ("style" =: "") $ -- ("class" =: "ps-content ps-container ps-theme-default") $
                 elClass "ul" "options" $ do
                 let selectionDemux = demux currentValue
                 listViewWithKey optionsD $ \(_, k) v -> do

@@ -1,11 +1,16 @@
+$toolbar-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94) !default; // easeOutQuad
+
+
 .tool-bar {
   position: absolute;
   left: 0;
   width: 100%;
   z-index: 1;
   background: $rear-white;
-  height: rem(70);
+  height: 100vh;
+  max-height: rem(70);
   font-family: 'gustan-medium';
+  transition: max-height 0.5s $toolbar-easing;
 
   &:before,
   &:after {
@@ -38,80 +43,25 @@
   }
 
   .large & {
-    height: rem(270);
+    max-height: 100vh;
+    height: 100vh;
+    transition: max-height 0.5s $toolbar-easing;
 
     .filtering {
       display: block;
-    }
-
-    .filters {
-      margin-top: rem(22);
+      max-height: rem(1000);
+      opacity: 1;
+      transition: max-height 0.5s, opacity 0.5s;
     }
 
     .summary {
-      height: 0;
+      max-height: 0;
+      transition: max-height 0.15s;
 
       .label,
       .elements {
         display: none;
       }
-    }
-
-    .filter-type {
-        // IE11 hack ahead!
-        ul {
-            list-style: none;
-        }
-
-        &.area {
-            @include flex-basis(160px);
-        }
-        &.transform {
-            @include flex-basis(115px);
-        }
-
-        &.charts {
-          margin-top: 4px;
-        }
-    }
-  }
-
-  .small & {
-    .filters {
-      @include justify-content(flex-end);
-      height: 0;
-    }
-
-    .filtering {
-      height: 0;
-    }
-
-    .filter-type {
-      display: none;
-
-      &.charts {
-        display: block;
-
-        .header {
-          border-bottom: none;
-          margin-bottom: 0;
-          min-height: 0;
-
-          button.active {
-            &:after {
-              display: none;
-            }
-          }
-        }
-
-        .options {
-          display: none;
-        }
-      }
-    }
-
-    .background-clickable {
-      display: none;
     }
   }
 
@@ -138,7 +88,9 @@
 
   .summary {
     position: relative;
-    height: rem(70);
+    height: 100%;
+    max-height: rem(70);
+    transition: max-height 0.5s;
 
     .label,
     .elements {
@@ -163,6 +115,7 @@
     button {
       display: table-cell;
       font-size: 14px;
+      outline: none;
 
       &:after {
         content: "+";
@@ -201,6 +154,7 @@
       color: $rear-main-highlight;
       padding: rem(25) 0 0 0;
       background: none;
+      outline: none;
     }
 
     .chosen-container {
@@ -209,6 +163,7 @@
       z-index: 2;
       top: 0;
       left: 0;
+      outline: none;
 
       &-active {
         &.chosen-with-drop {
@@ -283,6 +238,11 @@
   .filtering {
     position: relative;
     z-index: 2;
+    height: 100%;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.5s, opacity 0.5s;
   }
 
   .filters {
@@ -290,54 +250,13 @@
     @include flex-wrap(wrap);
     @include flex-direction(columns);
     @include justify-content(space-between);
+    
+    margin-top: rem(22);
+    // transition
   }
 
   .view-by {
     display: none;
-  }
-
-  .filter-type {
-    margin-right: 40px;
-
-    &:last-child {
-      @include align-content(flex-end);
-      margin-right: 0;
-      width: 312px;
-      padding-right: 70px;
-    }
-
-    .label {
-      line-height: 1em;
-      margin-bottom: 20px;
-    }
-
-    button {
-        @include border-top-radius(0);
-        @include border-bottom-radius(0);
-        margin-bottom: 2px;
-        margin-right: 2px;
-        display: inline-block;
-        float: left;
-        background: $rear-background;
-        color: $rear-main-highlight;
-        font-size: 14px;
-        font-weight: normal;
-        line-height: 1em;
-        text-transform: capitalize;
-
-      &:hover,
-      &.active {
-        color: $rear-white;
-        background: $rear-alternative-highlight;
-      }
-
-      &:disabled {
-        &:hover {
-          background: $rear-background;
-          color: $rear-main-highlight;
-        }
-      }
-    }
   }
 
   .year {
@@ -381,12 +300,29 @@
     button {
       font-family: 'Droid Sans Mono', monospace;
       float: none;
+      outline: none;
     }
   }
 
   .filter-type {
+    margin-right: 40px;
+
+    &:last-child {
+      @include align-content(flex-end);
+      margin-right: 0;
+      width: 312px;
+      padding-right: 70px;
+    }
+
+    &.area {
+      @include flex-basis(160px);
+    }
+    &.transform {
+        @include flex-basis(115px);
+    }
+
     &.charts {
-      margin-top: rem(-44);
+      // margin-top: rem(-44);
 
       .label {
         display: none;
@@ -450,6 +386,54 @@
         }
       }
     }
+
+    &.year {
+      button {
+        font-size: rem(12);
+      }
+    }
+
+    .label {
+      line-height: 1em;
+      margin-bottom: 20px;
+    }
+
+    // IE11 hack ahead!
+    ul {
+        max-width: rem(290);
+        display: flex;
+        list-style: none;
+        flex-wrap: wrap;
+    }
+
+    button {
+        @include border-top-radius(0);
+        @include border-bottom-radius(0);
+        margin-bottom: 2px;
+        margin-right: 2px;
+        display: inline-block;
+        float: left;
+        background: $rear-background;
+        color: $rear-main-highlight;
+        font-size: 14px;
+        font-weight: normal;
+        line-height: 1em;
+        text-transform: capitalize;
+        outline: none;
+
+      &:hover,
+      &.active {
+        color: $rear-white;
+        background: $rear-alternative-highlight;
+      }
+
+      &:disabled {
+        &:hover {
+          background: $rear-background;
+          color: $rear-main-highlight;
+        }
+      }
+    }
   }
 
   .actions {
@@ -468,6 +452,7 @@
       position: absolute;
       right: 25px;
       top: 0;
+      outline: none;
     }
 
     .open-button {
@@ -505,6 +490,7 @@
     background: $rear-background;
     line-height: 0;
     display: none;
+    outline: none;
 
     &-active {
       &.chosen-with-drop {
@@ -541,6 +527,7 @@
       display: inline-block;
       height: 100%;
       width: 100%;
+      outline: none;
 
       span {
         margin-right: 20px;
@@ -566,6 +553,8 @@
       background: $rear-white;
       font-family: $base-font-family;
       border-bottom: none;
+      width: 100%;
+      max-width: 100%;
     }
 
     li {
@@ -600,24 +589,31 @@
 
     .summary {
       height: 0;
+      display: none;
     }
 
     .filters {
       @include justify-content(flex-start);
+      margin-top: 0;
     }
 
-    .small & {
-      .filtering,
-      .filters{
-        height: auto;
-      }
+    .filtering {
+      overflow: visible;
+    }
 
-      .filters {
-        @include justify-content(flex-start);
-      }
+    .filtering,
+    .filters{
+      height: auto;
+      max-height: 100%;
+      opacity: 1;
+    }
 
-      .filter-type {
-        display: block;
+    .filter-type {
+      display: block;
+
+      .label,
+      .label + div {
+        display: none;
       }
     }
 
@@ -640,8 +636,6 @@
       @include flex-grow(1);
       margin-right: 2px;
 
-
-
       &:last-child {
         width: auto;
         padding-right: 0;
@@ -662,6 +656,8 @@
           border-bottom: none;
 
           button {
+            outline: none;
+
             &:last-child {
               margin-right: 0;
             }
@@ -697,20 +693,18 @@
         top: rem(100);
     }
 
-    .small & {
-      .filter-type {
-        &.area,
-        &.transform,
-        &.year {
-          display: none;
-        }
+    .filter-type {
+      &.area,
+      &.transform,
+      &.year {
+        display: none;
+      }
 
-        &.charts {
-          @include display(flex);
+      &.charts {
+        @include display(flex);
 
-          .header {
-            margin-bottom: 0;
-          }
+        .header {
+          margin-bottom: 0;
         }
       }
     }
@@ -723,6 +717,11 @@
       }
 
       .filter-type {
+        &.area,
+        &.transform,
+        &.year {
+          display: block;
+        }
           &.area,
           &.transform {
               @include flex-basis(100%);
@@ -749,6 +748,7 @@
       height: 66px;
       position: absolute;
       right: 0;
+      display: block;
 
       .actions {
         width: 100%;
@@ -762,6 +762,7 @@
           @include transform(translateY(-50%));
           top: 50%;
           right: 24px;
+          outline: none;
         }
       }
     }

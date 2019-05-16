@@ -156,7 +156,8 @@
           }
         }
 
-        &-workforce {
+        &-workforce,
+        &-workforce-rates {
           i {
              @include fontello-icon( $icon: workforce, $font-size: rem(24), $color: $rear-white );
              @include transform(translate(0px, 2px));
