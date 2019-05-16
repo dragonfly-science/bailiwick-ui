@@ -119,7 +119,7 @@ var updateMapLegend = function(width, height, scaledata) {
 
     var sd = Array.from(Array(100).keys(),
                  i => [i*step, scaledata[i][2]]);
-    console.log(sd);
+    // console.log(sd);
 
     var g = svg.selectAll("g")
       .data([sd])
@@ -159,8 +159,9 @@ var updateAreaBarchart = function(element, data) {
 
 /**
  * Time series used on an indicator
+ * * data: { year, selected area, areas }
  **/
-var updateIndicatorTimeSeries = function(element, label, ) {
+var updateIndicatorTimeSeries = function(element, data) {
 
 }
 

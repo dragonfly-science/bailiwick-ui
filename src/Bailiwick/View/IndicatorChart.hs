@@ -20,10 +20,15 @@ import Language.Javascript.JSaddle (MonadJSM) --(jsg2, MonadJSM, liftJSM)
 import Reflex.Dom.Core hiding (Element)
 
 import Bailiwick.Route
+import Bailiwick.Types
 
 data IndicatorChartState t
   = IndicatorChartState
-    { routeD     :: Dynamic t Route
+    { routeD             :: Dynamic t Route
+    , areaD              :: Dynamic t (Maybe Area)
+    , featureD           :: Dynamic t (Maybe Feature)
+    , indicatorD         :: Dynamic t (Maybe Indicator)
+    , indicatorNumbersD  :: Dynamic t IndicatorNumbers
     }
 
 
@@ -42,6 +47,7 @@ indicatorChart
   => IndicatorChartState t
   -> m (Event t Message)
 indicatorChart IndicatorChartState{..} = do
+  -- readyE <- getPostBuild
   let pageD = getThemePage <$> routeD
       _year = fmap themePageYear <$> pageD
       _iId = fmap themePageIndicatorId <$> pageD
@@ -78,4 +84,13 @@ indicatorChart IndicatorChartState{..} = do
 --                    (Array $ chartDataValues chart)
 --     return ()
 
+-- updateIndicatorTimeSeries
+-- 
+--   let initialUpdate = tagPromptlyDyn inputValuesD readyE
+--   let updateValuesE = updated inputValuesD
+--   updateE <- switchHold initialUpdate (updateValuesE <$ readyE)
+--   performEvent_ $ ffor updateE $ \case
+--     Just (d, area) -> liftJSM . void $ do
+--          jsg3 ("updateTimeSeries" :: Text) (_element_raw e) d (maybe "" areaId area)
+--     _ -> return ()
   return never

@@ -144,7 +144,11 @@ makeIndicatorChartState
   :: Reflex t
   => State t -> IndicatorChartState t
 makeIndicatorChartState State{..} =
-  IndicatorChartState routeD
+  let selectedAreaD = zipDynWith (<|>) areaD regionD
+  in IndicatorChartState routeD selectedAreaD 
+          (constDyn Nothing) -- TO DO Feature
+          indicatorD
+          indicatorNumbersD
 
 
 -- make IndicatorSummaryState

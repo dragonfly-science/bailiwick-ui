@@ -403,8 +403,9 @@ instance FromJSON IndicatorNumbers where
               local    <- value .:  "local"
               national <- value .:  "national"
               colour   <- value .:  "colour"
+              raw      <- value .:  "rawvalue"
               return ( (areaid, year, feature)
-                     , Numbers [headline, local, national, colour])))
+                     , Numbers [headline, local, national, colour, raw])))
 
 newtype Numbers = Numbers [Text]
   deriving (Eq, Show, Generic, FromJSON)

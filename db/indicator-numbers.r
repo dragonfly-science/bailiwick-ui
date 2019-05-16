@@ -50,7 +50,6 @@ nationalformat <- function(unit, national, value) {
 }
 
 for (indid in names(indicators)) {
-
   outputfile = paste0(prefix, '/', indid, '.json')
   cat("preparing", outputfile, "...")
 
@@ -81,7 +80,8 @@ for (indid in names(indicators)) {
           headline = formatValue(unit, Value),
           local    = localformat(unit, previous, Value),
           national = nationalformat(unit, national, Value),
-          colour   = colour
+          colour   = colour,
+          rawvalue = formatValue('', Value)
           )]
 
   colourscale <- lapply(seq(min(range), max(range), length.out=100), function(val) {
