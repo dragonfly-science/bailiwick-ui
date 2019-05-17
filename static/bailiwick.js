@@ -161,8 +161,8 @@ var updateAreaBarchart = function(element, data) {
  * Time series used on an indicator
  * * data: { year, selected area, areas }
  **/
-var updateIndicatorTimeSeries = function(element, data) {
-
+var updateIndicatorTimeSeries = function(data, year, indicatorID) {
+    console.log('indicator time series', data, year, indicatorID);
 }
 
 

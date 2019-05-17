@@ -19,6 +19,8 @@ import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import qualified Data.Vector as V
 
+import Language.Javascript.JSaddle.Value
+
 import GHC.Generics
 
 type AreaId = Text
@@ -179,7 +181,7 @@ instance FromJSON Language where
 
 newtype IndicatorId = IndicatorId { unIndicatorId :: Text }
    deriving (Eq, Ord, Show, Generic, Hashable,
-             FromJSONKey, FromJSON, IsString)
+             FromJSONKey, FromJSON, IsString, ToJSVal)
 newtype ChartId = ChartId Text deriving (Eq, Ord, Show, Generic)
 instance FromJSON ChartId where
    parseJSON v = ChartId <$> parseJSON v
@@ -274,7 +276,8 @@ instance FromJSON Indicator where
 
 type Indicators = InsOrdHashMap IndicatorId Indicator
 
-newtype FeatureId = FeatureId { featureIdText :: Text } deriving (Eq, Ord, Show, Generic)
+newtype FeatureId = FeatureId { featureIdText :: Text }
+   deriving (Eq, Ord, Show, Generic, ToJSVal)
 instance Hashable FeatureId
 instance FromJSON FeatureId where
    parseJSON v = FeatureId <$> parseJSON v
@@ -408,7 +411,7 @@ instance FromJSON IndicatorNumbers where
                      , Numbers [headline, local, national, colour, raw])))
 
 newtype Numbers = Numbers [Text]
-  deriving (Eq, Show, Generic, FromJSON)
+  deriving (Eq, Show, Generic, FromJSON, ToJSVal)
 
 headlineNum :: Numbers -> Text
 headlineNum (Numbers [n,_,_,_]) = n
