@@ -14,9 +14,9 @@ import qualified Data.HashMap.Strict.InsOrd as OMap
 import Data.Text (Text)
 
 --import GHCJS.DOM.Types (Element(..))
-import Language.Javascript.JSaddle (jsg3, MonadJSM, liftJSM)
+import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
 --import Reflex.PerformEvent.Class (PerformEvent(..))
-import Reflex.Dom.Core hiding (Element)
+import Reflex.Dom.Core
 
 import Bailiwick.Route
 import Bailiwick.Types
@@ -30,6 +30,13 @@ data IndicatorChartState t
     , indicatorNumbersD  :: Dynamic t IndicatorNumbers
     }
 
+shapeData :: IndicatorNumbers -> [(AreaId, [(Year, Text, Text)])]
+shapeData (IndicatorNumbers inmap) =
+    let step (areaid, year, mfeatureid) numbers current
+          = OMap.alter (malter (year, headlineNum numbers, rawNum numbers)) areaid current
+        malter yns Nothing = Just [yns]
+        malter yns (Just this) = Just (yns:this)
+    in  OMap.toList $ OMap.foldrWithKey step OMap.empty inmap 
 
 indicatorChart
   :: ( Monad m
@@ -45,25 +52,30 @@ indicatorChart
   => IndicatorChartState t
   -> m (Event t Message)
 indicatorChart IndicatorChartState{..} = do
+  (e, _) <- elAttr' "div" ("class" =: "default-timeseries") $ do
+    elAttr "svg" ("class" =: "d3-attach") $ return ()
   readyE <- getPostBuild
+
   let pageD = getThemePage <$> routeD
       _year = fmap themePageYear <$> pageD
       _iId = fmap themePageIndicatorId <$> pageD
+      _transform = fmap themePageRightTransform <$> pageD
       jsargs = do
         indn <- indicatorNumbersD
         my <- _year
         ind <- _iId
-        return (indn, my, ind)
+        transform <- _transform
+        return (indn, my, ind, transform)
 
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
-  updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId) 
+  updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId, Maybe Text) 
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
   performEvent_ $ ffor updateE $ \case
-    (IndicatorNumbers indn, my, ind)
+    (indn, my, ind, transform)
       -> liftJSM . void 
-          $ do jsg3 ("updateIndicatorTimeSeries" :: Text) (OMap.toList indn) my ind
+          $ do jsg2 ("updateIndicatorTimeSeries" :: Text) (_element_raw e) (shapeData indn, my, ind, transform)
   return never
   -- TODO: we now know the time series from the indicator,
   -- we just need to retrieve the current "chartD" json from the

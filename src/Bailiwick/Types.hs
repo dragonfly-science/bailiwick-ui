@@ -408,26 +408,23 @@ instance FromJSON IndicatorNumbers where
               colour   <- value .:  "colour"
               raw      <- value .:  "rawvalue"
               return ( (areaid, year, feature)
-                     , Numbers [headline, local, national, colour, raw])))
+                     , Numbers (headline, local, national, colour, raw))))
 
-newtype Numbers = Numbers [Text]
-  deriving (Eq, Show, Generic, FromJSON, ToJSVal)
+newtype Numbers = Numbers (Text, Text, Text, Text, Text)
+  deriving (Eq, Show, Generic, FromJSON)
 
 headlineNum :: Numbers -> Text
-headlineNum (Numbers [n,_,_,_]) = n
-headlineNum _ = ""
+headlineNum (Numbers (n,_,_,_,_)) = n
 
 localNum :: Numbers -> Text
-localNum (Numbers [_,n,_,_]) = n
-localNum _ = ""
+localNum (Numbers (_,n,_,_,_)) = n
 
 nationalNum :: Numbers -> Text
-nationalNum (Numbers [_,_,n,_]) = n
-nationalNum _ = ""
+nationalNum (Numbers (_,_,n,_,_)) = n
 
 colourNum :: Numbers -> Text
-colourNum (Numbers [_,_,_,n]) = n
-colourNum _ = ""
+colourNum (Numbers (_,_,_,n,_)) = n
 
-
+rawNum :: Numbers -> Text
+rawNum (Numbers (_,_,_,_,n)) = n
 

@@ -83,7 +83,7 @@ indicatorSummary IndicatorSummaryState{..} = mdo
         mareaid <- fmap areaId <$> areaD
         myear   <- fmap themePageYear . getThemePage <$> routeD
         IndicatorNumbers ismap <- indicatorNumbersD
-        return $ fromMaybe (Numbers ["", "", "", ""]) $ do
+        return $ fromMaybe (Numbers ("", "", "", "","")) $ do
           areaid <- mareaid
           year <- myear
           OM.lookup (areaid, year, Nothing) ismap

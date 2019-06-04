@@ -25,7 +25,7 @@ connect to.
 And in the other shell:
 
 ```bash
-$ nix-shell -A shells.ghc
+$ nix-shell -A shells.ghcjs
 $ cabal new-build --ghcjs
 ```
 
