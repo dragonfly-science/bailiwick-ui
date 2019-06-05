@@ -25,21 +25,22 @@ data IndicatorChartState t
   = IndicatorChartState
     { routeD             :: Dynamic t Route
     , areaD              :: Dynamic t (Maybe Area)
+    , areasD             :: Dynamic t (Maybe Areas)
     , featureD           :: Dynamic t (Maybe Feature)
     , indicatorD         :: Dynamic t (Maybe Indicator)
     , indicatorNumbersD  :: Dynamic t IndicatorNumbers
     }
 
-shapeData :: IndicatorNumbers -> [(AreaId, [(Year, Text, Text, Text, Text, Text)])]
-shapeData (IndicatorNumbers inmap) =
+shapeData :: Maybe Areas -> IndicatorNumbers -> [(AreaId, [(Year, Text, Text, Text, Text)])]
+shapeData areas (IndicatorNumbers inmap) =
   -- let getAreas = do
   --       areas <- Areas
   --       return (areas)
-  let step (areaid, year, mfeatureid) numbers current
-        = OMap.alter (malter (year, headlineNum numbers, localNum numbers, nationalNum numbers, colourNum numbers, rawNum numbers)) areaid current
+  let step (areaid, year, mfeatureid) Numbers{..} current
+        = OMap.alter (malter (year, rawNum, indexNum, headlineDisp, indexDisp)) areaid current
       malter yns Nothing = Just [yns]
       malter yns (Just this) = Just (yns:this)
-  in  OMap.toList $ OMap.foldrWithKey step OMap.empty inmap 
+  in  OMap.toList $ OMap.foldrWithKey step OMap.empty inmap
 
 indicatorChart
   :: ( Monad m
@@ -68,20 +69,21 @@ indicatorChart IndicatorChartState{..} = do
       _transform = fmap themePageLeftTransform <$> pageD
       jsargs = do
         indn <- indicatorNumbersD
+        areas <- areasD
         my <- _year
         ind <- _iId
         transform <- _transform
-        return (indn, my, ind, transform)
+        return (indn, my, ind, areas, transform)
 
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
-  updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId, Maybe Text) 
+  updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId, Maybe Areas, Maybe Text)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
   performEvent_ $ ffor updateE $ \case
-    (indn, my, ind, transform)
-      -> liftJSM . void 
-          $ do jsg2 ("updateIndicatorTimeSeries" :: Text) (_element_raw e) (shapeData indn, my, ind, transform)
+    (indn, my, ind, areas, transform)
+      -> liftJSM . void
+          $ do jsg2 ("updateIndicatorTimeSeries" :: Text) (_element_raw e) (shapeData areas indn, my, ind, transform)
   return never
   -- TODO: we now know the time series from the indicator,
   -- we just need to retrieve the current "chartD" json from the
@@ -116,7 +118,7 @@ indicatorChart IndicatorChartState{..} = do
 --     return ()
 
 -- updateIndicatorTimeSeries
--- 
+--
 --   let initialUpdate = tagPromptlyDyn inputValuesD readyE
 --   let updateValuesE = updated inputValuesD
 --   updateE <- switchHold initialUpdate (updateValuesE <$ readyE)
