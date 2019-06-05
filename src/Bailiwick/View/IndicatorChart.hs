@@ -30,13 +30,16 @@ data IndicatorChartState t
     , indicatorNumbersD  :: Dynamic t IndicatorNumbers
     }
 
-shapeData :: IndicatorNumbers -> [(AreaId, [(Year, Text, Text)])]
+shapeData :: IndicatorNumbers -> [(AreaId, [(Year, Text, Text, Text, Text, Text)])]
 shapeData (IndicatorNumbers inmap) =
-    let step (areaid, year, mfeatureid) numbers current
-          = OMap.alter (malter (year, headlineNum numbers, rawNum numbers)) areaid current
-        malter yns Nothing = Just [yns]
-        malter yns (Just this) = Just (yns:this)
-    in  OMap.toList $ OMap.foldrWithKey step OMap.empty inmap 
+  -- let getAreas = do
+  --       areas <- Areas
+  --       return (areas)
+  let step (areaid, year, mfeatureid) numbers current
+        = OMap.alter (malter (year, headlineNum numbers, localNum numbers, nationalNum numbers, colourNum numbers, rawNum numbers)) areaid current
+      malter yns Nothing = Just [yns]
+      malter yns (Just this) = Just (yns:this)
+  in  OMap.toList $ OMap.foldrWithKey step OMap.empty inmap 
 
 indicatorChart
   :: ( Monad m
@@ -52,14 +55,17 @@ indicatorChart
   => IndicatorChartState t
   -> m (Event t Message)
 indicatorChart IndicatorChartState{..} = do
-  (e, _) <- elAttr' "div" ("class" =: "default-timeseries") $ do
-    elAttr "svg" ("class" =: "d3-attach") $ return ()
+  (e, _) <- divClass "chart-wrapper" $ do
+    elAttr' "div" ("class" =: "default-timeseries") $ do
+      elAttr "svg" ("class" =: "d3-attach") $ return ()
+      divClass "tooltip" $ return ()
+      divClass "legend" $ return ()
   readyE <- getPostBuild
 
   let pageD = getThemePage <$> routeD
       _year = fmap themePageYear <$> pageD
       _iId = fmap themePageIndicatorId <$> pageD
-      _transform = fmap themePageRightTransform <$> pageD
+      _transform = fmap themePageLeftTransform <$> pageD
       jsargs = do
         indn <- indicatorNumbersD
         my <- _year
