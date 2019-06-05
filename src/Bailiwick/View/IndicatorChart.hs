@@ -10,6 +10,7 @@ module Bailiwick.View.IndicatorChart
 ) where
 
 import Control.Monad (void)
+import Data.Maybe (fromMaybe)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Data.Text (Text)
 
@@ -31,13 +32,16 @@ data IndicatorChartState t
     , indicatorNumbersD  :: Dynamic t IndicatorNumbers
     }
 
-shapeData :: Maybe Areas -> IndicatorNumbers -> [(AreaId, [(Year, Text, Text, Text, Text)])]
-shapeData areas (IndicatorNumbers inmap) =
-  -- let getAreas = do
-  --       areas <- Areas
-  --       return (areas)
-  let step (areaid, year, mfeatureid) Numbers{..} current
-        = OMap.alter (malter (year, rawNum, indexNum, headlineDisp, indexDisp)) areaid current
+shapeData :: Maybe Areas -> IndicatorNumbers -> [((AreaId, Text), [(Year, Text, Text, Text, Text)])]
+shapeData mareas (IndicatorNumbers inmap) =
+  let lookupAreaName areaid
+         = fromMaybe "" $ do
+             Areas areas <- mareas
+             area <- OMap.lookup areaid areas
+             return (areaName area)
+      step (areaid, year, _mfeatureid) Numbers{..} res
+         = let key = (areaid, lookupAreaName areaid)
+           in  OMap.alter (malter (year, rawNum, indexNum, headlineDisp, indexDisp)) key res
       malter yns Nothing = Just [yns]
       malter yns (Just this) = Just (yns:this)
   in  OMap.toList $ OMap.foldrWithKey step OMap.empty inmap
