@@ -329,7 +329,7 @@ mkFeatures features = OMap.fromList [(featureId i, i) | i <- features]
 --   , mapValDispAbsolute :: Text
 --   } deriving (Show, Eq, Generic)
 
-newtype AreaName = AreaName { areaNameText :: Text } deriving (Eq, Ord, Show, Generic)
+newtype AreaName = AreaName { areaNameText :: Text } deriving (Eq, Ord, Show, Generic, ToJSVal)
 instance Hashable AreaName
 
 data AreaSummaryDisplay = AreaSummaryDisplay

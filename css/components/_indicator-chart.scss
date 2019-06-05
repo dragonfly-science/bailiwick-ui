@@ -23,6 +23,8 @@
     .d3-attach {
       height: 474px;
       @extend %figure-width;
+      display: block;
+      overflow: hidden;
     }
   }
 
