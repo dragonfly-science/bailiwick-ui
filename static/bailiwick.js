@@ -187,7 +187,7 @@ var margin = {top: 40, right: 40, bottom: 40, left: 80};
 
 var line = d3.svg.line()
   .x(function(d, i) { return x(d.date); })
-  .y(function(d) { return y(d.v); });
+  .y(function(d) { console.log(y(d.v)); return y(d.v); });
 
 // data: (data, year, indicator, transform)
 /*
@@ -199,29 +199,34 @@ var line = d3.svg.line()
     2. Need to know the area type (e.g. region, ta, ward)
 */
 var updateIndicatorTimeSeries = function(element, data) {
+    
     var transform = data[3];
     var indicator = data[2];
     var year = data[1];
-    var svg = d3.select(element).select('svg.d3-attach');
+    var svg = d3.select(element).select('svg');
     var legendDiv = d3.select(element).select('.legend');
     var width = parseInt(svg.style("width")) - margin.left - margin.right;
     var height = parseInt(svg.style("height")) - margin.top - margin.bottom;
     var legendWidth = window.innerWidth < 350 ? 320 : 420;
     var legendHeight = 50;
 
-    if (isNaN(width) || isNaN(height)) {
-        return;
-    }
+    console.log(data[0])
 
-    // console.lof(data[0])
+    // if (isNaN(width) || isNaN(height) || isEmpty(data[0])) {
+    //     return;
+    // }
+
+    // svg
+    //     .attr('width', width)
+    //     .attr('height', height);
 
     /// Setup
     x.range([0, width]);
     y.range([height, 0]);
 
     voronoi = d3.geom.voronoi()
-      .x(function(d) { return x(d.date); })
-      .y(function(d) { return y(d.v); })
+      .x(function(d) { console.log('date', x(d.date)); return x(d.date); })
+      .y(function(d) { console.log('y', y(d.v)); return y(d.v); })
       .clipExtent([[-margin.left, -margin.top], [width + margin.right, height + margin.bottom]]);
 
 
@@ -247,24 +252,26 @@ var updateIndicatorTimeSeries = function(element, data) {
     var pos = transformPos === -1 ? 1 : transformPos + 1;
     var dispPos = transformPos === -1 ? 4 : transformPos + 4;
 
+    // console.log('pos', pos, 'dispPos', dispPos, data[0][0]);
+
     var areas = data[0].map(function(a) {
         var area = {
             slug: a[0],
             name: a[0],
             dsArea: a[0],
             values: a[1].map(function (y) {
+                // console.log('y?', y);
                 var out = {};
                 out.date = yearFormat(y[0].toString());
-                out.v = y[pos];
-                out.d = y[dispPos];
-                console.log(y, out.v, out.d);
+                // out.v = y[pos];
+                // out.d = Number(y[dispPos]);
+                out.v = Number(y[5]);
+                out.d = y[1];
                 return out;
             }).filter(function (d) {
                 return d.v !== null;
             })
         };
-
-        console.log(area);
   
         // TODO: not sure about this?
         // area.values.forEach(function(o) {
@@ -450,7 +457,7 @@ var updateIndicatorTimeSeries = function(element, data) {
     
     path.attr("d", function (d) { 
         d.line = this;
-        console.log(d, d.values.v, d.values.date);
+        // console.log(d, d.values.v, d.values.date);
         return line(d.values); 
     });
 
@@ -517,8 +524,8 @@ var updateIndicatorTimeSeries = function(element, data) {
         )
         .enter().append("path")
         .attr("d", function (d) {
-            console.log('d', present(d));
-            return present(d) ? "M" + d.join("L") + "Z" : "";
+            // console.log('d', d, present(d));
+            return !present(d) ? "M" + d.join("L") + "Z" : "";
         })
         .datum(function (d) {
             return present(d) ? d.point : null; 
@@ -542,66 +549,66 @@ var updateIndicatorTimeSeries = function(element, data) {
 
     // }
 
-    var legendClasses = ["active", "other"];
-    var legendLabels = ["New Zealand", "Other"];
-    // if (present(areaName) && areaName !== "New Zealand") {
-    //     legendLabels.push(areaName);
-    //     legendClasses = ["nz", "other", "active"];
-    // }
-    // if (present(compareAreaName) && compareAreaName !== "New Zealand" && compareAreaName !== areaName) {
-    //     legendLabels.push(compareAreaName);
-    //     legendClasses.push('compare');
-    // }
-    var legendData = d3.zip(legendLabels, legendClasses);
+    // var legendClasses = ["active", "other"];
+    // var legendLabels = ["New Zealand", "Other"];
+    // // if (present(areaName) && areaName !== "New Zealand") {
+    // //     legendLabels.push(areaName);
+    // //     legendClasses = ["nz", "other", "active"];
+    // // }
+    // // if (present(compareAreaName) && compareAreaName !== "New Zealand" && compareAreaName !== areaName) {
+    // //     legendLabels.push(compareAreaName);
+    // //     legendClasses.push('compare');
+    // // }
+    // var legendData = d3.zip(legendLabels, legendClasses);
 
-    var legend = legendDiv.selectAll("svg").data([legendData]);
-    var legendEnter = legend.enter().append("svg");
-    legend.attr("width", legendWidth)
-        .attr("height", legendHeight);
+    // var legend = legendDiv.selectAll("svg").data([legendData]);
+    // var legendEnter = legend.enter().append("svg");
+    // legend.attr("width", legendWidth)
+    //     .attr("height", legendHeight);
 
-    var legendG = legend.selectAll("g.key").data([legendData]);
-    var legendGEnter = legendG
-        .enter()
-        .append("g")
-        .attr("class", "key");
-    legendG
-        .attr("transform", "translate(" + (window.innerWidth < 350 ? 20 : margin.left) + "," + legendHeight / 3 + ")");
+    // var legendG = legend.selectAll("g.key").data([legendData]);
+    // var legendGEnter = legendG
+    //     .enter()
+    //     .append("g")
+    //     .attr("class", "key");
+    // legendG
+    //     .attr("transform", "translate(" + (window.innerWidth < 350 ? 20 : margin.left) + "," + legendHeight / 3 + ")");
 
-    var legendRects = legendG.selectAll("rect").data(legendData);
-    var legendRectsEnter = legendRects
-        .enter()
-        .append("rect")
-        .attr("height", 8)
-        .attr("width", 55);
-    legendRects
-        .attr("x", function (d, i) {
-            return Math.floor(i / 2) * 140;
-        })
-        .attr("y", function (d, i) {
-            return (i % 2) * 20;
-        })
-        .attr("class", function (d) {
-            return d[1];
-        });
-    legendRects.exit().remove();
+    // var legendRects = legendG.selectAll("rect").data(legendData);
+    // var legendRectsEnter = legendRects
+    //     .enter()
+    //     .append("rect")
+    //     .attr("height", 8)
+    //     .attr("width", 55);
+    // legendRects
+    //     .attr("x", function (d, i) {
+    //         return Math.floor(i / 2) * 140;
+    //     })
+    //     .attr("y", function (d, i) {
+    //         return (i % 2) * 20;
+    //     })
+    //     .attr("class", function (d) {
+    //         return d[1];
+    //     });
+    // legendRects.exit().remove();
 
-    var legendTexts = legendG.selectAll("text").data(legendData);
-    var legendTextsEnter = legendTexts
-        .enter()
-        .append("text")
-        .attr("dx", "65px")
-        .attr("dy", "0.7em");
-    legendTexts
-        .attr("x", function (d, i) {
-            return Math.floor(i / 2) * 140;
-        })
-        .attr("y", function (d, i) {
-            return (i % 2) * 20;
-        })
-        .text(function (d) {
-            return d[0];
-        });
-    legendTexts.exit().remove();
+    // var legendTexts = legendG.selectAll("text").data(legendData);
+    // var legendTextsEnter = legendTexts
+    //     .enter()
+    //     .append("text")
+    //     .attr("dx", "65px")
+    //     .attr("dy", "0.7em");
+    // legendTexts
+    //     .attr("x", function (d, i) {
+    //         return Math.floor(i / 2) * 140;
+    //     })
+    //     .attr("y", function (d, i) {
+    //         return (i % 2) * 20;
+    //     })
+    //     .text(function (d) {
+    //         return d[0];
+    //     });
+    // legendTexts.exit().remove();
     // this.$().removeClass("svg-loading");
 }
 
