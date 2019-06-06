@@ -161,7 +161,7 @@ mainContent
     -> m (Event t Message)
 mainContent st@State{..} = do
   isSummary <- holdUniqDyn ((== Summary) . routePage <$> routeD)
-  let zoomD = hasAdapter Mapzoom <$> routeD
+  let zoomD = hasAdapter LeftZoom <$> routeD
       mapState = makeMapState st
       mapLegendState = makeMapLegendState st
       areaSummaryState = makeSummaryState st
@@ -226,9 +226,9 @@ indicatorContent zoomD regionD map_state map_legend_state indicator_chart_state 
                 elClass' "span" "zoom-out" $
                    return ()
             return $ leftmost [ tagPromptlyDyn
-                                    (ZoomOut . fmap areaId <$> regionD)
+                                    (LeftZoomOut . fmap areaId <$> regionD)
                                     (domEvent Click eZoomOut)
-                              , ZoomIn <$ domEvent Click eZoomIn
+                              , LeftZoomIn <$ domEvent Click eZoomIn
                               ]
 
         mapClicks <- divClass "svg-wrapper" $ nzmap False map_state

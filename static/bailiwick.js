@@ -209,6 +209,10 @@ var updateIndicatorTimeSeries = function(element, params) {
         return;
     }
 
+    svg
+        .attr("preserveAspectRatio", "xMinYMin meet")
+        .attr("viewBox", "0 0 481 474");
+
     var transform = params[3];
     var indicator = params[2];
     var area = params[4]

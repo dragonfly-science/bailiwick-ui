@@ -45,6 +45,10 @@ data Message
   | GoToHomePage
   | ZoomIn
   | ZoomOut (Maybe Text)
+  | LeftZoomIn
+  | LeftZoomOut (Maybe Text)
+  | RightZoomIn
+  | RightZoomOut (Maybe Text)
   deriving (Eq, Show)
 
 data Route
@@ -74,6 +78,8 @@ data Page
   deriving (Eq, Show)
 data Adapter
   = Mapzoom
+  | LeftZoom
+  | RightZoom
   deriving (Eq, Show)
 
 hasAdapter :: Adapter -> Route -> Bool
@@ -115,7 +121,7 @@ step route message =
 
     SetSubArea sa
         -> let route' = route { routeArea = sa
-                              , routeAdapters = routeAdapters route <> [Mapzoom]
+                              , routeAdapters = routeAdapters route <> [Mapzoom, LeftZoom, RightZoom]
                               }
                at = if T.isPrefixOf "auckland" sa
                       then "ward"
@@ -149,11 +155,17 @@ step route message =
     GoToHomePage
         -> route { routeArea = "new-zealand"
                  , routePage = Summary
-                 , routeAdapters = routeAdapters route \\ [Mapzoom]
+                 , routeAdapters = routeAdapters route \\ [Mapzoom, LeftZoom, RightZoom]
                  }
 
     ZoomIn
         -> route { routeAdapters = routeAdapters route <> [Mapzoom] }
+
+    LeftZoomIn
+        -> route { routeAdapters = routeAdapters route <> [LeftZoom] }
+    
+    RightZoomIn
+        -> route { routeAdapters = routeAdapters route <> [RightZoom] }
 
     ZoomOut (Just reg)
         -> if isSummary route
@@ -163,7 +175,27 @@ step route message =
              else route { routeAdapters = routeAdapters route \\ [Mapzoom] }
 
     ZoomOut Nothing
-        -> route { routeAdapters = routeAdapters route \\ [Mapzoom] }
+        -> route { routeAdapters = routeAdapters route \\ [LeftZoom] }
+
+    LeftZoomOut (Just reg)
+        -> if isSummary route
+             then route { routeArea = reg
+                        , routeAdapters = routeAdapters route \\ [LeftZoom]
+                        }
+             else route { routeAdapters = routeAdapters route \\ [LeftZoom] }
+
+    LeftZoomOut Nothing
+        -> route { routeAdapters = routeAdapters route \\ [LeftZoom] }
+
+    RightZoomOut (Just reg)
+        -> if isSummary route
+             then route { routeArea = reg
+                        , routeAdapters = routeAdapters route \\ [RightZoom]
+                        }
+             else route { routeAdapters = routeAdapters route \\ [RightZoom] }
+
+    RightZoomOut Nothing
+        -> route { routeAdapters = routeAdapters route \\ [RightZoom] }
 
 encodeRoute :: Route -> URI -> URI
 encodeRoute route uri =
@@ -175,7 +207,7 @@ encodeRoute route uri =
                 , [("areatype", encodeUtf8 at) | at /= "reg"] <> [("left-transform", encodeUtf8 lt) | lt /= "absolute"] <> [("right-transform", encodeUtf8 rt)]
                 )
   in uri { uriPath = B.toStrict $ toLazyByteString (encodePath segments [])
-         , uriQuery = Query $ query <> [("mapzoom", "1") | hasAdapter Mapzoom route]
+         , uriQuery = Query $ query <> [("mapzoom", "1") | hasAdapter Mapzoom route] <> [("leftzoom", "1") | hasAdapter LeftZoom route]
          }
 
 encodeUri :: URI -> Message -> URI
@@ -187,6 +219,7 @@ decodeUri uri =
       Query flags = uriQuery uri
       adapters = mapMaybe mkAdapter flags
       mkAdapter ("mapzoom", "1") = Just Mapzoom
+      mkAdapter ("leftzoom", "1") = Just LeftZoom
       mkAdapter _ = Nothing
       homePage = Route Summary "" Nothing adapters
       flagMap = M.fromList flags

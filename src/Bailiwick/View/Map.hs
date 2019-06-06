@@ -431,7 +431,7 @@ nzmap
     -> MapState t
     -> m (Event t Message)
 nzmap isSummary MapState{..} = mdo
-
+  -- holdUniqDyn ( hasAdapter LeftZoom <$> routeD)
   zoomD <- holdUniqDyn ( hasAdapter Mapzoom <$> routeD)
   let areaD = zipDynWith (<|>) subareaD regionD
 
