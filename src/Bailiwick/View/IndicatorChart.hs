@@ -62,7 +62,7 @@ indicatorChart
 indicatorChart IndicatorChartState{..} = do
   (e, _) <- divClass "chart-wrapper" $ do
     elAttr' "div" ("class" =: "default-timeseries") $ do
-      elAttr "svg" ("class" =: "d3-attach") $ return ()
+      divClass "d3-attach" $ return ()
       divClass "tooltip" $ return ()
       divClass "legend" $ return ()
   readyE <- getPostBuild
@@ -76,18 +76,22 @@ indicatorChart IndicatorChartState{..} = do
         areas <- areasD
         my <- _year
         ind <- _iId
+        area <- areaD
         transform <- _transform
-        return (indn, my, ind, areas, transform)
+        return (indn, my, ind, areas, area, transform)
 
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
-  updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId, Maybe Areas, Maybe Text)
+  updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId, Maybe Areas, Maybe Area, Maybe Text)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
   performEvent_ $ ffor updateE $ \case
-    (indn, my, ind, areas, transform)
+    (indn, my, ind, areas, area, transform)
       -> liftJSM . void
-          $ do jsg2 ("updateIndicatorTimeSeries" :: Text) (_element_raw e) (shapeData areas indn, my, ind, transform)
+          $ do
+            jsg2 ("updateIndicatorTimeSeries" :: Text) (_element_raw e) (shapeData areas indn, my, ind, transform, (case area of
+                Just a -> areaName a
+                Nothing -> ""))
   return never
   -- TODO: we now know the time series from the indicator,
   -- we just need to retrieve the current "chartD" json from the

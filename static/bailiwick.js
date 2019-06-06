@@ -187,57 +187,54 @@ var margin = {top: 40, right: 40, bottom: 40, left: 80};
 
 var line = d3.svg.line()
   .x(function(d, i) { return x(d.date); })
-  .y(function(d) { console.log(y(d.v)); return y(d.v); });
+  .y(function(d) { return y(d.v); });
 
-// data: (data, year, indicator, transform)
+// data: (data, year, indicator, transform, current area)
 /*
     Data requirements:
     ------------------
     There will need to be some modifications to the data provided
     in order to suit what the timeseries needs:
-    1. Need area name as well as ID
+    1. Need area name as well as ID -- DONE
     2. Need to know the area type (e.g. region, ta, ward)
 */
-var updateIndicatorTimeSeries = function(element, data) {
-    
-    var transform = data[3];
-    var indicator = data[2];
-    var year = data[1];
-    var svg = d3.select(element).select('svg');
+var updateIndicatorTimeSeries = function(element, params) {
+    var base = d3.select(element).select('.d3-attach');
+    var transform = params[3];
+    var indicator = params[2];
+    var area = params[4]
+    var year = params[1];
     var legendDiv = d3.select(element).select('.legend');
-    var width = parseInt(svg.style("width")) - margin.left - margin.right;
-    var height = parseInt(svg.style("height")) - margin.top - margin.bottom;
+    var width = parseInt(base.style("width"));// - margin.left - margin.right;
+    var height = parseInt(base.style("height"));// - margin.top - margin.bottom;
     var legendWidth = window.innerWidth < 350 ? 320 : 420;
     var legendHeight = 50;
+    var data = params[0];
+    var svg = base.select('svg').empty() ? base.append('svg') : base.select('svg');
 
-    console.log(data[0])
+    if (isNaN(width) || isNaN(height) || isEmpty(data)) {
+        return;
+    }
 
-    // if (isNaN(width) || isNaN(height) || isEmpty(data[0])) {
-    //     return;
-    // }
-
-    // svg
-    //     .attr('width', width)
-    //     .attr('height', height);
+    svg.attr("width", width).attr("height", height);
 
     /// Setup
     x.range([0, width]);
     y.range([height, 0]);
 
     voronoi = d3.geom.voronoi()
-      .x(function(d) { console.log('date', x(d.date)); return x(d.date); })
-      .y(function(d) { console.log('y', y(d.v)); return y(d.v); })
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y(d.v); })
       .clipExtent([[-margin.left, -margin.top], [width + margin.right, height + margin.bottom]]);
-
 
     /// Update
     svg.selectAll('g').remove();
-    var g = svg.selectAll('g').data([data[0]])
+    var g = svg.selectAll('g').data([data])
       , gEnter = g.enter()
                     .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     
-    var years = _.uniq(_.reduce(data[0], function(result, value, key) {
+    var years = _.uniq(_.reduce(data, function(result, value, key) {
         return _.reduce(value[1], function(res, v, k) {
             res.push(v[0]);
             return res;
@@ -250,23 +247,21 @@ var updateIndicatorTimeSeries = function(element, data) {
 
     var transformPos = transforms.indexOf(transform);
     var pos = transformPos === -1 ? 1 : transformPos + 1;
-    var dispPos = transformPos === -1 ? 4 : transformPos + 4;
+    var dispPos = transformPos === -1 ? 3 : transformPos + 3;
 
-    // console.log('pos', pos, 'dispPos', dispPos, data[0][0]);
-
-    var areas = data[0].map(function(a) {
+    var areas = data.map(function(a) {
         var area = {
-            slug: a[0],
-            name: a[0],
+            slug: a[0][0],
+            name: a[0][1],
             dsArea: a[0],
             values: a[1].map(function (y) {
-                // console.log('y?', y);
+                // console.log('y?', y, pos, dispPos, y[pos], y[dispPos]);
                 var out = {};
                 out.date = yearFormat(y[0].toString());
                 // out.v = y[pos];
                 // out.d = Number(y[dispPos]);
-                out.v = Number(y[5]);
-                out.d = y[1];
+                out.v = Number(y[pos]);
+                out.d = y[dispPos];
                 return out;
             }).filter(function (d) {
                 return d.v !== null;
@@ -279,7 +274,6 @@ var updateIndicatorTimeSeries = function(element, data) {
         // });
 
         return area;
-        // return [];
       });
     
     // TODO: once we have area type, we can filter the results.
@@ -452,12 +446,12 @@ var updateIndicatorTimeSeries = function(element, data) {
         .attr("class", "areas")
         .selectAll("path")
         .data(areas);
+    
     path.enter()
         .append("path");
     
     path.attr("d", function (d) { 
         d.line = this;
-        // console.log(d, d.values.v, d.values.date);
         return line(d.values); 
     });
 
@@ -465,16 +459,23 @@ var updateIndicatorTimeSeries = function(element, data) {
     // but need need to update highlighing so grab everything.
     g.selectAll('g.areas').selectAll('path')
         .attr("class", function (d) {
-            // if (d.name === areaName) {
-            //     return "current-area";
+            var className = '';
+            switch (d.name) {
+                case area:
+                    className = 'current-area';
+                    break;
+                case 'New Zealand':
+                    className = 'new-zealand';
+                    break;
+                default:
+                    className = "no-highlight";
+                    break;
+            }
+            return className;
             // } else if (d.name === compareAreaName) {
             //     return "compare-area";
             // } else if (d.name === hover) {
             //     return "area--hover";
-            // } else if (d.name === "New Zealand") {
-            //     return "new-zealand";
-            // }
-            return "no-highlight";
         }).attr("clip-path", "url(#clipper)");
     
     var focusElemEnter = gEnter.append("g")
@@ -491,20 +492,6 @@ var updateIndicatorTimeSeries = function(element, data) {
     var voronoiGroup = gEnter.append("g")
         .attr("class", "voronoi")
         .attr("clip-path", "url(#clipper)");
-
-    // console.log(d3.nest()
-    //     .key(function (d) { return x(d.date) + "," + y(d.v); })
-    //     .rollup(function (v) { return v[0]; })
-    //     .entries(
-    //         d3.merge(
-    //             areas.map(
-    //                 function (d) { return d.values; }
-    //             )
-    //         )
-    //     )
-    //     .map(function (d, i) { return d.values; }));
-
-        // return false;
 
     var vg = voronoiGroup.selectAll("path")
         .data(
@@ -524,11 +511,10 @@ var updateIndicatorTimeSeries = function(element, data) {
         )
         .enter().append("path")
         .attr("d", function (d) {
-            // console.log('d', d, present(d));
             return !present(d) ? "M" + d.join("L") + "Z" : "";
         })
         .datum(function (d) {
-            return present(d) ? d.point : null; 
+            return !present(d) ? d.point : null; 
         });
         // .on("click", function (d) {
         //     let filter = _this.get('bailiwick.indicator').get('years').filter(function (y) {
@@ -551,10 +537,10 @@ var updateIndicatorTimeSeries = function(element, data) {
 
     // var legendClasses = ["active", "other"];
     // var legendLabels = ["New Zealand", "Other"];
-    // // if (present(areaName) && areaName !== "New Zealand") {
-    // //     legendLabels.push(areaName);
-    // //     legendClasses = ["nz", "other", "active"];
-    // // }
+    // if (area !== "New Zealand") {
+    //     legendLabels.push(area);
+    //     legendClasses = ["nz", "other", "active"];
+    // }
     // // if (present(compareAreaName) && compareAreaName !== "New Zealand" && compareAreaName !== areaName) {
     // //     legendLabels.push(compareAreaName);
     // //     legendClasses.push('compare');
