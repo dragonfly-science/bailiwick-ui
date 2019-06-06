@@ -32,15 +32,21 @@ data IndicatorChartState t
     , indicatorNumbersD  :: Dynamic t IndicatorNumbers
     }
 
-shapeData :: Maybe Areas -> IndicatorNumbers -> [((AreaId, Text), [(Year, Text, Text, Text, Text)])]
+shapeData :: Maybe Areas -> IndicatorNumbers -> [((AreaId, Text, Text), [(Year, Text, Text, Text, Text)])]
 shapeData mareas (IndicatorNumbers inmap) =
   let lookupAreaName areaid
-         = fromMaybe "" $ do
-             Areas areas <- mareas
-             area <- OMap.lookup areaid areas
-             return (areaName area)
+        = fromMaybe "" $ do
+            Areas areas <- mareas
+            area <- OMap.lookup areaid areas
+            return (areaName area)
+      lookupAreaLevel areaid
+        = fromMaybe "" $ do
+            Areas areas <- mareas
+            area <- OMap.lookup areaid areas
+            return (areaLevel area)
+            
       step (areaid, year, _mfeatureid) Numbers{..} res
-         = let key = (areaid, lookupAreaName areaid)
+         = let key = (areaid, lookupAreaName areaid, lookupAreaLevel areaid)
            in  OMap.alter (malter (year, rawNum, indexNum, headlineDisp, indexDisp)) key res
       malter yns Nothing = Just [yns]
       malter yns (Just this) = Just (yns:this)
@@ -71,6 +77,7 @@ indicatorChart IndicatorChartState{..} = do
       _year = fmap themePageYear <$> pageD
       _iId = fmap themePageIndicatorId <$> pageD
       _transform = fmap themePageLeftTransform <$> pageD
+      _areaType = fmap themePageAreaType <$> pageD
       jsargs = do
         indn <- indicatorNumbersD
         areas <- areasD
@@ -78,20 +85,21 @@ indicatorChart IndicatorChartState{..} = do
         ind <- _iId
         area <- areaD
         transform <- _transform
-        return (indn, my, ind, areas, area, transform)
+        areatype <- _areaType
+        return (indn, my, ind, areas, area, areatype, transform)
 
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
-  updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId, Maybe Areas, Maybe Area, Maybe Text)
+  updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId, Maybe Areas, Maybe Area, Maybe Text, Maybe Text)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
   performEvent_ $ ffor updateE $ \case
-    (indn, my, ind, areas, area, transform)
+    (indn, my, ind, areas, area, areatype, transform)
       -> liftJSM . void
           $ do
             jsg2 ("updateIndicatorTimeSeries" :: Text) (_element_raw e) (shapeData areas indn, my, ind, transform, (case area of
                 Just a -> areaName a
-                Nothing -> ""))
+                Nothing -> ""), areatype)
   return never
   -- TODO: we now know the time series from the indicator,
   -- we just need to retrieve the current "chartD" json from the

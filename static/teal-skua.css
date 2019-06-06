@@ -3084,6 +3084,7 @@ button.close i:before { font-family: "mbie-rea"; font-style: normal; font-weight
 @media (max-width: 1024px) { .compare-menu .chosen-select, .compare-menu .chosen-container { display: none; }
   .compare-menu select.mobile-only { display: block; } }
 .default-timeseries, default-timeseries { position: relative; }
+.default-timeseries svg, default-timeseries svg { width: 100%; height: 100%; }
 .default-timeseries .axis, default-timeseries .axis { font-size: 12px; }
 .default-timeseries .axis path, .default-timeseries .axis line, default-timeseries .axis path, default-timeseries .axis line { fill: none; stroke: #FFFFFF; shape-rendering: crispEdges; }
 .default-timeseries .axis--x-hidden, default-timeseries .axis--x-hidden { display: none; }

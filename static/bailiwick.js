@@ -189,7 +189,7 @@ var line = d3.svg.line()
   .x(function(d, i) { return x(d.date); })
   .y(function(d) { return y(d.v); });
 
-// data: (data, year, indicator, transform, current area)
+// data: (data, year, indicator, transform, current area, current area type)
 /*
     Data requirements:
     ------------------
@@ -200,23 +200,25 @@ var line = d3.svg.line()
 */
 var updateIndicatorTimeSeries = function(element, params) {
     var base = d3.select(element).select('.d3-attach');
-    var transform = params[3];
-    var indicator = params[2];
-    var area = params[4]
-    var year = params[1];
-    var legendDiv = d3.select(element).select('.legend');
-    var width = parseInt(base.style("width"));// - margin.left - margin.right;
-    var height = parseInt(base.style("height"));// - margin.top - margin.bottom;
-    var legendWidth = window.innerWidth < 350 ? 320 : 420;
-    var legendHeight = 50;
-    var data = params[0];
     var svg = base.select('svg').empty() ? base.append('svg') : base.select('svg');
+    var width = parseInt(svg.style("width")) - margin.left - margin.right;
+    var height = parseInt(svg.style("height")) - margin.top - margin.bottom;
+    var data = params[0];
 
     if (isNaN(width) || isNaN(height) || isEmpty(data)) {
         return;
     }
 
-    svg.attr("width", width).attr("height", height);
+    var transform = params[3];
+    var indicator = params[2];
+    var area = params[4]
+    var year = params[1];
+    var areaLevel = params[5];
+    var legendDiv = d3.select(element).select('.legend');
+    var tooltipElem = d3.select(element).select(".tooltip");
+    
+    var legendWidth = window.innerWidth < 350 ? 320 : 420;
+    var legendHeight = 50;
 
     /// Setup
     x.range([0, width]);
@@ -245,6 +247,7 @@ var updateIndicatorTimeSeries = function(element, params) {
         return yearFormat(y.toString());
     });
 
+
     var transformPos = transforms.indexOf(transform);
     var pos = transformPos === -1 ? 1 : transformPos + 1;
     var dispPos = transformPos === -1 ? 3 : transformPos + 3;
@@ -253,13 +256,11 @@ var updateIndicatorTimeSeries = function(element, params) {
         var area = {
             slug: a[0][0],
             name: a[0][1],
+            level: a[0][2],
             dsArea: a[0],
             values: a[1].map(function (y) {
-                // console.log('y?', y, pos, dispPos, y[pos], y[dispPos]);
                 var out = {};
                 out.date = yearFormat(y[0].toString());
-                // out.v = y[pos];
-                // out.d = Number(y[dispPos]);
                 out.v = Number(y[pos]);
                 out.d = y[dispPos];
                 return out;
@@ -268,37 +269,32 @@ var updateIndicatorTimeSeries = function(element, params) {
             })
         };
   
-        // TODO: not sure about this?
-        // area.values.forEach(function(o) {
-        //   o.area = area;
-        // });
+        // Used on mouse events on voroni
+        area.values.forEach(function(o) {
+          o.area = area;
+        });
 
         return area;
+      })
+      .filter(function(a) {
+            var valid = false;
+
+          switch (a.name) {
+            //   case compareAreaName:
+            //       valid = true;
+            //       break;
+              case area:
+                  valid = true;
+                  break;
+              case 'New Zealand':
+                  valid = true;
+                  break;
+              default:
+                  break;
+          }
+  
+        return a.level === areaLevel || valid;
       });
-    
-    // TODO: once we have area type, we can filter the results.
-    // ----
-    //   .filter(function(a) {
-    //       var valid = false;
-  
-    //       switch (a.name) {
-    //           case compareAreaName:
-    //               valid = true;
-    //               break;
-    //           case areaName:
-    //               valid = true;
-    //               break;
-    //           case 'New Zealand':
-    //               valid = true;
-    //               break;
-    //           default:
-    //               break;
-    //       }
-  
-    //       var level = a.dsArea.get('level');
-  
-    //       return level === areaType || valid;
-    //   });
 
     var xExtent = d3.extent(years);
     x.domain(xExtent);
@@ -360,7 +356,7 @@ var updateIndicatorTimeSeries = function(element, params) {
         var tick = d3.select(this),
             date = new Date(data),
             fullYear = date.getFullYear(),
-            targetYear = parseInt(year);
+            targetYear = parseInt(year),
             transform = d3.transform(tick.attr("transform")).translate;
 
         if (targetYear === fullYear) {
@@ -400,6 +396,8 @@ var updateIndicatorTimeSeries = function(element, params) {
         .attr("y", 5)
         .attr("x", width + 10)
         .text("Year");
+
+    // console.log(transform)
     
         // TODO: formatting
     gEnter.append("g")
@@ -427,20 +425,21 @@ var updateIndicatorTimeSeries = function(element, params) {
         .attr("width", clipWidth)
         .attr("height", clipHeight);
 
-    // svg.selectAll(".axis--x .tick")
-    //     .on("click", function (d) {
-    //         let year = (new Date(d)).getFullYear() + '';
+    svg.selectAll(".axis--x .tick")
+        .on("click", function (d) {
+            var year = (new Date(d)).getFullYear();
+            console.log(year);
 
-    //         let filter = _this.get('bailiwick.indicator').get('years').filter(function (y) {
-    //             return y.get('name') === year;
-    //         });
+            // let filter = _this.get('bailiwick.indicator').get('years').filter(function (y) {
+            //     return y.get('name') === year;
+            // });
 
-    //         if (filter.length === 1) {
-    //             _this.set('bailiwick.year', filter[0]);
-    //         }
+            // if (filter.length === 1) {
+            //     _this.set('bailiwick.year', filter[0]);
+            // }
 
-    //         _this.transitionTo({ 'year': filter[0], 'area': d.area.dsArea });
-    //     });
+            // _this.transitionTo({ 'year': filter[0], 'area': d.area.dsArea });
+        });
 
     var path = gEnter.append("g")
         .attr("class", "areas")
@@ -515,18 +514,21 @@ var updateIndicatorTimeSeries = function(element, params) {
         })
         .datum(function (d) {
             return !present(d) ? d.point : null; 
+        })
+        .on("click", function (d) {
+            var year = (new Date(d.date)).getFullYear(),
+                area = d.area.slug;
+            console.log(year, d);
+            // let filter = _this.get('bailiwick.indicator').get('years').filter(function (y) {
+            //     return y.get('name') === d[0];
+            // });
+
+            // if (filter.length === 1) {
+            //     _this.set('bailiwick.year', filter[0]);
+            // }
+
+            // _this.transitionTo({ 'year': filter[0], 'area': d.area.dsArea });
         });
-        // .on("click", function (d) {
-        //     let filter = _this.get('bailiwick.indicator').get('years').filter(function (y) {
-        //         return y.get('name') === d[0];
-        //     });
-
-        //     if (filter.length === 1) {
-        //         _this.set('bailiwick.year', filter[0]);
-        //     }
-
-        //     _this.transitionTo({ 'year': filter[0], 'area': d.area.dsArea });
-        // });
 
     // TODO: import Modernizr
     // if (!Modernizr.touch) {
@@ -534,67 +536,110 @@ var updateIndicatorTimeSeries = function(element, params) {
     //         .on("mouseout", mouseout)
 
     // }
+    vg.on('mouseover', function mouseover(d, i) {
+        if (none(d.area)) {
+          return;
+        }
+        var xPos = x(d.date),
+            yPos = y(d.v);
+        d3.select(d.area.line).classed("area--hover", true);
+        d.area.line.parentNode.appendChild(d.area.line);
+        
+        
+        focusElem.attr("transform", "translate(" + xPos + "," + yPos + ")")
+          .style("visibility", "visible");
+        tooltipElem
+          .style("top", (yPos - 90) + "px")
+          .style("left", (xPos) + "px")
+          .style("visibility", "inherit");
+        
+        var tooltipData = [d.area.name, d.d, d.date.getFullYear()],
+            tooltip = tooltipElem.selectAll('p').data(tooltipData),
+            tooltipEnter = tooltip.enter().append('p');
+    
+        tooltip.html(function(d) {
+          return d;
+        }).classed("number", function(d, i) {
+          return i === 1;
+        }).classed("local", function(d, i) {
+          return i !== 0;
+        }).classed("extra", function(d, i) {
+          return i > 1;
+        });
+        tooltip.exit().remove();
+    });
 
-    // var legendClasses = ["active", "other"];
-    // var legendLabels = ["New Zealand", "Other"];
-    // if (area !== "New Zealand") {
-    //     legendLabels.push(area);
-    //     legendClasses = ["nz", "other", "active"];
+    vg.on('mouseout', function(d) {
+        if (none(d.area)) {
+          return;
+        }
+
+        d3.select(d.area.line).classed("area--hover", false);
+        focusElem.attr("transform", "translate(-100,-100)").style("visibility", "hidden");
+        tooltipElem.style("visibility", "hidden");
+    });
+
+
+    var legendClasses = ["active", "other"];
+    var legendLabels = ["New Zealand", "Other"];
+    if (area !== "New Zealand") {
+        legendLabels.push(area);
+        legendClasses = ["nz", "other", "active"];
+    }
+    // if (present(compareAreaName) && compareAreaName !== "New Zealand" && compareAreaName !== areaName) {
+    //     legendLabels.push(compareAreaName);
+    //     legendClasses.push('compare');
     // }
-    // // if (present(compareAreaName) && compareAreaName !== "New Zealand" && compareAreaName !== areaName) {
-    // //     legendLabels.push(compareAreaName);
-    // //     legendClasses.push('compare');
-    // // }
-    // var legendData = d3.zip(legendLabels, legendClasses);
+    var legendData = d3.zip(legendLabels, legendClasses);
 
-    // var legend = legendDiv.selectAll("svg").data([legendData]);
-    // var legendEnter = legend.enter().append("svg");
-    // legend.attr("width", legendWidth)
-    //     .attr("height", legendHeight);
+    var legend = legendDiv.selectAll("svg").data([legendData]);
+    var legendEnter = legend.enter().append("svg");
+    legend.attr("width", legendWidth)
+        .attr("height", legendHeight);
 
-    // var legendG = legend.selectAll("g.key").data([legendData]);
-    // var legendGEnter = legendG
-    //     .enter()
-    //     .append("g")
-    //     .attr("class", "key");
-    // legendG
-    //     .attr("transform", "translate(" + (window.innerWidth < 350 ? 20 : margin.left) + "," + legendHeight / 3 + ")");
+    var legendG = legend.selectAll("g.key").data([legendData]);
+    var legendGEnter = legendG
+        .enter()
+        .append("g")
+        .attr("class", "key");
+    legendG
+        .attr("transform", "translate(" + (window.innerWidth < 350 ? 20 : margin.left) + "," + legendHeight / 3 + ")");
 
-    // var legendRects = legendG.selectAll("rect").data(legendData);
-    // var legendRectsEnter = legendRects
-    //     .enter()
-    //     .append("rect")
-    //     .attr("height", 8)
-    //     .attr("width", 55);
-    // legendRects
-    //     .attr("x", function (d, i) {
-    //         return Math.floor(i / 2) * 140;
-    //     })
-    //     .attr("y", function (d, i) {
-    //         return (i % 2) * 20;
-    //     })
-    //     .attr("class", function (d) {
-    //         return d[1];
-    //     });
-    // legendRects.exit().remove();
+    var legendRects = legendG.selectAll("rect").data(legendData);
+    var legendRectsEnter = legendRects
+        .enter()
+        .append("rect")
+        .attr("height", 8)
+        .attr("width", 55);
+    legendRects
+        .attr("x", function (d, i) {
+            return Math.floor(i / 2) * 140;
+        })
+        .attr("y", function (d, i) {
+            return (i % 2) * 20;
+        })
+        .attr("class", function (d) {
+            return d[1];
+        });
+    legendRects.exit().remove();
 
-    // var legendTexts = legendG.selectAll("text").data(legendData);
-    // var legendTextsEnter = legendTexts
-    //     .enter()
-    //     .append("text")
-    //     .attr("dx", "65px")
-    //     .attr("dy", "0.7em");
-    // legendTexts
-    //     .attr("x", function (d, i) {
-    //         return Math.floor(i / 2) * 140;
-    //     })
-    //     .attr("y", function (d, i) {
-    //         return (i % 2) * 20;
-    //     })
-    //     .text(function (d) {
-    //         return d[0];
-    //     });
-    // legendTexts.exit().remove();
+    var legendTexts = legendG.selectAll("text").data(legendData);
+    var legendTextsEnter = legendTexts
+        .enter()
+        .append("text")
+        .attr("dx", "65px")
+        .attr("dy", "0.7em");
+    legendTexts
+        .attr("x", function (d, i) {
+            return Math.floor(i / 2) * 140;
+        })
+        .attr("y", function (d, i) {
+            return (i % 2) * 20;
+        })
+        .text(function (d) {
+            return d[0];
+        });
+    legendTexts.exit().remove();
     // this.$().removeClass("svg-loading");
 }
 
