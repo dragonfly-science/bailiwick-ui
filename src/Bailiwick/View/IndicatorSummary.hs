@@ -83,7 +83,7 @@ indicatorSummary IndicatorSummaryState{..} = mdo
         mareaid <- fmap areaId <$> areaD
         myear   <- fmap themePageYear . getThemePage <$> routeD
         IndicatorNumbers ismap <- indicatorNumbersD
-        return $ fromMaybe (Numbers ("", "", "", "","")) $ do
+        return $ fromMaybe emptyNumbers $ do
           areaid <- mareaid
           year <- myear
           OM.lookup (areaid, year, Nothing) ismap
@@ -91,17 +91,17 @@ indicatorSummary IndicatorSummaryState{..} = mdo
   divClass "summary" $
     divClass "intersection" $ do
       divClass "intersection-number headline-number" $ do
-        divClass "number" $ dynText (headlineNum <$> summaryNumsD)
+        divClass "number" $ dynText (headlineDisp <$> summaryNumsD)
         divClass "comparison-number" $ text "TODO"
         void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
           subs $ maybe "" indicatorHeadlineNumCaption <$> indicatorD
       divClass "intersection-number regional-value" $ do
-        divClass "number" $ dynText (localNum <$> summaryNumsD)
+        divClass "number" $ dynText (localDisp <$> summaryNumsD)
         divClass "comparison-number" $ text "TODO"
         void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
           subs $ maybe "" indicatorLocalNumCaption <$> indicatorD
       divClass "intersection-number national-value" $ do
-        divClass "number" $ dynText (nationalNum <$> summaryNumsD)
+        divClass "number" $ dynText (nationalDisp <$> summaryNumsD)
         divClass "comparison-number" $ text "TODO"
         void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
           subs $ maybe "" indicatorNationalNumCaption <$> indicatorD

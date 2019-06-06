@@ -72,16 +72,22 @@ for (indid in names(indicators)) {
   values[,max.range:=max.range]
   values[!is.na(Value), colour := colour.teal(Value, min.range, max.range)]
 
+  # index value
+    values[values[, .(firstValue = first(Value)), by=.(AreaID, Dimension1, Dimension2)],
+           index := Value/firstValue*100, on=.(AreaID, Dimension1, Dimension2)]
+
   summarynumbers <-
       values[,
-        .(areaid   = areaname,
-          year     = Year,
-          feature  = slugify(Dimension1),
-          headline = formatValue(unit, Value),
-          local    = localformat(unit, previous, Value),
-          national = nationalformat(unit, national, Value),
-          colour   = colour,
-          rawvalue = formatValue('', Value)
+        .(areaid    = areaname,
+          year      = Year,
+          feature   = slugify(Dimension1),
+          headline  = formatValue(unit, Value),
+          local     = localformat(unit, previous, Value),
+          national  = nationalformat(unit, national, Value),
+          colour    = colour,
+          rawvalue  = formatValue('', Value),
+          index     = formatValue('', index),
+          indexDisp = formatValue('count', index)
           )]
 
   colourscale <- lapply(seq(min(range), max(range), length.out=100), function(val) {

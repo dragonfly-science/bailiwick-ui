@@ -527,7 +527,7 @@ nzmap isSummary MapState{..} = mdo
           (_, Area{..}) <- mtooltiparea
           year <- myear
           nums <- OM.lookup (areaId, year, feature) ismap
-          return $ headlineNum nums
+          return $ headlineDisp nums
 
   elDynAttr "div" (("class" =: "tooltip" <>) . ("style" =:) . showStyle <$> tooltipAreaD) $ do
     el "p" $ dynText $ maybe "" (areaName . snd) <$> tooltipAreaD

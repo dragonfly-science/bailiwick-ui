@@ -145,7 +145,10 @@ makeIndicatorChartState
   => State t -> IndicatorChartState t
 makeIndicatorChartState State{..} =
   let selectedAreaD = zipDynWith (<|>) areaD regionD
-  in IndicatorChartState routeD selectedAreaD 
+  in IndicatorChartState
+          routeD
+          selectedAreaD
+          (storeAreasD store)
           (constDyn Nothing) -- TO DO Feature
           indicatorD
           indicatorNumbersD

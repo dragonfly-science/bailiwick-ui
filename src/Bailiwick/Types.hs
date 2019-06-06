@@ -41,7 +41,7 @@ instance FromJSON Area where
     parseJSON = genericParseJSON areaOptions
 
 newtype Areas
-  = Areas { unAreas :: InsOrdHashMap Text Area }
+  = Areas { unAreas :: InsOrdHashMap AreaId Area }
   deriving (Eq, Show, Generic)
 instance FromJSON Areas where
     parseJSON v = do
@@ -407,24 +407,23 @@ instance FromJSON IndicatorNumbers where
               national <- value .:  "national"
               colour   <- value .:  "colour"
               raw      <- value .:  "rawvalue"
+              index    <- value .:  "index"
+              indexD   <- value .:  "indexDisp"
               return ( (areaid, year, feature)
-                     , Numbers (headline, local, national, colour, raw))))
+                     , Numbers headline local national colour raw index indexD)))
 
-newtype Numbers = Numbers (Text, Text, Text, Text, Text)
-  deriving (Eq, Show, Generic, FromJSON)
+data Numbers
+  = Numbers
+    { headlineDisp :: Text
+    , localDisp    :: Text
+    , nationalDisp :: Text
+    , colourNum    :: Text
+    , rawNum       :: Text
+    , indexNum     :: Text
+    , indexDisp    :: Text
+    }
+  deriving (Eq, Show, Generic)
 
-headlineNum :: Numbers -> Text
-headlineNum (Numbers (n,_,_,_,_)) = n
-
-localNum :: Numbers -> Text
-localNum (Numbers (_,n,_,_,_)) = n
-
-nationalNum :: Numbers -> Text
-nationalNum (Numbers (_,_,n,_,_)) = n
-
-colourNum :: Numbers -> Text
-colourNum (Numbers (_,_,_,n,_)) = n
-
-rawNum :: Numbers -> Text
-rawNum (Numbers (_,_,_,_,n)) = n
+emptyNumbers :: Numbers
+emptyNumbers = Numbers "" "" "" "" "" "" ""
 
