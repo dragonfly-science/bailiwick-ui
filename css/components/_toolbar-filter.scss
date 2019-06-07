@@ -35,7 +35,6 @@ $toolbar-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94) !default; // easeOutQuad
     display: none;
   }
 
-
   .fixed & {
       position: fixed;
       top: 70px;
@@ -61,6 +60,49 @@ $toolbar-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94) !default; // easeOutQuad
       .label,
       .elements {
         display: none;
+      }
+    }
+
+    .filter-type {
+        &.charts {
+            margin-top: 0;
+        }
+    }
+  }
+
+  .small & {
+    .filters {
+      @include justify-content(flex-end);
+      height: 0;
+    }
+
+    .filtering {
+      height: 0;
+    }
+
+    .filter-type {
+      display: none;
+
+      &.charts {
+        display: block;
+
+        .header {
+          border-bottom: none;
+          margin-bottom: 0;
+          min-height: 0;
+
+          button.active {
+            &:after {
+              display: none;
+            }
+          }
+        }
+
+
+
+        .options {
+          display: none;
+        }
       }
     }
   }
@@ -240,8 +282,8 @@ $toolbar-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94) !default; // easeOutQuad
     z-index: 2;
     height: 100%;
     max-height: 0;
-    opacity: 0;
-    overflow: hidden;
+    // opacity: 0;
+    // overflow: hidden;
     transition: max-height 0.5s, opacity 0.5s;
   }
 
@@ -249,7 +291,7 @@ $toolbar-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94) !default; // easeOutQuad
     @include display(flex);
     @include flex-wrap(wrap);
     @include flex-direction(columns);
-    @include justify-content(space-between);
+    @include justify-content(flex-start);
     
     margin-top: rem(22);
     // transition
@@ -322,7 +364,7 @@ $toolbar-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94) !default; // easeOutQuad
     }
 
     &.charts {
-      // margin-top: rem(-44);
+      margin-top: rem(-68);
 
       .label {
         display: none;
@@ -690,7 +732,7 @@ $toolbar-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94) !default; // easeOutQuad
     height: rem(66);
 
     .fixed & {
-        top: rem(100);
+        top: rem(70);
     }
 
     .filter-type {
@@ -713,7 +755,7 @@ $toolbar-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94) !default; // easeOutQuad
       height: rem(196);
 
       .filters {
-        margin-top: 0;
+        margin-top: rem(70);
       }
 
       .filter-type {

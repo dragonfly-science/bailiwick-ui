@@ -3084,7 +3084,8 @@ button.close i:before { font-family: "mbie-rea"; font-style: normal; font-weight
 @media (max-width: 1024px) { .compare-menu .chosen-select, .compare-menu .chosen-container { display: none; }
   .compare-menu select.mobile-only { display: block; } }
 .default-timeseries, default-timeseries { position: relative; }
-.default-timeseries svg, default-timeseries svg { width: 100%; height: 100%; }
+.default-timeseries .d3-attach, default-timeseries .d3-attach { width: 100%; height: 100%; }
+.default-timeseries svg, default-timeseries svg { width: 100%; height: 100%; display: inline-block; }
 .default-timeseries .axis, default-timeseries .axis { font-size: 12px; }
 .default-timeseries .axis path, .default-timeseries .axis line, default-timeseries .axis path, default-timeseries .axis line { fill: none; stroke: #FFFFFF; shape-rendering: crispEdges; }
 .default-timeseries .axis--x-hidden, default-timeseries .axis--x-hidden { display: none; }
@@ -3400,6 +3401,14 @@ button.close i:before { font-family: "mbie-rea"; font-style: normal; font-weight
 .large .tool-bar .filtering { display: block; max-height: 62.5rem; opacity: 1; transition: max-height 0.5s, opacity 0.5s; }
 .large .tool-bar .summary { max-height: 0; transition: max-height 0.15s; }
 .large .tool-bar .summary .label, .large .tool-bar .summary .elements { display: none; }
+.large .tool-bar .filter-type.charts { margin-top: 0; }
+.small .tool-bar .filters { -webkit-box-pack: end; -moz-box-pack: end; box-pack: end; -webkit-justify-content: flex-end; -moz-justify-content: flex-end; -ms-justify-content: flex-end; -o-justify-content: flex-end; justify-content: flex-end; -ms-flex-pack: end; height: 0; }
+.small .tool-bar .filtering { height: 0; }
+.small .tool-bar .filter-type { display: none; }
+.small .tool-bar .filter-type.charts { display: block; }
+.small .tool-bar .filter-type.charts .header { border-bottom: none; margin-bottom: 0; min-height: 0; }
+.small .tool-bar .filter-type.charts .header button.active:after { display: none; }
+.small .tool-bar .filter-type.charts .options { display: none; }
 .tool-bar .background-clickable { display: block; position: fixed; z-index: 1; top: 0; left: 0; width: 100%; height: 100%; }
 .tool-bar .content { padding: 0 24px; }
 .tool-bar .label { color: rgba(102, 102, 102, 0.5); text-transform: uppercase; font-size: 12px; display: inline-block; }
@@ -3427,8 +3436,8 @@ button.close i:before { font-family: "mbie-rea"; font-style: normal; font-weight
 .tool-bar .element .chosen-container .chosen-single span { margin-right: 0; }
 .tool-bar .element .chosen-container .chosen-single span:after { content: '+'; padding-left: 10px; padding-right: 10px; }
 .tool-bar .element .chosen-container .chosen-single div { display: none; }
-.tool-bar .filtering { position: relative; z-index: 2; height: 100%; max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.5s, opacity 0.5s; }
-.tool-bar .filters { display: flex; -webkit-box-lines: multiple; -moz-box-lines: multiple; box-lines: multiple; -webkit-flex-wrap: wrap; -moz-flex-wrap: wrap; -ms-flex-wrap: wrap; flex-wrap: wrap; -webkit-box-orient: columns; -moz-box-orient: columns; box-orient: columns; -webkit-flex-direction: columns; -moz-flex-direction: columns; flex-direction: columns; -ms-flex-direction: columns; -webkit-box-pack: justify; -moz-box-pack: justify; box-pack: justify; -webkit-justify-content: space-between; -moz-justify-content: space-between; -ms-justify-content: space-between; -o-justify-content: space-between; justify-content: space-between; -ms-flex-pack: justify; margin-top: 1.375rem; }
+.tool-bar .filtering { position: relative; z-index: 2; height: 100%; max-height: 0; transition: max-height 0.5s, opacity 0.5s; }
+.tool-bar .filters { display: flex; -webkit-box-lines: multiple; -moz-box-lines: multiple; box-lines: multiple; -webkit-flex-wrap: wrap; -moz-flex-wrap: wrap; -ms-flex-wrap: wrap; flex-wrap: wrap; -webkit-box-orient: columns; -moz-box-orient: columns; box-orient: columns; -webkit-flex-direction: columns; -moz-flex-direction: columns; flex-direction: columns; -ms-flex-direction: columns; -webkit-box-pack: start; -moz-box-pack: start; box-pack: start; -webkit-justify-content: flex-start; -moz-justify-content: flex-start; -ms-justify-content: flex-start; -o-justify-content: flex-start; justify-content: flex-start; -ms-flex-pack: start; margin-top: 1.375rem; }
 .tool-bar .view-by { display: none; }
 .tool-bar .year .ps-container { width: 120px; position: relative; }
 .tool-bar .year .ps-container.ps-active-y > .ps-scrollbar-y-rail > .ps-scrollbar-y { background: #00BDE9 !important; }
@@ -3442,6 +3451,7 @@ button.close i:before { font-family: "mbie-rea"; font-style: normal; font-weight
 .tool-bar .filter-type:last-child { -webkit-align-content: flex-end; -moz-align-content: flex-end; align-content: flex-end; -ms-flex-line-pack: end; margin-right: 0; width: 312px; padding-right: 70px; }
 .tool-bar .filter-type.area { -webkit-flex-basis: 160px; -moz-flex-basis: 160px; flex-basis: 160px; -ms-flex-preferred-size: 160px; }
 .tool-bar .filter-type.transform { -webkit-flex-basis: 115px; -moz-flex-basis: 115px; flex-basis: 115px; -ms-flex-preferred-size: 115px; }
+.tool-bar .filter-type.charts { margin-top: -4.25rem; }
 .tool-bar .filter-type.charts .label { display: none; }
 .tool-bar .filter-type.charts .header { min-height: 38px; display: block; border-bottom: 2px solid #DFF1FC; }
 .tool-bar .filter-type.charts .header button { float: none; padding: 0; height: 1.625rem; width: 1.625rem; margin-right: 1.25rem; margin-bottom: 0; position: relative; overflow: visible; background-repeat: no-repeat; outline: none; background: none; }
@@ -3498,12 +3508,12 @@ button.close i:before { font-family: "mbie-rea"; font-style: normal; font-weight
   .tool-bar .chosen-container { display: inline-block; }
   .tool-bar .options, .tool-bar .label, .tool-bar .summary .top, .tool-bar .summary .actions { display: none; } }
 @media (max-width: 768px) { .tool-bar { height: 4.125rem; }
-  .fixed .tool-bar { top: 6.25rem; }
+  .fixed .tool-bar { top: 4.375rem; }
   .tool-bar .filter-type.area, .tool-bar .filter-type.transform, .tool-bar .filter-type.year { display: none; }
   .tool-bar .filter-type.charts { display: flex; }
   .tool-bar .filter-type.charts .header { margin-bottom: 0; }
   .large .tool-bar { height: 12.25rem; }
-  .large .tool-bar .filters { margin-top: 0; }
+  .large .tool-bar .filters { margin-top: 4.375rem; }
   .large .tool-bar .filter-type.area, .large .tool-bar .filter-type.transform, .large .tool-bar .filter-type.year { display: block; }
   .large .tool-bar .filter-type.area, .large .tool-bar .filter-type.transform { -webkit-flex-basis: 100%; -moz-flex-basis: 100%; flex-basis: 100%; -ms-flex-preferred-size: 100%; }
   .large .tool-bar .filter-type.charts { margin-top: 0; }

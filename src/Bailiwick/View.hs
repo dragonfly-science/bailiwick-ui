@@ -72,6 +72,30 @@ view
     => State t -> m (Event t Message)
 view st@State{..} = do
   scrollPosD <- windowScrollDyn
+  divClass "hide colour-palette" $ do
+    divClass "background-rear-dark-gray colour" $ return ()
+    divClass "background-rear-medium-gray colour" $ return ()
+    divClass "background-rear-mid-gray colour" $ return ()
+    divClass "background-rear-light-gray colour" $ return ()
+    divClass "background-rear-white colour" $ return ()
+    divClass "background-rear-black colour" $ return ()
+    divClass "background-rear-background colour" $ return ()
+    divClass "background-rear-main-highlight colour" $ return ()
+    divClass "background-rear-alternative-highlight colour" $ return ()
+    divClass "background-rear-secondary-highlight colour" $ return ()
+    divClass "background-rear-inactive colour" $ return ()
+    divClass "background-rear-focus colour" $ return ()
+    divClass "background-rear-negative colour" $ return ()
+    divClass "background-rear-negative-light colour" $ return ()
+    divClass "background-rear-positive colour" $ return ()
+    divClass "background-rear-positive-light colour" $ return ()
+    divClass "background-rear-compare-panel-background colour" $ return ()
+    divClass "background-rear-chart-color-1 colour" $ return ()
+    divClass "background-rear-chart-color-2 colour" $ return ()
+    divClass "background-rear-chart-color-3 colour" $ return ()
+    divClass "background-rear-dark-map-main-bg colour" $ return ()
+    divClass "background-rear-dark-map-hover-bg colour" $ return ()
+
   let marginTop (ThemePage _) = bool Nothing (Just "349px") . (> 140)
       marginTop _ = bool Nothing (Just "279px") . (> 140)
       marginTopD = marginTop <$> (routePage <$> routeD) <*> scrollPosD
@@ -161,7 +185,8 @@ mainContent
     -> m (Event t Message)
 mainContent st@State{..} = do
   isSummary <- holdUniqDyn ((== Summary) . routePage <$> routeD)
-  let zoomD = hasAdapter LeftZoom <$> routeD
+  let leftZoomD = hasAdapter Mapzoom <$> routeD
+      rightZoomD = hasAdapter RightZoom <$> routeD
       mapState = makeMapState st
       mapLegendState = makeMapLegendState st
       areaSummaryState = makeSummaryState st
@@ -170,7 +195,7 @@ mainContent st@State{..} = do
   switchDynM $
      ffor isSummary $ \case
         True  -> summaryContent routeD regionD areaD mapState areaSummaryState
-        False -> indicatorContent zoomD regionD
+        False -> indicatorContent leftZoomD rightZoomD regionD
                                   mapState mapLegendState
                                   indicatorChartState indicatorSummaryState
 
@@ -198,13 +223,14 @@ summaryContent routeD regionD areaD map_state area_summary_state=
 indicatorContent
     :: ContentConstraints t m
     => Dynamic t Bool
+    -> Dynamic t Bool
     -> Dynamic t (Maybe Area)
     -> MapState t
     -> MapLegendState t
     -> IndicatorChartState t
     -> IndicatorSummaryState t
     -> m (Event t Message)
-indicatorContent zoomD regionD map_state map_legend_state indicator_chart_state indicator_summary_state = do
+indicatorContent leftZoomD rightZoomD regionD map_state map_legend_state indicator_chart_state indicator_summary_state = do
   contentE <- divClass "central-content indicator" $ do
     mapE <- divClass "indicator-map base-map" $
       divClass "map-wrapper" $ do
@@ -215,27 +241,27 @@ indicatorContent zoomD regionD map_state map_legend_state indicator_chart_state 
                     False -> ("type" =: "checkbox")
             (eZoomIn, _) <-
               el "label" $ do
-                elDynAttr "input" (inpAttrD zoomD) $
+                elDynAttr "input" (inpAttrD leftZoomD) $
                    return ()
                 elClass' "span" "zoom-in" $
                    return ()
             (eZoomOut, _) <-
               el "label" $ do
-                elDynAttr "input" (inpAttrD (not <$> zoomD)) $
+                elDynAttr "input" (inpAttrD (not <$> leftZoomD)) $
                    return ()
                 elClass' "span" "zoom-out" $
                    return ()
             return $ leftmost [ tagPromptlyDyn
-                                    (LeftZoomOut . fmap areaId <$> regionD)
+                                    (ZoomOut . fmap areaId <$> regionD)
                                     (domEvent Click eZoomOut)
-                              , LeftZoomIn <$ domEvent Click eZoomIn
+                              , ZoomIn <$ domEvent Click eZoomIn
                               ]
 
         mapClicks <- divClass "svg-wrapper" $ nzmap False map_state
-        divClass "legend" $ mapLegend map_legend_state
+        divClass "legend indicator-map-legend" $ mapLegend map_legend_state
         return $ leftmost [zoomClick, mapClicks]
     chartE <- divClass "indicator-chart" $
-      indicatorChart indicator_chart_state
+      indicatorChart indicator_chart_state rightZoomD
     return $ leftmost [ mapE, chartE ]
   summaryE <- divClass "indicator-summary hide-table no-compare" $
     indicatorSummary indicator_summary_state
