@@ -346,7 +346,7 @@ var updateIndicatorTimeSeries = function(element, params) {
     var height = parseInt(svg.style("height")) - margin.top - margin.bottom;
     var data = params[0];
 
-    if (isEmpty(data)) {
+    if (isEmpty(data) || isNaN(width) || isNaN(height)) {
         return;
     }
 

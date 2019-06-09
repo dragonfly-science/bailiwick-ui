@@ -69,27 +69,17 @@ indicatorChart
 indicatorChart IndicatorChartState{..} zoomD = do
   (e, _) <- divClass "chart-wrapper" $ do
     elAttr' "div" ("class" =: "default-timeseries") $ do
-    --   zoomClick <- divClass "zoom-controls map-zoom active" $ do
-    --     let inpAttrD switchD = ffor switchD $ \case
-    --                 True  -> ("type" =: "checkbox" <> "class" =: "checked")
-    --                 False -> ("type" =: "checkbox")
-    --     (eZoomIn, _) <-
-    --       el "label" $ do
-    --         elAttr "input" (inpAttrD zoomD) $
-    --           return ()
-    --         elClass' "span" "zoom-in" $
-    --           return ()
-    --     (eZoomOut, _) <-
-    --       el "label" $ do
-    --         elAttr "input" (inpAttrD (not <$> zoomD)) $
-    --           return ()
-    --         elClass' "span" "zoom-out" $
-    --           return ()
-    --     return $ leftmost [ tagPromptlyDyn
-    --                             (RightZoomOut . fmap areaId <$> regionD)
-    --                             (domEvent Click eZoomOut)
-    --                       , RightZoomIn <$ domEvent Click eZoomIn
-    --                       ]
+      divClass "zoom-controls map-zoom active" $ do
+          _ <- el "label" $ do
+            elAttr "input" ("type" =: "checkbox") $
+              return ()
+            elClass' "span" "zoom-in" $
+              return ()
+          el "label" $ do
+            elAttr "input" ("type" =: "checkbox") $
+              return ()
+            elClass' "span" "zoom-out" $
+              return ()
       divClass "d3-attach" $ return ()
       divClass "tooltip" $ return ()
       divClass "legend" $ return ()
