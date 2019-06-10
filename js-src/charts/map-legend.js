@@ -1,7 +1,7 @@
 import d3 from 'd3';
 import { computeTicks, getColours } from '../utils/utils'
 
-let updateMapLegend = function(width, height, scaledata) {
+export default function(width, height, scaledata) {
     // When we have comparision data, let's switch the scales.
     // if (none(this.get('bailiwick.compareArea'))) {
     //     this.defaultScale();
@@ -132,5 +132,3 @@ let updateMapLegend = function(width, height, scaledata) {
         .attr("y", -6)
         .text("caption goes here");
 }
-
-export { updateMapLegend };

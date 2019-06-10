@@ -30,8 +30,7 @@ let line = d3.svg.line()
     1. Need area name as well as ID -- DONE
     2. Need to know the area type (e.g. region, ta, ward)
 */
-let updateIndicatorTimeSeries = function (element, params) {
-    
+export default function (element, params) {
     var base = d3.select(element).select('.d3-attach');
     var svg = base.select('svg').empty() ? base.append('svg') : base.select('svg');
     var width = parseInt(svg.style("width")) - margin.left - margin.right;
@@ -476,5 +475,3 @@ let updateIndicatorTimeSeries = function (element, params) {
     legendTexts.exit().remove();
     // this.$().removeClass("svg-loading");
 }
-
-export { updateIndicatorTimeSeries };
