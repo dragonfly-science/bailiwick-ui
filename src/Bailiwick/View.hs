@@ -156,7 +156,13 @@ navbar =
             text "Indicators"
             el "i" $ return ()
         return home
-      divClass "menu-buttons" $
+      divClass "menu-buttons" $ do
+        elClass "button" "download" $ do
+            el "i" $ return ()
+            el "span" $ text "download"
+        elClass "button" "embed" $ do
+            el "i" $ return ()
+            el "span" $ text "embed"
         elClass "button" "share" $ do
           el "i" $ return ()
           el "span" $ text "share"

@@ -1,3 +1,5 @@
+import { present } from './utils'
+
 var textSubstitution = function(s, bw, addCompareArea) {
     var y = bw.get('year.name'),
         fy = bw.get('indicator.firstYear.name'),
@@ -62,3 +64,5 @@ var label = function(transform) {
     var l = textSubstitution(this.get("indicator.labels")[transform], this);
     return l[0].toUpperCase() + l.slice(1);
 };
+
+export { textSubstitution, label }

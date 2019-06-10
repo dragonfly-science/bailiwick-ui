@@ -6,6 +6,7 @@ import d3 from 'd3'
 import _ from 'lodash'
 
 import { none, isEmpty, present } from '../utils/utils';
+import formatting from '../utils/formatting';
 
 let yearFormat = d3.time.format('%Y').parse;
 let transforms = ["absolute", "indexed", "percapita"];
@@ -37,18 +38,27 @@ export default function (element, params) {
     var height = parseInt(svg.style("height")) - margin.top - margin.bottom;
     var data = params[0];
 
+    svg.attr("preserveAspectRatio", "xMinYMin meet")
+        .attr("viewBox", "0 0 481 474");
+
     if (isEmpty(data) || isNaN(width) || isNaN(height)) {
         return;
     }
-
-    svg.attr("preserveAspectRatio", "xMinYMin meet")
-        .attr("viewBox", "0 0 481 474");
 
     var year = params[1];
     var indicator = params[2];
     var transform = params[3];
     var area = params[4]
     var areaLevel = params[5];
+
+    // current data...
+    var currentYear = svg.attr('data-year'),
+        currentIndicator = svg.attr('data-indicator'),
+        currentArea = svg.attr('data-area'),
+        currentTransform = svg.attr('data-transform'),
+        currentLevel = svg.attr('data-level');
+
+    // console.log(currentYear, currentIndicator, currentArea, currentTransform, currentLevel)
 
     var legendDiv = d3.select(element).select('.legend');
     var legendWidth = window.innerWidth < 350 ? 320 : 420;
@@ -111,25 +121,25 @@ export default function (element, params) {
 
         return area;
     })
-        .filter(function (a) {
-            var valid = false;
+    .filter(function (a) {
+        var valid = false;
 
-            switch (a.name) {
-                //   case compareAreaName:
-                //       valid = true;
-                //       break;
-                case area:
-                    valid = true;
-                    break;
-                case 'New Zealand':
-                    valid = true;
-                    break;
-                default:
-                    break;
-            }
+        switch (a.name) {
+            //   case compareAreaName:
+            //       valid = true;
+            //       break;
+            case area:
+                valid = true;
+                break;
+            case 'New Zealand':
+                valid = true;
+                break;
+            default:
+                break;
+        }
 
-            return a.level === areaLevel || valid;
-        });
+        return a.level === areaLevel || valid;
+    });
 
     var xExtent = d3.extent(years);
     x.domain(xExtent);
@@ -303,7 +313,7 @@ export default function (element, params) {
                     className = "no-highlight";
                     break;
             }
-            return className;
+            return className + ' area';
             // } else if (d.name === compareAreaName) {
             //     return "compare-area";
             // } else if (d.name === hover) {
@@ -412,6 +422,20 @@ export default function (element, params) {
         tooltipElem.style("visibility", "hidden");
     });
 
+    // update data attributes.
+    svg
+      .attr('data-year', year)
+      .attr('data-area', area)
+      .attr('data-transform', transform)
+      .attr('data-level', areaLevel)
+      .attr('data-indicator', indicator);
+
+    // ----
+    // Only update the legend if the area has changed.
+    // ----
+    if (currentArea === area) {
+        return false;
+    }
 
     var legendClasses = ["active", "other"];
     var legendLabels = ["New Zealand", "Other"];
@@ -473,5 +497,6 @@ export default function (element, params) {
             return d[0];
         });
     legendTexts.exit().remove();
-    // this.$().removeClass("svg-loading");
+
+    
 }
