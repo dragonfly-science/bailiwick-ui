@@ -86,6 +86,34 @@
 /************************************************************************/
 /******/ ({
 
+/***/ "./js-src/charts/indicator-barchart.js":
+/*!*********************************************!*\
+  !*** ./js-src/charts/indicator-barchart.js ***!
+  \*********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! d3 */ "./node_modules/d3/d3.js");
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_0__);
+
+/* harmony default export */ __webpack_exports__["default"] = (function (element, data) {
+  console.log('updateAreaBarchart', element, data); // var container = d3.select(element).select('svg.d3-attach')
+  //   , tooltipElem = d3.select(element).select(".tooltip")
+  //   , margin = {
+  //       top: 5,
+  //       right: 25,
+  //       bottom: 40,
+  //       left: 140
+  //     };
+  //
+  // width = parseInt(container.style("width")) - margin.left - margin.right;
+  // height = parseInt(container.style("height")) - margin.top - margin.bottom;
+});
+
+/***/ }),
+
 /***/ "./js-src/charts/indicator-timeseries.js":
 /*!***********************************************!*\
   !*** ./js-src/charts/indicator-timeseries.js ***!
@@ -100,10 +128,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
 /* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/utils */ "./js-src/utils/utils.js");
 /**
  * Time series used on an indicator
  * 
  **/
+
 
 
 var yearFormat = d3__WEBPACK_IMPORTED_MODULE_0___default.a.time.format('%Y').parse;
@@ -140,7 +170,7 @@ var updateIndicatorTimeSeries = function updateIndicatorTimeSeries(element, para
   var height = parseInt(svg.style("height")) - margin.top - margin.bottom;
   var data = params[0];
 
-  if (isEmpty(data) || isNaN(width) || isNaN(height)) {
+  if (Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["isEmpty"])(data) || isNaN(width) || isNaN(height)) {
     return;
   }
 
@@ -347,9 +377,9 @@ var updateIndicatorTimeSeries = function updateIndicatorTimeSeries(element, para
   }))).map(function (d, i) {
     return d.values;
   }))).enter().append("path").attr("d", function (d) {
-    return !present(d) ? "M" + d.join("L") + "Z" : "";
+    return !Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["present"])(d) ? "M" + d.join("L") + "Z" : "";
   }).datum(function (d) {
-    return !present(d) ? d.point : null;
+    return !Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["present"])(d) ? d.point : null;
   }).on("click", function (d) {
     var year = new Date(d.date).getFullYear(),
         area = d.area.slug;
@@ -367,7 +397,7 @@ var updateIndicatorTimeSeries = function updateIndicatorTimeSeries(element, para
   // }
 
   vg.on('mouseover', function mouseover(d, i) {
-    if (none(d.area)) {
+    if (Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["none"])(d.area)) {
       return;
     }
 
@@ -392,7 +422,7 @@ var updateIndicatorTimeSeries = function updateIndicatorTimeSeries(element, para
     tooltip.exit().remove();
   });
   vg.on('mouseout', function (d) {
-    if (none(d.area)) {
+    if (Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["none"])(d.area)) {
       return;
     }
 
@@ -445,6 +475,194 @@ var updateIndicatorTimeSeries = function updateIndicatorTimeSeries(element, para
 
 /***/ }),
 
+/***/ "./js-src/charts/map-legend.js":
+/*!*************************************!*\
+  !*** ./js-src/charts/map-legend.js ***!
+  \*************************************/
+/*! exports provided: updateMapLegend */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "updateMapLegend", function() { return updateMapLegend; });
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! d3 */ "./node_modules/d3/d3.js");
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/utils */ "./js-src/utils/utils.js");
+
+
+
+var updateMapLegend = function updateMapLegend(width, height, scaledata) {
+  // When we have comparision data, let's switch the scales.
+  // if (none(this.get('bailiwick.compareArea'))) {
+  //     this.defaultScale();
+  //   } else {
+  //     this.compareScale();
+  //   }
+  var base = d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(".indicator-map-legend");
+  var svg = base.select('svg').empty() ? base.append('svg') : base.select('svg');
+  var colors = Object(_utils_utils__WEBPACK_IMPORTED_MODULE_1__["getColours"])(); // var positive = d3.scale([colors['background-rear-positive-light'], colors['background-rear-positive']]),
+  //     negative = d3.scale()
+  //             .domain([-1, 0])
+  //             .range([colors['background-rear-negative'], colors['background-rear-negative-light']]),
+  //     zero = d3.scale([colors['background-rear-positive-light'], colors['background-rear-negative-light']]);
+  // console.log(positive, negative, zero);
+  //
+  // Default Scale.
+  //
+
+  var scaleType = 'diverging';
+  var vals = d3__WEBPACK_IMPORTED_MODULE_0___default.a.values(scaledata);
+  var extent = d3__WEBPACK_IMPORTED_MODULE_0___default.a.extent(vals, function (v) {
+    return v[0];
+  }); // var caption = this.getAttr("caption").get("text");
+  // var formatter = this.getAttr("caption").get("formatter");
+
+  var scale = d3__WEBPACK_IMPORTED_MODULE_0___default.a.scale.linear().domain(extent).range([0, 1]),
+      scaleF = function scaleF(v) {
+    return scale(v);
+  },
+      thresholdBase = scale.ticks(7),
+      threshold = d3__WEBPACK_IMPORTED_MODULE_0___default.a.scale.threshold().domain(thresholdBase).range(thresholdBase.map(function (t) {
+    return scaleF(t);
+  })),
+      linear = d3__WEBPACK_IMPORTED_MODULE_0___default.a.scale.linear().domain(thresholdBase).range(thresholdBase.map(function (t) {
+    return scaleF(t);
+  }));
+
+  if (scaleType === "diverging" || scaleType !== "sequential" && extent[0] * extent[1] < 0) {
+    var max = Math.max(Math.abs(extent[0]), Math.abs(extent[1]));
+    scale = d3__WEBPACK_IMPORTED_MODULE_0___default.a.scale.linear().domain([-1 * max, 0, max]).range([-1, 0, 1]), thresholdBase = Object(_utils_utils__WEBPACK_IMPORTED_MODULE_1__["computeTicks"])(extent); // console.log('chroma', chroma)
+    // scaleF = function(v) {
+    //     var s = scale(v);
+    //     if (s < 0) {
+    //     return negative(s);
+    //     } else if (s > 0) {
+    //     return positive(s);
+    //     }
+    //     return zero;
+    // };
+    // threshold = d3.scale.threshold()
+    //     .domain(thresholdBase)
+    //     .range(thresholdBase.map(function(t) {
+    //         return scaleF(t);
+    //     }));
+    // linear = d3.scale.linear()
+    //     .domain(thresholdBase)
+    //     .range(thresholdBase.map(function(t) {
+    //         return scaleF(t);
+    //     }));
+  } //
+  // End Default scale
+  //
+
+
+  var domain = linear.domain();
+  extent = d3__WEBPACK_IMPORTED_MODULE_0___default.a.extent(domain);
+  var step = (extent[1] - extent[0]) / 100;
+  var widthRange = window.innerWidth > 460 ? 380 : window.innerWidth - 120; // A position encoding for the key only.
+
+  var x = d3__WEBPACK_IMPORTED_MODULE_0___default.a.scale.linear().domain(extent).range([0, widthRange]);
+  var xAxis = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.axis().scale(x).orient("bottom").tickSize(13).tickValues(window.innerWidth < 500 ? extent : domain); //   .tickFormat(function(d) {
+  //     return d;
+  //   });
+
+  svg.empty();
+  svg.data([scaledata]).attr("width", width).attr("height", height);
+  step = (width - 100) / 100;
+  var sd = Array.from(Array(100).keys(), function (i) {
+    return [i * step, scaledata[i][2]];
+  });
+  svg.selectAll('g').remove();
+  var g = svg.selectAll("g").data([sd]).enter().append("g").attr("class", "key").attr("transform", "translate(50," + height * 1 / 3 + ")");
+  var legend = g.selectAll("rect").data(sd).enter().append("rect").attr("height", 8).attr("x", function (d) {
+    return d[0] % innerWidth;
+  }).attr("width", step).style("fill", function (d) {
+    return d[1];
+  }).style("stroke", function (d) {
+    return d[1];
+  });
+  g.selectAll(".caption").remove();
+  var xa = g.call(xAxis);
+  xa.append("text").attr("class", "caption").attr("y", -6).text("caption goes here");
+};
+
+
+
+/***/ }),
+
+/***/ "./js-src/charts/summary-timeseries.js":
+/*!*********************************************!*\
+  !*** ./js-src/charts/summary-timeseries.js ***!
+  \*********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! d3 */ "./node_modules/d3/d3.js");
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_0__);
+
+/* harmony default export */ __webpack_exports__["default"] = (function (element, labelledData, activeLabelName) {
+  var base = d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(element).select('.d3-attach'),
+      svg = base.select('svg').empty() ? base.append('svg') : base.select('svg'),
+      yearFormat = d3__WEBPACK_IMPORTED_MODULE_0___default.a.time.format('%Y').parse,
+      margin = {
+    top: 15,
+    right: 0,
+    bottom: 30,
+    left: 48
+  },
+      baseW = 225,
+      baseH = 120,
+      width = baseW - margin.left - margin.right,
+      height = baseH - margin.top - margin.bottom;
+  svg.attr('width', baseW);
+  svg.attr('height', baseH);
+  var data = labelledData.map(function (d) {
+    return d[1];
+  });
+  var x = d3__WEBPACK_IMPORTED_MODULE_0___default.a.time.scale().range([0, width]);
+  var y = d3__WEBPACK_IMPORTED_MODULE_0___default.a.scale.linear().range([height, 0]);
+  var xAxis = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.axis().scale(x).ticks(5).innerTickSize(3).outerTickSize(0).tickFormat(function (t) {
+    return t.getFullYear().toString().replace(/^20/, "'");
+  }).orient("bottom");
+  var yAxis = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.axis().scale(y).ticks([4]).outerTickSize(0).innerTickSize(-width).tickFormat(function (t) {
+    return '$' + t / 1000 + ' k';
+  }).orient("left");
+  var line = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.line().x(function (d) {
+    return x(yearFormat(d[0].toString()));
+  }).y(function (d) {
+    return y(d[1]);
+  });
+  var g = svg.selectAll('g').data([data]);
+  var gEnter = g.enter().append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  var yMax = Math.ceil(d3__WEBPACK_IMPORTED_MODULE_0___default.a.max(d3__WEBPACK_IMPORTED_MODULE_0___default.a.merge(data), function (d) {
+    return d[1];
+  }) / 100000) * 100000;
+  x.domain(d3__WEBPACK_IMPORTED_MODULE_0___default.a.extent(data[0], function (d) {
+    return yearFormat(d[0].toString());
+  }));
+  y.domain([0, yMax]);
+  gEnter.append("g").attr("class", "x axis").attr("transform", "translate(0," + height + ")").append("text").attr("x", 50).attr("dy", "2.5em").text("Year");
+  g.selectAll("g.x").call(xAxis);
+  gEnter.append("g").attr("class", "y axis").attr("transform", "translate(-7,0)");
+  g.selectAll("g.y").call(yAxis);
+  var linePlot = g.selectAll("path.line").data(labelledData);
+  linePlot.enter().append("path");
+  linePlot.attr("d", function (d) {
+    return line(d[1]);
+  }).attr("class", function (d, i) {
+    if (activeLabelName === d[0]) {
+      return "line active";
+    }
+
+    return "line";
+  });
+  linePlot.exit().remove();
+});
+
+/***/ }),
+
 /***/ "./js-src/index.js":
 /*!*************************!*\
   !*** ./js-src/index.js ***!
@@ -454,14 +672,15 @@ var updateIndicatorTimeSeries = function updateIndicatorTimeSeries(element, para
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils/utils */ "./js-src/utils/utils.js");
-/* harmony import */ var _charts_indicator_timeseries__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./charts/indicator-timeseries */ "./js-src/charts/indicator-timeseries.js");
+/* harmony import */ var _charts_indicator_timeseries__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./charts/indicator-timeseries */ "./js-src/charts/indicator-timeseries.js");
+/* harmony import */ var _charts_map_legend__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./charts/map-legend */ "./js-src/charts/map-legend.js");
+/* harmony import */ var _charts_summary_timeseries__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./charts/summary-timeseries */ "./js-src/charts/summary-timeseries.js");
+/* harmony import */ var _charts_indicator_barchart__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./charts/indicator-barchart */ "./js-src/charts/indicator-barchart.js");
 /* ///
  * Global Imports
  * /// */
-// const _ = require('lodash');
-// import _ from 'lodash';
-// import d3 from 'd3';
+
+
 
 
 /* 
@@ -470,7 +689,10 @@ __webpack_require__.r(__webpack_exports__);
  * Any functions that need to interact with Reflex must be made global.
  */
 
-window.updateIndicatorTimeSeries = _charts_indicator_timeseries__WEBPACK_IMPORTED_MODULE_1__["updateIndicatorTimeSeries"]; // window.computeTicks, window.none, window.isEmpty, window.present, window.getColours
+window.updateIndicatorTimeSeries = _charts_indicator_timeseries__WEBPACK_IMPORTED_MODULE_0__["updateIndicatorTimeSeries"];
+window.updateMapLegend = _charts_map_legend__WEBPACK_IMPORTED_MODULE_1__["updateMapLegend"];
+window.updateTimeSeries = _charts_summary_timeseries__WEBPACK_IMPORTED_MODULE_2__["default"];
+window.updateAreaBarchart = _charts_indicator_barchart__WEBPACK_IMPORTED_MODULE_3__["default"]; // window.computeTicks, window.none, window.isEmpty, window.present, window.getColours
 // window._ = _;
 // window.d3 = d3;
 

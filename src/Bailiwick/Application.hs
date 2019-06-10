@@ -51,10 +51,7 @@ indexHtml jss = do
 
     <script src="/modernizr.custom.30140.js"></script>
     <script src="/iframeResizer.contentWindow.min.js"></script>
-    <script src="https://d3js.org/d3.v3.min.js"></script>
-    <script src="/bailiwick.js"></script>
     <script src="/bailiwick.bundle.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js"></script>
     <script src="/perfect-scrollbar.js"></script>
   </head>
   <body>

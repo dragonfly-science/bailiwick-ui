@@ -5,6 +5,8 @@
 import d3 from 'd3'
 import _ from 'lodash'
 
+import { none, isEmpty, present } from '../utils/utils';
+
 let yearFormat = d3.time.format('%Y').parse;
 let transforms = ["absolute", "indexed", "percapita"];
 let x = d3.time.scale();
