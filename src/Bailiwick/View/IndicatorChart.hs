@@ -69,7 +69,7 @@ indicatorChart
 indicatorChart IndicatorChartState{..} zoomD = do
   (e, _) <- divClass "chart-wrapper" $ do
     elAttr' "div" ("class" =: "default-timeseries") $ do
-      divClass "zoom-controls map-zoom active" $ do
+      _ <- divClass "zoom-controls map-zoom active" $ do
           _ <- el "label" $ do
             elAttr "input" ("type" =: "checkbox") $
               return ()

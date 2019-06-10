@@ -35,6 +35,69 @@ var getColours = function() {
     // });
 };
 
+var textSubstitution = function(s, bw, addCompareArea) {
+    var y = bw.get('year.name'),
+        fy = bw.get('indicator.firstYear.name'),
+        yem = bw.get('indicator.yearEndMonth'),
+        su = bw.get('indicator.subject'),
+        a = bw.get('area.name'),
+        sa = bw.get('area.name'),
+        f = bw.get('feature.name'),
+        fl = f || bw.get('indicator.topFeatureLabel'),
+        fp = f ? bw.get('feature.parent') : "",
+        d = bw.get('detail.name'),
+        dl = d || bw.get('indicator.topDetailLabel'),
+        ft = bw.get('indicator.featureText'),
+        p = bw.get("prevYear"),
+        ca = bw.get("compareArea.name");
+    if (present(addCompareArea) && present(ca)) {
+        a = "<span class='active'>" + a + "</span><span class='compare'> (and " + ca + ")</span>";
+    }
+    if (ft) {
+        var fs = bw.get('feature.id');
+        fl = ft[fs];
+    }
+    if (f) {
+        s = s.replace(/[\[\]]/g, '');
+    } else {
+        s = s.replace(/\[.+?\]/g, '');
+    }
+    if (d) {
+        s = s.replace(/[\{\}]/g, '');
+    } else {
+        s = s.replace(/\s?\{.+?\}/g, '');
+    }
+    s = s.replace(/\$year\$/g, y)
+        .replace(/\$firstYear\$/g, fy)
+        .replace(/\$yearEndMonth\$/g, yem)
+        .replace(/\$subject\$/g, su)
+        .replace(/\$area\$/g, a)
+        .replace(/\$selectedArea\$/g, sa)
+        .replace(/\$compareArea\$/g, ca)
+        .replace(/\$prevYear\$/g, p)
+        .replace(/\$feature\$/g, fl)
+        .replace(/\$featureType\$/g, fp)
+        .replace(/\$detail\$/g, dl);
+    return s.trim();
+}
+
+var label = function(transform) {
+    if (transforms.indexOf(transform) === -1) {
+        if (transform === "absolute") {
+            transform = "original";
+        } else if (transform === "regionalPercentage") {
+            transform = "feature-percentage";
+        } else if (transform === "rate") {
+            transform = "annual-rate";
+        } else {
+            return "";
+        }
+    }
+
+    // var l = textSubstitution(this.get("indicator.labels")[transform], this);
+    // return l[0].toUpperCase() + l.slice(1);
+};
+
 /**
  * Update the time series on the home page side bar - housePriceTimeSeries
  **/
@@ -150,10 +213,11 @@ var computeTicks = function(extent) {
     if (nice.length < 9) {
       return nice;
     }
-    // else if (nice.length % 2 === 0) {
-    //   let diff = nice[nice.length - 1] - nice[nice.length - 2];
-    //   nice.push(nice[nice.length - 1] + diff);
-    // }
+    else if (nice.length % 2 === 0) {
+      let diff = nice[nice.length - 1] - nice[nice.length - 2];
+      nice.push(nice[nice.length - 1] + diff);
+    }
+    
     return nice.filter(function(d, i) {
       return i % 2 === 0;
     });
@@ -346,6 +410,7 @@ var updateIndicatorTimeSeries = function(element, params) {
     var height = parseInt(svg.style("height")) - margin.top - margin.bottom;
     var data = params[0];
 
+
     if (isEmpty(data) || isNaN(width) || isNaN(height)) {
         return;
     }
@@ -353,16 +418,16 @@ var updateIndicatorTimeSeries = function(element, params) {
     svg.attr("preserveAspectRatio", "xMinYMin meet")
         .attr("viewBox", "0 0 481 474");
 
-    var transform = params[3];
-    var indicator = params[2];
-    var area = params[4]
     var year = params[1];
+    var indicator = params[2];
+    var transform = params[3];
+    var area = params[4]
     var areaLevel = params[5];
+
     var legendDiv = d3.select(element).select('.legend');
-    var tooltipElem = d3.select(element).select(".tooltip");
-    
     var legendWidth = window.innerWidth < 350 ? 320 : 420;
     var legendHeight = 50;
+    var tooltipElem = d3.select(element).select(".tooltip");
 
     /// Setup
     x.range([0, width]);
@@ -540,8 +605,6 @@ var updateIndicatorTimeSeries = function(element, params) {
         .attr("y", 5)
         .attr("x", width + 10)
         .text("Year");
-
-    // console.log(transform)
     
         // TODO: formatting
     gEnter.append("g")
