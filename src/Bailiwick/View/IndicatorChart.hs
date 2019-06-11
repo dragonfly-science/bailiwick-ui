@@ -69,7 +69,7 @@ indicatorChart
   -> m (Event t Message)
 indicatorChart IndicatorChartState{..} zoomD = do
   (e, _) <- divClass "chart-wrapper" $ do
-    elAttr' "div" ("class" =: "default-timeseries") $ do
+    elAttr' "div" ("class" =: "chart-inner") $ do
     --   _ <- divClass "zoom-controls map-zoom active" $ do
     --     let inpAttrD switchD = ffor switchD $ \case
     --             True  -> ("type" =: "checkbox" <> "class" =: "checked")

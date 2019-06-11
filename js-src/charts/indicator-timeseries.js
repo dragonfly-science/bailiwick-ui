@@ -39,6 +39,18 @@ export default function (element, params) {
     var height = parseInt(svg.style("height")) - margin.top - margin.bottom;
     var data = params[0];
 
+    d3.select('.chart-inner')
+        .classed({
+            'default-timeseries': true,
+            'basic-barchart': false,
+            'area-treemap': false
+        });
+
+    // console.log(d3.select(element).selectAll('.chart-inner'))
+
+    // d3.select(element).selectAll('.chart-inner')
+    //     .attr('class', 'chart-inner default-timeseries');
+
     svg.attr("preserveAspectRatio", "xMinYMin meet")
         .attr("viewBox", "0 0 481 474");
 
