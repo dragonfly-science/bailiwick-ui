@@ -195,16 +195,16 @@ export default function (element, params) {
         lineXpos = 0;
 
     allTicks.each(function (data, i) {
-        var tick = d3.select(this),
-            date = new Date(data),
-            fullYear = date.getFullYear(),
-            targetYear = parseInt(year),
-            transform = d3.transform(tick.attr("transform")).translate;
+            var tick = d3.select(this),
+                date = new Date(data),
+                fullYear = date.getFullYear(),
+                targetYear = parseInt(year),
+                transform = d3.transform(tick.attr("transform")).translate;
 
-        if (targetYear === fullYear) {
-            lineXpos = transform[0];
-        }
-    });
+            if (targetYear === fullYear) {
+                lineXpos = transform[0];
+            }
+        });
 
     if (lineXpos <= 0) {
         lineXpos = 1;
@@ -266,9 +266,12 @@ export default function (element, params) {
         .attr("height", clipHeight);
 
     svg.selectAll(".axis--x .tick")
+        .attr("data-bailiwick-year", function(d) {
+            return (new Date(d)).getFullYear();
+        })
         .on("click", function (d) {
             var year = (new Date(d)).getFullYear();
-            console.log(year);
+            // console.log(year);
 
             // let filter = _this.get('bailiwick.indicator').get('years').filter(function (y) {
             //     return y.get('name') === year;
