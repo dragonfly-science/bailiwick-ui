@@ -42,7 +42,9 @@ export default function (element, data) {
     // Set up
     //
     var base = d3.select(element).select('.d3-attach');
-    svg = base.select('svg').empty() ? base.append('svg') : base.select('svg');
+    var svg = base.select('svg').empty() ? 
+                base.append('svg') : 
+                base.select('svg').empty().append('svg');
 
     d3.select('.chart-inner')
         .classed({

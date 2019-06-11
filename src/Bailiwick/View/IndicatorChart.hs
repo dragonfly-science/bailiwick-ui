@@ -99,7 +99,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
       _iId = fmap themePageIndicatorId <$> pageD
       _transform = fmap themePageLeftTransform <$> pageD
       _areaType = fmap themePageAreaType <$> pageD
-      _chartType = fmap themePageLeftChart <$> pageD
+      _chartType = fmap themePageRightChart <$> pageD
       jsargs = do
         indn <- indicatorNumbersD
         areas <- areasD
@@ -116,11 +116,18 @@ indicatorChart IndicatorChartState{..} zoomD = do
   updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId, Maybe Areas, Maybe Area, Maybe Text, Maybe Text, Maybe ChartId)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
+--   getJSChartType :: ChartId -> Text
+  let getJSChartType chart = case chart of
+        Just a -> case a of
+                    "barchart" -> "updateAreaBarchart"
+                    _ ->"updateIndicatorTimeSeries"
+        Nothing -> "updateIndicatorTimeSeries"
+
   performEvent_ $ ffor updateE $ \case
     (indn, my, ind, areas, area, areatype, transform, chartType)
       -> liftJSM . void
           $ do
-            jsg2 ("updateIndicatorTimeSeries" :: Text) (_element_raw e) (shapeData areas indn, my, ind, transform, (case area of
+            jsg2 ((getJSChartType chartType) :: Text) (_element_raw e) (shapeData areas indn, my, ind, transform, (case area of
                 Just a -> areaName a
                 Nothing -> ""), areatype, chartType)
   return never
