@@ -14,6 +14,21 @@ import Data.Bool (bool)
 import Data.Maybe (fromMaybe)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Data.Text (Text)
+import qualified Data.Text as Text
+import Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
+
+import qualified GHCJS.DOM.Element as DOM
+import qualified GHCJS.DOM.Node as DOM
+import qualified GHCJS.DOM.EventM as DOM
+import qualified GHCJS.DOM.GlobalEventHandlers as DOM
+import qualified GHCJS.DOM.Types as DOM
+--import qualified GHCJS.DOM.Performance as Performance (now)
+--import qualified GHCJS.DOM.MediaQueryList as MQ (removeListener, addListener)
+--import GHCJS.DOM.MouseEvent (IsMouseEvent)
+--import GHCJS.DOM.EventM (mouseClientXY)
+import GHCJS.DOM.Types
+       (MediaQueryList(..), NodeList(..), DOMHighResTimeStamp, IsElement,
+        HTMLElement(..), HTMLObjectElement(..), uncheckedCastTo)
 
 --import GHCJS.DOM.Types (Element(..))
 import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
@@ -45,7 +60,7 @@ shapeData mareas (IndicatorNumbers inmap) =
             Areas areas <- mareas
             area <- OMap.lookup areaid areas
             return (areaLevel area)
-            
+
       step (areaid, year, _mfeatureid) Numbers{..} res
          = let key = (areaid, lookupAreaName areaid, lookupAreaLevel areaid)
            in  OMap.alter (malter (year, rawNum, indexNum, headlineDisp, indexDisp)) key res
@@ -60,6 +75,7 @@ indicatorChart
      , PerformEvent t m
      , TriggerEvent t m
      , MonadJSM (Performable m)
+     , HasJSContext (Performable m)
      , MonadJSM m
      , MonadHold t m
      , DomBuilderSpace m ~ GhcjsDomSpace
@@ -121,7 +137,22 @@ indicatorChart IndicatorChartState{..} zoomD = do
             jsg2 ("updateIndicatorTimeSeries" :: Text) (_element_raw e) (shapeData areas indn, my, ind, transform, (case area of
                 Just a -> areaName a
                 Nothing -> ""), areatype)
-  return never
+
+  clickE :: Event t (Maybe Text) <- wrapDomEvent (uncheckedCastTo HTMLElement (_element_raw e)) (`DOM.on` DOM.click) getClickMessage
+  let clicksE = GoToHomePage <$ (traceEvent "Clicks: " $ clickE)
+  return $ ffilter (const False) clicksE
+
+getClickMessage
+    :: DOM.IsMouseEvent ev
+    => DOM.EventM e ev (Maybe Text)
+getClickMessage = runMaybeT $ do
+    target         <- MaybeT DOM.eventTarget
+    svgelement     <- MaybeT (return . Just $ DOM.uncheckedCastTo DOM.Element target)
+--    target_element <- DOM.getTagName svgelement
+--    parentg        <- MaybeT (fmap (uncheckedCastTo DOM.Element) <$> DOM.getParentNode svgelement)
+--    MaybeT $ mkAreaInfo target_element parentg
+    MaybeT (DOM.getAttribute svgelement ("data-bailiwick-year"::Text))
+
   -- TODO: we now know the time series from the indicator,
   -- we just need to retrieve the current "chartD" json from the
   -- api (giving us a ChartData). Once we have the ChartData, we can then
