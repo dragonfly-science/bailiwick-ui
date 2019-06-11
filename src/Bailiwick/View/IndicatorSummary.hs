@@ -152,7 +152,7 @@ indicatorSummary IndicatorSummaryState{..} = mdo
                 elAttr "th" ("class" =: "original") $ text "Original"
                 elAttr "th" ("class" =: "transform") $ text "Transform"
                 elAttr "th" ("class" =: "national") $ text "National"
-            el "tbody" $ 
+            el "tbody" $ do
               -- each row represents 1 row in the data set
               el "tr" $ do
                 el "td" $ text "Row Year"

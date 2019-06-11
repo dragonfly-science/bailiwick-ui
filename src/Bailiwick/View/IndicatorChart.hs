@@ -10,7 +10,7 @@ module Bailiwick.View.IndicatorChart
 ) where
 
 import Control.Monad (void)
-import Data.Bool (bool)
+-- import Data.Bool (bool)
 import Data.Maybe (fromMaybe)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Data.Text (Text)
@@ -115,6 +115,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
       _iId = fmap themePageIndicatorId <$> pageD
       _transform = fmap themePageLeftTransform <$> pageD
       _areaType = fmap themePageAreaType <$> pageD
+      _chartType = fmap themePageLeftChart <$> pageD
       jsargs = do
         indn <- indicatorNumbersD
         areas <- areasD
@@ -123,20 +124,21 @@ indicatorChart IndicatorChartState{..} zoomD = do
         area <- areaD
         transform <- _transform
         areatype <- _areaType
-        return (indn, my, ind, areas, area, areatype, transform)
+        chartType <- _chartType
+        return (indn, my, ind, areas, area, areatype, transform, chartType)
 
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
-  updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId, Maybe Areas, Maybe Area, Maybe Text, Maybe Text)
+  updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId, Maybe Areas, Maybe Area, Maybe Text, Maybe Text, Maybe ChartId)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
   performEvent_ $ ffor updateE $ \case
-    (indn, my, ind, areas, area, areatype, transform)
+    (indn, my, ind, areas, area, areatype, transform, chartType)
       -> liftJSM . void
           $ do
             jsg2 ("updateIndicatorTimeSeries" :: Text) (_element_raw e) (shapeData areas indn, my, ind, transform, (case area of
                 Just a -> areaName a
-                Nothing -> ""), areatype)
+                Nothing -> ""), areatype, chartType)
 
   clickE :: Event t (Maybe Text) <- wrapDomEvent (uncheckedCastTo HTMLElement (_element_raw e)) (`DOM.on` DOM.click) getClickMessage
   let clicksE = GoToHomePage <$ (traceEvent "Clicks: " $ clickE)
