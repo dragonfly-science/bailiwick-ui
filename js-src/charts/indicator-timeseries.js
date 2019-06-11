@@ -33,11 +33,24 @@ let line = d3.svg.line()
     2. Need to know the area type (e.g. region, ta, ward)
 */
 export default function (element, params) {
+    console.log('updateIndicatorTimeSeries', element, params)
     var base = d3.select(element).select('.d3-attach');
     var svg = base.select('svg').empty() ? base.append('svg') : base.select('svg');
     var width = parseInt(svg.style("width")) - margin.left - margin.right;
     var height = parseInt(svg.style("height")) - margin.top - margin.bottom;
     var data = params[0];
+
+    d3.select('.chart-inner')
+        .classed({
+            'default-timeseries': true,
+            'basic-barchart': false,
+            'area-treemap': false
+        });
+
+    // console.log(d3.select(element).selectAll('.chart-inner'))
+
+    // d3.select(element).selectAll('.chart-inner')
+    //     .attr('class', 'chart-inner default-timeseries');
 
     svg.attr("preserveAspectRatio", "xMinYMin meet")
         .attr("viewBox", "0 0 481 474");

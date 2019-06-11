@@ -69,7 +69,7 @@ indicatorChart
   -> m (Event t Message)
 indicatorChart IndicatorChartState{..} zoomD = do
   (e, _) <- divClass "chart-wrapper" $ do
-    elAttr' "div" ("class" =: "default-timeseries") $ do
+    elAttr' "div" ("class" =: "chart-inner") $ do
     --   _ <- divClass "zoom-controls map-zoom active" $ do
     --     let inpAttrD switchD = ffor switchD $ \case
     --             True  -> ("type" =: "checkbox" <> "class" =: "checked")
@@ -99,7 +99,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
       _iId = fmap themePageIndicatorId <$> pageD
       _transform = fmap themePageLeftTransform <$> pageD
       _areaType = fmap themePageAreaType <$> pageD
-      _chartType = fmap themePageLeftChart <$> pageD
+      _chartType = fmap themePageRightChart <$> pageD
       jsargs = do
         indn <- indicatorNumbersD
         areas <- areasD
@@ -117,12 +117,19 @@ indicatorChart IndicatorChartState{..} zoomD = do
                       Maybe Areas, Maybe Area, Maybe Text, Maybe Text, Maybe ChartId)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
+--   getJSChartType :: ChartId -> Text
+  let getJSChartType chart = case chart of
+        Just a -> case a of
+                    "barchart" -> "updateAreaBarchart"
+                    _ ->"updateIndicatorTimeSeries"
+        Nothing -> "updateIndicatorTimeSeries"
+
   performEvent_ $ ffor updateE $ \case
     (indn, my, ind, areas, area, areatype, transform, chartType)
       -> liftJSM . void
           $ do
             let areaname = maybe "" areaName area
-            jsg2 ("updateIndicatorTimeSeries" :: Text) (_element_raw e)
+            jsg2 ((getJSChartType chartType) :: Text) (_element_raw e)
                  (shapeData areas indn, my, ind, transform, areaname, areatype, chartType)
 
   clickE :: Event t (Maybe Message)
@@ -136,8 +143,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
               return (SetYearArea <$> year <*> area)
            _ -> return Nothing
 
-  let clicksE = traceEvent "Clicks: " $ clickE
-  return $ fmapMaybe id clicksE
+  return $ fmapMaybe id clickE
 
 
   -- TODO: we now know the time series from the indicator,

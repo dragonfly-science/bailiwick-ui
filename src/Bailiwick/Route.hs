@@ -153,7 +153,7 @@ step route message =
     SetYearArea y a
         -> let route' = route { routeArea = a }
                update args = args { themePageYear = y }
-           in  updateTP update route
+           in  updateTP update route'
 
     GoTo page
         -> route { routePage = page }
