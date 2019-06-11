@@ -22,7 +22,8 @@ let line = d3.svg.line()
     .x(function (d, i) { return x(d.date); })
     .y(function (d) { return y(d.v); });
 
-// data: (data, year, indicator, transform, current area, current area type)
+// data: [{year, rawNum, indexNum, headlineDisp, indexDisp}]
+// @params: (data, current year, current indicator, transform, current area, current area type, chart ID)
 /*
     Data requirements:
     ------------------
@@ -58,8 +59,6 @@ export default function (element, params) {
         currentTransform = svg.attr('data-transform'),
         currentLevel = svg.attr('data-level');
 
-    // console.log(currentYear, currentIndicator, currentArea, currentTransform, currentLevel)
-
     var legendDiv = d3.select(element).select('.legend');
     var legendWidth = window.innerWidth < 350 ? 320 : 420;
     var legendHeight = 50;
@@ -91,7 +90,6 @@ export default function (element, params) {
     }).map(function (y) {
         return yearFormat(y.toString());
     });
-
 
     var transformPos = transforms.indexOf(transform);
     var pos = transformPos === -1 ? 1 : transformPos + 1;
@@ -194,8 +192,7 @@ export default function (element, params) {
         .call(xAxisYears);
 
     var allTicks = svg.call(xAxisYears).selectAll(".tick"),
-        lineXpos = 0,
-        previousYear = (new Date(years[0])).getFullYear();
+        lineXpos = 0;
 
     allTicks.each(function (data, i) {
         var tick = d3.select(this),
@@ -260,7 +257,7 @@ export default function (element, params) {
     //     bailiwick.label(transform)
     // );
 
-    gEnter.append("clipPath")
+    svg.append("clipPath")
         .attr("id", "clipper")
         .append("rect")
         .attr("x", 0)
@@ -355,13 +352,20 @@ export default function (element, params) {
         .attr("d", function (d) {
             return !present(d) ? "M" + d.join("L") + "Z" : "";
         })
+        .attr("data-bailiwick-year", function(d) {
+            return !present(d) ? (new Date(d['point'].date)).getFullYear() : "";
+        })
+        .attr("data-bailiwick-area", function(d) {
+            return !present(d) ? d['point'].area.slug : "";
+        })
         .datum(function (d) {
             return !present(d) ? d.point : null;
         })
         .on("click", function (d) {
             var year = (new Date(d.date)).getFullYear(),
                 area = d.area.slug;
-            console.log(year, d);
+            // console.log(year, d);
+            // console.log(d3.event)
             // let filter = _this.get('bailiwick.indicator').get('years').filter(function (y) {
             //     return y.get('name') === d[0];
             // });
@@ -374,53 +378,51 @@ export default function (element, params) {
         });
 
     // TODO: import Modernizr
-    // if (!Modernizr.touch) {
-    //     vg.on("mouseover", mouseover)
-    //         .on("mouseout", mouseout)
-
-    // }
-    vg.on('mouseover', function mouseover(d, i) {
-        if (none(d.area)) {
-            return;
-        }
-        var xPos = x(d.date),
-            yPos = y(d.v);
-        d3.select(d.area.line).classed("area--hover", true);
-        d.area.line.parentNode.appendChild(d.area.line);
-
-
-        focusElem.attr("transform", "translate(" + xPos + "," + yPos + ")")
-            .style("visibility", "visible");
-        tooltipElem
-            .style("top", (yPos - 90) + "px")
-            .style("left", (xPos) + "px")
-            .style("visibility", "inherit");
-
-        var tooltipData = [d.area.name, d.d, d.date.getFullYear()],
-            tooltip = tooltipElem.selectAll('p').data(tooltipData),
-            tooltipEnter = tooltip.enter().append('p');
-
-        tooltip.html(function (d) {
-            return d;
-        }).classed("number", function (d, i) {
-            return i === 1;
-        }).classed("local", function (d, i) {
-            return i !== 0;
-        }).classed("extra", function (d, i) {
-            return i > 1;
+    if (!Modernizr.touch) {
+        vg.on('mouseover', function mouseover(d, i) {
+            if (none(d.area)) {
+                return;
+            }
+            var xPos = x(d.date),
+                yPos = y(d.v);
+            d3.select(d.area.line).classed("area--hover", true);
+            d.area.line.parentNode.appendChild(d.area.line);
+    
+    
+            focusElem.attr("transform", "translate(" + xPos + "," + yPos + ")")
+                .style("visibility", "visible");
+            tooltipElem
+                .style("top", (yPos - 90) + "px")
+                .style("left", (xPos) + "px")
+                .style("visibility", "inherit");
+    
+            var tooltipData = [d.area.name, d.d, d.date.getFullYear()],
+                tooltip = tooltipElem.selectAll('p').data(tooltipData),
+                tooltipEnter = tooltip.enter().append('p');
+    
+            tooltip.html(function (d) {
+                return d;
+            }).classed("number", function (d, i) {
+                return i === 1;
+            }).classed("local", function (d, i) {
+                return i !== 0;
+            }).classed("extra", function (d, i) {
+                return i > 1;
+            });
+            tooltip.exit().remove();
         });
-        tooltip.exit().remove();
-    });
-
-    vg.on('mouseout', function (d) {
-        if (none(d.area)) {
-            return;
-        }
-
-        d3.select(d.area.line).classed("area--hover", false);
-        focusElem.attr("transform", "translate(-100,-100)").style("visibility", "hidden");
-        tooltipElem.style("visibility", "hidden");
-    });
+    
+        vg.on('mouseout', function (d) {
+            if (none(d.area)) {
+                return;
+            }
+    
+            d3.select(d.area.line).classed("area--hover", false);
+            focusElem.attr("transform", "translate(-100,-100)").style("visibility", "hidden");
+            tooltipElem.style("visibility", "hidden");
+        });
+    }
+    
 
     // update data attributes.
     svg

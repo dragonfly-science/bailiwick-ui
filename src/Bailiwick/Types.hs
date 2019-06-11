@@ -182,7 +182,7 @@ instance FromJSON Language where
 newtype IndicatorId = IndicatorId { unIndicatorId :: Text }
    deriving (Eq, Ord, Show, Generic, Hashable,
              FromJSONKey, FromJSON, IsString, ToJSVal)
-newtype ChartId = ChartId Text deriving (Eq, Ord, Show, Generic)
+newtype ChartId = ChartId Text deriving (Eq, Ord, Show, Generic, ToJSVal)
 instance FromJSON ChartId where
    parseJSON v = ChartId <$> parseJSON v
 
@@ -208,6 +208,7 @@ data Indicator = Indicator
   , indicatorNationalNumCaption     :: Text
   , indicatorLocalNumCaption        :: Text
   , indicatorHeadlineNumCaption     :: Text
+  , indicatorTooltipExtra         :: Maybe Text
 --  , indicatorBarchartLabelWidth     :: Maybe Int
 --  , indicatorCaptions               :: Maybe (Map Text Text)
 --  , indicatorCharts                 :: [Chart]
@@ -252,7 +253,6 @@ data Indicator = Indicator
 --  , indicatorLeftChart            :: Maybe Text
 --  , indicatorLanguageConfig       :: Language
 --  , indicatorRightChart           :: Maybe Text
---  , indicatorTooltipExtra         :: Maybe Text
 --  , indicatorIcon                 :: Maybe Text
 --  , indicatorNotes                :: Maybe [Text]
 --  , indicatorSource               :: Text
