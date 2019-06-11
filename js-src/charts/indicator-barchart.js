@@ -37,14 +37,13 @@ var xAxis = d3.svg.axis();
 
 export default function (element, data) {
     console.log('updateAreaBarchart', element, data);
+    // return false;
 
     //
     // Set up
     //
     var base = d3.select(element).select('.d3-attach');
-    var svg = base.select('svg').empty() ? 
-                base.append('svg') : 
-                base.select('svg').empty().append('svg');
+    svg = base.select('svg').empty() ? base.append('svg') : base.select('svg').remove();
 
     d3.select('.chart-inner')
         .classed({
