@@ -35,15 +35,21 @@ var barHeight = 20,
 var xAxis = d3.svg.axis();
 
 
-export default function (element, data) {
-    console.log('updateAreaBarchart', element, data);
+export default function (element, params) {
+    // console.log('updateAreaBarchart', element, data);
     // return false;
 
     //
     // Set up
     //
     var base = d3.select(element).select('.d3-attach');
-    svg = base.select('svg').empty() ? base.append('svg') : base.select('svg').remove();
+    svg = base.select('svg').empty() ? base.append('svg') : base.select('svg');
+
+    var data = params[0];
+
+    if (isEmpty(data)) {
+        return;
+    }
 
     d3.select('.chart-inner')
         .classed({
@@ -51,46 +57,110 @@ export default function (element, data) {
             'basic-barchart': true,
             'area-treemap': false
         });
-    // var data = params[0];
     // tooltipElem = d3.select(element').select(".tooltip");
 
 
     //var container = d3.select(this.get('element')).select('svg.d3-attach'),
-    // let lmargin = 140;
-    // if (window.innerWidth < 400) {
-    //   lmargin = 100;
-    // } else if (window.innerWidth < 600 && lmargin > 140) {
-    //   lmargin = 180;
-    // }
+    let lmargin = 140;
+    if (window.innerWidth < 400) {
+      lmargin = 100;
+    } else if (window.innerWidth < 600 && lmargin > 140) {
+      lmargin = 180;
+    }
     
-    // margin = {top: 5, right: 15, bottom: 40, left: lmargin};
+    margin = {top: 5, right: 15, bottom: 40, left: lmargin};
 
-    // width = parseInt(svg.style("width")) - margin.left - margin.right;
-    // height = parseInt(svg.style("height")) - margin.top - margin.bottom;
+    width = parseInt(base.style("width")) - margin.left - margin.right;
+    height = parseInt(base.style("height")) - margin.top - margin.bottom;
 
-    // x = x.range([0, width]);
+    svg.attr("preserveAspectRatio", "xMinYMin meet")
+        .attr("viewBox", "0 0 481 474");
 
-    // var svgEnter = svg.enter()
-    //   .append("g");
-    // svg
-    //   .attr("width", width)
-    //   .attr("height", height)
-    //   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    x = x.range([0, width]);
+
+    let g = svg.selectAll("g").data([1]);
+
+    var svgEnter = g.enter().append("g");
+    g
+      .attr("width", width)
+      .attr("height", height)
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 
-    // this.handleUnits();
-    // this.setdata();
+    // Handle Units
+    // TODO: handle formatting
+    // var formatter = this.getAttr("caption").get("formatter");
+    xAxis.scale(x)
+        .orient("bottom")
+        .ticks(window.innerWidth < 600 ? 2 : 3)
+        // .tickFormat(function (d) {
+        //     return formatter(d);
+        // });
+    
+    // Set data
+    console.log(data, params);
+    // var fixedAxis = this.getAttr('config').axis,
+        // feature = this.getAttr('feature'),
+        // featureType = this.getAttr("featuretype"),
+        // ftp = featureType || "",
+    // let area = this.getAttr('area');
 
-
-    // var container = d3.select(element).select('svg.d3-attach')
-    //   , tooltipElem = d3.select(element).select(".tooltip")
-    //   , margin = {
-    //       top: 5,
-    //       right: 25,
-    //       bottom: 40,
-    //       left: 140
-    //     };
-    //
-    // width = parseInt(container.style("width")) - margin.left - margin.right;
-    // height = parseInt(container.style("height")) - margin.top - margin.bottom;
+    // if (!(data && area)) {
+    //     return;
+    // }
+    // var dataState = data.get('id') + "-" + area.get("id") + ftp + this.getAttr('transform');
+    // //if (this.get("_dataState") !== dataState) {
+    // var areaData;
+    // if (none(feature)) {
+    //     var defFeature = this.getAttr('defaultFeature');
+    //     if (present(defFeature)) {
+    //         featureType = defFeature.get('parent');
+    //     }
+    // }
+    // if (none(featureType)) {
+    //     var areaDataT = data.get("areas")[area.get("id")];
+    //     if (none(areaDataT)) {
+    //         return;
+    //     }
+    //     areaData = areaDataT.features;
+    // } else {
+    //     var a = data.get("areas")[area.get('id')];
+    //     if (none(a)) {
+    //         return;
+    //     }
+    //     var af = a.features;
+    //     if (none(af)) {
+    //         return;
+    //     }
+    //     areaData = af.children.find(function (d) {
+    //         return d.name === featureType;
+    //     });
+    // }
+    // if (none(fixedAxis)) {
+    //     areaData.children = areaData.children.sort(function (a, b) {
+    //         return d3.descending(a.absolute, b.absolute);
+    //     });
+    // } else {
+    //     var m = d3.map(areaData.children, function (d) { return d.slug; });
+    //     areaData.children = fixedAxis.map(function (d) {
+    //         return m.get(d);
+    //     });
+    // }
+    // if (this.getAttr('transform') === 'percentage') {
+    //     this.set('plotdata', areaData.children.map(function (d) {
+    //         d.value = d.percentage;
+    //         d.dispValue = d.dispPercentage;
+    //         return d;
+    //     }));
+    // } else {
+    //     this.set('plotdata', areaData.children.filter(function (d) {
+    //         return (typeof d !== 'undefined');
+    //     }).map(function (d) {
+    //         d.value = d.absolute;
+    //         d.dispValue = d.dispAbsolute;
+    //         return d;
+    //     }));
+    // }
+    // this.set('_dataState', dataState);
+    //}
 }

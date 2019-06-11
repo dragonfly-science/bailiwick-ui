@@ -32,7 +32,7 @@ data IndicatorChartState t
     , indicatorNumbersD  :: Dynamic t IndicatorNumbers
     }
 
-shapeData :: Maybe Areas -> IndicatorNumbers -> [((AreaId, Text, Text), [(Year, Text, Text, Text, Text)])]
+shapeData :: Maybe Areas -> IndicatorNumbers -> [((AreaId, Text, Text, [Text]), [(Year, Text, Text, Text, Text)])]
 shapeData mareas (IndicatorNumbers inmap) =
   let lookupAreaName areaid
         = fromMaybe "" $ do
@@ -44,9 +44,14 @@ shapeData mareas (IndicatorNumbers inmap) =
             Areas areas <- mareas
             area <- OMap.lookup areaid areas
             return (areaLevel area)
+      lookupAreaParents areaid
+        = fromMaybe [] $ do
+            Areas areas <- mareas
+            area <- OMap.lookup areaid areas
+            return (areaParents area)
 
       step (areaid, year, _mfeatureid) Numbers{..} res
-         = let key = (areaid, lookupAreaName areaid, lookupAreaLevel areaid)
+         = let key = (areaid, lookupAreaName areaid, lookupAreaLevel areaid, lookupAreaParents areaid)
            in  OMap.alter (malter (year, rawNum, indexNum, headlineDisp, indexDisp)) key res
       malter yns Nothing = Just [yns]
       malter yns (Just this) = Just (yns:this)
