@@ -10,31 +10,15 @@ module Bailiwick.View.IndicatorChart
 ) where
 
 import Control.Monad (void)
--- import Data.Bool (bool)
 import Data.Maybe (fromMaybe)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Data.Text (Text)
-import qualified Data.Text as Text
-import Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
 
 import qualified GHCJS.DOM.Element as DOM
-import qualified GHCJS.DOM.Node as DOM
-import qualified GHCJS.DOM.EventM as DOM
-import qualified GHCJS.DOM.GlobalEventHandlers as DOM
-import qualified GHCJS.DOM.Types as DOM
---import qualified GHCJS.DOM.Performance as Performance (now)
---import qualified GHCJS.DOM.MediaQueryList as MQ (removeListener, addListener)
---import GHCJS.DOM.MouseEvent (IsMouseEvent)
---import GHCJS.DOM.EventM (mouseClientXY)
-import GHCJS.DOM.Types
-       (MediaQueryList(..), NodeList(..), DOMHighResTimeStamp, IsElement,
-        HTMLElement(..), HTMLObjectElement(..), uncheckedCastTo)
-
---import GHCJS.DOM.Types (Element(..))
 import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
---import Reflex.PerformEvent.Class (PerformEvent(..))
 import Reflex.Dom.Core
 
+import Bailiwick.Javascript
 import Bailiwick.Route
 import Bailiwick.Types
 
@@ -129,31 +113,32 @@ indicatorChart IndicatorChartState{..} zoomD = do
 
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
-  updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId, Maybe Areas, Maybe Area, Maybe Text, Maybe Text, Maybe ChartId)
+  updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId,
+                      Maybe Areas, Maybe Area, Maybe Text, Maybe Text, Maybe ChartId)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
   performEvent_ $ ffor updateE $ \case
     (indn, my, ind, areas, area, areatype, transform, chartType)
       -> liftJSM . void
           $ do
-            jsg2 ("updateIndicatorTimeSeries" :: Text) (_element_raw e) (shapeData areas indn, my, ind, transform, (case area of
-                Just a -> areaName a
-                Nothing -> ""), areatype, chartType)
+            let areaname = maybe "" areaName area
+            jsg2 ("updateIndicatorTimeSeries" :: Text) (_element_raw e)
+                 (shapeData areas indn, my, ind, transform, areaname, areatype, chartType)
 
-  clickE :: Event t (Maybe Text) <- wrapDomEvent (uncheckedCastTo HTMLElement (_element_raw e)) (`DOM.on` DOM.click) getClickMessage
-  let clicksE = GoToHomePage <$ (traceEvent "Clicks: " $ clickE)
-  return $ ffilter (const False) clicksE
+  clickE :: Event t (Maybe Message)
+    <- clickEvents e $ \svg -> do
+         target_element :: Text <- DOM.getTagName svg
+         case target_element of
+           "path" -> do
+              yeart <- DOM.getAttribute svg ("data-bailiwick-year"::Text)
+              area <- DOM.getAttribute svg ("data-bailiwick-area"::Text)
+              let year = read <$> yeart
+              return (SetYearArea <$> year <*> area)
+           _ -> return Nothing
 
-getClickMessage
-    :: DOM.IsMouseEvent ev
-    => DOM.EventM e ev (Maybe Text)
-getClickMessage = runMaybeT $ do
-    target         <- MaybeT DOM.eventTarget
-    svgelement     <- MaybeT (return . Just $ DOM.uncheckedCastTo DOM.Element target)
---    target_element <- DOM.getTagName svgelement
---    parentg        <- MaybeT (fmap (uncheckedCastTo DOM.Element) <$> DOM.getParentNode svgelement)
---    MaybeT $ mkAreaInfo target_element parentg
-    MaybeT (DOM.getAttribute svgelement ("data-bailiwick-year"::Text))
+  let clicksE = traceEvent "Clicks: " $ clickE
+  return $ fmapMaybe id clicksE
+
 
   -- TODO: we now know the time series from the indicator,
   -- we just need to retrieve the current "chartD" json from the

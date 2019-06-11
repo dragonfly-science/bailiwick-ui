@@ -41,6 +41,7 @@ data Message
   | SetLeftTransform Text
   | SetRightTransform Text
   | SetYear Year
+  | SetYearArea Year Text
   | GoTo Page
   | GoToHomePage
   | ZoomIn
@@ -93,7 +94,7 @@ isSummary :: Route -> Bool
 isSummary = isNothing . getThemePage
 
 updateTP :: (ThemePageArgs -> ThemePageArgs) -> Route -> Route
-updateTP f s@Route{routePage = ThemePage args} 
+updateTP f s@Route{routePage = ThemePage args}
     = s{ routePage = ThemePage $ f args }
 updateTP _ s = s
 
@@ -111,9 +112,9 @@ step :: Route -> Message -> Route
 step route message =
   case message of
 
-    Ready _page 
+    Ready _page
         -> route
-    
+
     SetRegion reg
         -> let route' = route { routeArea = reg }
                update args = args { themePageAreaType = "reg" }
@@ -125,7 +126,7 @@ step route message =
                               }
                at = if T.isPrefixOf "auckland" sa
                       then "ward"
-                      else "ta"  
+                      else "ta"
                update args = args { themePageAreaType = at }
            in  updateTP update route'
 
@@ -149,6 +150,11 @@ step route message =
         -> let update args = args { themePageYear = y }
            in  updateTP update route
 
+    SetYearArea y a
+        -> let route' = route { routeArea = a }
+               update args = args { themePageYear = y }
+           in  updateTP update route
+
     GoTo page
         -> route { routePage = page }
 
@@ -163,7 +169,7 @@ step route message =
 
     LeftZoomIn
         -> route { routeAdapters = routeAdapters route <> [LeftZoom] }
-    
+
     RightZoomIn
         -> route { routeAdapters = routeAdapters route <> [RightZoom] }
 

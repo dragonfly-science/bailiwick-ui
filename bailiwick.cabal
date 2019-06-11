@@ -17,6 +17,7 @@ library
                        Bailiwick.State
                        Bailiwick.Store
                        Bailiwick.Types
+                       Bailiwick.Javascript
                        Bailiwick.View
                        Bailiwick.View.AreaSummary
                        Bailiwick.View.Header
