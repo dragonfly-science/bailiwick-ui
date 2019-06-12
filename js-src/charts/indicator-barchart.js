@@ -48,9 +48,7 @@ export default function (element, params) {
 
     var legend = d3.select('.chart-inner .legend');
 
-    // if (!legend.empty()) {
-        legend.select('svg').remove();
-    // }
+    legend.select('svg').remove();
 
     var data = params[0];
 
@@ -77,7 +75,6 @@ export default function (element, params) {
     // Find the current area in supplied data
     // console.log(data)
     var currentAreaData = _.filter(data, function(o) {
-        // console.log(v[0][1], area);
         return o[0][1] === area;
     });
 
@@ -123,8 +120,6 @@ export default function (element, params) {
 
     tooltipElem = d3.select(element).select(".tooltip");
 
-
-    //var container = d3.select(this.get('element')).select('svg.d3-attach'),
     let lmargin = 140;
     if (window.innerWidth < 400) {
       lmargin = 100;
@@ -132,7 +127,7 @@ export default function (element, params) {
       lmargin = 180;
     }
     
-    margin = {top: 5, right: 15, bottom: 40, left: lmargin};
+    margin = {top: 5, right: 25, bottom: 40, left: lmargin};
 
     width = parseInt(base.style("width")) - margin.left - margin.right;
     height = parseInt(base.style("height")) - margin.top - margin.bottom;
@@ -160,11 +155,11 @@ export default function (element, params) {
     // var formatter = this.getAttr("caption").get("formatter");
     xAxis.scale(x)
         .orient("bottom")
-        .ticks(window.innerWidth < 600 ? 2 : 3)
+        .ticks(window.innerWidth < 450 ? 2 : 5)
         // .tickFormat(function (d) {
         //     return formatter(d);
         // });
-    
+    xAxis.tickSize(-1 * dataHeight, 10)
     // Set data
     // console.log(data, params);
     // var fixedAxis = this.getAttr('config').axis,
