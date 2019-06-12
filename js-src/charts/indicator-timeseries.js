@@ -50,8 +50,6 @@ export default function (element, params) {
             'area-treemap': false
         });
 
-    // console.log(d3.select(element).selectAll('.chart-inner'))
-
     // d3.select(element).selectAll('.chart-inner')
     //     .attr('class', 'chart-inner default-timeseries');
 

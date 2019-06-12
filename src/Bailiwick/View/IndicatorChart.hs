@@ -146,6 +146,10 @@ indicatorChart IndicatorChartState{..} zoomD = do
               area <- DOM.getAttribute svg ("data-bailiwick-area"::Text)
               let year = read <$> yeart
               return (SetYearArea <$> year <*> area)
+           "g" -> do
+              yeart <- DOM.getAttribute svg ("data-bailiwick-year"::Text)
+              let year = read <$> yeart
+              return (SetYear <$> year)
            _ -> return Nothing
 
   return $ fmapMaybe id clickE
