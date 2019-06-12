@@ -146,6 +146,9 @@ indicatorChart IndicatorChartState{..} zoomD = do
               area <- DOM.getAttribute svg ("data-bailiwick-area"::Text)
               let year = read <$> yeart
               return (SetYearArea <$> year <*> area)
+           "rect" -> do
+              area <- DOM.getAttribute svg ("data-bailiwick-area"::Text)
+              return (SetSubArea <$> area)
            "g" -> do
               yeart <- DOM.getAttribute svg ("data-bailiwick-year"::Text)
               let year = read <$> yeart
