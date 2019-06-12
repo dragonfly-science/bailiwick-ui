@@ -1,4 +1,5 @@
 import d3 from 'd3';
+import _ from 'lodash';
 import { none, isEmpty, present } from '../utils/utils';
 
 var percentageFormatter = d3.format('.1f');
@@ -36,14 +37,14 @@ var xAxis = d3.svg.axis();
 
 
 export default function (element, params) {
-    // console.log('updateAreaBarchart', element, data);
-    // return false;
-
     //
     // Set up
     //
     var base = d3.select(element).select('.d3-attach');
-    svg = base.select('svg').empty() ? base.append('svg') : base.select('svg');
+    if (!base.select('svg').empty()) {
+        base.select('svg').remove();
+    }
+    svg = base.append('svg');
 
     var data = params[0];
 
@@ -57,7 +58,64 @@ export default function (element, params) {
             'basic-barchart': true,
             'area-treemap': false
         });
-    // tooltipElem = d3.select(element').select(".tooltip");
+
+    // Take data & filter to find areas that match the current
+    // area/area type combination.
+    var year = params[1];
+    var indicator = params[2];
+    var transform = params[3];
+    var area = params[4]
+    var areaLevel = params[5];
+    var parents = null;
+
+    // Find the current area in supplied data
+    // console.log(data)
+    var currentAreaData = _.filter(data, function(o) {
+        // console.log(v[0][1], area);
+        return o[0][1] === area;
+    });
+
+    if (isEmpty(currentAreaData)) {
+        return false;
+    }
+
+    currentAreaData = currentAreaData[0];
+
+    parents = _.last(currentAreaData[0]);
+
+    // No parents means NZ is selected - so we will end up showing all
+    // available regions.
+    if (isEmpty(parents)) {
+        parents = ['new-zealand'];
+    }
+    
+    // Find all siblings that have one or more same parents.
+    var siblingAreas = _.filter(data, function(o) {
+        return _.intersection(_.last(o[0]), parents).length > 0;
+    });
+
+    var siblingsFilteredByYear = _.reduce(siblingAreas, function(res, v, k) {
+        let values = {
+            name: v[0][1],
+            slug: v[0][0],
+            display: '',
+            value: 0
+        }
+
+        let yearVal = _.filter(v[1], function(o) {
+            return o[0] === year;
+        });
+
+        values.value = Number(yearVal[0][1]);
+        values.display = (yearVal[0][3]).trim();
+
+        res.push(values);
+        return res;
+    }, []);
+
+    siblingsFilteredByYear = _.sortBy(siblingsFilteredByYear, ['value']);
+
+    tooltipElem = d3.select(element).select(".tooltip");
 
 
     //var container = d3.select(this.get('element')).select('svg.d3-attach'),
@@ -75,6 +133,10 @@ export default function (element, params) {
 
     svg.attr("preserveAspectRatio", "xMinYMin meet")
         .attr("viewBox", "0 0 481 474");
+
+    if (isNaN(width) || isNaN(height)) {
+        return false;
+    }
 
     x = x.range([0, width]);
 
@@ -98,7 +160,7 @@ export default function (element, params) {
         // });
     
     // Set data
-    console.log(data, params);
+    // console.log(data, params);
     // var fixedAxis = this.getAttr('config').axis,
         // feature = this.getAttr('feature'),
         // featureType = this.getAttr("featuretype"),
@@ -163,4 +225,101 @@ export default function (element, params) {
     // }
     // this.set('_dataState', dataState);
     //}
+
+
+    // Update
+    // var data = this.get('plotdata'),
+    //     feature = this.getAttr('feature'),
+    //     featureSlug = present(feature) ? feature.get("id") : null,
+    //     _this = this;
+
+    // this.$().addClass("svg-loading");
+
+    // var caption = this.getAttr("caption");
+    var data = siblingsFilteredByYear;
+    // if (!(data && svg && data.length > 0 && present(data[0]))) {
+    //     return;
+    // }
+    x.domain([0, d3.max(data, function (d) { return d.value; })]);
+
+    var padding = barGap * (data.length + 1);
+    var dataHeight = Math.min(barHeight * data.length + padding, height);
+    var paddingRatio = padding / dataHeight;
+    g.attr("height", dataHeight + margin.top + margin.bottom);
+    y = y.rangeRoundBands([0, dataHeight], paddingRatio);
+    y.domain(data.map(function (d) { return d.name; }));
+    xAxis.tickSize(-1 * dataHeight, 10)
+
+    var ySel = g.selectAll("g.y.axis").data([data]),
+        ySelEnter = ySel.enter().append("g")
+            .attr("class", "y axis");
+    ySel
+        .call(yAxis)
+        .selectAll("text")
+        .style("text-anchor", "end");
+    ySel.exit().remove();
+
+    var xSel = g.selectAll("g.x.axis").data([data]),
+        xSelEnter = xSel.enter().append("g")
+            .attr("class", "x axis");
+    xSel
+        .attr("transform", "translate(0," + (dataHeight + 3) + ")")
+        .call(xAxis);
+    xSel.exit().remove();
+
+    var xSelCaption = xSel.selectAll("text.caption").data(["Caption here..."])
+        , xSelCaptionEnter = xSelCaption.enter()
+            .append("text");
+    xSelCaption
+        .attr("class", "caption")
+        .attr("y", 30)
+        .attr("x", 0)
+        .style("text-anchor", "start")
+        .text("Caption here...");
+
+    var bar = g.selectAll(".bar").data(data),
+        barEnter = bar.enter().append("rect")
+            .attr("class", "bar")
+            .attr("data-bailiwick-area", function (d) {
+                return d.slug;
+            })
+            .on("click", function (d) {
+                // _this.sendAction("featureAction", d.slug);
+            });
+    if (!Modernizr.touch) {
+        barEnter
+            .on("mouseover", function (d) {
+                var tooltip = tooltipElem.selectAll('p').data([d.name, d.display]),
+                    tooltipEnter = tooltip.enter().append('p');
+
+                tooltip.text(function (d) {
+                    return d;
+                }).classed("number", function (d, i) {
+                    return i === 1;
+                }).classed("local", function (d, i) {
+                    return i === 1;
+                });
+
+                tooltipElem.style("visibility", "visible")
+                    .style("top", function () {
+                        return (d3.event.offsetY) + "px";
+                    })
+                    .style("left", function () {
+                        return (d3.event.offsetX) + "px";
+                    });
+
+            }).on("mouseout", function (d) {
+                tooltipElem.style("visibility", "hidden");
+            });
+    }
+    bar
+        .attr("y", function (d) { return y(d.name); })
+        .attr("height", y.rangeBand())
+        .attr("x", function (d) { return 1; })
+        .attr("width", function (d) { return x(d.value) + 1; })
+        .classed("active", function (d) {
+            return d.slug === currentAreaData[0][0];
+        });
+
+    bar.exit().remove();
 }
