@@ -46,6 +46,12 @@ export default function (element, params) {
     }
     svg = base.append('svg');
 
+    var legend = d3.select('.chart-inner .legend');
+
+    // if (!legend.empty()) {
+        legend.select('svg').remove();
+    // }
+
     var data = params[0];
 
     if (isEmpty(data)) {

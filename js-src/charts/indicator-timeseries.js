@@ -285,17 +285,7 @@ export default function (element, params) {
         })
         .on("click", function (d) {
             var year = (new Date(d)).getFullYear();
-            // console.log(year);
-
-            // let filter = _this.get('bailiwick.indicator').get('years').filter(function (y) {
-            //     return y.get('name') === year;
-            // });
-
-            // if (filter.length === 1) {
-            //     _this.set('bailiwick.year', filter[0]);
-            // }
-
-            // _this.transitionTo({ 'year': filter[0], 'area': d.area.dsArea });
+            console.log('year clicked', year, this);
         });
 
     var path = gEnter.append("g")
