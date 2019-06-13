@@ -6,6 +6,7 @@ import d3 from 'd3'
 import _ from 'lodash'
 
 import { none, isEmpty, present } from '../utils/utils';
+import chartSetup from '../utils/chart-setup';
 import formatting from '../utils/formatting';
 
 let yearFormat = d3.time.format('%Y').parse;
@@ -25,46 +26,28 @@ let line = d3.svg.line()
 // data: [{year, rawNum, indexNum, headlineDisp, indexDisp}]
 // @params: (data, current year, current indicator, transform, current area, current area type, chart ID)
 export default function (element, params) {
-    let cache = window.MBIECacheStorage,
-        toCache = {};
+    let setup = chartSetup(element, params, margin, {
+        'default-timeseries': true,
+        'basic-barchart': false,
+        'area-treemap': false,
+        'overunder-barchart': false
+    });
 
-    var base = d3.select(element).select('.d3-attach');
-    var svg = null;
-    if (!base.select('svg').empty()) {
-        base.select('svg').remove();
-    }
-    svg = base.append('svg');
-    var width = parseInt(base.style("width")) - margin.left - margin.right;
-    var height = parseInt(base.style("height")) - margin.top - margin.bottom;
-    var data = params[0];
-
-    d3.select('.chart-inner')
-        .classed({
-            'default-timeseries': true,
-            'basic-barchart': false,
-            'area-treemap': false
-        });
-
-    // d3.select(element).selectAll('.chart-inner')
-    //     .attr('class', 'chart-inner default-timeseries');
-
-    svg.attr("preserveAspectRatio", "xMinYMin meet")
-        .attr("viewBox", "0 0 481 474");
-
-    if (isEmpty(data) || isNaN(width) || isNaN(height)) {
+    if (setup === null) {
         return;
     }
 
-    var year = params[1];
-    var indicator = params[2];
-    var transform = params[3];
-    var area = params[4]
-    var areaLevel = params[5];
-
-    /// Cached data    
-    if (isEmpty(cache.get(indicator))) {
-        cache.put(indicator, {});
-    }
+    let cache = setup.cache, 
+        toCache = setup.toCache, 
+        data = setup.data, 
+        year = setup.year, 
+        indicator = setup.indicator, 
+        transform = setup.transform, 
+        area = setup.area, 
+        areaLevel = setup.areaLevel, 
+        svg = setup.svg, 
+        width = setup.width, 
+        height = setup.height;
 
     // current data...
     var currentYear = svg.attr('data-year'),

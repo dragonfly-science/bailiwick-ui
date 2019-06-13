@@ -1,6 +1,7 @@
 import d3 from 'd3';
 import _ from 'lodash';
-import { none, isEmpty, present } from '../utils/utils';
+import chartSetup from '../utils/chart-setup';
+import { isEmpty } from '../utils/utils';
 
 var percentageFormatter = d3.format('.1f');
 var margin, svg, width, height, tooltipElem;
@@ -40,46 +41,41 @@ export default function (element, params) {
     //
     // Set up
     //
-    let cache = window.MBIECacheStorage,
-        toCache = {};
-    
-    var base = d3.select(element).select('.d3-attach');
-
-    if (!base.select('svg').empty()) {
-        base.select('svg').remove();
+    let lmargin = 140;
+    if (window.innerWidth < 400) {
+      lmargin = 100;
+    } else if (window.innerWidth < 600 && lmargin > 140) {
+      lmargin = 180;
     }
-    svg = base.append('svg');
+    
+    margin = {top: 5, right: 25, bottom: 40, left: lmargin};
 
-    var legend = d3.select('.chart-inner .legend');
+    let setup = chartSetup(element, params, margin, {
+        'default-timeseries': false,
+        'basic-barchart': true,
+        'area-treemap': false,
+        'overunder-barchart': false
+    });
 
-    legend.select('svg').remove();
-
-    var data = params[0];
-
-    if (isEmpty(data)) {
+    if (setup === null) {
         return;
     }
 
-    d3.select('.chart-inner')
-        .classed({
-            'default-timeseries': false,
-            'basic-barchart': true,
-            'area-treemap': false
-        });
+    let cache = setup.cache, 
+        toCache = setup.toCache, 
+        data = setup.data, 
+        year = setup.year, 
+        indicator = setup.indicator, 
+        transform = setup.transform, 
+        area = setup.area, 
+        areaLevel = setup.areaLevel, 
+        svg = setup.svg, 
+        width = setup.width, 
+        height = setup.height;
 
-    // Take data & filter to find areas that match the current
-    // area/area type combination.
-    var year = params[1];
-    var indicator = params[2];
-    var transform = params[3];
-    var area = params[4]
-    var areaLevel = params[5];
-    var parents = null;
+    var legend = d3.select('.chart-inner .legend');
+    legend.select('svg').remove();
 
-    /// Cached data    
-    if (isEmpty(cache.get(indicator))) {
-        cache.put(indicator, {});
-    }
 
     // Find the current area in supplied data
     var currentAreaData = _.filter(data, function(o) {
@@ -144,24 +140,17 @@ export default function (element, params) {
 
     tooltipElem = d3.select(element).select(".tooltip");
 
-    let lmargin = 140;
-    if (window.innerWidth < 400) {
-      lmargin = 100;
-    } else if (window.innerWidth < 600 && lmargin > 140) {
-      lmargin = 180;
-    }
     
-    margin = {top: 5, right: 25, bottom: 40, left: lmargin};
 
-    width = parseInt(base.style("width")) - margin.left - margin.right;
-    height = parseInt(base.style("height")) - margin.top - margin.bottom;
+    // width = parseInt(base.style("width")) - margin.left - margin.right;
+    // height = parseInt(base.style("height")) - margin.top - margin.bottom;
 
-    svg.attr("preserveAspectRatio", "xMinYMin meet")
-        .attr("viewBox", "0 0 481 474");
+    // svg.attr("preserveAspectRatio", "xMinYMin meet")
+    //     .attr("viewBox", "0 0 481 474");
 
-    if (isNaN(width) || isNaN(height)) {
-        return false;
-    }
+    // if (isNaN(width) || isNaN(height)) {
+    //     return false;
+    // }
 
     x = x.range([0, width]);
 

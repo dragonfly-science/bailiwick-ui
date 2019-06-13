@@ -117,7 +117,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
         areatype <- _areaType
         chartType <- _chartType
         indicator <- indicatorD
-        return (indn, my, indID, indicator, areas, area, areatype, transform, chartType)
+        return (trace ("numbers" ++ show indn) indn, my, indID, indicator, areas, area, areatype, transform, chartType)
 
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
@@ -130,6 +130,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
   let getJSChartType chart = case chart of
         Just a -> case trace ("chart type" ++ show a) a of
                     "barchart" -> "updateAreaBarchart"
+                    "over-under-barchart" -> "overUnderBarchart"
                     _ ->"updateIndicatorTimeSeries"
         Nothing -> "updateIndicatorTimeSeries"
 

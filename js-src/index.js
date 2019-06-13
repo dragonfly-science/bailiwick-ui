@@ -8,6 +8,7 @@ import updateIndicatorTimeSeries from './charts/indicator-timeseries';
 import updateMapLegend from './charts/map-legend';
 import updateTimeSeries from './charts/summary-timeseries';
 import updateAreaBarchart from './charts/indicator-barchart';
+import overUnderBarchart from './charts/over-under-barchart';
 
 /* 
  * Reflex functions
@@ -18,3 +19,4 @@ window.updateIndicatorTimeSeries = updateIndicatorTimeSeries;
 window.updateMapLegend = updateMapLegend;
 window.updateTimeSeries = updateTimeSeries;
 window.updateAreaBarchart = updateAreaBarchart;
+window.overUnderBarchart = overUnderBarchart;
