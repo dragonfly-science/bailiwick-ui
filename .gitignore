@@ -8,3 +8,4 @@ db/dev/
 nix-serve.*
 .ghc.environment.*
 *.code-workspace
+static/bailiwick.bundle.js.map

@@ -463,7 +463,6 @@ export default function (element, params) {
             tooltipElem.style("visibility", "hidden");
         });
     }
-    
 
     // update data attributes.
     svg
@@ -540,7 +539,6 @@ export default function (element, params) {
             return d[0];
         });
     legendTexts.exit().remove();
-
 
     /// Update cache if necessary
     if (!_.isEmpty(toCache)) {
