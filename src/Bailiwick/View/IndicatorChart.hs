@@ -13,6 +13,7 @@ import Control.Monad (void)
 import Data.Maybe (fromMaybe)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Data.Text (Text)
+import Debug.Trace
 
 import qualified GHCJS.DOM.Element as DOM
 import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
@@ -127,7 +128,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
 
 
   let getJSChartType chart = case chart of
-        Just a -> case a of
+        Just a -> case trace ("chart type" ++ show a) a of
                     "barchart" -> "updateAreaBarchart"
                     _ ->"updateIndicatorTimeSeries"
         Nothing -> "updateIndicatorTimeSeries"
@@ -144,7 +145,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
   clickE :: Event t (Maybe Message)
     <- clickEvents e $ \svg -> do
          target_element :: Text <- DOM.getTagName svg
-         case target_element of
+         case trace ("El" ++ show target_element) target_element of
            "path" -> do
               yeart <- DOM.getAttribute svg ("data-bailiwick-year"::Text)
               area <- DOM.getAttribute svg ("data-bailiwick-area"::Text)
@@ -153,7 +154,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
            "rect" -> do
               area <- DOM.getAttribute svg ("data-bailiwick-area"::Text)
               return (SetSubArea <$> area)
-           "g" -> do
+           "text" -> do
               yeart <- DOM.getAttribute svg ("data-bailiwick-year"::Text)
               let year = read <$> yeart
               return (SetYear <$> year)

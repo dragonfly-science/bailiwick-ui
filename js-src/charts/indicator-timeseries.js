@@ -88,11 +88,16 @@ export default function (element, params) {
         .clipExtent([[-margin.left, -margin.top], [width + margin.right, height + margin.bottom]]);
 
     /// Update
-    svg.selectAll('g').remove();
+    // svg.selectAll('g').remove();
     var g = svg.selectAll('g').data([data])
-        , gEnter = g.enter()
-            .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        , gEnter = svg.select('.g-enter');
+
+    if (gEnter.empty()) {
+        gEnter = g.enter().append("g").attr('class', 'g-enter');
+    }
+
+    gEnter
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     var years = [];
 
@@ -244,7 +249,14 @@ export default function (element, params) {
         lineXpos = 1;
     }
 
-    gEnter.append("line")
+    var yearLine = gEnter.select(".year-line");
+
+    if (yearLine.empty()) {
+        yearLine = gEnter.append('line');
+    }
+
+    // gEnter.append("line")
+    yearLine
         .attr("x1", lineXpos)
         .attr("y1", 0)
         .attr("x2", lineXpos)
@@ -253,6 +265,7 @@ export default function (element, params) {
         .attr("stroke", "rgba(0,0,0,.5)")
         .attr("z", 100)
         .attr("class", "year-line");
+        
     /*
      * End year line generation.
      * */
@@ -299,14 +312,15 @@ export default function (element, params) {
         .attr("width", clipWidth)
         .attr("height", clipHeight);
 
-    svg.selectAll(".axis--x g.tick")
+    svg.selectAll(".axis--x g.tick text")
         .attr("data-bailiwick-year", function(d) {
             return (new Date(d)).getFullYear();
-        })
-        .on("click", function (d) {
-            var year = (new Date(d)).getFullYear();
-            console.log('year clicked', year, this);
         });
+        // .on("click", function (d) {
+        //     d3.event.preventDefault();
+        //     var year = (new Date(d)).getFullYear();
+        //     console.log('year clicked', year, this);
+        // });
 
     var path = gEnter.append("g")
         .attr("class", "areas")
