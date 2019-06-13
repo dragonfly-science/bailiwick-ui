@@ -92,7 +92,7 @@ data Units
   | Count
   | Hectares
   | Float
-  deriving (Show, Eq, Generic)
+  deriving (Eq, Show, Generic)
 
 instance FromJSON Units where
     parseJSON = genericParseJSON $ defaultOptions{constructorTagModifier = map toLower}

@@ -6,5 +6,5 @@ result
 node_modules
 db/dev/
 nix-serve.*
-.ghc.environment.x86_64-darwin-8.4.3
-bailiwick.code-workspace
+.ghc.environment.*
+*.code-workspace

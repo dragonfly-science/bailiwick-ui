@@ -11,7 +11,7 @@ export default function(width, height, scaledata) {
     var base = d3.select(".indicator-map-legend");
     var svg = base.select('svg').empty() ? base.append('svg') : base.select('svg');
 
-    var colors = getColours();
+    // var colors = getColours();
     // var positive = d3.scale([colors['background-rear-positive-light'], colors['background-rear-positive']]),
     //     negative = d3.scale()
     //             .domain([-1, 0])

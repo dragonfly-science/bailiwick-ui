@@ -1,6 +1,9 @@
 /* ///
  * Global Imports
  * /// */
+import CacheStorage from './cache/cache-store';
+window.MBIECacheStorage = CacheStorage.getInstance();
+
 import updateIndicatorTimeSeries from './charts/indicator-timeseries';
 import updateMapLegend from './charts/map-legend';
 import updateTimeSeries from './charts/summary-timeseries';

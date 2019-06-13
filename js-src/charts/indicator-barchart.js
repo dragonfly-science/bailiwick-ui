@@ -40,7 +40,11 @@ export default function (element, params) {
     //
     // Set up
     //
+    let cache = window.MBIECacheStorage,
+        toCache = {};
+    
     var base = d3.select(element).select('.d3-attach');
+
     if (!base.select('svg').empty()) {
         base.select('svg').remove();
     }
@@ -72,8 +76,12 @@ export default function (element, params) {
     var areaLevel = params[5];
     var parents = null;
 
+    /// Cached data    
+    if (isEmpty(cache.get(indicator))) {
+        cache.put(indicator, {});
+    }
+
     // Find the current area in supplied data
-    // console.log(data)
     var currentAreaData = _.filter(data, function(o) {
         return o[0][1] === area;
     });
@@ -84,39 +92,55 @@ export default function (element, params) {
 
     currentAreaData = currentAreaData[0];
 
-    parents = _.last(currentAreaData[0]);
+    if (!_.hasIn(cache.get(indicator), 'areas.' + area + '.' + year)) {
 
-    // No parents means NZ is selected - so we will end up showing all
-    // available regions.
-    if (isEmpty(parents)) {
-        parents = ['new-zealand'];
-    }
-    
-    // Find all siblings that have one or more same parents.
-    var siblingAreas = _.filter(data, function(o) {
-        return _.intersection(_.last(o[0]), parents).length > 0;
-    });
+        let cachedInd = cache.get(indicator);
+        parents = _.last(currentAreaData[0]);
 
-    var siblingsFilteredByYear = _.reduce(siblingAreas, function(res, v, k) {
-        let values = {
-            name: v[0][1],
-            slug: v[0][0],
-            display: '',
-            value: 0
+        // No parents means NZ is selected - so we will end up showing all
+        // available regions.
+        if (isEmpty(parents)) {
+            parents = ['new-zealand'];
         }
-
-        let yearVal = _.filter(v[1], function(o) {
-            return o[0] === year;
+        
+        // Find all siblings that have one or more same parents.
+        var siblingAreas = _.filter(data, function(o) {
+            return _.intersection(_.last(o[0]), parents).length > 0;
         });
 
-        values.value = Number(yearVal[0][1]);
-        values.display = (yearVal[0][3]).trim();
+        var siblingsFilteredByYear = _.reduce(siblingAreas, function(res, v, k) {
+            let values = {
+                name: v[0][1],
+                slug: v[0][0],
+                display: '',
+                value: 0
+            }
 
-        res.push(values);
-        return res;
-    }, []);
+            let yearVal = _.filter(v[1], function(o) {
+                return o[0] === year;
+            });
 
-    siblingsFilteredByYear = _.sortBy(siblingsFilteredByYear, ['value']);
+            values.value = Number(yearVal[0][1]);
+            values.display = (yearVal[0][3]).trim();
+
+            res.push(values);
+            return res;
+        }, []);
+
+        siblingsFilteredByYear = _.sortBy(siblingsFilteredByYear, ['value']);
+        
+        if (!_.hasIn(cachedInd, 'areas')) {
+            cachedInd.areas = {};
+        }
+
+        if (!_.hasIn(cachedInd, 'areas.' + area)) {
+            cachedInd.areas[area] = {};
+        }
+        cachedInd.areas[area][year] = siblingsFilteredByYear;
+        data = siblingsFilteredByYear;
+    }
+
+    data = cache.get(indicator)['areas'][area][year];
 
     tooltipElem = d3.select(element).select(".tooltip");
 
@@ -237,7 +261,7 @@ export default function (element, params) {
     // this.$().addClass("svg-loading");
 
     // var caption = this.getAttr("caption");
-    var data = siblingsFilteredByYear;
+    // var data = siblingsFilteredByYear;
     // if (!(data && svg && data.length > 0 && present(data[0]))) {
     //     return;
     // }

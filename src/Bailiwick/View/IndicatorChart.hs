@@ -105,24 +105,27 @@ indicatorChart IndicatorChartState{..} zoomD = do
       _transform = fmap themePageLeftTransform <$> pageD
       _areaType = fmap themePageAreaType <$> pageD
       _chartType = fmap themePageRightChart <$> pageD
+
       jsargs = do
         indn <- indicatorNumbersD
         areas <- areasD
         my <- _year
-        ind <- _iId
+        indID <- _iId
         area <- areaD
         transform <- _transform
         areatype <- _areaType
         chartType <- _chartType
-        return (indn, my, ind, areas, area, areatype, transform, chartType)
+        indicator <- indicatorD
+        return (indn, my, indID, indicator, areas, area, areatype, transform, chartType)
 
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
   updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId,
-                      Maybe Areas, Maybe Area, Maybe Text, Maybe Text, Maybe ChartId)
+                      Maybe Indicator, Maybe Areas, Maybe Area, Maybe Text, 
+                      Maybe Text, Maybe ChartId)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
---   getJSChartType :: ChartId -> Text
+
   let getJSChartType chart = case chart of
         Just a -> case a of
                     "barchart" -> "updateAreaBarchart"
@@ -130,12 +133,13 @@ indicatorChart IndicatorChartState{..} zoomD = do
         Nothing -> "updateIndicatorTimeSeries"
 
   performEvent_ $ ffor updateE $ \case
-    (indn, my, ind, areas, area, areatype, transform, chartType)
+    (indn, my, indID, indicator, areas, area, areatype, transform, chartType)
       -> liftJSM . void
           $ do
             let areaname = maybe "" areaName area
+            let units = maybe Percentage indicatorUnits indicator
             jsg2 ((getJSChartType chartType) :: Text) (_element_raw e)
-                 (shapeData areas indn, my, ind, transform, areaname, areatype, chartType)
+                 (shapeData areas indn, my, indID, transform, areaname, areatype, chartType)
 
   clickE :: Event t (Maybe Message)
     <- clickEvents e $ \svg -> do

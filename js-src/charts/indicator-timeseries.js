@@ -24,15 +24,10 @@ let line = d3.svg.line()
 
 // data: [{year, rawNum, indexNum, headlineDisp, indexDisp}]
 // @params: (data, current year, current indicator, transform, current area, current area type, chart ID)
-/*
-    Data requirements:
-    ------------------
-    There will need to be some modifications to the data provided
-    in order to suit what the timeseries needs:
-    1. Need area name as well as ID -- DONE
-    2. Need to know the area type (e.g. region, ta, ward)
-*/
 export default function (element, params) {
+    let cache = window.MBIECacheStorage,
+        toCache = {};
+
     var base = d3.select(element).select('.d3-attach');
     var svg = null;
     if (!base.select('svg').empty()) {
@@ -66,6 +61,11 @@ export default function (element, params) {
     var area = params[4]
     var areaLevel = params[5];
 
+    /// Cached data    
+    if (isEmpty(cache.get(indicator))) {
+        cache.put(indicator, {});
+    }
+
     // current data...
     var currentYear = svg.attr('data-year'),
         currentIndicator = svg.attr('data-indicator'),
@@ -94,64 +94,84 @@ export default function (element, params) {
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    var years = _.uniq(_.reduce(data, function (result, value, key) {
-        return _.reduce(value[1], function (res, v, k) {
-            res.push(v[0]);
-            return res;
-        }, result);
-    }, [])).sort(function (a, b) {
-        return d3.ascending(a, b);
-    }).map(function (y) {
-        return yearFormat(y.toString());
-    });
+    var years = [];
 
-    var transformPos = transforms.indexOf(transform);
-    var pos = transformPos === -1 ? 1 : transformPos + 1;
-    var dispPos = transformPos === -1 ? 3 : transformPos + 3;
-
-    var areas = data.map(function (a) {
-        var area = {
-            slug: a[0][0],
-            name: a[0][1],
-            level: a[0][2],
-            dsArea: a[0],
-            values: a[1].map(function (y) {
-                var out = {};
-                out.date = yearFormat(y[0].toString());
-                out.v = Number(y[pos]);
-                out.d = y[dispPos];
-                return out;
-            }).filter(function (d) {
-                return d.v !== null;
-            })
-        };
-
-        // Used on mouse events on voroni
-        area.values.forEach(function (o) {
-            o.area = area;
+    if (!_.hasIn(cache.get(indicator), "years")) {
+        years = _.uniq(_.reduce(data, function (result, value, key) {
+            return _.reduce(value[1], function (res, v, k) {
+                res.push(v[0]);
+                return res;
+            }, result);
+        }, [])).sort(function (a, b) {
+            return d3.ascending(a, b);
+        }).map(function (y) {
+            return yearFormat(y.toString());
         });
 
-        return area;
-    })
-    .filter(function (a) {
-        var valid = false;
+        toCache.years = years;
+    } else {
+        years = cache.get(indicator).years;
+    }
 
-        switch (a.name) {
-            //   case compareAreaName:
-            //       valid = true;
-            //       break;
-            case area:
-                valid = true;
-                break;
-            case 'New Zealand':
-                valid = true;
-                break;
-            default:
-                break;
-        }
+    var areaKey = area + '-' + areaLevel + '-' + transform;
+    var areas = [];
 
-        return a.level === areaLevel || valid;
-    });
+    if (!_.hasIn(cache.get(indicator), area) || (
+        _.hasIn(cache.get(indicator), area) && 
+        !_.hasIn(cache.get(indicator.area), areaKey)
+    )) {
+        var transformPos = transforms.indexOf(transform);
+        var pos = transformPos === -1 ? 1 : transformPos + 1;
+        var dispPos = transformPos === -1 ? 3 : transformPos + 3;
+
+        areas = data.map(function (a) {
+            var area = {
+                slug: a[0][0],
+                name: a[0][1],
+                level: a[0][2],
+                dsArea: a[0],
+                values: a[1].map(function (y) {
+                    var out = {};
+                    out.date = yearFormat(y[0].toString());
+                    out.v = Number(y[pos]);
+                    out.d = y[dispPos];
+                    return out;
+                }).filter(function (d) {
+                    return d.v !== null;
+                })
+            };
+
+            // Used on mouse events on voroni
+            area.values.forEach(function (o) {
+                o.area = area;
+            });
+
+            return area;
+        })
+        .filter(function (a) {
+            var valid = false;
+
+            switch (a.name) {
+                //   case compareAreaName:
+                //       valid = true;
+                //       break;
+                case area:
+                    valid = true;
+                    break;
+                case 'New Zealand':
+                    valid = true;
+                    break;
+                default:
+                    break;
+            }
+
+            return a.level === areaLevel || valid;
+        });
+
+        toCache[String(areaKey)] = areas;
+    } else {
+        areas = cache.get(indicator).areas[areaKey];
+    }
 
     var xExtent = d3.extent(years);
     x.domain(xExtent);
@@ -279,7 +299,7 @@ export default function (element, params) {
         .attr("width", clipWidth)
         .attr("height", clipHeight);
 
-    svg.selectAll(".axis--x .tick")
+    svg.selectAll(".axis--x g.tick")
         .attr("data-bailiwick-year", function(d) {
             return (new Date(d)).getFullYear();
         })
@@ -507,5 +527,26 @@ export default function (element, params) {
         });
     legendTexts.exit().remove();
 
-    
+
+    /// Update cache if necessary
+    if (!_.isEmpty(toCache)) {
+        let cachedIndicator = cache.get(indicator);
+
+        // 1. Years
+        if (!_.hasIn(cachedIndicator, "years") && _.hasIn(toCache, "years")) {
+            cachedIndicator.years = toCache.years;
+        }
+
+        // 2. Areas
+        if (_.hasIn(toCache, areaKey)) {
+            let areasToCache = {};
+
+            if (_.hasIn(cachedIndicator, "areas")) {
+                areasToCache = cachedIndicator.areas;
+            }
+
+            areasToCache[areaKey] = toCache[areaKey];
+            cachedIndicator.areas = areasToCache;
+        }
+    }
 }
