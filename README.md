@@ -49,3 +49,25 @@ $ NIX_SECRET_KEY_FILE=nix-serve.sec nix-serve --host nix-cache.kahu.dragonfly.co
 And in the `nix.conf` file you will need to update the lines that refer to the
 cache before running `make docker`.
 
+## Javascript generation
+
+Currently the javascript is bundled via webpack (this will be moved to nix at
+some point).
+
+To run, first install all the npm dependencies.
+
+```
+npm i
+```
+
+Then to watch for changes & compie:
+
+```
+npm run develop
+```
+
+To build for production:
+
+```
+npm run build
+```
