@@ -8,26 +8,26 @@ import { isEmpty, getColours, none, present } from '../utils/utils';
 
 
 var margin = {top: 2, right: 2, bottom: 2, left: 2};
-var width, height, svg, treemap, legendElem, tooltipElem;
+var width, height, svg, treemap, legendElem, tooltipElem, labels;
 var first = true;
 
 
 
-// function wordwrap(d, i) {
-//   if (!d.absolute) {
-//     return;
-//   }
+function wordwrap(d, i) {
+  if (!d.absolute) {
+    return;
+  }
 
-//   var t = d3.select(this),
-//   rectBB = t.select('rect').node().getBBox(),
-//   text = t.select('text'),
-//   textBB = text.node().getBBox();
-//   if (textBB.width >= rectBB.width - 1|| textBB.height >= rectBB.height - 1) {
-//     text.style('visibility', 'hidden');
-//   } else {
-//     text.style('visibility', 'inherit');
-//   }
-// }
+  var t = d3.select(this),
+  rectBB = t.select('rect').node().getBBox(),
+  text = t.select('text'),
+  textBB = text.node().getBBox();
+  if (textBB.width >= rectBB.width - 1|| textBB.height >= rectBB.height - 1) {
+    text.style('visibility', 'hidden');
+  } else {
+    text.style('visibility', 'inherit');
+  }
+}
 
 export default function(element, params) {
     let colours = getColours();
@@ -98,50 +98,50 @@ export default function(element, params) {
     ///
     /// Draw Labels
     ///
-    // var labels = ["International", "Domestic"];
-    // var legendWidth = 300;
-    // var legendHeight = 80;
+    var labels = ["International", "Domestic"];
+    var legendWidth = 300;
+    var legendHeight = 80;
 
-    // var legend = legendElem.selectAll("svg")
-    //   .data([labels]);
-    // var legendEnter = legend.enter()
-    //   .append("svg");
-    // legend.attr("width", legendWidth)
-    //       .attr("height", legendHeight);
+    var legend = legendElem.selectAll("svg")
+      .data([labels]);
+    var legendEnter = legend.enter()
+      .append("svg");
+    legend.attr("width", legendWidth)
+          .attr("height", legendHeight);
 
-    // var legendG = legend.selectAll("g.key")
-    //                     .data(function(d) {
-    //                       return [d]
-    //                     })
-    //   , legendGEnter = legendG.enter()
-    //                           .append("g")
-    //                           .attr("class", "key");
-    //   legendG.attr("transform", "translate(" + margin.left + "," + legendHeight / 2 + ")");
+    var legendG = legend.selectAll("g.key")
+                        .data(function(d) {
+                          return [d]
+                        })
+      , legendGEnter = legendG.enter()
+                              .append("g")
+                              .attr("class", "key");
+      legendG.attr("transform", "translate(" + margin.left + "," + legendHeight / 2 + ")");
 
-    // var legendRects = legendG.selectAll("rect")
-    //                          .data(function(d) { return d; })
-    //   , legendRectsEnter = legendRects.enter()
-    //                                   .append("rect")
-    //                                   .attr("height", 8)
-    //                                   .attr("width", 55);
-    // legendRects.attr("x", function(d, i) {
-    //   return i * 95;
-    // }).attr("fill", function(d) {
-    //   return color(d.toLowerCase());
-    // });
-    // var legendTexts = legendG.selectAll("text")
-    //                          .data(function(d) { return d; })
-    //   , legendTextsEnter = legendTexts.enter()
-    //                                   .append("text")
-    //                                   .attr("dy", "0.71em")
-    //                                   .attr("y", 16);
-    // legendTexts.attr("x", function(d, i) {
-    //     return i * 95;
-    //   })
-    //   .text(function(d) {
-    //     return d;
-    //   });
-    //   legendTexts.exit().remove();
+    var legendRects = legendG.selectAll("rect")
+                             .data(function(d) { return d; })
+      , legendRectsEnter = legendRects.enter()
+                                      .append("rect")
+                                      .attr("height", 8)
+                                      .attr("width", 55);
+    legendRects.attr("x", function(d, i) {
+      return i * 95;
+    }).attr("fill", function(d) {
+      return color(d.toLowerCase());
+    });
+    var legendTexts = legendG.selectAll("text")
+                             .data(function(d) { return d; })
+      , legendTextsEnter = legendTexts.enter()
+                                      .append("text")
+                                      .attr("dy", "0.71em")
+                                      .attr("y", 16);
+    legendTexts.attr("x", function(d, i) {
+        return i * 95;
+      })
+      .text(function(d) {
+        return d;
+      });
+      legendTexts.exit().remove();
 
     /// 
     /// Update
