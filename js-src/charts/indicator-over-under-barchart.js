@@ -22,12 +22,7 @@ var absoluteCaption = ["Achieved", "Not acheived"];
 export default function(element, params) {
     console.log('Under Over', element, params);
     
-    let setup = chartSetup(element, params, margin, {
-        'default-timeseries': false,
-        'basic-barchart': false,
-        'area-treemap': false,
-        'overunder-barchart': true
-    });
+    let setup = chartSetup(element, params, margin, 'overunder-barchart');
 
     if (setup === null) {
         return;
@@ -41,7 +36,8 @@ export default function(element, params) {
         transform = setup.transform, 
         area = setup.area, 
         areaLevel = setup.areaLevel, 
-        svg = setup.svg, 
+        svg = setup.svg,
+        base = setup.base,
         width = setup.width, 
         height = setup.height;
     //
@@ -284,4 +280,6 @@ export default function(element, params) {
     //   .attr("class", "zeroline");
     // zeroLine.attr("d", zline);
     // zeroLine.exit().remove();
+
+    base.classed('svg-loading', false);
 }

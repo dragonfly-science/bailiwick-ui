@@ -43,12 +43,7 @@ export default function(element, params) {
     var colour = d3.scale.ordinal().domain(["international","domestic"]).range([scale(0.2), scale(0.8)]);
 
     // Setup
-    let setup = chartSetup(element, params, margin, {
-        'default-timeseries': false,
-        'basic-barchart': false,
-        'area-treemap': true,
-        'overunder-barchart': false
-    });
+    let setup = chartSetup(element, params, margin, 'area-treemap');
 
     if (setup === null) {
         return;
@@ -62,7 +57,8 @@ export default function(element, params) {
         transform = setup.transform, 
         area = setup.area, 
         areaLevel = setup.areaLevel, 
-        svg = setup.svg, 
+        svg = setup.svg,
+        base = setup.base,
         width = setup.width, 
         height = setup.height;
 
@@ -258,4 +254,5 @@ export default function(element, params) {
 
     // cell.exit().remove();
     // this.$().removeClass("svg-loading");
+    base.classed('svg-loading', false);
 }

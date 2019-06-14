@@ -19,12 +19,7 @@ export default function (element, params) {
     
     let margin = {top: 5, right: 25, bottom: 40, left: lmargin};
 
-    let setup = chartSetup(element, params, margin, {
-        'default-timeseries': false,
-        'basic-barchart': true,
-        'area-treemap': false,
-        'overunder-barchart': false
-    });
+    let setup = chartSetup(element, params, margin, 'basic-barchart');
 
     if (setup === null) {
         return;
@@ -38,9 +33,12 @@ export default function (element, params) {
         transform = setup.transform, 
         area = setup.area, 
         areaLevel = setup.areaLevel, 
-        svg = setup.svg, 
+        svg = setup.svg,
+        base = setup.base,
         width = setup.width, 
         height = setup.height;
+
+    console.log('year', year);
 
     var legend = d3.select('.chart-inner .legend');
     legend.select('svg').remove();
@@ -83,6 +81,7 @@ export default function (element, params) {
     });
 
     if (isEmpty(currentAreaData)) {
+        base.classed('svg-loading', false);
         return false;
     }
 
@@ -108,17 +107,21 @@ export default function (element, params) {
                 name: v[0][1],
                 slug: v[0][0],
                 display: '',
-                value: 0
+                value: 0,
+                year: year
             }
 
             let yearVal = _.filter(v[1], function(o) {
                 return o[0] === year;
             });
 
-            values.value = Number(yearVal[0][1]);
-            values.display = (yearVal[0][3]).trim();
-
-            res.push(values);
+            if (!_.isEmpty(yearVal)) {
+                values.value = Number(yearVal[0][1]);
+                values.display = (yearVal[0][3]).trim();
+    
+                res.push(values);
+            }
+            
             return res;
         }, []);
 
@@ -291,7 +294,7 @@ export default function (element, params) {
     if (!Modernizr.touch) {
         barEnter
             .on("mouseover", function (d) {
-                var tooltip = tooltipElem.selectAll('p').data([d.name, d.display]),
+                var tooltip = tooltipElem.selectAll('p').data([d.name, d.display, d.year]),
                     tooltipEnter = tooltip.enter().append('p');
 
                 tooltip.text(function (d) {
@@ -314,6 +317,7 @@ export default function (element, params) {
                 tooltipElem.style("visibility", "hidden");
             });
     }
+
     bar
         .attr("y", function (d) { return y(d.name); })
         .attr("height", y.rangeBand())
@@ -324,4 +328,6 @@ export default function (element, params) {
         });
 
     bar.exit().remove();
+
+    base.classed('svg-loading', false);
 }

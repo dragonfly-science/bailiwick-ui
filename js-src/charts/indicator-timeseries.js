@@ -26,12 +26,7 @@ let line = d3.svg.line()
 // data: [{year, rawNum, indexNum, headlineDisp, indexDisp}]
 // @params: (data, current year, current indicator, transform, current area, current area type, chart ID)
 export default function (element, params) {
-    let setup = chartSetup(element, params, margin, {
-        'default-timeseries': true,
-        'basic-barchart': false,
-        'area-treemap': false,
-        'overunder-barchart': false
-    });
+    let setup = chartSetup(element, params, margin, 'default-timeseries');
 
     if (setup === null) {
         return;
@@ -45,7 +40,8 @@ export default function (element, params) {
         transform = setup.transform, 
         area = setup.area, 
         areaLevel = setup.areaLevel, 
-        svg = setup.svg, 
+        svg = setup.svg,
+        base = setup.base,
         width = setup.width, 
         height = setup.height;
 
@@ -71,7 +67,7 @@ export default function (element, params) {
         .clipExtent([[-margin.left, -margin.top], [width + margin.right, height + margin.bottom]]);
 
     /// Update
-    // svg.selectAll('g').remove();
+    svg.selectAll('g').remove();
     var g = svg.selectAll('g').data([data])
         , gEnter = svg.select('.g-enter');
 
@@ -240,6 +236,8 @@ export default function (element, params) {
 
     // gEnter.append("line")
     yearLine
+        .transition()
+        .duration(500)
         .attr("x1", lineXpos)
         .attr("y1", 0)
         .attr("x2", lineXpos)
@@ -322,19 +320,16 @@ export default function (element, params) {
     // but need need to update highlighing so grab everything.
     g.selectAll('g.areas').selectAll('path')
         .attr("class", function (d) {
-            var className = '';
-            switch (d.name) {
-                case area:
-                    className = 'current-area';
-                    break;
-                case 'New Zealand':
-                    className = 'new-zealand';
-                    break;
-                default:
-                    className = "no-highlight";
-                    break;
-            }
-            return className + ' area';
+            var classNames = {
+                'New Zealand': 'new-zealand',
+                'default': 'no-highlight'
+            };
+            classNames[area] = 'current-area';
+            return (
+                _.hasIn(classNames, d.name) ? 
+                    classNames[d.name] : 
+                    classNames['default']
+            ) + ' area';
             // } else if (d.name === compareAreaName) {
             //     return "compare-area";
             // } else if (d.name === hover) {
@@ -454,11 +449,14 @@ export default function (element, params) {
       .attr('data-transform', transform)
       .attr('data-level', areaLevel)
       .attr('data-indicator', indicator);
+    
+    
 
     // ----
     // Only update the legend if the area has changed.
     // ----
     if (currentArea === area) {
+        base.classed('svg-loading', false);
         return false;
     }
 
@@ -544,4 +542,6 @@ export default function (element, params) {
             cachedIndicator.areas = areasToCache;
         }
     }
+
+    base.classed('svg-loading', false);
 }

@@ -3,20 +3,36 @@ import _ from 'lodash'
 
 import { isEmpty } from '../utils/utils';
 
-export default function(element, params, margin, chartInnerClasses) {
+export default function(element, params, margin, chartType) {
     let base = d3.select(element).select('.d3-attach'),
         svg = null,
         width = parseInt(base.style("width")) - margin.left - margin.right,
         height = parseInt(base.style("height")) - margin.top - margin.bottom,
-        data = params[0];
-        
+        data = params[0],
+        chartInnerClasses = {
+            'default-timeseries': false,
+            'basic-barchart': false,
+            'area-treemap': false,
+            'overunder-barchart': false
+        };
 
-    if (!base.select('svg').empty()) {
+    chartInnerClasses = _.forEach(chartInnerClasses, function(value, key) {
+        chartInnerClasses[key] = key === chartType;
+    });
+
+    svg = base.select('svg');
+    base.classed('svg-loading', true);
+
+    if (
+        d3.select('.chart-inner').empty() || 
+        (!d3.select('.chart-inner').empty() && 
+        !d3.select('.chart-inner').classed(chartType))
+        ) 
+    {
         base.select('svg').remove();
+        svg = base.append('svg');
     }
-
-    svg = base.append('svg');
-
+    
     // set chart specific classes.
     d3.select('.chart-inner').classed(chartInnerClasses);
 
@@ -48,6 +64,7 @@ export default function(element, params, margin, chartInnerClasses) {
         area: area,
         areaLevel: areaLevel,
         svg: svg,
+        base: base,
         width: width,
         height: height
     }
