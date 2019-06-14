@@ -121,6 +121,29 @@ view st@State{..} = do
                   isOpen <- foldDyn (const not) False $ isOpenE
                   return (toolBarE, isOpen)
               return (leftmost [navBarE, headerE', toolBarE], isOpen')
+    elAttr "div" ("class" =: "export-dialog" <> "style" =: "display:none;") $
+        divClass "export-dialog-main" $
+            divClass "export-header" $ do
+                divClass "export-menu" $ do
+                    elClass "button" "export-type" $ text "Share"
+                    elClass "button" "export-type" $ text "Embed"
+                    elClass "button" "export-type" $ text "Download"
+                elClass "button" "export-close" $ return ()
+    -- <div class="export-dialog" {{action 'close-export'}}>
+    --           <div class="export-dialog-main" {{action 'prevent-close' bubbles=false}}>
+    --             <div class="export-header">
+    --               <div class="export-menu">
+    --                 <div class="export-type {{if shareActive 'active' ''}}" {{action "exporttype" "share"}}>Share</div>
+    --                 {{#if isTheme}}
+    --                   <div class="export-type hide-small {{if embedActive 'active' ''}}"{{action "exporttype" "embed"}}>Embed</div>
+    --                   <div class="export-type hide-small {{if downloadActive 'active' ''}}" {{action "exporttype" "download"}}>Download</div>
+    --                 {{/if}}
+    --               </div>
+    --               <div class="export-close" {{action 'close-export'}}></div>
+    --             </div>
+    --               {{component activeMenu text=text downloads=downloads indicator=indicator showMap=true showChart=true showNumbers=true iSizeClass="wide"}}
+    --           </div>
+    --         </div>
     mainE <-
       elDynAttr "div" (("class" =: "content main-content" <>) .
              maybe mempty (("style" =:) . ("margin-top: " <>)) <$> marginTopD) $
