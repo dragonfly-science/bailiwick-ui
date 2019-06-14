@@ -23,8 +23,10 @@
     "@babel/preset-env": "^7.4.5",
     "babel-loader": "^8.0.6",
     "cache": "^2.1.0",
+    "chroma-js": "^2.0.3",
     "d3": "^3.5.12",
     "lodash": "^4.17.11",
+    "rgb-hex": "^3.0.0",
     "webpack": "^4.33.0",
     "webpack-cli": "^3.3.3"
   }

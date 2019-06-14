@@ -3,38 +3,7 @@ import _ from 'lodash';
 import chartSetup from '../utils/chart-setup';
 import { isEmpty } from '../utils/utils';
 
-var percentageFormatter = d3.format('.1f');
-var margin, svg, width, height, tooltipElem;
 
-var y = d3.scale.ordinal();
-
-var x = d3.scale.linear();
-
-var maxLength = 35;
-
-if (window.innerWidth < 400) {
-  maxLength = 11;
-} else if (window.innerWidth < 600) {
-  maxLength = 25;
-}
-
-var yAxis = d3.svg.axis()
-    .scale(y)
-    .orient("left")
-    .outerTickSize(0)
-    .tickFormat(function(d) {
-        if (d.length > maxLength) {
-            return d[0].toUpperCase() + d.substring(1,maxLength) + '…';
-        }
-        else {
-            return d[0].toUpperCase() + d.slice(1);
-        }
-    });
-
-var barHeight = 20,
-    barGap = 5;
-
-var xAxis = d3.svg.axis();
 
 
 export default function (element, params) {
@@ -48,7 +17,7 @@ export default function (element, params) {
       lmargin = 180;
     }
     
-    margin = {top: 5, right: 25, bottom: 40, left: lmargin};
+    let margin = {top: 5, right: 25, bottom: 40, left: lmargin};
 
     let setup = chartSetup(element, params, margin, {
         'default-timeseries': false,
@@ -61,8 +30,8 @@ export default function (element, params) {
         return;
     }
 
-    let cache = setup.cache, 
-        toCache = setup.toCache, 
+    let cache = window.MBIECacheStorage,
+        toCache = {},
         data = setup.data, 
         year = setup.year, 
         indicator = setup.indicator, 
@@ -75,6 +44,37 @@ export default function (element, params) {
 
     var legend = d3.select('.chart-inner .legend');
     legend.select('svg').remove();
+
+    var percentageFormatter = d3.format('.1f');
+    var tooltipElem;
+    var y = d3.scale.ordinal();
+    var x = d3.scale.linear();
+
+    var maxLength = 35;
+
+    if (window.innerWidth < 400) {
+        maxLength = 11;
+    } else if (window.innerWidth < 600) {
+        maxLength = 25;
+    }
+
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .outerTickSize(0)
+        .tickFormat(function(d) {
+            if (d.length > maxLength) {
+                return d[0].toUpperCase() + d.substring(1,maxLength) + '…';
+            }
+            else {
+                return d[0].toUpperCase() + d.slice(1);
+            }
+        });
+
+    var barHeight = 20,
+        barGap = 5;
+
+    var xAxis = d3.svg.axis();
 
 
     // Find the current area in supplied data
@@ -89,9 +89,8 @@ export default function (element, params) {
     currentAreaData = currentAreaData[0];
 
     if (!_.hasIn(cache.get(indicator), 'areas.' + area + '.' + year)) {
-
         let cachedInd = cache.get(indicator);
-        parents = _.last(currentAreaData[0]);
+        let parents = _.last(currentAreaData[0]);
 
         // No parents means NZ is selected - so we will end up showing all
         // available regions.
@@ -140,21 +139,12 @@ export default function (element, params) {
 
     tooltipElem = d3.select(element).select(".tooltip");
 
-    
-
-    // width = parseInt(base.style("width")) - margin.left - margin.right;
-    // height = parseInt(base.style("height")) - margin.top - margin.bottom;
-
-    // svg.attr("preserveAspectRatio", "xMinYMin meet")
-    //     .attr("viewBox", "0 0 481 474");
-
-    // if (isNaN(width) || isNaN(height)) {
-    //     return false;
-    // }
-
     x = x.range([0, width]);
 
     let g = svg.selectAll("g").data([1]);
+    var padding = barGap * (data.length + 1);
+    var dataHeight = Math.min(barHeight * data.length + padding, height);
+    var paddingRatio = padding / dataHeight;
 
     var svgEnter = g.enter().append("g");
     g
@@ -256,9 +246,7 @@ export default function (element, params) {
     // }
     x.domain([0, d3.max(data, function (d) { return d.value; })]);
 
-    var padding = barGap * (data.length + 1);
-    var dataHeight = Math.min(barHeight * data.length + padding, height);
-    var paddingRatio = padding / dataHeight;
+    
     g.attr("height", dataHeight + margin.top + margin.bottom);
     y = y.rangeRoundBands([0, dataHeight], paddingRatio);
     y.domain(data.map(function (d) { return d.name; }));

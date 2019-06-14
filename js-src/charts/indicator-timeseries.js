@@ -37,8 +37,8 @@ export default function (element, params) {
         return;
     }
 
-    let cache = setup.cache, 
-        toCache = setup.toCache, 
+    let cache = window.MBIECacheStorage,
+        toCache = {},
         data = setup.data, 
         year = setup.year, 
         indicator = setup.indicator, 

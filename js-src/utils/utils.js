@@ -30,12 +30,20 @@ let computeTicks = function (extent) {
  * a map of colournames -> hex.
  */
 let getColours = function () {
-    let colors = document.getElementsByClassName("colour-palette");
-    let colorChildren = colors[0].getElementsByClassName("colour");
-
     let output = {};
+    let colours = document.getElementsByClassName("colour-palette");
 
-    _.each(colorChildren, function (value, i) {
+    if (colours.length === 0) {
+        return output;
+    }
+
+    let children = document.getElementsByClassName("colour");
+
+    if (children.length === 0) {
+        return output;
+    }
+
+    _.each(children, function (value, i) {
         let classNames = value.className,
             el = document.getElementsByClassName(classNames),
             bg = window.getComputedStyle(el[0], null).getPropertyValue('background-color');

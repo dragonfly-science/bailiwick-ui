@@ -4,13 +4,12 @@ import _ from 'lodash'
 import { isEmpty } from '../utils/utils';
 
 export default function(element, params, margin, chartInnerClasses) {
-    let cache = window.MBIECacheStorage,
-        toCache = {},
-        base = d3.select(element).select('.d3-attach'),
+    let base = d3.select(element).select('.d3-attach'),
         svg = null,
         width = parseInt(base.style("width")) - margin.left - margin.right,
         height = parseInt(base.style("height")) - margin.top - margin.bottom,
         data = params[0];
+        
 
     if (!base.select('svg').empty()) {
         base.select('svg').remove();
@@ -34,14 +33,14 @@ export default function(element, params, margin, chartInnerClasses) {
     var area = params[4]
     var areaLevel = params[5];
 
+    var cache = window.MBIECacheStorage;
+
     /// Cached data    
     if (isEmpty(cache.get(indicator))) {
         cache.put(indicator, {});
     }
 
     return {
-        cache: cache,
-        toCache: toCache,
         data: data,
         year: year,
         indicator: indicator,
