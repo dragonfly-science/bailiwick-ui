@@ -9,14 +9,14 @@ module Bailiwick.View.IndicatorChart
   , IndicatorChartState(..)
 ) where
 
-import Control.Monad (void)
+import Control.Monad (join, void)
 import Data.Maybe (fromMaybe)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Data.Text (Text)
 import Debug.Trace
 
 import qualified GHCJS.DOM.Element as DOM
-import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
+import Language.Javascript.JSaddle (jsg3, MonadJSM, liftJSM)
 import Reflex.Dom.Core
 
 import Bailiwick.Javascript
@@ -106,6 +106,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
       _transform = fmap themePageLeftTransform <$> pageD
       _areaType = fmap themePageAreaType <$> pageD
       _chartType = fmap themePageRightChart <$> pageD
+      _featureId = fmap themePageFeatureId <$> pageD
 
       jsargs = do
         indn <- indicatorNumbersD
@@ -117,13 +118,14 @@ indicatorChart IndicatorChartState{..} zoomD = do
         areatype <- _areaType
         chartType <- _chartType
         indicator <- indicatorD
-        return (indn, my, indID, indicator, areas, area, areatype, transform, chartType)
+        featureId <- _featureId
+        return (indn, my, indID, indicator, areas, area, areatype, transform, chartType, join featureId)
 
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
   updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId,
                       Maybe Indicator, Maybe Areas, Maybe Area, Maybe Text, 
-                      Maybe Text, Maybe ChartId)
+                      Maybe Text, Maybe ChartId, Maybe FeatureId)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
 
@@ -136,13 +138,13 @@ indicatorChart IndicatorChartState{..} zoomD = do
         Nothing -> "updateIndicatorTimeSeries"
 
   performEvent_ $ ffor updateE $ \case
-    (indn, my, indID, indicator, areas, area, areatype, transform, chartType)
+    (indn, my, indID, indicator, areas, area, areatype, transform, chartType, featureId)
       -> liftJSM . void
           $ do
             let areaname = maybe "" areaName area
             let units = maybe Percentage indicatorUnits indicator
-            jsg2 ((getJSChartType chartType) :: Text) (_element_raw e)
-                 (shapeData areas indn, my, indID, transform, areaname, areatype, chartType)
+            jsg3 ((getJSChartType chartType) :: Text) (_element_raw e)
+                 (shapeData areas indn, my, indID, transform, areaname, areatype, chartType) featureId
 
   clickE :: Event t (Maybe Message)
     <- clickEvents e $ \svg -> do

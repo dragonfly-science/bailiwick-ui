@@ -25,7 +25,7 @@ let line = d3.svg.line()
 
 // data: [{year, rawNum, indexNum, headlineDisp, indexDisp}]
 // @params: (data, current year, current indicator, transform, current area, current area type, chart ID)
-export default function (element, params) {
+export default function (element, params, feature) {
     let setup = chartSetup(element, params, margin, 'default-timeseries');
 
     if (setup === null) {
