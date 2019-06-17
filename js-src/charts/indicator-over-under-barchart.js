@@ -19,14 +19,14 @@ var barHeight = 240;
 var percentageCaption = ["Percentage achieved", "Percentage not acheived"];
 var absoluteCaption = ["Achieved", "Not acheived"];
 
-export default function(element, params, feature) {
-    console.log('Under Over', element, params, feature);
+export default function(element, params) {
+    // console.log('Under Over', arguments);
     
     let setup = chartSetup(element, params, margin, 'overunder-barchart');
 
-    // if (setup === null) {
-    //     return;
-    // }
+    if (setup === null) {
+        return;
+    }
 
     let cache = window.MBIECacheStorage,
         toCache = {},
@@ -35,7 +35,8 @@ export default function(element, params, feature) {
         indicator = setup.indicator, 
         transform = setup.transform, 
         area = setup.area, 
-        areaLevel = setup.areaLevel, 
+        areaLevel = setup.areaLevel,
+        feature = setup.feature,
         svg = setup.svg,
         base = setup.base,
         width = setup.width, 

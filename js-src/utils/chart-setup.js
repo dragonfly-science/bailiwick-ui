@@ -44,10 +44,11 @@ export default function(element, params, margin, chartType) {
     }
 
     var year = params[1];
-    var indicator = params[2];
-    var transform = params[3];
-    var area = params[4]
-    var areaLevel = params[5];
+    var indicator = params[2].indicatorId;
+    var transform = params[2].transform;
+    var area = params[2].areaname;
+    var areaLevel = params[2].areatype;
+    var feature = params[2].featureId;
 
     var cache = window.MBIECacheStorage;
 
@@ -63,6 +64,7 @@ export default function(element, params, margin, chartType) {
         transform: transform,
         area: area,
         areaLevel: areaLevel,
+        feature: feature,
         svg: svg,
         base: base,
         width: width,
