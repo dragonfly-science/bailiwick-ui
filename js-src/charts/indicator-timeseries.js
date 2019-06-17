@@ -32,8 +32,6 @@ export default function (element, params, feature) {
         return;
     }
 
-    // console.log(element, params, feature);
-
     let cache = window.MBIECacheStorage,
         toCache = {},
         data = setup.data, 
@@ -136,26 +134,26 @@ export default function (element, params, feature) {
             return area;
         })
         .filter(function (a) {
-            var valid = false;
+            let valid = _.indexOf([area, 'New Zealand'], a.name) !== -1;
 
-            switch (a.name) {
-                //   case compareAreaName:
-                //       valid = true;
-                //       break;
-                case area:
-                    valid = true;
-                    break;
-                case 'New Zealand':
-                    valid = true;
-                    break;
-                default:
-                    break;
-            }
+            // switch (a.name) {
+            //     //   case compareAreaName:
+            //     //       valid = true;
+            //     //       break;
+            //     case area:
+            //         valid = true;
+            //         break;
+            //     case 'New Zealand':
+            //         valid = true;
+            //         break;
+            //     default:
+            //         break;
+            // }
 
             // If there is a feature, this is only valid iff the node's feature
             // is the same as the URL.
             if (feature !== null) {
-                return a.feature !== null && feature === a.feature;
+                return (a.level === areaLevel && feature === a.feature) || (a.name === 'New Zealand' && feature === a.feature);
             }
 
             return a.level === areaLevel || valid;

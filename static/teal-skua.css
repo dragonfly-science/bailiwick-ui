@@ -3583,7 +3583,7 @@ body { background-color: #DFF1FC; margin: 0; }
 .svg-loading { display: block; background: url(images/loading.svg); background-repeat: no-repeat; background-position: center; }
 .svg-loading object, .svg-loading svg { visibility: hidden; }
 
-.tooltip { position: absolute; padding: 14px; font-family: "gustan-medium"; pointer-events: none; background-color: #FFFFFF; visibility: hidden; z-index: 9; box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1); font-size: 12px; }
+.tooltip { position: absolute; padding: 14px; font-family: "gustan-medium"; pointer-events: none; background-color: #FFFFFF; visibility: hidden; z-index: 100; box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1); font-size: 12px; }
 .tooltip p { margin: 0; line-height: 1.3; }
 .tooltip .local { color: #00BDE9; }
 .tooltip .primary { color: #296575; }

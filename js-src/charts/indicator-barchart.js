@@ -10,6 +10,7 @@ export default function (element, params, feature) {
     //
     // Set up
     //
+    // console.log(element, params, feature);
     let lmargin = 140;
     if (window.innerWidth < 400) {
       lmargin = 100;
@@ -37,10 +38,6 @@ export default function (element, params, feature) {
         base = setup.base,
         width = setup.width, 
         height = setup.height;
-
-    if (feature === null) {
-        feature = '';
-    }
 
     var legend = d3.select('.chart-inner .legend');
     legend.select('svg').remove();
@@ -119,22 +116,14 @@ export default function (element, params, feature) {
                 return o[0] === year;
             });
 
-            if (feature !== null) {
-                if (values.feature !== null && feature === values.feature) {
-                    if (!_.isEmpty(yearVal)) {
-                        values.value = Number(yearVal[0][1]);
-                        values.display = (yearVal[0][3]).trim();
-
-                        res.push(values);
-                    }
-                }
-            } else {
-                if (!_.isEmpty(yearVal)) {
-                    values.value = Number(yearVal[0][1]);
-                    values.display = (yearVal[0][3]).trim();
-
-                    res.push(values);
-                }
+            if (
+                ((feature !== null && feature === values.feature) ||
+                feature === null) &&
+                !_.isEmpty(yearVal)
+            ) {
+                values.value = Number(yearVal[0][1]);
+                values.display = (yearVal[0][3]).trim();
+                res.push(values);
             }
 
             return res;

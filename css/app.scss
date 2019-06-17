@@ -149,7 +149,7 @@ body {
   pointer-events:none;
   background-color: $rear-white;
   visibility: hidden;
-  z-index: 9;
+  z-index: 100;
   box-shadow: 5px 5px 10px transparentize(black, 0.9);
 
   p {
