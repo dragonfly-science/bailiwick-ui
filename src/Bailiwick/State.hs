@@ -29,6 +29,7 @@ data State t
     , store              :: Store t
     , regionD            :: Dynamic t (Maybe Area)
     , areaD              :: Dynamic t (Maybe Area)
+    , featureD           :: Dynamic t (Maybe FeatureId)
     , indicatorD         :: Dynamic t (Maybe Indicator)
     , indicatorNumbersD  :: Dynamic t IndicatorNumbers
     }
@@ -66,11 +67,20 @@ make routeD store@Store{..} =
           indid <- indicatorId <$> mindicator
           IndicatorData{..} <- OMap.lookup indid indicatorsData
           return indicatorNumbers
+
+      featureD = do
+        route <- routeD
+        return $ do
+          ThemePageArgs{..} <- getThemePage route
+          themePageFeatureId
+
+
   in State
        { routeD             = routeD
        , store              = store
        , regionD            = fst <$> regta
        , areaD              = snd <$> regta
+       , featureD           = featureD
        , indicatorD         = indicatorD
        , indicatorNumbersD  = indicatorNumbersD
        }
@@ -82,7 +92,7 @@ makeHeaderState
   => State t -> HeaderState t
 makeHeaderState State{..} =
   let areasD = storeAreasD store
-  in  HeaderState routeD regionD areaD areasD indicatorD
+  in  HeaderState routeD regionD areaD featureD areasD indicatorD
 
 -- Indicator state
 makeIndicatorState

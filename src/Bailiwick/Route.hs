@@ -36,6 +36,7 @@ data Message
   = Ready Page
   | SetRegion Text
   | SetSubArea Text
+  | SetFeature FeatureId
   | SetAreaType Text
   | SetRightChart ChartId
   | SetLeftTransform Text
@@ -129,6 +130,11 @@ step route message =
                       else "ta"
                update args = args { themePageAreaType = at }
            in  updateTP update route'
+
+    SetFeature feature
+        -> let update args = args { themePageFeatureId = Just feature }
+           in  updateTP update route
+
 
     SetAreaType at
         -> let update args = args { themePageAreaType = at }

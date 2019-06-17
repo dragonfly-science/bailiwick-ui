@@ -13,7 +13,7 @@ import Data.Char (isSpace, toUpper)
 
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Map as M (lookup)
+import qualified Data.HashMap.Strict.InsOrd as M (lookup)
 
 import Bailiwick.Route
 import Bailiwick.Types
@@ -52,7 +52,7 @@ textSubstitution area compareArea indicator feature themePage =
               _ -> sa
         fl = case indicatorFeatureText =<< indicator of
               Just ft -> (`M.lookup` ft) =<< themePageFeatureId =<< themePage
-              _ -> f <|> (indicatorTopFeatureLabel =<< indicator)
+              _ -> f <|> (indicatorDefaultFeature =<< indicator)
         replace findStr (Just replaceStr) = T.replace findStr replaceStr
         replace _ _ = id
     in T.strip
