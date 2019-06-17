@@ -186,6 +186,8 @@ export default function (element, params) {
     //         featureType = defFeature.get('parent');
     //     }
     // }
+
+    
     // if (none(featureType)) {
     //     var areaDataT = data.get("areas")[area.get("id")];
     //     if (none(areaDataT)) {

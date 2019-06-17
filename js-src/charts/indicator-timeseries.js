@@ -204,10 +204,15 @@ export default function (element, params) {
         .tickValues(years)
         .orient("bottom");
 
-    gEnter.append("g")
-        .attr("class", "axis axis--x-hidden")
-        .attr("transform", "translate(0," + height + ")")
-        .call(xAxisYears);
+    var xAxisHidden = gEnter.select('.axis--x--hidden');
+
+    if (xAxisHidden.empty()) {
+        xAxisHidden = gEnter.append("g")
+            .attr("class", "axis axis--x-hidden")
+            .attr("transform", "translate(0," + height + ")")
+    }
+
+    xAxisHidden.call(xAxisYears);
 
     var allTicks = svg.call(xAxisYears).selectAll(".tick"),
         lineXpos = 0;
@@ -234,7 +239,6 @@ export default function (element, params) {
         yearLine = gEnter.append('line');
     }
 
-    // gEnter.append("line")
     yearLine
         .transition()
         .duration(500)
@@ -256,16 +260,23 @@ export default function (element, params) {
         .tickValues(ticks)
         .orient("bottom");
 
-    gEnter.append("g")
+
+    var xAxisReal = gEnter.select('.axis--x');
+
+    if (xAxisReal.empty()) {
+        xAxisReal = gEnter.append("g")
         .attr("class", "axis axis--x")
         .attr("transform", "translate(0," + height + ")")
         .attr("z", 100)
+    }
+
+    xAxisReal
         .call(xAxis)
-        .append("text")
-        .attr("class", "caption")
-        .attr("y", 5)
-        .attr("x", width + 10)
-        .text("Year");
+            .append("text")
+            .attr("class", "caption")
+            .attr("y", 5)
+            .attr("x", width + 10)
+            .text("Year");
 
     // TODO: formatting
     gEnter.append("g")
@@ -303,10 +314,15 @@ export default function (element, params) {
         //     console.log('year clicked', year, this);
         // });
 
-    var path = gEnter.append("g")
-        .attr("class", "areas")
-        .selectAll("path")
-        .data(areas);
+    var path = gEnter.select('.areas').selectAll("path");
+
+    if (path.empty()) {
+        path = gEnter.append("g")
+            .attr("class", "areas")
+            .selectAll("path");
+    }
+
+    path = path.data(areas);
 
     path.enter()
         .append("path");
@@ -322,7 +338,7 @@ export default function (element, params) {
         .attr("class", function (d) {
             var classNames = {
                 'New Zealand': 'new-zealand',
-                'default': 'no-highlight'
+                'default': 'no-highlight',
             };
             classNames[area] = 'current-area';
             return (
@@ -396,7 +412,6 @@ export default function (element, params) {
             // _this.transitionTo({ 'year': filter[0], 'area': d.area.dsArea });
         });
 
-    // TODO: import Modernizr
     if (!Modernizr.touch) {
         vg.on('mouseover', function mouseover(d, i) {
             if (none(d.area)) {

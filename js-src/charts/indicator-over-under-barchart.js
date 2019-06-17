@@ -73,9 +73,13 @@ export default function(element, params) {
     // if (!(data && area)) {
     //   return;
     // }
+
+
     // if (none(data.get("id").match("school-leavers"))) {
     //   return;
     // }
+
+    
     // var dataState = data.get('id') + "-" + area.get("id") + feature + ftp + this.getAttr('transform');
     // if (this.get("_dataState") !== dataState) {
     //   var areaData;
