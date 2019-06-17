@@ -256,8 +256,6 @@ export default function (element, params, feature) {
     //     featureSlug = present(feature) ? feature.get("id") : null,
     //     _this = this;
 
-    // this.$().addClass("svg-loading");
-
     // var caption = this.getAttr("caption");
     // var data = siblingsFilteredByYear;
     // if (!(data && svg && data.length > 0 && present(data[0]))) {
