@@ -32,6 +32,8 @@ export default function (element, params, feature) {
         return;
     }
 
+    // console.log(element, params, feature);
+
     let cache = window.MBIECacheStorage,
         toCache = {},
         data = setup.data, 
@@ -114,6 +116,7 @@ export default function (element, params, feature) {
                 name: a[0][1],
                 level: a[0][2],
                 dsArea: a[0],
+                feature: _.last(a[0]),
                 values: a[1].map(function (y) {
                     var out = {};
                     out.date = yearFormat(y[0].toString());
@@ -147,6 +150,12 @@ export default function (element, params, feature) {
                     break;
                 default:
                     break;
+            }
+
+            // If there is a feature, this is only valid iff the node's feature
+            // is the same as the URL.
+            if (feature !== null) {
+                return a.feature !== null && feature === a.feature;
             }
 
             return a.level === areaLevel || valid;

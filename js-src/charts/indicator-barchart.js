@@ -6,7 +6,7 @@ import { isEmpty } from '../utils/utils';
 
 
 
-export default function (element, params) {
+export default function (element, params, feature) {
     //
     // Set up
     //
@@ -38,7 +38,9 @@ export default function (element, params) {
         width = setup.width, 
         height = setup.height;
 
-    console.log('year', year);
+    if (feature === null) {
+        feature = '';
+    }
 
     var legend = d3.select('.chart-inner .legend');
     legend.select('svg').remove();
@@ -86,10 +88,11 @@ export default function (element, params) {
     }
 
     currentAreaData = currentAreaData[0];
+    let cacheKey = 'areas.' + area + '.' + year + '.' + feature + '-' + String(Math.random() * 100);
 
-    if (!_.hasIn(cache.get(indicator), 'areas.' + area + '.' + year)) {
+    if (!_.hasIn(cache.get(indicator), cacheKey)) {
         let cachedInd = cache.get(indicator);
-        let parents = _.last(currentAreaData[0]);
+        let parents = currentAreaData[0][3];
 
         // No parents means NZ is selected - so we will end up showing all
         // available regions.
@@ -99,7 +102,7 @@ export default function (element, params) {
         
         // Find all siblings that have one or more same parents.
         var siblingAreas = _.filter(data, function(o) {
-            return _.intersection(_.last(o[0]), parents).length > 0;
+            return _.intersection(o[0][3], parents).length > 0;
         });
 
         var siblingsFilteredByYear = _.reduce(siblingAreas, function(res, v, k) {
@@ -108,20 +111,32 @@ export default function (element, params) {
                 slug: v[0][0],
                 display: '',
                 value: 0,
-                year: year
+                year: year,
+                feature: _.last(v[0])
             }
 
             let yearVal = _.filter(v[1], function(o) {
                 return o[0] === year;
             });
 
-            if (!_.isEmpty(yearVal)) {
-                values.value = Number(yearVal[0][1]);
-                values.display = (yearVal[0][3]).trim();
-    
-                res.push(values);
+            if (feature !== null) {
+                if (values.feature !== null && feature === values.feature) {
+                    if (!_.isEmpty(yearVal)) {
+                        values.value = Number(yearVal[0][1]);
+                        values.display = (yearVal[0][3]).trim();
+
+                        res.push(values);
+                    }
+                }
+            } else {
+                if (!_.isEmpty(yearVal)) {
+                    values.value = Number(yearVal[0][1]);
+                    values.display = (yearVal[0][3]).trim();
+
+                    res.push(values);
+                }
             }
-            
+
             return res;
         }, []);
 
@@ -167,7 +182,6 @@ export default function (element, params) {
         // });
     xAxis.tickSize(-1 * dataHeight, 10)
     // Set data
-    // console.log(data, params);
     // var fixedAxis = this.getAttr('config').axis,
         // feature = this.getAttr('feature'),
         // featureType = this.getAttr("featuretype"),
@@ -290,9 +304,6 @@ export default function (element, params) {
             .attr("data-bailiwick-area", function (d) {
                 return d.slug;
             })
-            .on("click", function (d) {
-                // _this.sendAction("featureAction", d.slug);
-            });
     if (!Modernizr.touch) {
         barEnter
             .on("mouseover", function (d) {
