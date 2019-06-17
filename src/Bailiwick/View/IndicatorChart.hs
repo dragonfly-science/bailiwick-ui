@@ -9,7 +9,7 @@ module Bailiwick.View.IndicatorChart
   , IndicatorChartState(..)
 ) where
 
-import Control.Monad (void)
+import Control.Monad (join, void)
 import Data.Maybe (fromMaybe)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Data.Text (Text)
@@ -33,7 +33,7 @@ data IndicatorChartState t
     , indicatorNumbersD  :: Dynamic t IndicatorNumbers
     }
 
-shapeData :: Maybe Areas -> IndicatorNumbers -> [((AreaId, Text, Text, [Text]), [(Year, Text, Text, Text, Text)])]
+shapeData :: Maybe Areas -> IndicatorNumbers -> [((AreaId, Text, Text, [Text], Maybe FeatureId), [(Year, Text, Text, Text, Text)])]
 shapeData mareas (IndicatorNumbers inmap) =
   let lookupAreaName areaid
         = fromMaybe "" $ do
@@ -52,7 +52,11 @@ shapeData mareas (IndicatorNumbers inmap) =
             return (areaParents area)
 
       step (areaid, year, _mfeatureid) Numbers{..} res
-         = let key = (areaid, lookupAreaName areaid, lookupAreaLevel areaid, lookupAreaParents areaid)
+         = do
+          let featureId = do
+                f <- _mfeatureid
+                return f
+              key = (areaid, lookupAreaName areaid, lookupAreaLevel areaid, lookupAreaParents areaid, featureId)
            in  OMap.alter (malter (year, rawNum, indexNum, headlineDisp, indexDisp)) key res
       malter yns Nothing = Just [yns]
       malter yns (Just this) = Just (yns:this)
@@ -106,6 +110,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
       _transform = fmap themePageLeftTransform <$> pageD
       _areaType = fmap themePageAreaType <$> pageD
       _chartType = fmap themePageRightChart <$> pageD
+      _featureId = fmap themePageFeatureId <$> pageD
 
       jsargs = do
         indn <- indicatorNumbersD
@@ -117,13 +122,14 @@ indicatorChart IndicatorChartState{..} zoomD = do
         areatype <- _areaType
         chartType <- _chartType
         indicator <- indicatorD
-        return (indn, my, indID, indicator, areas, area, areatype, transform, chartType)
+        featureId <- _featureId
+        return (indn, my, indID, indicator, areas, area, areatype, transform, chartType, join featureId)
 
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
   updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId,
                       Maybe Indicator, Maybe Areas, Maybe Area, Maybe Text,
-                      Maybe Text, Maybe ChartId)
+                      Maybe Text, Maybe ChartId, Maybe FeatureId)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
 
@@ -136,7 +142,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
         Nothing -> "updateIndicatorTimeSeries"
 
   performEvent_ $ ffor updateE $ \case
-    (indn, my, indID, indicator, areas, area, areatype, transform, chartType)
+    (indn, my, indID, indicator, areas, area, areatype, transform, chartType, featureId)
       -> liftJSM . void
           $ do
             let areaname = maybe "" areaName area
@@ -147,6 +153,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
                      , ("areaname",    Just areaname)
                      , ("areatype",    areatype)
                      , ("chartType",   (unChartId <$> chartType))
+                     , ("featureId",   (featureIdText <$> featureId))
                      ]
             jsg2 ((getJSChartType chartType) :: Text) (_element_raw e)
                  (shapeData areas indn, my, args)

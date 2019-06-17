@@ -19,14 +19,14 @@ var barHeight = 240;
 var percentageCaption = ["Percentage achieved", "Percentage not acheived"];
 var absoluteCaption = ["Achieved", "Not acheived"];
 
-export default function(element, params) {
-    console.log('Under Over', element, params);
+export default function(element, params, feature) {
+    console.log('Under Over', element, params, feature);
     
     let setup = chartSetup(element, params, margin, 'overunder-barchart');
 
-    if (setup === null) {
-        return;
-    }
+    // if (setup === null) {
+    //     return;
+    // }
 
     let cache = window.MBIECacheStorage,
         toCache = {},
@@ -73,9 +73,13 @@ export default function(element, params) {
     // if (!(data && area)) {
     //   return;
     // }
+
+
     // if (none(data.get("id").match("school-leavers"))) {
     //   return;
     // }
+
+
     // var dataState = data.get('id') + "-" + area.get("id") + feature + ftp + this.getAttr('transform');
     // if (this.get("_dataState") !== dataState) {
     //   var areaData;
@@ -282,4 +286,5 @@ export default function(element, params) {
     // zeroLine.exit().remove();
 
     base.classed('svg-loading', false);
+
 }

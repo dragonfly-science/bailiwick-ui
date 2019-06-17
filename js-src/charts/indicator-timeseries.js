@@ -25,7 +25,7 @@ let line = d3.svg.line()
 
 // data: [{year, rawNum, indexNum, headlineDisp, indexDisp}]
 // @params: (data, current year, current indicator, transform, current area, current area type, chart ID)
-export default function (element, params) {
+export default function (element, params, feature) {
     let setup = chartSetup(element, params, margin, 'default-timeseries');
 
     if (setup === null) {
@@ -114,6 +114,7 @@ export default function (element, params) {
                 name: a[0][1],
                 level: a[0][2],
                 dsArea: a[0],
+                feature: _.last(a[0]),
                 values: a[1].map(function (y) {
                     var out = {};
                     out.date = yearFormat(y[0].toString());
@@ -133,20 +134,26 @@ export default function (element, params) {
             return area;
         })
         .filter(function (a) {
-            var valid = false;
+            let valid = _.indexOf([area, 'New Zealand'], a.name) !== -1;
 
-            switch (a.name) {
-                //   case compareAreaName:
-                //       valid = true;
-                //       break;
-                case area:
-                    valid = true;
-                    break;
-                case 'New Zealand':
-                    valid = true;
-                    break;
-                default:
-                    break;
+            // switch (a.name) {
+            //     //   case compareAreaName:
+            //     //       valid = true;
+            //     //       break;
+            //     case area:
+            //         valid = true;
+            //         break;
+            //     case 'New Zealand':
+            //         valid = true;
+            //         break;
+            //     default:
+            //         break;
+            // }
+
+            // If there is a feature, this is only valid iff the node's feature
+            // is the same as the URL.
+            if (feature !== null) {
+                return (a.level === areaLevel && feature === a.feature) || (a.name === 'New Zealand' && feature === a.feature);
             }
 
             return a.level === areaLevel || valid;
@@ -204,10 +211,15 @@ export default function (element, params) {
         .tickValues(years)
         .orient("bottom");
 
-    gEnter.append("g")
-        .attr("class", "axis axis--x-hidden")
-        .attr("transform", "translate(0," + height + ")")
-        .call(xAxisYears);
+    var xAxisHidden = gEnter.select('.axis--x--hidden');
+
+    if (xAxisHidden.empty()) {
+        xAxisHidden = gEnter.append("g")
+            .attr("class", "axis axis--x-hidden")
+            .attr("transform", "translate(0," + height + ")")
+    }
+
+    xAxisHidden.call(xAxisYears);
 
     var allTicks = svg.call(xAxisYears).selectAll(".tick"),
         lineXpos = 0;
@@ -234,7 +246,6 @@ export default function (element, params) {
         yearLine = gEnter.append('line');
     }
 
-    // gEnter.append("line")
     yearLine
         .transition()
         .duration(500)
@@ -256,16 +267,23 @@ export default function (element, params) {
         .tickValues(ticks)
         .orient("bottom");
 
-    gEnter.append("g")
+
+    var xAxisReal = gEnter.select('.axis--x');
+
+    if (xAxisReal.empty()) {
+        xAxisReal = gEnter.append("g")
         .attr("class", "axis axis--x")
         .attr("transform", "translate(0," + height + ")")
         .attr("z", 100)
+    }
+
+    xAxisReal
         .call(xAxis)
-        .append("text")
-        .attr("class", "caption")
-        .attr("y", 5)
-        .attr("x", width + 10)
-        .text("Year");
+            .append("text")
+            .attr("class", "caption")
+            .attr("y", 5)
+            .attr("x", width + 10)
+            .text("Year");
 
     // TODO: formatting
     gEnter.append("g")
@@ -303,10 +321,15 @@ export default function (element, params) {
         //     console.log('year clicked', year, this);
         // });
 
-    var path = gEnter.append("g")
-        .attr("class", "areas")
-        .selectAll("path")
-        .data(areas);
+    var path = gEnter.select('.areas').selectAll("path");
+
+    if (path.empty()) {
+        path = gEnter.append("g")
+            .attr("class", "areas")
+            .selectAll("path");
+    }
+
+    path = path.data(areas);
 
     path.enter()
         .append("path");
@@ -322,7 +345,7 @@ export default function (element, params) {
         .attr("class", function (d) {
             var classNames = {
                 'New Zealand': 'new-zealand',
-                'default': 'no-highlight'
+                'default': 'no-highlight',
             };
             classNames[area] = 'current-area';
             return (
@@ -396,7 +419,6 @@ export default function (element, params) {
             // _this.transitionTo({ 'year': filter[0], 'area': d.area.dsArea });
         });
 
-    // TODO: import Modernizr
     if (!Modernizr.touch) {
         vg.on('mouseover', function mouseover(d, i) {
             if (none(d.area)) {
