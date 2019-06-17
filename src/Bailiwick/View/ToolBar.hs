@@ -66,8 +66,10 @@ toolBar isOpenD ToolBarState{..} = do
       transforms = (\n -> OM.fromList [ ("indexed", "indexed")
                                       , ("absolute", fromMaybe "absolute" n)]
                    ) <$> absoluteLabel
-      years = OM.fromList [(T.pack $ show y, T.pack $ show y)
-                          | y <- reverse ([1996..2017] :: [ Int ])] -- TODO fix range
+      yearsD = do
+        ind <- indicatorD
+        return $ OM.fromList [(T.pack $ show y, T.pack $ show y)
+                             | y <- reverse (maybe ([]) indicatorYears ind)]
 
       areaTypeD              = fmap themePageAreaType <$> themepageD
       leftTransformD         = fmap themePageLeftTransform <$> themepageD
@@ -91,8 +93,7 @@ toolBar isOpenD ToolBarState{..} = do
                 transforms
           yearE <- setYearEvent $ divClass "element" $
             el "div" $
-              toolbarDropdown "year" (constDyn "") never (constDyn True) yearD
-                (constDyn years)
+              toolbarDropdown "year" (constDyn "") never (constDyn True) yearD yearsD
           return $ leftmost [areaTypeE, transformE, yearE]
       isOpenE <- divClass "actions content" $ mdo
         (b, _) <- elDynAttr' "button" (("class" =:) . bool "open-button" "close-button" <$> isOpenD) $
@@ -107,8 +108,7 @@ toolBar isOpenD ToolBarState{..} = do
           (constDyn areaTypes)
         transformE <- setLeftTransformEvent $ toolbarList "transform" (constDyn "") never (constDyn True) leftTransformD
           transforms
-        yearE <- setYearEvent $ toolbarList "year" (constDyn "") never (constDyn True) yearD
-          (constDyn years)
+        yearE <- setYearEvent $ toolbarList "year" (constDyn "") never (constDyn True) yearD yearsD
         rightTransformE <- divClass "filter-type charts" $ do
           elClass "span" "label" $ text "view by"
           divClass "header" $ do
