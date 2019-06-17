@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Bailiwick.View.Indicators (
     indicators
   , IndicatorState(..)
@@ -24,7 +25,8 @@ switchDynM = (switchHold never =<<) . dyn
 
 data IndicatorState t
   = IndicatorState
-  { area        :: Dynamic t (Maybe Area)
+  { routeD      :: Dynamic t Route
+  , area        :: Dynamic t (Maybe Area)
   , indicator   :: Dynamic t (Maybe IndicatorId)
   , themes      :: Dynamic t (Maybe [Theme])
   }
@@ -61,7 +63,7 @@ indicators IndicatorState{..} = do
                   text themeName
                 divClass "card-copy" $
                   el "ul" $
-                    fmap leftmost . forM themeIndicators $ \Indicator{..} -> do
+                    fmap leftmost . forM themeIndicators $ \ind@Indicator{..} -> do
                       let ilcss = do
                             indid <- indicator
                             return $
@@ -70,13 +72,29 @@ indicators IndicatorState{..} = do
                                 else "class" =: "indicator-list"
                       click <- fmap (domEvent Click . fst) . elDynAttr' "li" ilcss $
                         text $ capitalize indicatorName
-                      return $ GoTo (ThemePage $ ThemePageArgs
-                              indicatorId
-                              indicatorDefaultChartLeft
-                              indicatorDefaultChartRight
-                              2017
-                              (FeatureId <$> indicatorDefaultFeature)
-                              Nothing
-                              "reg"
-                              "indexed"
-                              "indexed") <$ click
+                      return $ tagPromptlyDyn (makeGoto ind routeD) click
+
+makeGoto
+  :: Monad (Dynamic t)
+  => Indicator
+  -> Dynamic t Route
+  -> Dynamic t Message
+makeGoto Indicator{..} routeD = do
+  route <- routeD
+  let myear = themePageYear <$> getThemePage route
+      year = case myear of
+                Just y -> if y `elem` indicatorYears
+                            then y
+                            else maximum indicatorYears
+                Nothing -> maximum indicatorYears
+  return $
+    GoTo (ThemePage $ ThemePageArgs
+                      indicatorId
+                      indicatorDefaultChartLeft
+                      indicatorDefaultChartRight
+                      year
+                      (FeatureId <$> indicatorDefaultFeature)
+                      Nothing
+                      "reg"
+                      "indexed"
+                      "indexed")

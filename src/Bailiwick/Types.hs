@@ -211,6 +211,7 @@ data Indicator = Indicator
   , indicatorLocalNumCaption        :: Text
   , indicatorHeadlineNumCaption     :: Text
   , indicatorTooltipExtra           :: Maybe Text
+  , indicatorYears                  :: [Year]
 --  , indicatorBarchartLabelWidth     :: Maybe Int
 --  , indicatorCaptions               :: Maybe (Map Text Text)
 --  , indicatorCharts                 :: [Chart]
@@ -228,7 +229,6 @@ data Indicator = Indicator
 --  , indicatorTerritorialAuthorities :: [Text]
 --  , indicatorTooltipExtra           :: Maybe Text
 --  , indicatorThemes                 :: [Text]
---  , indicatorYears                  :: [Text]
 --  , indicatorFeatureTrees           :: [Text]
 --  , indicatorAreaTrees              :: [Text]
 --  , indicatorSummaries              :: [Text]

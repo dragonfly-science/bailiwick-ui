@@ -101,7 +101,7 @@ makeIndicatorState
 makeIndicatorState State{..} =
   let selectedAreaD = zipDynWith (<|>) areaD regionD
       indId = fmap themePageIndicatorId . getThemePage <$> routeD
-  in  IndicatorState selectedAreaD indId (storeThemesD $ store)
+  in  IndicatorState routeD selectedAreaD indId (storeThemesD $ store)
 
 -- ToolBar State
 makeToolBarState

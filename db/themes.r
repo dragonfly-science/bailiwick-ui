@@ -29,6 +29,8 @@ indicators <-
     cat("processing indicator: ", indicator$name, "\n")
     slices <- indicator$slices
     sources <- REARdb_Source[tolower(ValueName) %in% tolower(slices)]
+
+    ## Features
     features <- as.character(unique(
       REARdb_Data[REARdb_Source[tolower(ValueName) %in% slices],
                   .(ValueName, Dimension1)])[,
@@ -52,6 +54,8 @@ indicators <-
         defaultFeature <- NULL
     }
 
+    # Years
+    years <- sort(unique(REARdb_Data[REARdb_Source[tolower(ValueName) %in% slices], Year]))
 
     return( list(
         "id"                   = slugify(indicator$name)                       # :: IndicatorId
@@ -84,6 +88,7 @@ indicators <-
       , "headlineNumCaption"   = fromMaybe("TODO headlineNumCaption",
                                            indicator$headlineNumCaption)       # :: Text
 
+      , "years"                = years                                         # :: [Int]
       ))
   })
 names(indicators) <- sapply(indicators, function(ind) ind$name)
