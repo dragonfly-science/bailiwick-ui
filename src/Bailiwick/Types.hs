@@ -181,7 +181,7 @@ instance FromJSON Language where
 newtype IndicatorId = IndicatorId { unIndicatorId :: Text }
    deriving (Eq, Ord, Show, Generic, Hashable,
              FromJSONKey, FromJSON, IsString, ToJSVal)
-newtype ChartId = ChartId Text
+newtype ChartId = ChartId { unChartId :: Text }
     deriving (Eq, Ord, Show, Generic, ToJSVal, IsString)
 instance FromJSON ChartId where
    parseJSON v = ChartId <$> parseJSON v

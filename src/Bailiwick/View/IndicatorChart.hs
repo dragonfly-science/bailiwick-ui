@@ -16,7 +16,7 @@ import Data.Text (Text)
 import Debug.Trace
 
 import qualified GHCJS.DOM.Element as DOM
-import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM, Object, obj, setProp)
+import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
 import Reflex.Dom.Core
 
 import Bailiwick.Javascript
@@ -100,36 +100,30 @@ indicatorChart IndicatorChartState{..} zoomD = do
       divClass "legend" $ return ()
   readyE <- getPostBuild
 
-  jsargs <- liftJSM $ do
-    let pageD = getThemePage <$> routeD
-        _year = fmap themePageYear <$> pageD
-        _iId = fmap themePageIndicatorId <$> pageD
-        _transform = fmap themePageLeftTransform <$> pageD
-        _areaType = fmap themePageAreaType <$> pageD
-        _chartType = fmap themePageRightChart <$> pageD
+  let pageD = getThemePage <$> routeD
+      _year = fmap themePageYear <$> pageD
+      _iId = fmap themePageIndicatorId <$> pageD
+      _transform = fmap themePageLeftTransform <$> pageD
+      _areaType = fmap themePageAreaType <$> pageD
+      _chartType = fmap themePageRightChart <$> pageD
 
-    indn <- indicatorNumbersD
-    areas <- areasD
-    my <- _year
-    indID <- _iId
-    area <- areaD
-    transform <- _transform
-    areatype <- _areaType
-    chartType <- _chartType
-    indicator <- indicatorD
-
-    res <- obj
-    setProp "indictorId" indId res
-    setProp "year" my res
-    -- Other properties
-    return (chartType, res)
+      jsargs = do
+        indn <- indicatorNumbersD
+        areas <- areasD
+        my <- _year
+        indID <- _iId
+        area <- areaD
+        transform <- _transform
+        areatype <- _areaType
+        chartType <- _chartType
+        indicator <- indicatorD
+        return (indn, my, indID, indicator, areas, area, areatype, transform, chartType)
 
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
-  updateE :: Event t (IndicatorNumbers, Maybe Text, Object)
-            -- Maybe Year, Maybe IndicatorId,
-            --          Maybe Indicator, Maybe Areas, Maybe Area, Maybe Text,
-             --         Maybe Text, Maybe ChartId)
+  updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId,
+                      Maybe Indicator, Maybe Areas, Maybe Area, Maybe Text,
+                      Maybe Text, Maybe ChartId)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
 
@@ -142,13 +136,20 @@ indicatorChart IndicatorChartState{..} zoomD = do
         Nothing -> "updateIndicatorTimeSeries"
 
   performEvent_ $ ffor updateE $ \case
-    (indn, chartType, jsargs) -- my, indID, indicator, areas, area, areatype, transform, chartType)
+    (indn, my, indID, indicator, areas, area, areatype, transform, chartType)
       -> liftJSM . void
           $ do
             let areaname = maybe "" areaName area
             let units = maybe Percentage indicatorUnits indicator
+            args <- makeJSObject
+                     [ ("indictorId",  (unIndicatorId <$> indID))
+                     , ("transform",   transform)
+                     , ("areaname",    Just areaname)
+                     , ("areatype",    areatype)
+                     , ("chartType",   (unChartId <$> chartType))
+                     ]
             jsg2 ((getJSChartType chartType) :: Text) (_element_raw e)
-                 (shapeData areas indn, jsargs) --my, indID, transform, areaname, areatype, chartType)
+                 (shapeData areas indn, my, args)
 
   clickE :: Event t (Maybe Message)
     <- clickEvents e $ \svg -> do
