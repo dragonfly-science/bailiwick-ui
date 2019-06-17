@@ -199,6 +199,7 @@ function wordwrap(d, i) {
       transform = setup.transform,
       area = setup.area,
       areaLevel = setup.areaLevel,
+      feature = setup.feature,
       svg = setup.svg,
       base = setup.base,
       width = setup.width,
@@ -378,7 +379,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-/* harmony default export */ __webpack_exports__["default"] = (function (element, params, feature) {
+/* harmony default export */ __webpack_exports__["default"] = (function (element, params) {
   //
   // Set up
   //
@@ -411,6 +412,7 @@ __webpack_require__.r(__webpack_exports__);
       transform = setup.transform,
       area = setup.area,
       areaLevel = setup.areaLevel,
+      feature = setup.feature,
       svg = setup.svg,
       base = setup.base,
       width = setup.width,
@@ -689,8 +691,8 @@ var yAxis = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.axis().scale(y).tickFo
 var barHeight = 240;
 var percentageCaption = ["Percentage achieved", "Percentage not acheived"];
 var absoluteCaption = ["Achieved", "Not acheived"];
-/* harmony default export */ __webpack_exports__["default"] = (function (element, params, feature) {
-  console.log('Under Over', arguments);
+/* harmony default export */ __webpack_exports__["default"] = (function (element, params) {
+  // console.log('Under Over', arguments);
   var setup = Object(_utils_chart_setup__WEBPACK_IMPORTED_MODULE_2__["default"])(element, params, margin, 'overunder-barchart');
 
   if (setup === null) {
@@ -705,6 +707,7 @@ var absoluteCaption = ["Achieved", "Not acheived"];
       transform = setup.transform,
       area = setup.area,
       areaLevel = setup.areaLevel,
+      feature = setup.feature,
       svg = setup.svg,
       base = setup.base,
       width = setup.width,
@@ -972,7 +975,7 @@ var line = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.line().x(function (d, i
 }); // data: [{year, rawNum, indexNum, headlineDisp, indexDisp}]
 // @params: (data, current year, current indicator, transform, current area, current area type, chart ID)
 
-/* harmony default export */ __webpack_exports__["default"] = (function (element, params, feature) {
+/* harmony default export */ __webpack_exports__["default"] = (function (element, params) {
   var setup = Object(_utils_chart_setup__WEBPACK_IMPORTED_MODULE_3__["default"])(element, params, margin, 'default-timeseries');
 
   if (setup === null) {
@@ -987,6 +990,7 @@ var line = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.line().x(function (d, i
       transform = setup.transform,
       area = setup.area,
       areaLevel = setup.areaLevel,
+      feature = setup.feature,
       svg = setup.svg,
       base = setup.base,
       width = setup.width,
@@ -1635,10 +1639,11 @@ __webpack_require__.r(__webpack_exports__);
   }
 
   var year = params[1];
-  var indicator = params[2];
-  var transform = params[3];
-  var area = params[4];
-  var areaLevel = params[5];
+  var indicator = params[2].indicatorId;
+  var transform = params[2].transform;
+  var area = params[2].areaname;
+  var areaLevel = params[2].areatype;
+  var feature = params[2].featureId;
   var cache = window.MBIECacheStorage; /// Cached data    
 
   if (Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["isEmpty"])(cache.get(indicator))) {
@@ -1652,6 +1657,7 @@ __webpack_require__.r(__webpack_exports__);
     transform: transform,
     area: area,
     areaLevel: areaLevel,
+    feature: feature,
     svg: svg,
     base: base,
     width: width,

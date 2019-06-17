@@ -6,7 +6,7 @@ import { isEmpty } from '../utils/utils';
 
 
 
-export default function (element, params, feature) {
+export default function (element, params) {
     //
     // Set up
     //
@@ -33,7 +33,8 @@ export default function (element, params, feature) {
         indicator = setup.indicator, 
         transform = setup.transform, 
         area = setup.area, 
-        areaLevel = setup.areaLevel, 
+        areaLevel = setup.areaLevel,
+        feature = setup.feature,
         svg = setup.svg,
         base = setup.base,
         width = setup.width, 
