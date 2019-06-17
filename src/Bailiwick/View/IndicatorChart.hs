@@ -16,7 +16,7 @@ import Data.Text (Text)
 import Debug.Trace
 
 import qualified GHCJS.DOM.Element as DOM
-import Language.Javascript.JSaddle (jsg3, MonadJSM, liftJSM)
+import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
 import Reflex.Dom.Core
 
 import Bailiwick.Javascript
@@ -128,7 +128,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
   updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId,
-                      Maybe Indicator, Maybe Areas, Maybe Area, Maybe Text, 
+                      Maybe Indicator, Maybe Areas, Maybe Area, Maybe Text,
                       Maybe Text, Maybe ChartId, Maybe FeatureId)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
@@ -147,8 +147,16 @@ indicatorChart IndicatorChartState{..} zoomD = do
           $ do
             let areaname = maybe "" areaName area
             let units = maybe Percentage indicatorUnits indicator
-            jsg3 ((getJSChartType chartType) :: Text) (_element_raw e)
-                 (shapeData areas indn, my, indID, transform, areaname, areatype, chartType) featureId
+            args <- makeJSObject
+                     [ ("indictorId",  (unIndicatorId <$> indID))
+                     , ("transform",   transform)
+                     , ("areaname",    Just areaname)
+                     , ("areatype",    areatype)
+                     , ("chartType",   (unChartId <$> chartType))
+                     , ("featureId",   (featureIdText <$> featureId))
+                     ]
+            jsg2 ((getJSChartType chartType) :: Text) (_element_raw e)
+                 (shapeData areas indn, my, args)
 
   clickE :: Event t (Maybe Message)
     <- clickEvents e $ \svg -> do

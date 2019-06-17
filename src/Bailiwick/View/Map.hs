@@ -20,6 +20,9 @@ module Bailiwick.View.Map
   )
 where
 
+import Debug.Trace
+import Data.List (intercalate)
+
 import Control.Monad ((>=>), (<=<), forever, void, when, join)
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Concurrent
@@ -32,7 +35,7 @@ import Data.Maybe (fromMaybe, isNothing, isJust, fromJust)
 import Data.Foldable (Foldable(..), forM_)
 import Data.Text (Text)
 import qualified Data.Text as Text
-import qualified Data.HashMap.Strict.InsOrd as OM (lookup, elems)
+import qualified Data.HashMap.Strict.InsOrd as OM (lookup, elems, filterWithKey)
 
 import qualified GHCJS.DOM.Element as DOM
 import qualified GHCJS.DOM.Node as DOM
@@ -871,7 +874,7 @@ updateMapIndicator svgBody mapD = do
                      $ areain
             year <- _year new
             let IndicatorNumbers ismap = _numbers new
-            nums <- OM.lookup (area, year, _feature new) ismap
+            nums <- OM.lookup (area, year, _feature new) (traceShow  (OM.filterWithKey (\(a,y,f) _v -> a == "wellington") ismap) ismap)
             return (colourNum nums)
 
         selectReg (_,t) = t == "region"
