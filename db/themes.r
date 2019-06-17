@@ -36,9 +36,23 @@ indicators <-
     )
     features <- features[!is.na(features)]
     names(features) <- slugify(features)
-    if (length(features) > 0 & !is.null(indicator$featureOrder)) {
-        features <- features[indicator$featureOrder]
+    if ('all' %in% names(features)) {
+        features['all'] = fromMaybe(paste('all ', indicator$featureName), indicator$topFeatureLabel)
     }
+    if (length(features) > 0 & !is.null(indicator$featureOrder)) {
+        if ('all' %in% names(features)) {
+            features <- features[c('all', indicator$featureOrder)]
+        } else {
+            features <- features[indicator$featureOrder]
+        }
+    }
+    if (length(features) > 0) {
+        defaultFeature <- first(names(features))
+    } else {
+        defaultFeature <- NULL
+    }
+
+
     return( list(
         "id"                   = slugify(indicator$name)                       # :: IndicatorId
       , "name"                 = indicator$name                                # :: Text
@@ -51,9 +65,10 @@ indicators <-
       , "slices"               = slices
       , "units"                = fromMaybe("count", indicator$units)
       , "valueType"            = fromMaybe("quantity", indicator$valueType)
-
       , "topDetailLabel"       = indicator$topDetailLabel                      # :: Maybe Text
-      , "topFeatureLabel"      = indicator$topFeatureLabel                     # :: Maybe Text
+      , "defaultFeature"       = defaultFeature                                # :: Maybe Text
+      , "featureName"          = indicator$featureName                         # :: Maybe Text
+      , "featureDropdownLabel" = indicator$featureDropdownLabel                # :: Maybe Text
       , "yearEndMonth"         = formatYearEndMonth(sources$YrEndingMth)       # :: Maybe Text
       , "featureText"          = fromMaybe(as.list(features),
                                            indicator$featureText)              # :: Map FeatureId Text
@@ -63,11 +78,11 @@ indicators <-
       , "publishers"           = fromMaybe("unknown publisher",
                                            unique(as.character(sources$Publisher)))      # :: Text
       , "nationalNumCaption"   = fromMaybe("TODO nationalNumCaption",
-                                           indicator$nationalNum$caption)   # :: Text
+                                           indicator$nationalNum$caption)      # :: Text
       , "localNumCaption"      = fromMaybe("TODO localNumCaption",
-                                           indicator$localNum$caption)      # :: Text
+                                           indicator$localNum$caption)         # :: Text
       , "headlineNumCaption"   = fromMaybe("TODO headlineNumCaption",
-                                           indicator$headlineNumCaption)   # :: Text
+                                           indicator$headlineNumCaption)       # :: Text
 
       ))
   })
