@@ -690,10 +690,12 @@ var barHeight = 240;
 var percentageCaption = ["Percentage achieved", "Percentage not acheived"];
 var absoluteCaption = ["Achieved", "Not acheived"];
 /* harmony default export */ __webpack_exports__["default"] = (function (element, params, feature) {
-  console.log('Under Over', element, params, feature);
-  var setup = Object(_utils_chart_setup__WEBPACK_IMPORTED_MODULE_2__["default"])(element, params, margin, 'overunder-barchart'); // if (setup === null) {
-  //     return;
-  // }
+  console.log('Under Over', arguments);
+  var setup = Object(_utils_chart_setup__WEBPACK_IMPORTED_MODULE_2__["default"])(element, params, margin, 'overunder-barchart');
+
+  if (setup === null) {
+    return;
+  }
 
   var cache = window.MBIECacheStorage,
       toCache = {},

@@ -20,13 +20,13 @@ var percentageCaption = ["Percentage achieved", "Percentage not acheived"];
 var absoluteCaption = ["Achieved", "Not acheived"];
 
 export default function(element, params, feature) {
-    console.log('Under Over', element, params, feature);
+    console.log('Under Over', arguments);
     
     let setup = chartSetup(element, params, margin, 'overunder-barchart');
 
-    // if (setup === null) {
-    //     return;
-    // }
+    if (setup === null) {
+        return;
+    }
 
     let cache = window.MBIECacheStorage,
         toCache = {},
