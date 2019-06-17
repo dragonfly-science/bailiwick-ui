@@ -74,4 +74,9 @@ indicators IndicatorState{..} = do
                               indicatorId
                               indicatorDefaultChartLeft
                               indicatorDefaultChartRight
-                              2017 Nothing Nothing "reg" "indexed" "indexed") <$ click
+                              2017
+                              (FeatureId <$> indicatorDefaultFeature)
+                              Nothing
+                              "reg"
+                              "indexed"
+                              "indexed") <$ click

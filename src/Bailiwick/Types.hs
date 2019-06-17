@@ -8,7 +8,6 @@
 module Bailiwick.Types where
 
 import Data.Aeson
-import Data.Aeson.Types (FromJSONKeyFunction(FromJSONKeyText))
 import Data.Char as Char
 import Data.String (IsString)
 
@@ -182,7 +181,7 @@ instance FromJSON Language where
 newtype IndicatorId = IndicatorId { unIndicatorId :: Text }
    deriving (Eq, Ord, Show, Generic, Hashable,
              FromJSONKey, FromJSON, IsString, ToJSVal)
-newtype ChartId = ChartId Text 
+newtype ChartId = ChartId Text
     deriving (Eq, Ord, Show, Generic, ToJSVal, IsString)
 instance FromJSON ChartId where
    parseJSON v = ChartId <$> parseJSON v
@@ -199,9 +198,11 @@ data Indicator = Indicator
   , indicatorUnits                  :: Units
   , indicatorValueType              :: ValueType
   , indicatorTopDetailLabel         :: Maybe Text
-  , indicatorTopFeatureLabel        :: Maybe Text
+  , indicatorDefaultFeature         :: Maybe Text
+  , indicatorFeatureName            :: Maybe Text
+  , indicatorFeatureDropdownLabel   :: Maybe Text
   , indicatorYearEndMonth           :: Maybe Text
-  , indicatorFeatureText            :: Maybe (Map FeatureId Text)
+  , indicatorFeatureText            :: Maybe (InsOrdHashMap FeatureId Text)
   , indicatorFirstYear              :: Text
   , indicatorPeriod                 :: Maybe Int
   , indicatorNotes                  :: Maybe [Text]
@@ -209,15 +210,13 @@ data Indicator = Indicator
   , indicatorNationalNumCaption     :: Text
   , indicatorLocalNumCaption        :: Text
   , indicatorHeadlineNumCaption     :: Text
-  , indicatorTooltipExtra         :: Maybe Text
+  , indicatorTooltipExtra           :: Maybe Text
 --  , indicatorBarchartLabelWidth     :: Maybe Int
 --  , indicatorCaptions               :: Maybe (Map Text Text)
 --  , indicatorCharts                 :: [Chart]
 --  , indicatorDetailName             :: Maybe Text
 --  , indicatorDetails                :: [Text]
 --  , indicatorEnableAreaToggle       :: Bool
---  , indicatorFeatureName            :: Maybe Text
---  , indicatorFeatureDropdownLabel   :: Maybe Text
 --  , indicatorIcon                   :: Maybe Text
 --  , indicatorLabels                 :: Maybe (Map Text Text)
 --  , indicatorMaxFeatures            :: Maybe (Map Text Text)
@@ -278,12 +277,8 @@ instance FromJSON Indicator where
 type Indicators = InsOrdHashMap IndicatorId Indicator
 
 newtype FeatureId = FeatureId { featureIdText :: Text }
-   deriving (Eq, Ord, Show, Generic, ToJSVal)
-instance Hashable FeatureId
-instance FromJSON FeatureId where
-   parseJSON v = FeatureId <$> parseJSON v
-instance FromJSONKey FeatureId where
-   fromJSONKey = FromJSONKeyText FeatureId
+   deriving (Eq, Ord, Show, Generic, Hashable,
+             FromJSONKey, FromJSON, IsString, ToJSVal)
 
 data Feature = Feature
   { featureId     :: FeatureId

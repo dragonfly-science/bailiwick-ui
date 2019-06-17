@@ -1,6 +1,6 @@
 slugify <- function(name) {
     gsub(' ',        '-',
-    gsub('[^a-z -]', '',
+    gsub('[^a-z0-9 -]', '',
     gsub('---',      '-',
     gsub('\\&',      'and',
     gsub('%',        'pc',
@@ -10,7 +10,7 @@ slugify <- function(name) {
            tolower(name))))))))#)
 }
 
-fromMaybe <- function(def, val) if (is.null(val)) { def } else { val }
+fromMaybe <- function(def, val) if (is.null(val) | length(val) == 0) { def } else { val }
 
 standardise.areaname <- function(areaname) {
   areaname <- gsub(' Region', '', areaname)

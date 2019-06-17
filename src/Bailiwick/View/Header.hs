@@ -28,6 +28,7 @@ data HeaderState t
   { routeD     :: Dynamic t Route
   , areaD      :: Dynamic t (Maybe Area)
   , subareaD   :: Dynamic t (Maybe Area)
+  , featureD   :: Dynamic t (Maybe FeatureId)
   , areasD     :: Dynamic t (Maybe Areas)
   , indicatorD :: Dynamic t (Maybe Indicator)
   }
@@ -44,13 +45,28 @@ header hs@HeaderState{..} = mdo
         area <- maybe "new-zealand" areaId <$> areaD
         return $ (  "class" =: "title" <> "data-region" =: area)
 
-      showSubareaD = not . ( == OMap.empty) <$> subareasD
+      showSubareaD = do
+        subareas <- subareasD
+        if subareas == OMap.empty
+            then return NotVisible
+            else return Visible
+
+      showFeaturesD = do
+        mind <- indicatorD
+        return $ fromMaybe NotVisible $ do
+            Indicator{..} <- mind
+            if indicatorFeatures == []
+                then return NotVisible
+                else return Inverted
 
       subAreaMessage = do
         area <- fmap areaId <$> areaD
         if area == Just "auckland"
             then return "Select a ward"
             else return "Select a territorial authority"
+
+      featureMessage = do
+        return "Select a feature"
 
       regionsD = do
         mareas <- areasD
@@ -71,6 +87,15 @@ header hs@HeaderState{..} = mdo
             thisArea <- OMap.lookup aid areas
             return $ OMap.filter (\a -> areaId a `elem` areaChildren thisArea) areas
 
+      featuresD = do
+        mind <- indicatorD
+        return $
+          fromMaybe OMap.empty $ do
+            Indicator{..} <- mind
+            ift <- indicatorFeatureText
+            return $ OMap.mapKeys featureIdText ift
+
+
   elDynAttr "div" background $
     divClass "content" $ mdo
       backToSummaryE <-
@@ -80,20 +105,31 @@ header hs@HeaderState{..} = mdo
         divClass "right" $
           divClass "title-menus" $ do
             (region, regionOpen) <-
-              dropdownMenu (constDyn "Select a region") never
-                           (constDyn True) (fmap areaId <$> areaD)
+              dropdownMenu (constDyn "Select a region")
+                           never
+                           (constDyn Visible)
+                           (fmap areaId <$> areaD)
                            (fmap areaName <$> regionsD)
             (subarea, _) <-
               dropdownMenu subAreaMessage
                            (() <$ ffilter id (updated regionOpen))
-                           showSubareaD (fmap areaId <$> subareaD)
+                           showSubareaD
+                           (fmap areaId <$> subareaD)
                            (fmap areaName <$> subareasD)
+            (feature, _) <-
+              dropdownMenu featureMessage
+                           (() <$ ffilter id (updated regionOpen))
+                           showFeaturesD
+                           (fmap featureIdText <$> featureD)
+                           (featuresD)
 
             uniqRegion <- holdUniqDyn region
             uniqSubarea <- holdUniqDyn subarea
+            uniqFeature <- holdUniqDyn feature
 
             return $ leftmost [ SetSubArea <$> fmapMaybe id (updated uniqSubarea)
                               , SetRegion <$> fmapMaybe id (updated uniqRegion)
+                              , SetFeature . FeatureId <$> fmapMaybe id (updated uniqFeature)
                               ]
       return $ leftmost [backToSummaryE, menuE]
 
@@ -140,6 +176,8 @@ backToSummary HeaderState{..} = do
     el "div" $ dynText $ maybe "" areaName <$> subareaD
   return $ GoTo Summary <$ domEvent Click e
 
+data Visible = NotVisible | Visible | Inverted deriving (Eq)
+
 dropdownMenu
     :: ( MonadFix m
        , MonadHold t m
@@ -148,7 +186,7 @@ dropdownMenu
        )
     => Dynamic t Text              -- empty value presentation
     -> Event t ()                  -- Close event
-    -> Dynamic t Bool              -- Is hidden or not
+    -> Dynamic t Visible           -- Is hidden, inverted, or visible
     -> Dynamic t (Maybe Text)      -- Initial value
     -> Dynamic t (InsOrdHashMap Text Text)    -- Options (ordered)
     -> m (Dynamic t (Maybe Text), Dynamic t Bool)
@@ -156,9 +194,13 @@ dropdownMenu emptyPresentD closeE seenD initialD valuesD = do
 
   let dropdownAttrD = do
         canSee <- seenD
-        let visibility = if canSee then "visibility: block"
-                                   else "visibility: hidden"
-        return ("class" =: "dropdown" <> "style" =: visibility)
+        let visibility = case canSee of
+                            NotVisible -> "visibility: hidden"
+                            _          -> "visibility: block"
+        let classname = case canSee of
+                            Inverted   -> "dropdown-invert"
+                            _          -> "dropdown"
+        return ("class" =: classname <> "style" =: visibility)
 
   elDynAttr "div" dropdownAttrD $ do
     divClass "dropdown-container" $ mdo
