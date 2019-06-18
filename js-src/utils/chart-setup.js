@@ -42,7 +42,6 @@ export default function(element, params, margin, chartType) {
     if (isEmpty(data) || isNaN(width) || isNaN(height)) {
         return null;
     }
-
     var year = params[1];
     var indicator = params[2].indicatorId;
     var transform = params[2].transform;

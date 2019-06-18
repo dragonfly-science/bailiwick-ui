@@ -81,7 +81,7 @@ export default function (element, params) {
 
     var years = [];
 
-    if (!_.hasIn(cache.get(indicator), "years")) {
+    // if (!_.hasIn(cache.get(indicator), "years")) {
         years = _.uniq(_.reduce(data, function (result, value, key) {
             return _.reduce(value[1], function (res, v, k) {
                 res.push(v[0]);
@@ -94,17 +94,17 @@ export default function (element, params) {
         });
 
         toCache.years = years;
-    } else {
-        years = cache.get(indicator).years;
-    }
+    // } else {
+    //     years = cache.get(indicator).years;
+    // }
 
     var areaKey = area + '-' + areaLevel + '-' + transform;
     var areas = [];
 
-    if (!_.hasIn(cache.get(indicator), area) || (
-        _.hasIn(cache.get(indicator), area) && 
-        !_.hasIn(cache.get(indicator.area), areaKey)
-    )) {
+    // if (!_.hasIn(cache.get(indicator), area) || (
+    //     _.hasIn(cache.get(indicator), area) && 
+    //     !_.hasIn(cache.get(indicator.area), areaKey)
+    // )) {
         var transformPos = transforms.indexOf(transform);
         var pos = transformPos === -1 ? 1 : transformPos + 1;
         var dispPos = transformPos === -1 ? 3 : transformPos + 3;
@@ -161,9 +161,9 @@ export default function (element, params) {
         });
 
         toCache[String(areaKey)] = areas;
-    } else {
-        areas = cache.get(indicator).areas[areaKey];
-    }
+    // } else {
+    //     areas = cache.get(indicator).areas[areaKey];
+    // }
 
     var xExtent = d3.extent(years);
     x.domain(xExtent);

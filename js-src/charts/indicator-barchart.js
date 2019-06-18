@@ -10,7 +10,6 @@ export default function (element, params) {
     //
     // Set up
     //
-    // console.log(element, params, feature);
     let lmargin = 140;
     if (window.innerWidth < 400) {
       lmargin = 100;
@@ -85,12 +84,12 @@ export default function (element, params) {
         return false;
     }
 
-    currentAreaData = currentAreaData[0];
+    currentAreaData = currentAreaData[0][0];
     let cacheKey = 'areas.' + area + '.' + year + '.' + feature + '-' + String(Math.random() * 100);
 
-    if (!_.hasIn(cache.get(indicator), cacheKey)) {
+    // if (!_.hasIn(cache.get(indicator), cacheKey)) {
         let cachedInd = cache.get(indicator);
-        let parents = currentAreaData[0][3];
+        let parents = currentAreaData[3];
 
         // No parents means NZ is selected - so we will end up showing all
         // available regions.
@@ -117,11 +116,7 @@ export default function (element, params) {
                 return o[0] === year;
             });
 
-            if (
-                ((feature !== null && feature === values.feature) ||
-                feature === null) &&
-                !_.isEmpty(yearVal)
-            ) {
+            if (!_.isEmpty(yearVal)) {
                 values.value = Number(yearVal[0][1]);
                 values.display = (yearVal[0][3]).trim();
                 res.push(values);
@@ -130,7 +125,42 @@ export default function (element, params) {
             return res;
         }, []);
 
-        siblingsFilteredByYear = _.sortBy(siblingsFilteredByYear, ['value']);
+        ///
+        /// If we have a feature, return area data sorted by feature (with
+        /// keys renamed to appropriate values).
+        if (feature !== null) {
+            let areaData = _.groupBy(_.filter(siblingsFilteredByYear, function(o) {
+                return o.name === area; 
+            }), 'feature');
+
+            areaData = _.reduce(areaData, function(result, v, k) {
+                let newData = {
+                    name: v[0].feature,
+                    slug: v[0].slug,
+                    value: v[0].value,
+                    year: v[0].year,
+                    display: v[0].display
+                }
+
+                result.push(newData);
+
+                return result;
+            }, []);
+
+
+            siblingsFilteredByYear = _.orderBy(areaData, 'value', 'desc');
+
+            // current area data is now looking at the features.
+            let newcurrentAreaData = _.filter(areaData, function(o) {
+                return o.name === feature;
+            });
+
+            if (!_.isEmpty(newcurrentAreaData)) {
+                currentAreaData[0] = newcurrentAreaData[0].name;
+            }
+        } else {
+            siblingsFilteredByYear = _.sortBy(siblingsFilteredByYear, ['value']);
+        }
         
         if (!_.hasIn(cachedInd, 'areas')) {
             cachedInd.areas = {};
@@ -141,9 +171,9 @@ export default function (element, params) {
         }
         cachedInd.areas[area][year] = siblingsFilteredByYear;
         data = siblingsFilteredByYear;
-    }
+    // }
 
-    data = cache.get(indicator)['areas'][area][year];
+    // data = cache.get(indicator)['areas'][area][year];
 
     tooltipElem = d3.select(element).select(".tooltip");
 
@@ -211,6 +241,7 @@ export default function (element, params) {
     //         return d.name === featureType;
     //     });
     // }
+
     // if (none(fixedAxis)) {
     //     areaData.children = areaData.children.sort(function (a, b) {
     //         return d3.descending(a.absolute, b.absolute);
@@ -221,6 +252,7 @@ export default function (element, params) {
     //         return m.get(d);
     //     });
     // }
+
     // if (this.getAttr('transform') === 'percentage') {
     //     this.set('plotdata', areaData.children.map(function (d) {
     //         d.value = d.percentage;
@@ -292,6 +324,12 @@ export default function (element, params) {
             .attr("data-bailiwick-area", function (d) {
                 return d.slug;
             })
+            .attr("data-bailiwick-feature", function(d) {
+                if (feature !== null) {
+                    return d.name;
+                }
+                return '';
+            })
     if (!Modernizr.touch) {
         barEnter
             .on("mouseover", function (d) {
@@ -325,7 +363,10 @@ export default function (element, params) {
         .attr("x", function (d) { return 1; })
         .attr("width", function (d) { return x(d.value) + 1; })
         .classed("active", function (d) {
-            return d.slug === currentAreaData[0][0];
+            if (feature !== null) {
+                return d.name === currentAreaData[0];
+            } 
+            return d.slug === currentAreaData[0];
         });
 
     bar.exit().remove();

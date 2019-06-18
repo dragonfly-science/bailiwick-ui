@@ -50,6 +50,9 @@ shapeData mareas (IndicatorNumbers inmap) =
             Areas areas <- mareas
             area <- OMap.lookup areaid areas
             return (areaParents area)
+    --   lookupFeature featureId
+    --     = do
+    --         return OMap.lookup featureId
 
       step (areaid, year, _mfeatureid) Numbers{..} res
          = do
@@ -147,6 +150,9 @@ indicatorChart IndicatorChartState{..} zoomD = do
           $ do
             let areaname = maybe "" areaName area
             let units = maybe Percentage indicatorUnits indicator
+            let features = case indicator of
+                    Just a -> indicatorFeatures a
+                    Nothing -> []
             args <- makeJSObject
                      [ ("indictorId",  (unIndicatorId <$> indID))
                      , ("transform",   transform)
@@ -156,7 +162,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
                      , ("featureId",   (featureIdText <$> featureId))
                      ]
             jsg2 ((getJSChartType chartType) :: Text) (_element_raw e)
-                 (shapeData areas indn, my, args)
+                 (shapeData areas indn, my, args, features)
 
   clickE :: Event t (Maybe Message)
     <- clickEvents e $ \svg -> do
@@ -169,6 +175,8 @@ indicatorChart IndicatorChartState{..} zoomD = do
               return (SetYearArea <$> year <*> area)
            "rect" -> do
               area <- DOM.getAttribute svg ("data-bailiwick-area"::Text)
+            --   feature <- DOM.getAttribute svg ("data-bailiwick-feature"::Text)
+
               return (SetSubArea <$> area)
            "text" -> do
               yeart <- DOM.getAttribute svg ("data-bailiwick-year"::Text)
