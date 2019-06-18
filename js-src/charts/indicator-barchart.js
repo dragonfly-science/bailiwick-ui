@@ -60,12 +60,15 @@ export default function (element, params) {
         .orient("left")
         .outerTickSize(0)
         .tickFormat(function(d) {
+            if (d.length === 0) {
+                return '';
+            }
+
             if (d.length > maxLength) {
                 return d[0].toUpperCase() + d.substring(1,maxLength) + '…';
             }
-            else {
-                return d[0].toUpperCase() + d.slice(1);
-            }
+            
+            return d[0].toUpperCase() + d.slice(1);
         });
 
     var barHeight = 20,
@@ -93,7 +96,10 @@ export default function (element, params) {
 
         // No parents means NZ is selected - so we will end up showing all
         // available regions.
-        if (isEmpty(parents) && area != 'New Zealand') {
+        if (
+            (feature !== null && isEmpty(parents) && area !== 'New Zealand') || 
+            (feature === null && isEmpty(parents))
+        ) {
             parents = ['new-zealand'];
         }
         
@@ -102,7 +108,7 @@ export default function (element, params) {
             return _.intersection(o[0][3], parents).length > 0;
         });
 
-        // This is assuming we are looking at NZ data.
+        // This is assuming we are looking at NZ.
         if (_.isEmpty(siblingAreas)) {
             siblingAreas = data;
         }
@@ -129,8 +135,6 @@ export default function (element, params) {
 
             return res;
         }, []);
-
-        console.log('nz', area)
 
         ///
         /// If we have a feature, return area data sorted by feature (with
@@ -277,7 +281,7 @@ export default function (element, params) {
     // }
     // this.set('_dataState', dataState);
     //}
-
+        
 
     // Update
     // var data = this.get('plotdata'),
@@ -298,6 +302,8 @@ export default function (element, params) {
     y.domain(data.map(function (d) { return d.name; }));
     xAxis.tickSize(-1 * dataHeight, 10)
 
+    // console.log(data)
+
     var ySel = g.selectAll("g.y.axis").data([data]),
         ySelEnter = ySel.enter().append("g")
             .attr("class", "y axis");
@@ -306,10 +312,11 @@ export default function (element, params) {
         .selectAll("text")
         .style("text-anchor", "end");
     ySel.exit().remove();
-
+    
     var xSel = g.selectAll("g.x.axis").data([data]),
         xSelEnter = xSel.enter().append("g")
             .attr("class", "x axis");
+    
     xSel
         .attr("transform", "translate(0," + (dataHeight + 3) + ")")
         .call(xAxis);
@@ -336,7 +343,9 @@ export default function (element, params) {
                     return d.name;
                 }
                 return '';
-            })
+            });
+    
+    
     if (!Modernizr.touch) {
         barEnter
             .on("mouseover", function (d) {
