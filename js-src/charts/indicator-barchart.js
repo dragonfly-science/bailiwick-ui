@@ -93,7 +93,7 @@ export default function (element, params) {
 
         // No parents means NZ is selected - so we will end up showing all
         // available regions.
-        if (isEmpty(parents)) {
+        if (isEmpty(parents) && area != 'New Zealand') {
             parents = ['new-zealand'];
         }
         
@@ -101,6 +101,11 @@ export default function (element, params) {
         var siblingAreas = _.filter(data, function(o) {
             return _.intersection(o[0][3], parents).length > 0;
         });
+
+        // This is assuming we are looking at NZ data.
+        if (_.isEmpty(siblingAreas)) {
+            siblingAreas = data;
+        }
 
         var siblingsFilteredByYear = _.reduce(siblingAreas, function(res, v, k) {
             let values = {
@@ -124,6 +129,8 @@ export default function (element, params) {
 
             return res;
         }, []);
+
+        console.log('nz', area)
 
         ///
         /// If we have a feature, return area data sorted by feature (with
