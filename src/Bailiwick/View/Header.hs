@@ -196,7 +196,7 @@ compareMenu = do
                 -- if no area is selected
                 elClass "button" "set" $ text "set this area"
             return never
-  return $ leftmost [compareE]
+  return $ compareE
 
 backToSummary
     :: ( MonadFix m
