@@ -131,7 +131,72 @@ header hs@HeaderState{..} = mdo
                               , SetRegion <$> fmapMaybe id (updated uniqRegion)
                               , SetFeature . FeatureId <$> fmapMaybe id (updated uniqFeature)
                               ]
-      return $ leftmost [backToSummaryE, menuE]
+      compareE <- compareMenu
+      return $ leftmost [backToSummaryE, menuE, compareE]
+
+compareMenu
+    :: ( MonadFix m
+       , MonadHold t m
+       , PostBuild t m
+       , DomBuilder t m
+       )
+    => m (Event t Message)
+compareMenu = do
+  compareE <-
+    divClass "compare-menu" $ do
+      divClass "compare-nav" $ do
+        divClass "compare-label" $ do
+          el "div" $ do
+            text "Comparing to"
+            elClass "strong" "compared-area" $ text "compared area name"
+          -- TODO: needs an event to remove the above div & the clear
+          -- button & remove the compared area data.
+          elClass "button" "clear-compare-area" $
+            el "i" $ return ()
+        -- TODO: needs an event to open the "compare-panel" by adding a
+        -- "show" class.
+        elClass "button" "menu-button" $ do
+          text "set compare area"
+      divClass "compare-panel hide" $
+        divClass "panel" $ do
+          el "header" $ do
+            el "h2" $
+              text "Set the area you want to compare with."
+            -- TODO: close button needs an event which will replace the 
+            -- "show" class on "compare-panel" with "hide"
+            elClass "button" "close" $
+              elClass "i" "close-icon-rear-white" $ return ()
+          divClass "body" $ do
+            divClass "row" $
+              divClass "col last" $
+                -- TODO: select in ember version was using Chosen.js - we'll
+                -- have to just use a select for now. Need to list all 
+                -- available areas. Clicking an option disables the 
+                -- "area-selction" row element by adding a "disabled" class.
+                elClass "select" "" $
+                  el "option" $ text "Choose an area"
+            -- TODO: need a dynamic to add a "disabled" class.
+            divClass "row" $ do
+              divClass "col area-selection" $ do
+                elClass "span" "label" $ text "Selection region"
+                divClass "container" $
+                  el "ul" $ 
+                    -- TODO: selecting a region updates the TAs/Wards.
+                    elAttr "li" ("id" =: "region-id") $ text "region name"
+              divClass "col ta-selection" $ do
+                elClass "span" "label" $ text "Selection Territorial Authority/Ward"
+                divClass "container" $ do
+                  el "ul" $ 
+                    elAttr "li" ("id" =: "ta-id") $ text "ta name"
+            divClass "row" $ do
+              divClass "col" $
+                elClass "button" "clear" $ text "clear"
+              divClass "col" $
+                -- TODO: this button needs to have a "disabled" class added
+                -- if no area is selected
+                elClass "button" "set" $ text "set this area"
+            return never
+  return $ leftmost [compareE]
 
 backToSummary
     :: ( MonadFix m
