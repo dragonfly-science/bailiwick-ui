@@ -13,7 +13,6 @@ notes:
 headerTitle: tertiary provision[ at $feature$] in $area$
 slices:
   - tertiary provision by level
-  - tertiary provision by level - margin
 summaryTitle: tertiary provision (EFTS and STMs)[ at $feature$] in $area$, in the year to $yearEndMonth$ $year$
 headlineNumCaption: >-
   tertiary provision (EFTS and STMs)[ at $feature$] in $area$, in the year to $yearEndMonth$ $year$.
@@ -24,7 +23,7 @@ localNum:
 nationalNum:
   caption: >
     the percentage of the total tertiary provision (EFTS and STMs)[ at $feature$] for New Zealand
-    that was in $area$, in the year to $yearEndMonth$. 
+    that was in $area$, in the year to $yearEndMonth$.
   transform: nationalPercentage
 units: count
 valueType: quantity

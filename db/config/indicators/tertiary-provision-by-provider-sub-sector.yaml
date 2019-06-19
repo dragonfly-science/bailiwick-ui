@@ -12,7 +12,6 @@ notes:
 headerTitle: tertiary provision by $feature$ in $area$
 slices:
   - tertiary provision by provider
-  - tertiary provision by provider - margin
 summaryTitle: tertiary provision (EFTS and STMs)[ by $feature$] in $area$, in the year to $yearEndMonth$ $year$
 headlineNumCaption: >-
   tertiary provision (EFTS and STMs)[ by $feature$] in $area$, in the year to $yearEndMonth$ $year$.

@@ -32,7 +32,7 @@ indicators <-
 
     ## Features
     features <- as.character(unique(
-      REARdb_Data[REARdb_Source[tolower(ValueName) %in% slices],
+      REARdb_Data[REARdb_Source[tolower(ValueName) %in% tolower(slices)],
                   .(ValueName, Dimension1)])[,
                              patch.featureNames(ValueName, Dimension1)]
     )
@@ -55,7 +55,7 @@ indicators <-
     }
 
     # Years
-    years <- sort(unique(REARdb_Data[REARdb_Source[tolower(ValueName) %in% slices], Year]))
+    years <- sort(unique(REARdb_Data[REARdb_Source[tolower(ValueName) %in% tolower(slices)], Year]))
 
     return( list(
         "id"                   = slugify(indicator$name)                       # :: IndicatorId
