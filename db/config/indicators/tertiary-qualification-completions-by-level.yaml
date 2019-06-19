@@ -12,7 +12,6 @@ notes:
 headerTitle: tertiary qualification completions[ at $feature$] by students from $area$
 slices:
   - tertiary qualification completions by level (domestic)
-  - tertiary qualification completions by level (domestic) - margin
 summaryTitle: tertiary qualification completions[ at $feature$] by students from $area$, in the year to $yearEndMonth$ $year$
 headlineNumCaption: >-
   tertiary qualification completions[ at $feature$] by students from $area$, in the year to $yearEndMonth$ $year$.
@@ -23,7 +22,7 @@ localNum:
 nationalNum:
   caption: >
     the percentage of the tertiary qualification completions[ at $feature$] for New Zealand
-    by students from $area$, in the year to $yearEndMonth$. 
+    by students from $area$, in the year to $yearEndMonth$.
   transform: nationalPercentage
 units: count
 valueType: quantity

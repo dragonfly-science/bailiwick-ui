@@ -9,7 +9,6 @@ source: Ministry of Education <a href="http://www.educationcounts.govt.nz/statis
 headerTitle: school leavers by NCEA level in $area$
 slices:
   - school leavers by NCEA level
-  - school leavers by NCEA level - margin
 summaryTitle: School leavers with $feature$ in $area$ in  $year$
 headlineNumCaption: >-
   the number of school leavers in $area$ with $feature$ for the year to $yearEndMonth$ $year$.
@@ -20,23 +19,23 @@ localNum:
 nationalNum:
   caption: >
     the perentage of all New Zealand school leavers with $feature$
-    that were in $area$, in the year to $yearEndMonth$. 
+    that were in $area$, in the year to $yearEndMonth$.
   transform: nationalPercentage
 units: count
 valueType: quantity
 absoluteLabel: school leavers
 featureName: NCEA level
 featureText:
-  ncea-level-1: at least NCEA level 1
+  ncea-level-1-or-above: at least NCEA level 1
   below-ncea-level-1: less than NCEA level 1
-  ncea-level-2: at least NCEA level 2
+  ncea-level-2-or-above: at least NCEA level 2
   below-ncea-level-2: less than NCEA level 2
-  ncea-level-3: at least NCEA level 3
+  ncea-level-3-or-above: at least NCEA level 3
   below-ncea-level-3: less than NCEA level 3
 featureOrder:
-  - ncea-level-3
-  - ncea-level-2
-  - ncea-level-1
+  - ncea-level-3-or-above
+  - ncea-level-2-or-above
+  - ncea-level-1-or-above
   - below-ncea-level-3
   - below-ncea-level-2
   - below-ncea-level-1

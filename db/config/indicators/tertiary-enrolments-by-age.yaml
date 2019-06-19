@@ -11,7 +11,6 @@ notes:
 headerTitle: tertiary enrolments[ aged $feature$] from $area$
 slices:
   - tertiary enrolments by age (domestic)
-  - tertiary enrolments by age (domestic) - margin
 summaryTitle: tertiary enrolments[ aged $feature$] from $area$, in $year$
 headlineNumCaption: >-
   tertiary enrolments[ aged $feature$] from $area$, in $year$.
@@ -48,7 +47,7 @@ charts:
     title: tertiary enrolments[ aged $feature$], by year
     transforms:
       - name: percapita
-        caption: per capita tertiary enrolments 
+        caption: per capita tertiary enrolments
       - name: absolute
         caption: tertiary enrolments
       - name: indexed
