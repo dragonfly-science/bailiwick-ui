@@ -2,7 +2,7 @@
  * Global Imports
  * /// */
 import CacheStorage from './cache/cache-store';
-window.MBIECacheStorage = CacheStorage.getInstance();
+global.MBIECacheStorage = CacheStorage.getInstance();
 
 import updateIndicatorTimeSeries from './charts/indicator-timeseries';
 import updateMapLegend from './charts/map-legend';
@@ -16,9 +16,11 @@ import areaTreeMap from './charts/indicator-area-treemap';
  * ----------------:
  * Any functions that need to interact with Reflex must be made global.
  */
-window.prototype.updateIndicatorTimeSeries = updateIndicatorTimeSeries;
-window.prototype.updateMapLegend = updateMapLegend;
-window.prototype.updateTimeSeries = updateTimeSeries;
-window.prototype.updateAreaBarchart = updateAreaBarchart;
-window.prototype.overUnderBarchart = overUnderBarchart;
-window.prototype.areaTreeMap = areaTreeMap;
+global.updateIndicatorTimeSeries = updateIndicatorTimeSeries;
+global.updateMapLegend = updateMapLegend;
+global.updateTimeSeries = updateTimeSeries;
+global.updateAreaBarchart = updateAreaBarchart;
+global.overUnderBarchart = overUnderBarchart;
+global.areaTreeMap = areaTreeMap;
+
+export default global;
