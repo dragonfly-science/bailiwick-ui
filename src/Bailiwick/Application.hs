@@ -52,7 +52,6 @@ indexHtml jss = do
     <script src="/modernizr.custom.30140.js"></script>
     <script src="/iframeResizer.contentWindow.min.js"></script>
     <script src="/bailiwick.bundle.js"></script>
-    <script src="/perfect-scrollbar.js"></script>
   </head>
   <body>
     $body$
