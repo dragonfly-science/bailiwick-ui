@@ -16,11 +16,11 @@ import areaTreeMap from './charts/indicator-area-treemap';
  * ----------------:
  * Any functions that need to interact with Reflex must be made global.
  */
-global.updateIndicatorTimeSeries = updateIndicatorTimeSeries;
-global.updateMapLegend = updateMapLegend;
-global.updateTimeSeries = updateTimeSeries;
-global.updateAreaBarchart = updateAreaBarchart;
-global.overUnderBarchart = overUnderBarchart;
-global.areaTreeMap = areaTreeMap;
+global['updateIndicatorTimeSeries'] = updateIndicatorTimeSeries;
+global['updateMapLegend'] = updateMapLegend;
+global['updateTimeSeries'] = updateTimeSeries;
+global['updateAreaBarchart'] = updateAreaBarchart;
+global['overUnderBarchart'] = overUnderBarchart;
+global['areaTreeMap'] = areaTreeMap;
 
 export default global;
