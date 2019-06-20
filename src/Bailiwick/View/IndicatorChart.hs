@@ -138,11 +138,11 @@ indicatorChart IndicatorChartState{..} zoomD = do
 
   let getJSChartType chart = case chart of
         Just a -> case trace ("chart type" ++ show a) a of
-                    "barchart" -> "updateAreaBarchart"
+                    "barchart"            -> "updateAreaBarchart"
                     "over-under-barchart" -> "overUnderBarchart"
-                    "treemap" -> "areaTreeMap"
-                    _ ->"updateIndicatorTimeSeries"
-        Nothing -> "updateIndicatorTimeSeries"
+                    "treemap"             -> "areaTreeMap"
+                    _                     -> "updateIndicatorTimeSeries"
+        Nothing ->                           "updateIndicatorTimeSeries"
 
   performEvent_ $ ffor updateE $ \case
     (indn, my, indID, indicator, areas, area, areatype, transform, chartType, featureId)
