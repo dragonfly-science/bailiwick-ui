@@ -30,7 +30,7 @@ textSubstitution
   :: Maybe Area
   -> Maybe Area
   -> Maybe Indicator
-  -> Maybe Feature
+  -> Maybe FeatureId
   -> Maybe ThemePageArgs
   -> Text
   -> Text
@@ -39,8 +39,8 @@ textSubstitution area compareArea indicator feature themePage =
         fy = indicatorFirstYear <$> indicator
         yem = indicatorYearEndMonth =<< indicator
         sa = maybe "New Zealand" areaName area
-        f = featureName <$> feature
-        fp = if isJust f then featureParent =<< feature else Just ""
+        f = featureIdText <$> feature
+        fp = Nothing -- TODO feature types (Tourism spend)
         _d = themePageDetailId <$> themePage --
         dl = Nothing -- TODO d <|> (indicatorTopDetailLabel =<< indicator)
         ip = indicatorPeriod =<< indicator
@@ -68,7 +68,7 @@ textSubstitution area compareArea indicator feature themePage =
       . replace "$detail$" dl
       . T.pack
       . removeDetailBrackets (themePageDetailId =<< themePage)
-      . removeFeatureBrackets (featureName <$> feature)
+      . removeFeatureBrackets (f)
       . T.unpack
 
 

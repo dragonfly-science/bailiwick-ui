@@ -8,8 +8,10 @@ let
     mkdir -p $out/static
     cp -r ${./static}/* $out/static
     chmod +w $out/static
-    ${nixpkgs.closurecompiler}/bin/closure-compiler ${ghcjs.bailiwick}/bin/bailiwick.jsexe/all.js > $out/static/min.js
-    ${nixpkgs.closurecompiler}/bin/closure-compiler $out/static/bailiwick.js > $out/static/bailiwick.min.js
+    ${nixpkgs.closurecompiler}/bin/closure-compiler \
+        --jscomp_off=checkVars \
+        --externs=${ghcjs.bailiwick}/bin/bailiwick.jsexe/all.js.externs \
+        ${ghcjs.bailiwick}/bin/bailiwick.jsexe/all.js   > $out/static/min.js
   '';
 in bailiwick-static
 
