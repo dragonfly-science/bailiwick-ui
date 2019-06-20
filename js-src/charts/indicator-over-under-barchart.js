@@ -208,7 +208,7 @@ export default function(element, params) {
     
 
     height = (over + under) / over * barHeight;
-    console.log(over, under, height);
+    // console.log(over, under, height);
     svgEnter.attr('height', height);
     y.domain([-1 * under, over])
      .range([height, 0]);
@@ -247,102 +247,121 @@ export default function(element, params) {
       .call(xAxis);
     xSel.exit().remove();
 
-    // var overBar = svgEnter.selectAll("rect.overbar")
-    //                 .data(areaData.map(function(d) {
-    //                     console.log(d);
-    //                                     // var o = d.values[0];
-    //                                     // o.label = d.label;
-    //                                     return null;
-    //                 }));
-    // var overBarEnter = overBar.enter().append("rect")
-    //   .attr("class", "overbar")
-    //   .on("click", function(d) {
-    //     _this.sendAction("featureAction", d.slug);
-    //   });
-    // overBar
-    //   .attr("y", function(d) {
-    //     return y(d.value);
-    //   })
-    //   .attr("height", function(d) {
-    //     return y(0) - y(d.value);
-    //   })
-    //   .attr("x", function(d) { return x(d.label); })
-    //   .attr("width", x.rangeBand())
-    //   .classed("active", function(d) {
-    //     return d.slug === featureSlug
-    //   });
-    // overBar.exit().remove();
+    // console.log(areaData)
 
-    // var underBar = svg.selectAll("rect.underbar")
-    //   .data(plotdata.map(function(d) {
-    //                     var o = d.values[1];
-    //                     o.label = d.label;
-    //                     return o;
-    //   }));
-    // var underBarEnter = underBar.enter().append("rect")
-    //   .attr("class", "underbar")
-    //   .on("click", function(d) {
-    //     _this.sendAction("featureAction", d.slug);
-    //   });
-    // underBar
-    //   .attr("y", function(d) {
-    //     return y(0);
-    //   })
-    //   .attr("height", function(d) {
-    //     return y(-1 * d.value) - y(0);
-    //   })
-    //   .attr("x", function(d) { return x(d.label); })
-    //   .attr("width", x.rangeBand())
-    //   .classed("active", function(d) {
-    //     return d.slug === featureSlug
-    //   });
-    // underBar.exit().remove();
+    var overData = _.reduce(areaData, function(arr, val, key) {
+        // console.log(key);
+        if (key.indexOf('above') !== -1) {
+            // console.log(val, key)
+            // return Math.max(max, val[0].value);
+            arr.push({
+                value: val[0].value,
+                label: val[0].feature
+            });
+        }
+        return arr;
+    }, []);
 
-    // if (!Modernizr.touch) {
-    // var tooltipElem = d3.select(this.get('element')).select(".tooltip");
-    //   svg.selectAll("rect")
-    //     .on("mouseover", function(d) {
-    //       var tooltip = tooltipElem.selectAll('p')
-    //         .data([d.name, d.dispValue]),
-    //       tooltipEnter = tooltip.enter().append('p');
+    var underData = _.reduce(areaData, function(arr, val, key) {
+        // console.log(key);
+        if (key.indexOf('below') !== -1) {
+            // console.log(val, key)
+            // return Math.max(max, val[0].value);
+            arr.push({
+                value: val[0].value,
+                label: val[0].feature
+            });
+        }
+        return arr;
+    }, []);
 
-    //       tooltip.text(function(d) {
-    //         if (present(d) && d.length >= 2) {
-    //           return d[0].toUpperCase() + d.slice(1);
-    //         }
-    //         return d;
-    //       }).classed("number", function(d, i) {
-    //         return i === 1;
-    //       }).classed("local", function(d, i) {
-    //         return i === 1;
-    //       });
+    var overBar = svgEnter.selectAll("rect.overbar")
+                    .data(overData);
+    var overBarEnter = overBar.enter().append("rect")
+      .attr("class", "overbar")
+      .on("click", function(d) {
+        // _this.sendAction("featureAction", d.slug);
+      });
+    overBar
+      .attr("y", function(d) {
+        return y(d.value);
+      })
+      .attr("height", function(d) {
+        return y(0) - y(d.value);
+      })
+      .attr("x", function(d) { return x(d.label); })
+      .attr("width", x.rangeBand())
+      .classed("active", function(d) {
+        return d.label === feature
+      });
+    overBar.exit().remove();
 
-    //       tooltipElem.style("visibility", "visible")
-    //         .style("top", function() {
-    //           return (d3.event.offsetY) + "px";
-    //         })
-    //       .style("left", function() {
-    //         return (d3.event.offsetX) + "px";
-    //       });
+    var underBar = svgEnter.selectAll("rect.underbar")
+      .data(underData);
+    var underBarEnter = underBar.enter().append("rect")
+      .attr("class", "underbar")
+      .on("click", function(d) {
+        // _this.sendAction("featureAction", d.slug);
+      });
+    underBar
+      .attr("y", function(d) {
+        return y(0);
+      })
+      .attr("height", function(d) {
+        return y(-1 * d.value) - y(0);
+      })
+      .attr("x", function(d) { return x(d.label); })
+      .attr("width", x.rangeBand())
+      .classed("active", function(d) {
+        return d.label === feature
+      });
+    underBar.exit().remove();
 
-    //     }).on("mouseout", function(d) {
-    //       tooltipElem.style("visibility", "hidden");
-    //     });
+    if (!Modernizr.touch) {
+    var tooltipElem = d3.select(element).select(".tooltip");
+      svgEnter.selectAll("rect")
+        .on("mouseover", function(d) {
+        //   var tooltip = tooltipElem.selectAll('p')
+        //     .data([d.name, d.dispValue]),
+        //   tooltipEnter = tooltip.enter().append('p');
 
-    // }
+        //   tooltip.text(function(d) {
+        //     if (present(d) && d.length >= 2) {
+        //       return d[0].toUpperCase() + d.slice(1);
+        //     }
+        //     return d;
+        //   }).classed("number", function(d, i) {
+        //     return i === 1;
+        //   }).classed("local", function(d, i) {
+        //     return i === 1;
+        //   });
 
-    // var zline = d3.svg.line()
-    //   .x(function(d) { 
-    //     return d;
-    //   })
-    //   .y(function(d) {
-    //     return y(0);
-    //   });
-    // var zeroLine = svg.selectAll("path.zeroline").data([[0, width]]);
-    // var zeroLineEnter = zeroLine.enter().append('path')
-    //   .attr("class", "zeroline");
-    // zeroLine.attr("d", zline);
-    // zeroLine.exit().remove();
+        //   tooltipElem.style("visibility", "visible")
+        //     .style("top", function() {
+        //       return (d3.event.offsetY) + "px";
+        //     })
+        //   .style("left", function() {
+        //     return (d3.event.offsetX) + "px";
+        //   });
+
+        }).on("mouseout", function(d) {
+          tooltipElem.style("visibility", "hidden");
+        });
+
+    }
+
+    var zline = d3.svg.line()
+      .x(function(d) { 
+        return d;
+      })
+      .y(function(d) {
+        return y(0);
+      });
+    var zeroLine = svgEnter.selectAll("path.zeroline").data([[0, width]]);
+    var zeroLineEnter = zeroLine.enter().append('path')
+      .attr("class", "zeroline");
+    zeroLine.attr("d", zline);
+    zeroLine.exit().remove();
 
     base.classed('svg-loading', false);
 
