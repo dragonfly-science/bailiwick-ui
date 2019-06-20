@@ -172,7 +172,7 @@ makeIndicatorSummaryState State{..} =
   let selectedAreaD = zipDynWith (<|>) areaD regionD
   in IndicatorSummaryState routeD selectedAreaD
          (constDyn Nothing)  -- TODO compare area
-         (constDyn Nothing)  -- TODO feature
+         featureD            -- TODO feature
          indicatorD          -- indicator
          indicatorNumbersD   -- numbers
 

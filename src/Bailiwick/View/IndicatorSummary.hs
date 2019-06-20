@@ -50,7 +50,7 @@ data IndicatorSummaryState t
   { routeD             :: Dynamic t Route
   , areaD              :: Dynamic t (Maybe Area)
   , compareAreaD       :: Dynamic t (Maybe Area)
-  , featureD           :: Dynamic t (Maybe Feature)
+  , featureD           :: Dynamic t (Maybe FeatureId)
   , indicatorD         :: Dynamic t (Maybe Indicator)
   , indicatorNumbersD  :: Dynamic t IndicatorNumbers
   }
@@ -82,11 +82,12 @@ indicatorSummary IndicatorSummaryState{..} = mdo
       summaryNumsD = do
         mareaid <- fmap areaId <$> areaD
         myear   <- fmap themePageYear . getThemePage <$> routeD
+        feature <- featureD
         IndicatorNumbers ismap <- indicatorNumbersD
         return $ fromMaybe emptyNumbers $ do
           areaid <- mareaid
           year <- myear
-          OM.lookup (areaid, year, Nothing) ismap
+          OM.lookup (areaid, year, feature) ismap
 
   showTableD <- holdDyn False $ not <$> tag (current showTableD) showTableE
 
@@ -115,7 +116,7 @@ indicatorSummary IndicatorSummaryState{..} = mdo
         text "Notes:"
         void . dyn $ ffor (fromMaybe [] . (indicatorNotes =<<) <$> indicatorD)
                        (mapM_ $ elDynHtmlAttr' "p" (constDyn mempty) . subs . constDyn)
-  
+
   elDynClass "div" (("table-view " <>) . bool "hide" "show" <$> showTableD) $
     elAttr "div" ("class" =: "panel" <> "style" =: "height: 799px;") $ do
       el "header" $ do
@@ -125,7 +126,7 @@ indicatorSummary IndicatorSummaryState{..} = mdo
           -- requires an event to close the table.
           elAttr "button" ("class" =: "close") $
             el "i" $ return ()
-     
+
       elAttr "div" ("class" =: "table-container" <> "style" =: "height: 657px;") $
         -- ##
         -- There are 2 tables - 1 with a single region/indicator,
@@ -189,7 +190,7 @@ indicatorSummary IndicatorSummaryState{..} = mdo
         --         elAttr "th" ("class" =: "border-top double ratio") $ text "Ratio"
         --         elAttr "th" ("class" =: "border-top area-t") $ text "Area Name"
         --         elAttr "th" ("class" =: "border-top compare-t") $ text "Compare Area Name"
-        --     el "tbody" $ 
+        --     el "tbody" $
         --       -- each row represents 1 row in the data set
         --       el "tr" $ do
         --         elAttr "td" ("class" =: "double") $ text "Row Year"
@@ -199,7 +200,7 @@ indicatorSummary IndicatorSummaryState{..} = mdo
         --         elAttr "td" ("class" =: "colour-green") $ text "Row Area-t"
         --         elAttr "td" ("class" =: "colour-compare-green") $ text "Row Compare-t"
 
-  
+
   showTableE <- fmap (domEvent Click . fst) $
     divClass "table-button" $
       elClass' "button" "show-table" $
