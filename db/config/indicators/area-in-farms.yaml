@@ -34,7 +34,7 @@ charts:
       - name: rate
         caption: percentage change
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: area farmed, by year
     transforms:
@@ -53,5 +53,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: farmland, hectares
-    facet:
-      - year
+    facets:
+      - name: year

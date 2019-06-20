@@ -30,7 +30,7 @@ charts:
     transforms:
       - name: absolute
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: international tourism spend as share of GDP time series
     transforms:
@@ -44,5 +44,5 @@ charts:
     title: international tourism spend as a share of GDP in year to March $year$
     transforms:
       - name: absolute-tree
-    facet:
-      - year
+    facets:
+      - name: year

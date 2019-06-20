@@ -41,7 +41,7 @@ charts:
       - name: absolute
         caption: Percentage of people
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: people in the $feature$ age group, by year
     transforms:
@@ -60,8 +60,8 @@ charts:
     transforms:
       - name: absolute-tree
         caption: Percentage of people
-    facet:
-      - year
+    facets:
+      - name: year
     axis:
       - 0-14-years
       - 15-24-years

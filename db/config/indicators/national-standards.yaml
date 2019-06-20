@@ -37,12 +37,12 @@ charts:
       - name: absolute
         caption: percentage of students achieving at or above standard
     facets:
-      - year
+      - name: year
 
   - type: barchart
     title: national standards achievement[ in $feature$], in $area$,  for $year$
     transforms:
       - name: absolute-tree
         caption: percentage of students achieving at or above standard
-    facet:
-      - year
+    facets:
+      - name: year

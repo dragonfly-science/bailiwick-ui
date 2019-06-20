@@ -31,7 +31,7 @@ charts:
     transforms:
       - absolute
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: guest nights per capita over time
     transforms:
@@ -45,5 +45,5 @@ charts:
     title: guest nights per capita in $year$
     transforms:
       - absolute-tree
-    facet:
-      - year
+    facets:
+      - name: year

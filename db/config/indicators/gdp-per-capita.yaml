@@ -33,7 +33,7 @@ charts:
       - name: absolute
         caption: GDP per capita for the year to $yearEndMonth$ $year$
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: Change in GDP per capita, for the year to $yearEndMonth$
     transforms:
@@ -51,5 +51,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: GDP per capita
-    facet:
-      - year
+    facets:
+      - name: year

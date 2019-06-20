@@ -31,7 +31,7 @@ charts:
       - name: rate
         caption: Percentage change in underutilisation number between $prevYear$ and $year$
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: underutilisation number, by year
     transforms:
@@ -48,5 +48,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: underutilisation number
-    facet:
-      - year
+    facets:
+      - name: year

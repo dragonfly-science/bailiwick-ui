@@ -33,7 +33,7 @@ charts:
       - name: absolute
         caption: percentage of the working-age population
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: labour force participation, by year
     transforms:
@@ -49,5 +49,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: percentage of the working-age population
-    facet:
-      - year
+    facets:
+      - name: year

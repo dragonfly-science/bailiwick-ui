@@ -31,7 +31,7 @@ charts:
       - name: rate
         caption: percentage change
     facets:
-      - year
+      - name: year
 
   - type: timeseries
     title: >
@@ -53,5 +53,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: number of car registrations
-    facet:
-      - year
+    facets:
+      - name: year

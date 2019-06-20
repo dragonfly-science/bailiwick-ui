@@ -40,7 +40,7 @@ charts:
         caption: percentage of GDP
         formatter: percentage
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: GDP from $feature$, by year
     transforms:
@@ -57,5 +57,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: GDP, millions of dollars
-    facet:
-      - year
+    facets:
+      - name: year

@@ -33,7 +33,7 @@ charts:
       - name: absolute
         caption: percentage of youth aged 15 to 24 years
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: youth not in employment, education or training, by year
     transforms:
@@ -49,5 +49,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: percentage of youth aged 15 to 24 years
-    facet:
-      - year
+    facets:
+      - name: year

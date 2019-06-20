@@ -35,7 +35,7 @@ charts:
       - name: rate
         caption: Percentage change in population       
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: projected population, by year
     transforms:
@@ -51,5 +51,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: resident population
-    facet:
-      - year
+    facets:
+      - name: year

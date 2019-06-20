@@ -39,7 +39,7 @@ charts:
       - name: regionalPercentage
         caption: Percentage of school leavers identifying as $feature$
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: school leavers identifying as $feature$ in $area$, by year
     transforms:
@@ -57,6 +57,6 @@ charts:
         caption: school leavers in $area$
       - name: percentage-tree
         caption: Percentage of school leavers in $area$
-    facet:
-      - year
+    facets:
+      - name: year
 

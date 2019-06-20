@@ -33,7 +33,7 @@ charts:
     transforms:
       - absolute
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: percentage of the population of ethnicity $feature$ over time
     transforms:
@@ -47,5 +47,5 @@ charts:
     title: percentage of different ethnicities in $area$ in $year$
     transforms:
       - absolute-tree
-    facet:
-      - year
+    facets:
+      - name: year

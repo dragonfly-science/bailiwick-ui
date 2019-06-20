@@ -43,7 +43,7 @@ charts:
       - name: regionalPercentage
         caption: Percentage of businesses
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: businesses with $feature$ employees, by year
     transforms:
@@ -60,8 +60,8 @@ charts:
     transforms:
       - name: absolute-tree
         caption: Number of businesses
-    facet:
-      - year
+    facets:
+      - name: year
     axis:
       - "0"
       - 1-to-5

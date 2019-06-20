@@ -31,7 +31,7 @@ charts:
       - name: rate
         caption: Percentage change in unemployment number between $prevYear$ and $year$
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: unemployment number, by year
     transforms:
@@ -48,5 +48,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: unemployment number
-    facet:
-      - year
+    facets:
+      - name: year

@@ -48,7 +48,7 @@ charts:
       - name: regionalPercentage
         caption: percentage of school leavers with $feature$
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: school leavers with $feature$ in $area$, by year
     transforms:
@@ -79,6 +79,6 @@ charts:
         dimensions:
           - ncea-level-3
           - below-ncea-level-3
-    facet:
-      - year
+    facets:
+      - name: year
 

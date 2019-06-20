@@ -32,7 +32,7 @@ charts:
       - name: absolute
         caption: percentage share of GDP
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: agricultural share of GDP, by year
     transforms:
@@ -49,6 +49,6 @@ charts:
     transforms:
       - name: absolute-tree
         caption: percentage share of GDP
-    facet:
-      - year
+    facets:
+      - name: year
 

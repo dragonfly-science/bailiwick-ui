@@ -31,7 +31,7 @@ charts:
       - name: rate
         caption: Percentage change in population between $prevYear$ and $year$
     facets:
-      - year
+      - name: year
 
   - type: timeseries
     title: >
@@ -50,5 +50,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: estimated resident population
-    facet:
-      - year
+    facets:
+      - name: year

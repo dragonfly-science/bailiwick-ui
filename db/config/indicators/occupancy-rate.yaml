@@ -32,7 +32,7 @@ charts:
       - name: absolute
         caption: percentage occupancy
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: accommodation occupancy rate, by year
     transforms:
@@ -49,5 +49,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: percentage occupancy
-    facet:
-      - year
+    facets:
+      - name: year

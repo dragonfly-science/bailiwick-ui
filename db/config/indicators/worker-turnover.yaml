@@ -39,7 +39,7 @@ charts:
       - name: absolute
         caption: annual-average quarterly turnover rate
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: worker turnover[ in $feature$], by year
     transforms:
@@ -55,5 +55,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: annual-average quarterly turnover rate
-    facet:
-      - year
+    facets:
+      - name: year

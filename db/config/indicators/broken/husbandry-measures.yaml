@@ -28,7 +28,7 @@ charts:
     transforms:
       - rate
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: t
     transforms:
@@ -43,5 +43,5 @@ charts:
     title: t
     transforms:
       - absolute-tree
-    facet:
-      - year
+    facets:
+      - name: year
