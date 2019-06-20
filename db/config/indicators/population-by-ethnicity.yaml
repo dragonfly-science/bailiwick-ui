@@ -40,7 +40,7 @@ charts:
       - name: absolute
         caption: Percentage of people 
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: people identifying as $feature$ ethnicity, by year
     transforms:
@@ -56,5 +56,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: Percentage of people
-    facet:
-      - year
+    facets:
+      - name: year

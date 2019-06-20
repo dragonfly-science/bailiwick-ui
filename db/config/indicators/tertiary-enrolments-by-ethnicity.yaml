@@ -40,7 +40,7 @@ charts:
       - name: regionalPercentage
         caption: percentage of all tertiary enrolments identifying as $feature$
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: tertiary enrolments identifying as $feature$, by year
     transforms:
@@ -60,8 +60,8 @@ charts:
         caption: tertiary enrolments
       - name: percentage-tree
         caption: percentage of tertiary enrolments
-    facet:
-      - year
+    facets:
+      - name: year
 
 
 

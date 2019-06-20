@@ -35,7 +35,7 @@ charts:
     transforms:
       - absolute
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: NCEA level 2 attainment rate [for $feature$] over time
     transforms:
@@ -49,5 +49,5 @@ charts:
     title: NCEA level 2 attainment rate [for $feature$] in $year$
     transforms:
       - absolute-tree
-    facet:
-      - year
+    facets:
+      - name: year

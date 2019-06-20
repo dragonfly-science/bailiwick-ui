@@ -33,7 +33,7 @@ charts:
     transforms:
       - absolute
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: youth not in employment, education, or training over time
     transforms:
@@ -47,5 +47,5 @@ charts:
     title: youth not in employment, education, or training in $year$
     transforms:
       - absolute-tree
-    facet:
-      - year
+    facets:
+      - name: year

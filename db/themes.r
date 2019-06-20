@@ -89,6 +89,7 @@ indicators <-
                                            indicator$headlineNumCaption)       # :: Text
 
       , "years"                = years                                         # :: [Int]
+      , "charts"               = indicator$charts
       ))
   })
 names(indicators) <- sapply(indicators, function(ind) ind$name)

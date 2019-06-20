@@ -33,7 +33,7 @@ charts:
       - name: absolute
         caption: mean house value
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: house value, by year
     transforms:

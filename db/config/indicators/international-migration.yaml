@@ -36,7 +36,7 @@ charts:
       - name: percapita
         caption: Net migration per 10,000 residents
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: net international migration, by year
     transforms:
@@ -53,5 +53,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: Net number of international migrants
-    facet:
-      - year
+    facets:
+      - name: year

@@ -34,7 +34,7 @@ charts:
       - name: absolute
         caption: Crime victimisation per 10,000 population
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: change in crime victimisation [of $feature$] per 10,000 population
     transforms:
@@ -52,5 +52,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: Crime victimisation per 10,000 population
-    facet:
-      - year
+    facets:
+      - name: year

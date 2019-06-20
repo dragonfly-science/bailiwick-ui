@@ -40,7 +40,7 @@ charts:
       - name: regionalPercentage
         caption: percentage of provision by $feature$
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: tertiary provision[ by $feature$], by year
     transforms:
@@ -58,7 +58,7 @@ charts:
         caption: tertiary provision (EFTS and STMs)
       - name: percentage-tree
         caption: percentage of tertiary provision (EFTS and STMs)
-    facet:
-      - year
+    facets:
+      - name: year
 
 

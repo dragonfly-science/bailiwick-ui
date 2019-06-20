@@ -31,7 +31,7 @@ charts:
       - name: rate
         caption: Percentage change in working age population between $prevYear$ and $year$
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: working age population, by year
     transforms:
@@ -48,5 +48,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: working age population
-    facet:
-      - year
+    facets:
+      - name: year

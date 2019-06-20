@@ -33,11 +33,11 @@ charts:
     transforms:
       - absolute
     facets:
-      - year
+      - name: year
 
   - type: barchart
     title: percentage of $feature$ industry businesses in $year$
     transforms:
       - absolute-tree
-    facet:
-      - year
+    facets:
+      - name: year

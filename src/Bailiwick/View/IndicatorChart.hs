@@ -16,7 +16,7 @@ import Data.Text (Text)
 import Debug.Trace
 
 import qualified GHCJS.DOM.Element as DOM
-import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
+import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM, toJSValListOf)
 import Reflex.Dom.Core
 
 import Bailiwick.Javascript
@@ -126,12 +126,19 @@ indicatorChart IndicatorChartState{..} zoomD = do
         chartType <- _chartType
         indicator <- indicatorD
         featureId <- _featureId
-        return (indn, my, indID, indicator, areas, area, areatype, transform, chartType, join featureId)
+
+        let charts = case indicator of
+                Just a -> indicatorCharts a
+                Nothing -> []
+
+        let mapping = chartMapping <$> charts
+
+        return (indn, my, indID, indicator, trace ("mapping: " ++ show mapping) mapping, areas, area, areatype, transform, chartType, join featureId)
 
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
   updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId,
-                      Maybe Indicator, Maybe Areas, Maybe Area, Maybe Text,
+                      Maybe Indicator, [Maybe [ChartMapping]], Maybe Areas, Maybe Area, Maybe Text,
                       Maybe Text, Maybe ChartId, Maybe FeatureId)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
@@ -145,7 +152,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
         Nothing ->                           "updateIndicatorTimeSeries"
 
   performEvent_ $ ffor updateE $ \case
-    (indn, my, indID, indicator, areas, area, areatype, transform, chartType, featureId)
+    (indn, my, indID, indicator, mapping, areas, area, areatype, transform, chartType, featureId)
       -> liftJSM . void
           $ do
             let areaname = maybe "" areaName area
@@ -153,6 +160,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
             let features = case indicator of
                     Just a -> indicatorFeatures a
                     Nothing -> []
+            -- let chartMapping = fmap mappingLabel <$> mapping
             args <- makeJSObject
                      [ ("indictorId",  (unIndicatorId <$> indID))
                      , ("transform",   transform)

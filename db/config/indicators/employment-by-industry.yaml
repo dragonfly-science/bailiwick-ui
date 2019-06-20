@@ -39,7 +39,7 @@ charts:
       - name: regionalPercentage
         caption: percentage of employment that is in $feature$
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: employment in $feature$, by year
     transforms:
@@ -58,5 +58,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: number of people employed
-    facet:
-      - year
+    facets:
+      - name: year

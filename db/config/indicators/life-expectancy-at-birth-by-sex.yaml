@@ -36,7 +36,7 @@ charts:
       - name: absolute
         caption: Life Expectancy at Birth
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: change in life expectancy at birth [of $feature$]
     transforms:
@@ -54,8 +54,8 @@ charts:
     transforms:
       - name: absolute-tree
         caption: Life Expectancy at Birth
-    facet:
-      - year
+    facets:
+      - name: year
     axis:
       - females
       - males

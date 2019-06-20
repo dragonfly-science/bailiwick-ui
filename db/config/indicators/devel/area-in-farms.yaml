@@ -30,7 +30,7 @@ charts:
     transforms:
       - rate
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: area farmed over time
     transforms:
@@ -45,5 +45,5 @@ charts:
     title: area farmed in $year$
     transforms:
       - absolute-tree
-    facet:
-      - year
+    facets:
+      - name: year

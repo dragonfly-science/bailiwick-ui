@@ -29,7 +29,7 @@ charts:
     transforms:
       - absolute
     facets:
-      - year
+      - name: year
 
   - type: timeseries
     title: >
@@ -46,5 +46,5 @@ charts:
       household income in $year$ in different areas of New Zealand
     transforms:
       - absolute-tree
-    facet:
-      - year
+    facets:
+      - name: year

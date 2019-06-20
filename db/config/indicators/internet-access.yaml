@@ -33,7 +33,7 @@ charts:
         caption: percentage of households
         formatter: percentage
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: change in internet access
     transforms:
@@ -50,5 +50,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: percentage of households
-    facet:
-      - year
+    facets:
+      - name: year

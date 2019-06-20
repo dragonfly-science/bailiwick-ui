@@ -34,7 +34,7 @@ charts:
       - name: absolute
         caption: deprivation index
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: deprivation index, by year
     transforms:
@@ -51,5 +51,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: deprivation index
-    facet:
-      - year
+    facets:
+      - name: year

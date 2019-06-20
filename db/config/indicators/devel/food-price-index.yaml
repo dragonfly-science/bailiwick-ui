@@ -30,7 +30,7 @@ charts:
     transforms:
       - absolute
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: food price index over time
     transforms:
@@ -43,5 +43,5 @@ charts:
     title: food price index in $year$
     transforms:
       - absolute-tree
-    facet:
-      - year
+    facets:
+      - name: year

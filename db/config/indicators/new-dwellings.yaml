@@ -31,7 +31,7 @@ charts:
       - name: absolute
         caption: number of consents per 10,000 people
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: new dwelling consents, by year
     transforms:
@@ -47,5 +47,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: new dwelling consents per 10,000 people
-    facet:
-      - year
+    facets:
+      - name: year

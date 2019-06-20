@@ -34,7 +34,7 @@ charts:
       - name: absolute
         caption: mean weekly rent
     facets:
-      - year
+      - name: year
 
   - type: timeseries
     title: weekly rent, by year
@@ -54,6 +54,6 @@ charts:
     transforms:
       - name: absolute-tree
         caption: mean weekly rent
-    facet:
-      - year
+    facets:
+      - name: year
 

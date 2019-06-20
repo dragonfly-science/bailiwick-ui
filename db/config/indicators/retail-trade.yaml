@@ -36,7 +36,7 @@ charts:
       - name: rate
         caption: Percentage change in annual actual retail sales values between $prevYear$ and $year$
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: Change in annual actual retail sales values, for the year to $yearEndMonth$
     transforms:
@@ -54,5 +54,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: annual actual retail sales values
-    facet:
-      - year
+    facets:
+      - name: year

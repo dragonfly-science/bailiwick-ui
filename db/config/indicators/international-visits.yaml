@@ -38,7 +38,7 @@ charts:
         caption: percentage of visits that were from $feature$
         formatter: percentage
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: visits from $feature$, by year
     transforms:
@@ -57,5 +57,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: number of visits
-    facet:
-      - year
+    facets:
+      - name: year

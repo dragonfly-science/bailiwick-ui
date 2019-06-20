@@ -39,9 +39,9 @@ charts:
         caption: percentage of spend
         formatter: percentage
     facets:
-      - year
-      - feature
-      - detail
+      - name: year
+      - name: feature
+      - name: detail
 
   - type: treemap
     title: origin of spend {on $detail$} by visitors to $area$, for the year to $yearEndMonth$ $year$
@@ -49,9 +49,9 @@ charts:
       - name: absolute-tree
         caption: Millions of dollars
     facets:
-      - year
-      - area
-      - detail
+      - name: year
+      - name: area
+      - name: detail
 
   - type: timeseries
     title: spend {on $detail$} from $feature$, by year
@@ -63,8 +63,8 @@ charts:
       - name: percapita
         caption: spend, per 10,000 residents
     facets:
-      - feature
-      - detail
+      - name: feature
+      - name: detail
     order:
       - area
       - year
@@ -77,6 +77,6 @@ charts:
       - name: absolute-tree
         caption: spend, millions of dollars
     facets:
-      - year
-      - area
-      - detail
+      - name: year
+      - name: area
+      - name: detail

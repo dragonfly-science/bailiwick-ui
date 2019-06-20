@@ -34,7 +34,7 @@ charts:
         formatter: dollars
         caption: median annual household income
     facets:
-      - year
+      - name: year
 
   - type: timeseries
     title: >
@@ -58,6 +58,6 @@ charts:
       - name: absolute-tree
         caption: median annual household income
         formatter: dollars
-    facet:
-      - year
+    facets:
+      - name: year
 

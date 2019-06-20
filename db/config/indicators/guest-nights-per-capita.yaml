@@ -32,7 +32,7 @@ charts:
       - name: absolute
         caption: guest nights per capita
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: guest nights per capita, by year
     transforms:
@@ -48,5 +48,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: guest nights per capita
-    facet:
-      - year
+    facets:
+      - name: year

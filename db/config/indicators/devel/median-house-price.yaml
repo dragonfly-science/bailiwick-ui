@@ -35,7 +35,7 @@ charts:
       - name: absolute
         caption: median house price
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: house price, by year
     transforms:
@@ -53,5 +53,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: median house price
-    facet:
-      - year
+    facets:
+      - name: year

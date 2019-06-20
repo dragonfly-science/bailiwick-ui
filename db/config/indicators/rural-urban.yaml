@@ -33,7 +33,7 @@ charts:
       - name: difference
         caption: percentage change
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: $feature$ proportion of the population, by year
     transforms:
@@ -49,5 +49,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: Percentage of the population
-    facet:
-      - year
+    facets:
+      - name: year

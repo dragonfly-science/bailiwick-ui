@@ -34,7 +34,7 @@ charts:
       - name: rate
         caption: percentage change
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: new building consents [for $feature$] by year
     transforms:
@@ -53,5 +53,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption:  number of consents, per 10,000 residents
-    facet:
-      - year
+    facets:
+      - name: year

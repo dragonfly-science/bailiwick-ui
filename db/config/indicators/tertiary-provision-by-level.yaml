@@ -47,7 +47,7 @@ charts:
       - name: regionalPercentage
         caption: percentage of provision at $feature$
     facets:
-      - year
+      - name: year
 
   - type: timeseries
     title: tertiary provision[ at  $feature$], by year
@@ -75,6 +75,6 @@ charts:
       - level-5-6
       - level-7-8
       - level-9-10
-    facet:
-      - year
+    facets:
+      - name: year
 

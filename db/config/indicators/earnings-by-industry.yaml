@@ -39,7 +39,7 @@ charts:
       - name: absolute
         caption: Median annual earnings
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: change in earnings [in $feature$]
     transforms:
@@ -57,5 +57,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: Median annual earnings
-    facet:
-      - year
+    facets:
+      - name: year

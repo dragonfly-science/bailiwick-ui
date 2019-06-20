@@ -33,7 +33,7 @@ charts:
       - name: absolute
         caption: percentage of labour force
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: unemployment rate, by year
     transforms:
@@ -47,5 +47,5 @@ charts:
     transforms:
       - name: absolute-tree
         caption: percentage of labour force
-    facet:
-      - year
+    facets:
+      - name: year

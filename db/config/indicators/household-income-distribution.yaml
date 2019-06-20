@@ -54,7 +54,7 @@ charts:
         caption: Percentage of households
         formatter: percentage
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: Change in households with income in the range $feature$
     transforms:
@@ -71,8 +71,8 @@ charts:
     transforms:
       - name: absolute-tree
         caption: Percentage of households
-    facet:
-      - year
+    facets:
+      - name: year
     axis:
       - up-to-20000
       - 20001-30000

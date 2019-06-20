@@ -109,17 +109,28 @@ secNumOptions = defaultOptions
 instance FromJSON SecondaryNumber where
     parseJSON = genericParseJSON secNumOptions
 
+data Facet
+  = Facet
+  { facetName :: Text } deriving (Eq, Show, Generic)
+
+facetOptions :: Options
+facetOptions = defaultOptions
+      { fieldLabelModifier = map toLower . drop 5 }
+
+instance FromJSON Facet where
+  parseJSON = genericParseJSON facetOptions
+
 data Chart
   = Chart
   { chartType        :: Text
   , chartTitle       :: Text
-  , chartTransforms2 :: [Transform]
-  , chartTransforms  :: [Text]
-  , chartFacets      :: Maybe [Text]
+  , chartTransforms2 :: Maybe [Transform]
+  , chartTransforms  :: [Transform]
+  , chartFacets      :: Maybe [Facet]
   , chartOrder       :: Maybe [Text]
   , chartAxis        :: Maybe [Text]
   , chartMapping     :: Maybe [ChartMapping]
-  } deriving (Show, Eq, Generic)
+  } deriving (Eq, Show, Generic)
 
 chartOptions :: Options
 chartOptions = defaultOptions
@@ -143,8 +154,8 @@ instance FromJSON ChartMapping where
 
 data Transform =
   Transform
-  { transformName      :: Text
-  , transformCaption   :: Text
+  { transformName      :: Maybe Text
+  , transformCaption   :: Maybe Text
   , transformFormatter :: Maybe Text
   } deriving (Show, Eq, Generic)
 
@@ -214,7 +225,7 @@ data Indicator = Indicator
   , indicatorYears                  :: [Year]
 --  , indicatorBarchartLabelWidth     :: Maybe Int
 --  , indicatorCaptions               :: Maybe (Map Text Text)
---  , indicatorCharts                 :: [Chart]
+  , indicatorCharts                 :: [Chart]
 --  , indicatorDetailName             :: Maybe Text
 --  , indicatorDetails                :: [Text]
 --  , indicatorEnableAreaToggle       :: Bool

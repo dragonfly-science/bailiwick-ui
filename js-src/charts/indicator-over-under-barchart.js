@@ -20,9 +20,10 @@ var percentageCaption = ["Percentage achieved", "Percentage not acheived"];
 var absoluteCaption = ["Achieved", "Not acheived"];
 
 export default function(element, params) {
-    // console.log('Under Over', arguments);
+    console.log('Under Over', arguments);
     
     let setup = chartSetup(element, params, margin, 'overunder-barchart');
+    let nz = 'New Zealand';
 
     if (setup === null) {
         return;
@@ -60,7 +61,40 @@ export default function(element, params) {
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     // this.setdata();
-    console.log('data', data)
+    // console.log('data', data)
+
+    var areaData = _.filter(data, function(i) {
+        return i[0][1] === area || area === nz;
+    });
+
+    // console.log(areaData[0]);
+
+    areaData = _.reduce(areaData, function(res, v, k) {
+        let values = {
+            name: v[0][1],
+            slug: v[0][0],
+            display: '',
+            value: 0,
+            year: year,
+            feature: _.last(v[0])
+        }
+
+        let yearVal = _.filter(v[1], function(o) {
+            return o[0] === year;
+        });
+
+        if (!_.isEmpty(yearVal)) {
+            values.value = Number(yearVal[0][1]);
+            values.display = (yearVal[0][3]).trim();
+            res.push(values);
+        }
+
+        return res;
+    }, []);
+
+    areaData = _.groupBy(areaData, 'feature');
+
+    // console.log(data.length, areaData.length, )
 
     //
     // Set data.
@@ -115,6 +149,8 @@ export default function(element, params) {
     //       return d;
     //     });
     //   }
+
+
     //   var mappedData = mapping.map(function(m) {
     //     return {label: m.label, values: m.dimensions.map(function(d) {
     //       return plotdata.filter(function(l) {
@@ -123,6 +159,8 @@ export default function(element, params) {
     //     })
     //     };
     //   });
+
+
     //   this.set('plotdata', mappedData);
     //   this.set('_dataState', dataState);
 
@@ -135,156 +173,195 @@ export default function(element, params) {
     // var feature = this.getAttr('feature');
     // var featureSlug = present(feature) ? feature.get("id") : null;
     // var transform = this.getAttr('transform');
-    // if (none(plotdata)) {
-    //   return;
-    // }
 
-    // yAxis.tickSize(-width + 10, 0)
+    if (none(areaData)) {
+      return;
+    }
 
-    // x.domain(plotdata.map(function(d) {
-    //   return d.label;
-    // })).rangeRoundBands([0, width], 0.55, 0.3);
+    yAxis.tickSize(-width + 10, 0);
+
+    x.domain(_.reduce(areaData, function(res, v, k) {
+        res.push(v[0].feature);
+        return res;
+    }, [])).rangeRoundBands([0, width], 0.55, 0.3);
 
     // var over = Math.round(plotdata[0].values[0].value + plotdata[0].values[1].value),
-    //     under = d3.max(plotdata, function(d) {
-    //   return d.values[1].value;
+    let over = _.reduce(areaData, function(max, val, key) {
+        // console.log(key);
+        if (key.indexOf('above') !== -1) {
+            return Math.max(max, val[0].value);
+        }
+        return max;
+    }, 0);
+    let under = _.reduce(areaData, function(max, val, key) {
+        // console.log(key);
+        if (key.indexOf('below') !== -1) {
+            return Math.max(max, val[0].value);
+        }
+        return max;
+    }, 0);
+    // let under = d3.max(areaData, function(d) {
+    //     console.log(d);
+    //   return d[0].value;
     // });
 
-    // height = (over + under) / over * barHeight;
-    // svg.attr('height', height);
-    // y.domain([-1 * under, over])
-    //  .range([height, 0]);
+    
 
-    // var ySel = svg.selectAll("g.y.axis").data([plotdata]),
-    //     ySelEnter = ySel.enter().append("g")
-    //   .attr("class", "y axis");
-    // ySel
-    //   .call(yAxis);
-    // ySel.exit().remove();
+    height = (over + under) / over * barHeight;
+    // console.log(over, under, height);
+    svgEnter.attr('height', height);
+    y.domain([-1 * under, over])
+     .range([height, 0]);
 
-    // var yCaption = ySel.selectAll("text.caption")
-    //   .data(transform === "percentage" ? percentageCaption : absoluteCaption);
-    // var yCaptionEnter = yCaption.enter()
-    //   .append("text")
-    //   .attr("class", "caption")
-    //   .attr("y", -60)
-    //   .attr("transform", "rotate(270)");
+    var ySel = svgEnter.selectAll("g.y.axis").data([areaData]),
+        ySelEnter = ySel.enter().append("g").attr("class", "y axis");
+    ySel
+      .call(yAxis);
+    ySel.exit().remove();
 
-    // yCaption
-    //   .attr("x", function(d, i) {
-    //     return -1 * i * height;
-    //   })
-    //   .attr("text-anchor", function(d, i) {
-    //     return i ? "start" : "end";
-    //   })
-    //   .text(function(d) {
-    //     return d;
-    //   })
+    var yCaption = ySel.selectAll("text.caption")
+      .data(transform === "percentage" ? percentageCaption : absoluteCaption);
+    var yCaptionEnter = yCaption.enter()
+      .append("text")
+      .attr("class", "caption")
+      .attr("y", -60)
+      .attr("transform", "rotate(270)");
 
-    //   yCaption.exit().remove();
+    yCaption
+      .attr("x", function(d, i) {
+        return -1 * i * height;
+      })
+      .attr("text-anchor", function(d, i) {
+        return i ? "start" : "end";
+      })
+      .text(function(d) {
+        return d;
+      })
 
-    // var xSel = svg.selectAll("g.x.axis").data([plotdata]),
-    //     xSelEnter = xSel.enter().append("g")
-    //   .attr("class", "x axis");
-    // xSel
-    //   .call(xAxis);
-    // xSel.exit().remove();
+      yCaption.exit().remove();
 
-    // var overBar = svg.selectAll("rect.overbar")
-    //   .data(plotdata.map(function(d) {
-    //                     var o = d.values[0];
-    //                     o.label = d.label;
-    //                     return o;
-    //   }));
-    // var overBarEnter = overBar.enter().append("rect")
-    //   .attr("class", "overbar")
-    //   .on("click", function(d) {
-    //     _this.sendAction("featureAction", d.slug);
-    //   });
-    // overBar
-    //   .attr("y", function(d) {
-    //     return y(d.value);
-    //   })
-    //   .attr("height", function(d) {
-    //     return y(0) - y(d.value);
-    //   })
-    //   .attr("x", function(d) { return x(d.label); })
-    //   .attr("width", x.rangeBand())
-    //   .classed("active", function(d) {
-    //     return d.slug === featureSlug
-    //   });
-    // overBar.exit().remove();
+    var xSel = svgEnter.selectAll("g.x.axis").data([areaData]),
+        xSelEnter = xSel.enter().append("g")
+      .attr("class", "x axis");
+    xSel
+      .call(xAxis);
+    xSel.exit().remove();
 
-    // var underBar = svg.selectAll("rect.underbar")
-    //   .data(plotdata.map(function(d) {
-    //                     var o = d.values[1];
-    //                     o.label = d.label;
-    //                     return o;
-    //   }));
-    // var underBarEnter = underBar.enter().append("rect")
-    //   .attr("class", "underbar")
-    //   .on("click", function(d) {
-    //     _this.sendAction("featureAction", d.slug);
-    //   });
-    // underBar
-    //   .attr("y", function(d) {
-    //     return y(0);
-    //   })
-    //   .attr("height", function(d) {
-    //     return y(-1 * d.value) - y(0);
-    //   })
-    //   .attr("x", function(d) { return x(d.label); })
-    //   .attr("width", x.rangeBand())
-    //   .classed("active", function(d) {
-    //     return d.slug === featureSlug
-    //   });
-    // underBar.exit().remove();
+    // console.log(areaData)
 
-    // if (!Modernizr.touch) {
-    // var tooltipElem = d3.select(this.get('element')).select(".tooltip");
-    //   svg.selectAll("rect")
-    //     .on("mouseover", function(d) {
-    //       var tooltip = tooltipElem.selectAll('p')
-    //         .data([d.name, d.dispValue]),
-    //       tooltipEnter = tooltip.enter().append('p');
+    var overData = _.reduce(areaData, function(arr, val, key) {
+        // console.log(key);
+        if (key.indexOf('above') !== -1) {
+            // console.log(val, key)
+            // return Math.max(max, val[0].value);
+            arr.push({
+                value: val[0].value,
+                label: val[0].feature
+            });
+        }
+        return arr;
+    }, []);
 
-    //       tooltip.text(function(d) {
-    //         if (present(d) && d.length >= 2) {
-    //           return d[0].toUpperCase() + d.slice(1);
-    //         }
-    //         return d;
-    //       }).classed("number", function(d, i) {
-    //         return i === 1;
-    //       }).classed("local", function(d, i) {
-    //         return i === 1;
-    //       });
+    var underData = _.reduce(areaData, function(arr, val, key) {
+        // console.log(key);
+        if (key.indexOf('below') !== -1) {
+            // console.log(val, key)
+            // return Math.max(max, val[0].value);
+            arr.push({
+                value: val[0].value,
+                label: val[0].feature
+            });
+        }
+        return arr;
+    }, []);
 
-    //       tooltipElem.style("visibility", "visible")
-    //         .style("top", function() {
-    //           return (d3.event.offsetY) + "px";
-    //         })
-    //       .style("left", function() {
-    //         return (d3.event.offsetX) + "px";
-    //       });
+    var overBar = svgEnter.selectAll("rect.overbar")
+                    .data(overData);
+    var overBarEnter = overBar.enter().append("rect")
+      .attr("class", "overbar")
+      .on("click", function(d) {
+        // _this.sendAction("featureAction", d.slug);
+      });
+    overBar
+      .attr("y", function(d) {
+        return y(d.value);
+      })
+      .attr("height", function(d) {
+        return y(0) - y(d.value);
+      })
+      .attr("x", function(d) { return x(d.label); })
+      .attr("width", x.rangeBand())
+      .classed("active", function(d) {
+        return d.label === feature
+      });
+    overBar.exit().remove();
 
-    //     }).on("mouseout", function(d) {
-    //       tooltipElem.style("visibility", "hidden");
-    //     });
+    var underBar = svgEnter.selectAll("rect.underbar")
+      .data(underData);
+    var underBarEnter = underBar.enter().append("rect")
+      .attr("class", "underbar")
+      .on("click", function(d) {
+        // _this.sendAction("featureAction", d.slug);
+      });
+    underBar
+      .attr("y", function(d) {
+        return y(0);
+      })
+      .attr("height", function(d) {
+        return y(-1 * d.value) - y(0);
+      })
+      .attr("x", function(d) { return x(d.label); })
+      .attr("width", x.rangeBand())
+      .classed("active", function(d) {
+        return d.label === feature
+      });
+    underBar.exit().remove();
 
-    // }
+    if (!Modernizr.touch) {
+    var tooltipElem = d3.select(element).select(".tooltip");
+      svgEnter.selectAll("rect")
+        .on("mouseover", function(d) {
+        //   var tooltip = tooltipElem.selectAll('p')
+        //     .data([d.name, d.dispValue]),
+        //   tooltipEnter = tooltip.enter().append('p');
 
-    // var zline = d3.svg.line()
-    //   .x(function(d) { 
-    //     return d;
-    //   })
-    //   .y(function(d) {
-    //     return y(0);
-    //   });
-    // var zeroLine = svg.selectAll("path.zeroline").data([[0, width]]);
-    // var zeroLineEnter = zeroLine.enter().append('path')
-    //   .attr("class", "zeroline");
-    // zeroLine.attr("d", zline);
-    // zeroLine.exit().remove();
+        //   tooltip.text(function(d) {
+        //     if (present(d) && d.length >= 2) {
+        //       return d[0].toUpperCase() + d.slice(1);
+        //     }
+        //     return d;
+        //   }).classed("number", function(d, i) {
+        //     return i === 1;
+        //   }).classed("local", function(d, i) {
+        //     return i === 1;
+        //   });
+
+        //   tooltipElem.style("visibility", "visible")
+        //     .style("top", function() {
+        //       return (d3.event.offsetY) + "px";
+        //     })
+        //   .style("left", function() {
+        //     return (d3.event.offsetX) + "px";
+        //   });
+
+        }).on("mouseout", function(d) {
+          tooltipElem.style("visibility", "hidden");
+        });
+
+    }
+
+    var zline = d3.svg.line()
+      .x(function(d) { 
+        return d;
+      })
+      .y(function(d) {
+        return y(0);
+      });
+    var zeroLine = svgEnter.selectAll("path.zeroline").data([[0, width]]);
+    var zeroLineEnter = zeroLine.enter().append('path')
+      .attr("class", "zeroline");
+    zeroLine.attr("d", zline);
+    zeroLine.exit().remove();
 
     base.classed('svg-loading', false);
 

@@ -50,7 +50,7 @@ charts:
       - name: absolute
         caption: Median Annual Income
     facets:
-      - year
+      - name: year
   - type: timeseries
     title: change in median annual income [of people in $feature$]
     transforms:
@@ -68,8 +68,8 @@ charts:
     transforms:
       - name: absolute-tree
         caption: Median Annual Income
-    facet:
-      - year
+    facets:
+      - name: year
     axis:
       - 15-19-age-group
       - 20-24-age-group
