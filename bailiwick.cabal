@@ -86,6 +86,7 @@ executable bailiwick
                      , filepath
                      , ghcjs-dom
                      , http-types
+                     , jsaddle
                      , jsaddle-warp
                      , mtl
                      , reflex-dom-core
