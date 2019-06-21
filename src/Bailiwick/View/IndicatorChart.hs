@@ -127,18 +127,12 @@ indicatorChart IndicatorChartState{..} zoomD = do
         indicator <- indicatorD
         featureId <- _featureId
 
-        let charts = case indicator of
-                Just a -> indicatorCharts a
-                Nothing -> []
-
-        let mapping = chartMapping <$> charts
-
-        return (indn, my, indID, indicator, trace ("mapping: " ++ show mapping) mapping, areas, area, areatype, transform, chartType, join featureId)
+        return (indn, my, indID, indicator, areas, area, areatype, transform, chartType, join featureId)
 
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
   updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId,
-                      Maybe Indicator, [Maybe [ChartMapping]], Maybe Areas, Maybe Area, Maybe Text,
+                      Maybe Indicator, Maybe Areas, Maybe Area, Maybe Text,
                       Maybe Text, Maybe ChartId, Maybe FeatureId)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
@@ -152,7 +146,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
         Nothing ->                           "updateIndicatorTimeSeries"
 
   performEvent_ $ ffor updateE $ \case
-    (indn, my, indID, indicator, mapping, areas, area, areatype, transform, chartType, featureId)
+    (indn, my, indID, indicator, areas, area, areatype, transform, chartType, featureId)
       -> liftJSM . void
           $ do
             let areaname = maybe "" areaName area
@@ -160,7 +154,11 @@ indicatorChart IndicatorChartState{..} zoomD = do
             let features = case indicator of
                     Just a -> indicatorFeatures a
                     Nothing -> []
-            -- let chartMapping = fmap mappingLabel <$> mapping
+            let chart = do
+                    Indicator{..} <- indicator
+                    charts <- indicatorCharts
+                    chartid <- chartType
+                    OMap.lookup chartid charts
             args <- makeJSObject
                      [ ("indictorId",  (unIndicatorId <$> indID))
                      , ("transform",   transform)
@@ -170,7 +168,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
                      , ("featureId",   (featureIdText <$> featureId))
                      ]
             jsg2 ((getJSChartType chartType) :: Text) (_element_raw e)
-                 (shapeData areas indn, my, args, features)
+                 (shapeData areas indn, my, args, features, chart)
 
   clickE :: Event t (Maybe Message)
     <- clickEvents e $ \svg -> do
