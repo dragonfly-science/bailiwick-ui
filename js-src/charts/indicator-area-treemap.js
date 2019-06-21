@@ -32,6 +32,8 @@ function wordwrap(d, i) {
 export default function(element, params) {
     let colours = getColours();
 
+    console.log('treemap', params);
+
     var startColour = colours['background-rear-positive-light'],
         endColour = colours['background-rear-positive'];
 
