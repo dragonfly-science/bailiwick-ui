@@ -64,7 +64,9 @@ library
                      , unordered-containers
                      , uri-bytestring
                      , vector
-  if !impl( ghcjs )
+  if impl( ghcjs )
+      build-depends:   ghcjs-base
+  else
       build-depends:   wai
                      , wai-app-static
                      , wai-extra
@@ -86,7 +88,6 @@ executable bailiwick
                      , filepath
                      , ghcjs-dom
                      , http-types
-                     , jsaddle
                      , jsaddle-warp
                      , mtl
                      , reflex-dom-core
