@@ -12,6 +12,7 @@ let
         --compilation_level ADVANCED_OPTIMIZATIONS \
         --jscomp_off=checkVars \
         --externs=${ghcjs.bailiwick}/bin/bailiwick.jsexe/all.js.externs \
+        --externs=${./js-src}/externs/d3.ext.js \
         ${ghcjs.bailiwick}/bin/bailiwick.jsexe/all.js   > $out/static/min.js
   '';
 in bailiwick-static
