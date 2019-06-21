@@ -64,9 +64,7 @@ library
                      , unordered-containers
                      , uri-bytestring
                      , vector
-  if impl( ghcjs )
-      build-depends:   ghcjs-base
-  else
+  if !impl( ghcjs )
       build-depends:   wai
                      , wai-app-static
                      , wai-extra
