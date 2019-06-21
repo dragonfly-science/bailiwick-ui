@@ -19,7 +19,7 @@ import qualified Data.HashMap.Strict.InsOrd as OMap
 import qualified Data.Vector as V
 
 import Language.Javascript.JSaddle.Value
-import GHCJS.Marshal ()
+import GHCJS.DOM.Types ()
 
 import GHC.Generics
 
