@@ -48,7 +48,7 @@ export default function(element, params, margin, chartType) {
     var area = params[2].areaname;
     var areaLevel = params[2].areatype;
     var feature = params[2].featureId;
-
+    var chartData = params[4];
     var cache = window.MBIECacheStorage;
 
     /// Cached data    
@@ -64,6 +64,7 @@ export default function(element, params, margin, chartType) {
         area: area,
         areaLevel: areaLevel,
         feature: feature,
+        chartData: chartData,
         svg: svg,
         base: base,
         width: width,

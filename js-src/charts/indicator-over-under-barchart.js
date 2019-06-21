@@ -38,6 +38,7 @@ export default function(element, params) {
         area = setup.area, 
         areaLevel = setup.areaLevel,
         feature = setup.feature,
+        chartData = setup.chartData,
         svg = setup.svg,
         base = setup.base,
         width = setup.width, 
@@ -92,7 +93,7 @@ export default function(element, params) {
         return res;
     }, []);
 
-    areaData = _.groupBy(areaData, 'feature');
+    // areaData = _.groupBy(areaData, 'feature');
 
     // console.log(data.length, areaData.length, )
 
@@ -150,6 +151,37 @@ export default function(element, params) {
     //     });
     //   }
 
+    // console.log(areaData);
+
+    var mappedData = _.reduce(chartData.chartMapping, function(res, v, k) {
+        console.log(v);
+        // console.log(v, k);
+        let vals = _.map(v.mappingDimensions, function(d) {
+            return {
+                label: d,
+                values: _.filter(areaData, function(a) {
+                    return a.feature === d;
+                })
+            }
+        });
+
+        // console.log(v, vals);
+
+        let obj = {
+            label: v.mappingLabel,
+            values: vals
+        };
+
+        res.push(obj);
+        return res;
+    }, []);
+    // console.log(mappedData);
+
+    areaData = mappedData;
+    // return;
+
+    // var mapping = 
+
 
     //   var mappedData = mapping.map(function(m) {
     //     return {label: m.label, values: m.dimensions.map(function(d) {
@@ -181,25 +213,64 @@ export default function(element, params) {
     yAxis.tickSize(-width + 10, 0);
 
     x.domain(_.reduce(areaData, function(res, v, k) {
-        res.push(v[0].feature);
+        res.push(v.label);
         return res;
     }, [])).rangeRoundBands([0, width], 0.55, 0.3);
 
+    // return;
+
     // var over = Math.round(plotdata[0].values[0].value + plotdata[0].values[1].value),
+
+    // TODO: this is far too complex... CC = 9 currently.
     let over = _.reduce(areaData, function(max, val, key) {
-        // console.log(key);
-        if (key.indexOf('above') !== -1) {
-            return Math.max(max, val[0].value);
-        }
-        return max;
+        let maxVals = _.reduce(val.values, function(mm, vv, kk) {
+            let results = _.reduce(vv.values, function(res, v, k) {
+                if (v.feature.indexOf('above') !== -1) {
+                    res.push(v.value);
+                }
+
+                return res;
+            }, []);
+
+            if (!_.isEmpty(results)) {
+                return Math.max(mm, _.max(results));
+            }
+
+            return mm;
+        }, 0);
+
+        return Math.max(max, maxVals);
     }, 0);
+
     let under = _.reduce(areaData, function(max, val, key) {
-        // console.log(key);
-        if (key.indexOf('below') !== -1) {
-            return Math.max(max, val[0].value);
-        }
-        return max;
+        let maxVals = _.reduce(val.values, function(mm, vv, kk) {
+            let results = _.reduce(vv.values, function(res, v, k) {
+                if (v.feature.indexOf('below') !== -1) {
+                    res.push(v.value);
+                }
+
+                return res;
+            }, []);
+
+            if (!_.isEmpty(results)) {
+                return Math.max(mm, _.max(results));
+            }
+
+            return mm;
+        }, 0);
+
+        return Math.max(max, maxVals);
     }, 0);
+
+
+    // return;
+    // let under = _.reduce(areaData, function(max, val, key) {
+    //     // console.log(key);
+    //     if (key.indexOf('below') !== -1) {
+    //         return Math.max(max, val[0].value);
+    //     }
+    //     return max;
+    // }, 0);
     // let under = d3.max(areaData, function(d) {
     //     console.log(d);
     //   return d[0].value;
@@ -236,7 +307,7 @@ export default function(element, params) {
       })
       .text(function(d) {
         return d;
-      })
+      });
 
       yCaption.exit().remove();
 
@@ -247,36 +318,103 @@ export default function(element, params) {
       .call(xAxis);
     xSel.exit().remove();
 
-    // console.log(areaData)
 
-    var overData = _.reduce(areaData, function(arr, val, key) {
-        // console.log(key);
-        if (key.indexOf('above') !== -1) {
-            // console.log(val, key)
-            // return Math.max(max, val[0].value);
-            arr.push({
-                value: val[0].value,
-                label: val[0].feature
-            });
+    // var overData = _.reduce(areaData, function(arr, val, key) {
+
+    //     console.log(val);
+    //     // console.log(key);
+    //     // if (key.indexOf('above') !== -1) {
+    //     //     // console.log(val, key)
+    //     //     // return Math.max(max, val[0].value);
+    //     //     arr.push({
+    //     //         value: val[0].value,
+    //     //         label: val[0].feature
+    //     //     });
+    //     // }
+    //     return arr;
+    // }, []);
+
+    let overData = _.reduce(areaData, function(arr, val, key) {
+        // console.log(val.values);
+        let maxVals = _.reduce(val.values, function(res, vv, kk) {
+            let results = _.reduce(vv.values, function(res, v, k) {
+                if (v.feature.indexOf('above') !== -1) {
+                    res.push({
+                        value: v.value,
+                        label: val.label,
+                        feature: v.feature
+                    });
+                }
+
+                return res;
+            }, []);
+
+            if (!_.isEmpty(results)) {
+                res.push(results);
+            }
+
+            return res;
+        }, []);
+
+        // console.log(maxVals);
+
+        if (!_.isEmpty(maxVals)) {
+            arr.push(maxVals);
         }
+
         return arr;
     }, []);
 
-    var underData = _.reduce(areaData, function(arr, val, key) {
-        // console.log(key);
-        if (key.indexOf('below') !== -1) {
-            // console.log(val, key)
-            // return Math.max(max, val[0].value);
-            arr.push({
-                value: val[0].value,
-                label: val[0].feature
-            });
+    console.log('over', overData);
+
+
+    // var underData = _.reduce(areaData, function(arr, val, key) {
+    //     // console.log(key);
+    //     if (key.indexOf('below') !== -1) {
+    //         // console.log(val, key)
+    //         // return Math.max(max, val[0].value);
+    //         arr.push({
+    //             value: val[0].value,
+    //             label: val[0].feature
+    //         });
+    //     }
+    //     return arr;
+    // }, []);
+    let underData = _.reduce(areaData, function(arr, val, key) {
+        // console.log(val.values);
+        let maxVals = _.reduce(val.values, function(res, vv, kk) {
+            let results = _.reduce(vv.values, function(res, v, k) {
+                if (v.feature.indexOf('below') !== -1) {
+                    res.push({
+                        value: v.value,
+                        label: val.label,
+                        feature: v.feature
+                    });
+                }
+
+                return res;
+            }, []);
+
+            if (!_.isEmpty(results)) {
+                res.push(results);
+            }
+
+            return res;
+        }, []);
+
+        // console.log(maxVals);
+
+        if (!_.isEmpty(maxVals)) {
+            arr.push(maxVals);
         }
+
         return arr;
     }, []);
 
     var overBar = svgEnter.selectAll("rect.overbar")
                     .data(overData);
+
+
     var overBarEnter = overBar.enter().append("rect")
       .attr("class", "overbar")
       .on("click", function(d) {
@@ -284,15 +422,15 @@ export default function(element, params) {
       });
     overBar
       .attr("y", function(d) {
-        return y(d.value);
+        return y(d[0][0].value);
       })
       .attr("height", function(d) {
-        return y(0) - y(d.value);
+        return y(0) - y(d[0][0].value);
       })
-      .attr("x", function(d) { return x(d.label); })
+      .attr("x", function(d) { return x(d[0][0].label); })
       .attr("width", x.rangeBand())
       .classed("active", function(d) {
-        return d.label === feature
+        return d[0][0].feature === feature
       });
     overBar.exit().remove();
 
@@ -308,12 +446,12 @@ export default function(element, params) {
         return y(0);
       })
       .attr("height", function(d) {
-        return y(-1 * d.value) - y(0);
+        return y(-1 * d[0][0].value) - y(0);
       })
-      .attr("x", function(d) { return x(d.label); })
+      .attr("x", function(d) { return x(d[0][0].label); })
       .attr("width", x.rangeBand())
       .classed("active", function(d) {
-        return d.label === feature
+        return d[0][0].feature === feature
       });
     underBar.exit().remove();
 

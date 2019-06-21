@@ -69,15 +69,15 @@ charts:
     mapping:
       - label: Level 1
         dimensions:
-          - ncea-level-1
+          - ncea-level-1-or-above
           - below-ncea-level-1
       - label: Level 2
         dimensions:
-          - ncea-level-2
+          - ncea-level-2-or-above
           - below-ncea-level-2
       - label: Level 3
         dimensions:
-          - ncea-level-3
+          - ncea-level-3-or-above
           - below-ncea-level-3
     facets:
       - name: year

@@ -217,19 +217,19 @@ exportMenu = do
                             divClass "share-copy" $
                                 text "Copy this link to clipboard"
                     -- EMBED MENU
-                    elAttr "div" ("class" =: "embed-output embed-preview export-detail" <> "style" =: "display:none;") $
+                    elAttr "div" ("class" =: "embed-output embed-preview export-detail" <> "style" =: "display:none;") $ return ()
                         -- TODO: this needs to resize I think on window resize
                         -- events.
-                        elAttr "iframe" (
-                            "src" =: "/theme/tourism-spend/map/treemap/2018/new-zealand/northland/?embed=dynamic&amp;left-zoom=1&amp;right-transform=absolute&amp;preview=600" <>
-                            "frameborder" =: "0" <>
-                            "scrolling" =: "no" <>
-                            "marginheight" =: "0" <>
-                            "marginwidth" =: "0" <>
-                            "width" =: "600" <>
-                            "id" =: "iFrameResizer1" <>
-                            "style" =: "overflow: hidden; height: 1671px; transform: translateX(106px) scale(0.239378); visibility: inherit;"
-                        ) $ return ()
+                        -- elAttr "iframe" (
+                        --     "src" =: "/?embed=dynamic&amp;left-zoom=1&amp;right-transform=absolute&amp;preview=600" <>
+                        --     "frameborder" =: "0" <>
+                        --     "scrolling" =: "no" <>
+                        --     "marginheight" =: "0" <>
+                        --     "marginwidth" =: "0" <>
+                        --     "width" =: "600" <>
+                        --     "id" =: "iFrameResizer1" <>
+                        --     "style" =: "overflow: hidden; height: 1671px; transform: translateX(106px) scale(0.239378); visibility: inherit; display: none;"
+                        -- ) $ return ()
                     elAttr "div" ("class" =: "embed-controls export-controls" <> "style" =: "display:none;") $ do
                         el "div" $ do
                             divClass "embed-labels" $ text "Customise the view"
@@ -266,7 +266,7 @@ exportMenu = do
                                     "spellcheck" =: "false" <>
                                     "rows" =: "6" <>
                                     "class" =: "embed-snippet" 
-                                ) $ text "&lt;iframe src=\"http://webrear.mbie.govt.nz/theme/tourism-spend/map/treemap/2018/new-zealand/northland/?embed=dynamic&amp;left-zoom=1&amp;right-transform=absolute\" frameborder=\"0\" scrolling=\"no\" marginheight=\"0\" marginwidth=\"0\" width=\"600\" height=\"1671\"&gt;&lt;/iframe&gt;"
+                                ) $ text "&lt;iframe src=\"/?embed=dynamic&amp;left-zoom=1&amp;right-transform=absolute\" frameborder=\"0\" scrolling=\"no\" marginheight=\"0\" marginwidth=\"0\" width=\"600\" height=\"1671\"&gt;&lt;/iframe&gt;"
                             divClass "snippet-copy" $ text " &lt;/&gt; Copy html to clipboard"
                     -- DOWNLOAD MENU
                     elAttr "div" ("class" =: "extra-wrapper" <> "style" =: "display:none;") $ do
