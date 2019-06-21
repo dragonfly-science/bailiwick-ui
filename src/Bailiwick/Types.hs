@@ -19,6 +19,7 @@ import qualified Data.HashMap.Strict.InsOrd as OMap
 import qualified Data.Vector as V
 
 import Language.Javascript.JSaddle.Value
+import GHCJS.Marshal ()
 
 import GHC.Generics
 
@@ -117,6 +118,8 @@ facetOptions :: Options
 facetOptions = defaultOptions
       { fieldLabelModifier = map toLower . drop 5 }
 
+instance ToJSVal Facet
+
 instance FromJSON Facet where
   parseJSON = genericParseJSON facetOptions
 
@@ -136,6 +139,8 @@ chartOptions :: Options
 chartOptions = defaultOptions
     { fieldLabelModifier = map toLower . drop 5 }
 
+instance ToJSVal Chart
+
 instance FromJSON Chart where
     parseJSON = genericParseJSON chartOptions
 
@@ -149,6 +154,7 @@ mappingOptions :: Options
 mappingOptions = defaultOptions
     { fieldLabelModifier = map toLower . drop 7 }
 
+instance ToJSVal ChartMapping
 instance FromJSON ChartMapping where
     parseJSON = genericParseJSON mappingOptions
 
@@ -162,6 +168,8 @@ data Transform =
 transformOptions :: Options
 transformOptions = defaultOptions
     { fieldLabelModifier = map toLower . drop 9 }
+
+instance ToJSVal Transform
 
 instance FromJSON Transform where
     parseJSON = genericParseJSON transformOptions
@@ -193,7 +201,7 @@ newtype IndicatorId = IndicatorId { unIndicatorId :: Text }
    deriving (Eq, Ord, Show, Generic, Hashable,
              FromJSONKey, FromJSON, IsString, ToJSVal)
 newtype ChartId = ChartId { unChartId :: Text }
-    deriving (Eq, Ord, Show, Generic, ToJSVal, IsString)
+    deriving (Eq, Ord, Show, Generic, ToJSVal, Hashable, FromJSONKey, IsString)
 instance FromJSON ChartId where
    parseJSON v = ChartId <$> parseJSON v
 
@@ -225,7 +233,7 @@ data Indicator = Indicator
   , indicatorYears                  :: [Year]
 --  , indicatorBarchartLabelWidth     :: Maybe Int
 --  , indicatorCaptions               :: Maybe (Map Text Text)
-  , indicatorCharts                 :: [Chart]
+  , indicatorCharts                 :: Maybe (InsOrdHashMap ChartId Chart)
 --  , indicatorDetailName             :: Maybe Text
 --  , indicatorDetails                :: [Text]
 --  , indicatorEnableAreaToggle       :: Bool
@@ -254,7 +262,6 @@ data Indicator = Indicator
 --  , indicatorHeadlineNumCaption   :: Text
 --  , indicatorLocalNum             :: SecondaryNumber
 --  , indicatorNationalNum          :: SecondaryNumber
---  , indicatorCharts               :: [Chart]
 --  , indicatorPeriod               :: Maybe Int
 --  , indicatorPrimaryYear          :: Maybe Text
 --  , indicatorFeatureName          :: Maybe Text

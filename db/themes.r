@@ -57,6 +57,9 @@ indicators <-
     # Years
     years <- sort(unique(REARdb_Data[REARdb_Source[tolower(ValueName) %in% tolower(slices)], Year]))
 
+    # charts from list to map
+    names(indicator$charts) <- sapply(indicator$charts, function (c) c$type)
+
     return( list(
         "id"                   = slugify(indicator$name)                       # :: IndicatorId
       , "name"                 = indicator$name                                # :: Text
