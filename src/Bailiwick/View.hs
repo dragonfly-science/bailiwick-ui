@@ -230,7 +230,7 @@ exportMenu = do
 --                            "id" =: "iFrameResizer1" <>
 --                            "style" =: "overflow: hidden; height: 1671px; transform: translateX(106px) scale(0.239378); visibility: inherit;"
 --                        ) $ return ()
-                          return ()
+                          -- return ()
                     elAttr "div" ("class" =: "embed-controls export-controls" <> "style" =: "display:none;") $ do
                         el "div" $ do
                             divClass "embed-labels" $ text "Customise the view"
@@ -266,13 +266,8 @@ exportMenu = do
                                     "readonly" =: "" <>
                                     "spellcheck" =: "false" <>
                                     "rows" =: "6" <>
-<<<<<<< HEAD
-                                    "class" =: "embed-snippet" 
-                                ) $ text "&lt;iframe src=\"/?embed=dynamic&amp;left-zoom=1&amp;right-transform=absolute\" frameborder=\"0\" scrolling=\"no\" marginheight=\"0\" marginwidth=\"0\" width=\"600\" height=\"1671\"&gt;&lt;/iframe&gt;"
-=======
                                     "class" =: "embed-snippet"
                                 ) $ text "&lt;iframe src=\"http://webrear.mbie.govt.nz/theme/tourism-spend/map/treemap/2018/new-zealand/northland/?embed=dynamic&amp;left-zoom=1&amp;right-transform=absolute\" frameborder=\"0\" scrolling=\"no\" marginheight=\"0\" marginwidth=\"0\" width=\"600\" height=\"1671\"&gt;&lt;/iframe&gt;"
->>>>>>> 048cab3b15b2a76e4eb46877782b74fd7d0cf52c
                             divClass "snippet-copy" $ text " &lt;/&gt; Copy html to clipboard"
                     -- DOWNLOAD MENU
                     elAttr "div" ("class" =: "extra-wrapper" <> "style" =: "display:none;") $ do
