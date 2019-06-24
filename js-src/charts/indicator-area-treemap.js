@@ -7,10 +7,7 @@ import chartSetup from '../utils/chart-setup';
 import { isEmpty, getColours, none, present } from '../utils/utils';
 
 
-var margin = {top: 2, right: 2, bottom: 2, left: 2};
-var width, height, svg, treemap, legendElem, tooltipElem, labels;
-var first = true;
-
+const margin = {top: 2, right: 2, bottom: 2, left: 2};
 
 
 function wordwrap(d, i) {
@@ -31,8 +28,10 @@ function wordwrap(d, i) {
 
 export default function(element, params) {
     let colours = getColours();
+    let treemap, legendElem, tooltipElem, labels;
+    let first = true;
 
-    console.log('treemap', params);
+    // console.log('treemap', params);
 
     var startColour = colours['background-rear-positive-light'],
         endColour = colours['background-rear-positive'];
@@ -60,6 +59,7 @@ export default function(element, params) {
         area = setup.area, 
         areaLevel = setup.areaLevel,
         feature = setup.feature,
+        features = setup.features,
         svg = setup.svg,
         base = setup.base,
         width = setup.width, 
@@ -69,9 +69,15 @@ export default function(element, params) {
     tooltipElem = d3.select(element).select(".tooltip");
     treemap = d3.layout.treemap()
       .size([width, height])
-      .value(function(d) { return d.absolute; });
+      .value(function(d) {
+        return d[3]; 
+      });
 
-    svg.append("rect")
+    let g = svg.selectAll("g").data([1]);
+    let svgEnter = g.enter()
+      .append("g");
+
+    svgEnter.append("rect")
       .attr("width", width + 2)
       .attr("height", height + 2)
       .attr("x", -1)
@@ -93,18 +99,20 @@ export default function(element, params) {
     //     this.set("plotdata", dataTree.get('areas')[area]);
     //     this.set("dataId", {tree: dataTree.get('id'), area: area});
     //   }
+    
+    let areaData = _.filter(data, function (i) {
+      return i[0][1] === area;
+    });
 
     ///
     /// Draw Labels
     ///
-    var labels = ["International", "Domestic"];
+    labels = ["International", "Domestic"];
     var legendWidth = 300;
     var legendHeight = 80;
 
-    var legend = legendElem.selectAll("svg")
-      .data([labels]);
-    var legendEnter = legend.enter()
-      .append("svg");
+    var legend = legendElem.selectAll("svg").data([labels]);
+    var legendEnter = legend.enter().append("svg");
     legend.attr("width", legendWidth)
           .attr("height", legendHeight);
 
@@ -126,7 +134,7 @@ export default function(element, params) {
     legendRects.attr("x", function(d, i) {
       return i * 95;
     }).attr("fill", function(d) {
-      return color(d.toLowerCase());
+      return colour(d.toLowerCase());
     });
     var legendTexts = legendG.selectAll("text")
                              .data(function(d) { return d; })
@@ -158,11 +166,14 @@ export default function(element, params) {
     //   return;
     // }
 
-    // var cell = svg.data([data.features]).selectAll("g")
-    //   .data(treemap.nodes),
-    // cellEnter = cell.enter().append("g")
-    //   .attr("class", "cell"),
-    // cellTrans = cell;
+    var cell = svgEnter.data(features).selectAll("g")
+      .data(treemap.nodes),
+    cellEnter = cell.enter().append("g")
+      .attr("class", "cell"),
+    cellTrans = cell;
+
+    // labels = 
+    labels = cell.data()[0];
 
     // this.set("labels", cell.data()[0].children.map(function(d) {
     //   return d.name[0].toUpperCase() + d.name.substr(1);
@@ -173,17 +184,17 @@ export default function(element, params) {
     //     .duration(duration);
     // }
 
-    // cellTrans.attr("transform", function(d) {
-    //   return "translate(" + d.x + "," + d.y + ")";
-    // });
+    cellTrans.attr("transform", function(d) {
+      return "translate(0,0)";
+    });
 
-    // var rect = cell.selectAll('rect')
-    //   .data(function(d) { return [d];}),
-    // rectEnter = rect.enter()
-    //   .append("rect")
-    //   .on("click", function(d, i) {
-    //     _this.sendAction('featureAction', d.slug);
-    //   });
+    var rect = cell.selectAll('rect')
+      .data(function(d) { return [d];}),
+    rectEnter = rect.enter()
+      .append("rect")
+      .on("click", function(d, i) {
+        // _this.sendAction('featureAction', d.slug);
+      });
     // if (!Modernizr.touch) {
     //   rectEnter.on("mouseover", function(d, i) {
     //     var tooltip = tooltipElem.selectAll('p')
@@ -211,13 +222,14 @@ export default function(element, params) {
     //   });
     // }
 
-    // rect.style("fill", function(d) {
-    //   return d.children ? color(d.name) : null;
-    // }).attr("pointer-events", function(d) {
-    //   return d.children ? "none" : "all";
-    // }).classed("active", function(d) {
-    //   return d.name === featureName;
-    // });
+    rect.style("fill", function(d) {
+      return 'green';//d.children ? color(d.name) : null;
+    }).attr("pointer-events", function(d) {
+      return 'all';//d.children ? "none" : "all";
+    }).classed("active", function(d) {
+      return false;
+      // return d.name === featureName;
+    });
 
     // if (!first) {
     //   rect.transition()
@@ -231,7 +243,6 @@ export default function(element, params) {
     //     return [
     //       d
     //     ];
-
     //   }),
     // textEnter = text.enter()
     //   .append('text')

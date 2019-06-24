@@ -50,9 +50,6 @@ shapeData mareas (IndicatorNumbers inmap) =
             Areas areas <- mareas
             area <- OMap.lookup areaid areas
             return (areaParents area)
-    --   lookupFeature featureId
-    --     = do
-    --         return OMap.lookup featureId
 
       step (areaid, year, _mfeatureid) Numbers{..} res
          = do

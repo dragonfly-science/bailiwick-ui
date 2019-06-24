@@ -139,6 +139,11 @@ makeMapLegendState
   :: Reflex t
   => State t -> MapLegendState t
 makeMapLegendState State{..} =
+  -- TODO: we need to get the indicator numbers for the current route -
+  --  i.e. - areaId, year, maybe feature.
+  -- From there, we will need to sort indicator numbers & get the
+  -- min & max to pass to d3 to calculate the scale.
+  -- THIS MEANS REPLACING MapLengendState with 2 nums instead of a scale.
   let indicatorScaleD = do
         mindicator <- indicatorD
         indicatorsData <- storeIndicatorsDataD store
