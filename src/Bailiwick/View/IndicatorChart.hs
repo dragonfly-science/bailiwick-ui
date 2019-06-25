@@ -149,7 +149,8 @@ indicatorChart IndicatorChartState{..} zoomD = do
             let areaname = maybe "" areaName area
             let units = maybe Percentage indicatorUnits indicator
             let features = case indicator of
-                    Just a -> indicatorFeatures a
+                    Just a ->
+                        maybe [] OMap.toList (indicatorFeatureText a)
                     Nothing -> []
             let chart = do
                     Indicator{..} <- indicator

@@ -10,7 +10,6 @@ const absoluteCaption = ["Achieved", "Not acheived"];
 const nz = 'New Zealand';
 
 export default function(element, params) {
-    console.log('Under Over', arguments);
 
     let setup = chartSetup(element, params, margin, 'overunder-barchart');
 
@@ -27,6 +26,7 @@ export default function(element, params) {
         area = setup.area, 
         areaLevel = setup.areaLevel,
         feature = setup.feature,
+        features = setup.features,
         chartData = setup.chartData,
         svg = setup.svg,
         base = setup.base,
@@ -272,7 +272,7 @@ export default function(element, params) {
       svgEnter.selectAll("rect")
         .on("mouseover", function(d) {
           var tooltip = tooltipElem.selectAll('p')
-                          .data([d.feature, d.dispValue]),
+                          .data([features[d.feature], d.dispValue]),
               tooltipEnter = tooltip.enter().append('p');
 
           tooltip.text(function(d) {
