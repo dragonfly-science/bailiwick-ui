@@ -16,7 +16,7 @@ import Data.Text (Text)
 import Debug.Trace
 
 import qualified GHCJS.DOM.Element as DOM
-import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM, toJSValListOf)
+import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
 import Reflex.Dom.Core
 
 import Bailiwick.Javascript
@@ -78,38 +78,52 @@ indicatorChart
   -> Dynamic t Bool
   -> m (Event t Message)
 indicatorChart IndicatorChartState{..} zoomD = do
+  let pageD = getThemePage <$> routeD
+      _chartType = fmap themePageRightChart <$> pageD
+
+--   let chartType = do
+--         c <- _chartType
+--         case c of
+--             Just a -> a
+--             Nothing -> ()
+
   (e, _) <- divClass "chart-wrapper" $ do
     elAttr' "div" ("class" =: "chart-inner") $ do
-    --   _ <- divClass "zoom-controls map-zoom active" $ do
-    --     let inpAttrD switchD = ffor switchD $ \case
-    --             True  -> ("type" =: "checkbox" <> "class" =: "checked")
-    --             False -> ("type" =: "checkbox")
-    --     (eZoomIn, _) <- el "label" $ do
-    --         elAttr "input" (inpAttrD zoomD) $
-    --           return ()
-    --         elClass' "span" "zoom-in" $
-    --           return ()
-    --     (eZoomOut, _) <- el "label" $ do
-    --         elAttr "input" (inpAttrD (not <$> zoomD)) $
-    --           return ()
-    --         elClass' "span" "zoom-out" $
-    --           return ()
-    --     return $ leftmost [ tagPromptlyDyn
-    --                             (RightZoomOut . fmap areaId <$> areaD)
-    --                             (domEvent Click eZoomOut)
-    --                       , RightZoomIn <$ domEvent Click eZoomIn
-    --                       ]
-      divClass "d3-attach" $ return ()
-      divClass "tooltip" $ return ()
-      divClass "legend" $ return ()
+
+        -- case chartType of
+        --     Just a -> case trace ("chart type" ++ show a) a of
+        --         "timeseries" -> do
+        --             divClass "zoom-controls map-zoom active" $ do
+        --                 let inpAttrD switchD = ffor switchD $ \case
+        --                         True  -> ("type" =: "checkbox" <> "class" =: "checked")
+        --                         False -> ("type" =: "checkbox")
+        --                 (eZoomIn, _) <- 
+        --                     el "label" $ do
+        --                         elAttr "input" ("type" =: "checkbox") $ return ()
+        --                         elClass' "span" "zoom-in" $ return ()
+        --                 (eZoomOut, _) <- 
+        --                     el "label" $ do
+        --                         elAttr "input" ("type" =: "checkbox") $ return ()
+        --                         elClass' "span" "zoom-out" $ return ()
+                        
+        --                 return $ leftmost [ tagPromptlyDyn
+        --                                         (RightZoomOut . fmap areaId <$> areaD)
+        --                                         (domEvent Click eZoomOut)
+        --                                 , RightZoomIn <$ domEvent Click eZoomIn
+        --                                 ]
+        --         _ -> return never
+        --     Nothing -> return never
+       
+        divClass "d3-attach" $ return ()
+        divClass "tooltip" $ return ()
+        divClass "legend" $ return ()
+
   readyE <- getPostBuild
 
-  let pageD = getThemePage <$> routeD
-      _year = fmap themePageYear <$> pageD
+  let _year = fmap themePageYear <$> pageD
       _iId = fmap themePageIndicatorId <$> pageD
       _transform = fmap themePageLeftTransform <$> pageD
       _areaType = fmap themePageAreaType <$> pageD
-      _chartType = fmap themePageRightChart <$> pageD
       _featureId = fmap themePageFeatureId <$> pageD
 
       jsargs = do
@@ -123,14 +137,15 @@ indicatorChart IndicatorChartState{..} zoomD = do
         chartType <- _chartType
         indicator <- indicatorD
         featureId <- _featureId
+        zoom <- zoomD
 
-        return (indn, my, indID, indicator, areas, area, areatype, transform, chartType, join featureId)
+        return (indn, my, indID, indicator, areas, area, areatype, transform, chartType, join featureId, zoom)
 
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
   updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId,
                       Maybe Indicator, Maybe Areas, Maybe Area, Maybe Text,
-                      Maybe Text, Maybe ChartId, Maybe FeatureId)
+                      Maybe Text, Maybe ChartId, Maybe FeatureId, Bool)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
 
@@ -143,7 +158,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
         Nothing ->                           "updateIndicatorTimeSeries"
 
   performEvent_ $ ffor updateE $ \case
-    (indn, my, indID, indicator, areas, area, areatype, transform, chartType, featureId)
+    (indn, my, indID, indicator, areas, area, areatype, transform, chartType, featureId, zoomD)
       -> liftJSM . void
           $ do
             let areaname = maybe "" areaName area
@@ -157,6 +172,9 @@ indicatorChart IndicatorChartState{..} zoomD = do
                     charts <- indicatorCharts
                     chartid <- chartType
                     OMap.lookup chartid charts
+            let zoomed = case zoomD of
+                    True -> "true"
+                    False -> "false"
             args <- makeJSObject
                      [ ("indictorId",  (unIndicatorId <$> indID))
                      , ("transform",   transform)
@@ -164,6 +182,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
                      , ("areatype",    areatype)
                      , ("chartType",   (unChartId <$> chartType))
                      , ("featureId",   (featureIdText <$> featureId))
+                     , ("zoom",        Just zoomed)
                      ]
             jsg2 ((getJSChartType chartType) :: Text) (_element_raw e)
                  (shapeData areas indn, my, args, features, chart)
