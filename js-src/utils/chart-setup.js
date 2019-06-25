@@ -57,6 +57,16 @@ export default function(element, params, margin, chartType) {
         cache.put(indicator, {});
     }
 
+    if (!isEmpty(features)) {
+        var feats = {};
+
+        _.forEach(features, function(f, i) {
+            feats[f[0]] = f[1]; 
+        })
+        
+        features = feats;
+    }
+
     return {
         data: data,
         year: year,
