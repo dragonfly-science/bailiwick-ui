@@ -170,7 +170,7 @@ export default function(width, height, scaledata, steps = 100) {
         .attr("x", function (d) { return d[0] % innerWidth; })
         .attr("width", step)
         .style("fill", function (d, i) {
-            return positive(d[0]); 
+            return positive(d[0]);
         })
         .style("stroke", function (d) { return positive(d[0]); });
 
@@ -182,5 +182,5 @@ export default function(width, height, scaledata, steps = 100) {
         .attr("y", -6)
         .text("caption goes here");
 
-    return [positive, negative];
+    return positive;
 }

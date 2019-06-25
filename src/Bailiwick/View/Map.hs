@@ -59,9 +59,9 @@ import GHCJS.DOM.Window (matchMedia)
 import GHCJS.DOM.MediaQueryList (getMatches)
 import GHCJS.DOM.MediaQueryListListener (newMediaQueryListListenerAsync)
 
-import Language.Javascript.JSaddle.Types (MonadJSM)
+import Language.Javascript.JSaddle.Types (MonadJSM, JSM)
 import Language.Javascript.JSaddle
-       (call, eval, ToJSString, runJSM, askJSM, liftJSM)
+       (call, eval, ToJSString, runJSM, askJSM, liftJSM, valToText, global)
 import Reflex.Dom.Core
 import Reflex.Dom.Builder.Immediate (wrapDomEvent)
 
@@ -429,8 +429,9 @@ nzmap
        )
     => Bool
     -> MapState t
+    -> Event t ScaleFunction
     -> m (Event t Message)
-nzmap isSummary MapState{..} = mdo
+nzmap isSummary MapState{..} scaleFunctionE = mdo
   zoomD <- holdUniqDyn ( hasAdapter Mapzoom <$> routeD)
   let areaD = zipDynWith (<|>) subareaD regionD
 
@@ -489,13 +490,14 @@ nzmap isSummary MapState{..} = mdo
               <*> indicatorNumbersD
 
   svgBodyD <- holdDyn Nothing (Just <$> svgBodyE)
+  scaleFunctionD <- holdDyn Nothing (Just <$> scaleFunctionE)
 
   loadedSvg <- switchDynM $ ffor ((isSummary,) <$> svgBodyD) $ \case
     (_, Nothing)          -> return never
     (True, Just svgBody)  -> do
       updateMapSummary svgBody mapD
     (False, Just svgBody) -> do
-      updateMapIndicator svgBody mapD
+      updateMapIndicator svgBody mapD scaleFunctionD
 
 
   let tooltipArea
@@ -819,8 +821,11 @@ updateMapIndicator
      , IsElement self
      , MonadHold t m
      )
-  => self -> Dynamic t Map -> m (Event t ())
-updateMapIndicator svgBody mapD = do
+  => self
+  -> Dynamic t Map
+  -> Dynamic t (Maybe ScaleFunction)
+  -> m (Event t ())
+updateMapIndicator svgBody mapD scaleFunctionD = do
   let setAttr
          :: (MonadJSM m0)
          => Text -> Text -> Text -> m0 ()
@@ -846,9 +851,10 @@ updateMapIndicator svgBody mapD = do
            leftmost [ updated mapD
                     , tagPromptlyDyn mapD postBuild
                     ]
+  let mapWithScaleE = attachPromptlyDyn scaleFunctionD mapE
 
   -- Main update function
-  performEvent . ffor mapE $ \(old, new) -> do
+  performEvent . ffor mapWithScaleE $ \(mscale, (old, new)) -> do
 
     -- Update the transform, but only if it has changed
     when ((_zoomState <$> old) /= Just (_zoomState new)) $ do
@@ -864,7 +870,7 @@ updateMapIndicator svgBody mapD = do
         coversw = Text.pack $ show $ if _zoom new then sw * 2 else sw*3
 
         removetype suff cssclass = fromMaybe cssclass $ Text.stripSuffix suff cssclass
-        getColour areain = fromMaybe "#FFFFFF" $ do
+        getNum areain = do
             let area = removetype "-ta"
                      $ removetype "-region"
                      $ removetype "-ward"
@@ -872,7 +878,18 @@ updateMapIndicator svgBody mapD = do
             year <- _year new
             let IndicatorNumbers ismap = _numbers new
             nums <- OM.lookup (area, year, _feature new) ismap
-            return (colourNum nums)
+            return (rawNum nums)
+        getColour :: Text -> JSM Text
+        getColour areain = do
+            case getNum areain of
+              Nothing -> return "#FFFFFF"
+              Just num -> do
+                case mscale of
+                  Nothing -> return "#FFFFFF"
+                  Just (ScaleFunction scale) -> do
+                    colVal <- call scale global num
+                    valToText colVal
+
 
         selectReg (_,t) = t == "region"
         unitary = ["auckland", "nelson", "gisborne", "marlborough", "tasman"]
@@ -895,8 +912,8 @@ updateMapIndicator svgBody mapD = do
                   (_areaType  <$> old) /= Just (_areaType new)
     when (changed) $ do
       forM_ areas $ \(area, areatype) -> do
-        let colour = getColour area
-            sel = "g." <> area <> "-" <>  areatype
+        let sel = "g." <> area <> "-" <>  areatype
+        colour <- liftJSM $ getColour area
         when (areatype  == "region") $ do
             setAttr (sel <> ".inbound[same_reg=TRUE] > polyline") "stroke" colour
             setAttr (sel <> ".inbound[same_reg=TRUE]") "show" "FALSE"
@@ -920,8 +937,8 @@ updateMapIndicator svgBody mapD = do
 
     when (changed && (_areaType new == Just "ward")) $ do
       forM_ nonaucklandtas $ \(ta, _) -> do
-        let tacolour = getColour ta
-            tasel = "g." <> ta <> "-" <> "ta"
+        let tasel = "g." <> ta <> "-" <> "ta"
+        tacolour <- liftJSM $ getColour ta
         setAttr (tasel <> ".inbound[same_ta=TRUE] > polyline") "stroke" tacolour
         setAttr (tasel <> ".inbound[same_ta=TRUE]") "show" "FALSE"
         setAttr (tasel <> ".inbound[same_ta=FALSE] > polyline") "stroke" ol
@@ -934,8 +951,8 @@ updateMapIndicator svgBody mapD = do
               newarea = selector new
           when (oldarea /= newarea) $ do
             forM_ oldarea $ \cssClass -> do
-              let colour = getColour cssClass
-                  sel = "g." <> cssClass
+              let sel = "g." <> cssClass
+              colour <- liftJSM $ getColour cssClass
               setAttr (sel <> " > path") "fill" colour
               when (Text.isSuffixOf "-ta" cssClass) $ do
                   setAttr (sel <> "[same_ta=TRUE] > polyline") "stroke" colour

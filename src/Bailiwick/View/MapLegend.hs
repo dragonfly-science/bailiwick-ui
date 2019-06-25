@@ -9,13 +9,11 @@ module Bailiwick.View.MapLegend
   )
 where
 
-import Control.Monad (void)
-
 import Data.Text (Text)
 
 import Reflex
 import Reflex.Dom.Core
-import Language.Javascript.JSaddle (jsg3, MonadJSM, liftJSM)
+import Language.Javascript.JSaddle (jsg3, MonadJSM, liftJSM, valToObject)
 
 import Bailiwick.Types
 
@@ -35,15 +33,16 @@ mapLegend
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
   => MapLegendState t
-  -> m ()
+  -> m (Event t ScaleFunction)
 mapLegend MapLegendState{..} = do
   readyE <- getPostBuild
   let initialUpdate = tagPromptlyDyn inputValuesD readyE
       width  = 481 :: Int
       height = 120 :: Int
   updateE <- switchHold initialUpdate (updated inputValuesD <$ readyE)
-  performEvent_ $ ffor updateE $ \case
-    Just d -> liftJSM . void $ do
-        jsg3 ("updateMapLegend" :: Text) width height d
-    _ -> return ()
+  performEvent $ ffor (fmapMaybeCheap id updateE) $ \d ->
+    liftJSM $ do
+      scaleVal <- jsg3 ("updateMapLegend" :: Text) width height d
+      scale <- valToObject scaleVal
+      return (ScaleFunction scale)
 

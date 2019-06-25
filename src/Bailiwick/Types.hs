@@ -18,7 +18,7 @@ import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import qualified Data.Vector as V
 
-import Language.Javascript.JSaddle.Value
+import qualified Language.Javascript.JSaddle as JS
 import GHCJS.DOM.Types ()
 
 import GHC.Generics
@@ -118,7 +118,7 @@ facetOptions :: Options
 facetOptions = defaultOptions
       { fieldLabelModifier = map toLower . drop 5 }
 
-instance ToJSVal Facet
+instance JS.ToJSVal Facet
 
 instance FromJSON Facet where
   parseJSON = genericParseJSON facetOptions
@@ -139,7 +139,7 @@ chartOptions :: Options
 chartOptions = defaultOptions
     { fieldLabelModifier = map toLower . drop 5 }
 
-instance ToJSVal Chart
+instance JS.ToJSVal Chart
 
 instance FromJSON Chart where
     parseJSON = genericParseJSON chartOptions
@@ -154,7 +154,7 @@ mappingOptions :: Options
 mappingOptions = defaultOptions
     { fieldLabelModifier = map toLower . drop 7 }
 
-instance ToJSVal ChartMapping
+instance JS.ToJSVal ChartMapping
 instance FromJSON ChartMapping where
     parseJSON = genericParseJSON mappingOptions
 
@@ -169,7 +169,7 @@ transformOptions :: Options
 transformOptions = defaultOptions
     { fieldLabelModifier = map toLower . drop 9 }
 
-instance ToJSVal Transform
+instance JS.ToJSVal Transform
 
 instance FromJSON Transform where
     parseJSON = genericParseJSON transformOptions
@@ -199,9 +199,9 @@ instance FromJSON Language where
 
 newtype IndicatorId = IndicatorId { unIndicatorId :: Text }
    deriving (Eq, Ord, Show, Generic, Hashable,
-             FromJSONKey, FromJSON, IsString, ToJSVal)
+             FromJSONKey, FromJSON, IsString, JS.ToJSVal)
 newtype ChartId = ChartId { unChartId :: Text }
-    deriving (Eq, Ord, Show, Generic, ToJSVal, Hashable, FromJSONKey, IsString)
+    deriving (Eq, Ord, Show, Generic, JS.ToJSVal, Hashable, FromJSONKey, IsString)
 instance FromJSON ChartId where
    parseJSON v = ChartId <$> parseJSON v
 
@@ -296,7 +296,7 @@ type Indicators = InsOrdHashMap IndicatorId Indicator
 
 newtype FeatureId = FeatureId { featureIdText :: Text }
    deriving (Eq, Ord, Show, Generic, Hashable,
-             FromJSONKey, FromJSON, IsString, ToJSVal)
+             FromJSONKey, FromJSON, IsString, JS.ToJSVal)
 
 data Feature = Feature
   { featureId     :: FeatureId
@@ -343,7 +343,7 @@ mkFeatures features = OMap.fromList [(featureId i, i) | i <- features]
 --   , mapValDispAbsolute :: Text
 --   } deriving (Show, Eq, Generic)
 
-newtype AreaName = AreaName { areaNameText :: Text } deriving (Eq, Ord, Show, Generic, ToJSVal)
+newtype AreaName = AreaName { areaNameText :: Text } deriving (Eq, Ord, Show, Generic, JS.ToJSVal)
 instance Hashable AreaName
 
 data AreaSummaryDisplay = AreaSummaryDisplay
@@ -440,4 +440,9 @@ data Numbers
 
 emptyNumbers :: Numbers
 emptyNumbers = Numbers "" "" "" "" "" "" ""
+
+newtype ScaleFunction = ScaleFunction JS.Object deriving (Generic)
+instance Show ScaleFunction where
+    show _ = "Scale function"
+
 
