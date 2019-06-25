@@ -34,6 +34,7 @@ export default function (element, params) {
         area = setup.area, 
         areaLevel = setup.areaLevel,
         feature = setup.feature,
+        features = setup.features,
         svg = setup.svg,
         base = setup.base,
         width = setup.width, 
@@ -64,11 +65,19 @@ export default function (element, params) {
                 return '';
             }
 
-            if (d.length > maxLength) {
-                return d[0].toUpperCase() + d.substring(1,maxLength) + '…';
+            let label = d;
+
+            if (_.has(features, d)) {
+                label = features[d];
+            }
+
+            label = _.capitalize(label);
+
+            if (label.length > maxLength) {
+                return label.substring(0, maxLength) + '…';
             }
             
-            return d[0].toUpperCase() + d.slice(1);
+            return label;
         });
 
     var barHeight = 20,
@@ -302,8 +311,6 @@ export default function (element, params) {
     y.domain(data.map(function (d) { return d.name; }));
     xAxis.tickSize(-1 * dataHeight, 10)
 
-    // console.log(data)
-
     var ySel = g.selectAll("g.y.axis").data([data]),
         ySelEnter = ySel.enter().append("g")
             .attr("class", "y axis");
@@ -349,7 +356,15 @@ export default function (element, params) {
     if (!Modernizr.touch) {
         barEnter
             .on("mouseover", function (d) {
-                var tooltip = tooltipElem.selectAll('p').data([d.name, d.display, d.year]),
+                var name = d.name;
+
+                if (_.has(features, d.name)) {
+                    name = features[d.name];
+                }
+
+                name = _.capitalize(name);
+                
+                var tooltip = tooltipElem.selectAll('p').data([name, d.display, d.year]),
                     tooltipEnter = tooltip.enter().append('p');
 
                 tooltip.text(function (d) {
