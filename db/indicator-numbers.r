@@ -1,6 +1,7 @@
 library(data.table)
 library(jsonlite)
 source('functions.r')
+source('patch.r')
 
 dbfile <- 'data/REARdb.rda'
 themesjson <- 'dev/themes.json'
@@ -24,9 +25,13 @@ setkey(REARdb_Areas, areaname)
 
 setDT(REARdb_Source)
 REARdb_Source[, slice:=tolower(ValueName)]
-setkey(REARdb_Source, slice)
 
 setDT(REARdb_Data)
+setkey(REARdb_Source, DatasetID)
+setkey(REARdb_Data, DatasetID)
+REARdb_Data[REARdb_Source, Dimension1 := patch.featureNames(ValueName, Dimension1)]
+
+setkey(REARdb_Source, slice)
 setkey(REARdb_Data, DatasetID, AreaID)
 
 themes <- read_json(themesjson)
