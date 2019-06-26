@@ -388,8 +388,6 @@ export default function (element, params) {
             });
     }
 
-    console.log('Hi', y, y.rangeBand())
-
     bar
         .attr("y", function (d) { return y(d.name); })
         .attr("height", Math.abs(y.rangeBand()))
