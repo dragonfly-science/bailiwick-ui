@@ -298,6 +298,8 @@ newtype FeatureId = FeatureId { featureIdText :: Text }
    deriving (Eq, Ord, Show, Generic, Hashable,
              FromJSONKey, FromJSON, IsString, JS.ToJSVal)
 
+instance FromJSONKey (Maybe FeatureId)
+
 data Feature = Feature
   { featureId     :: FeatureId
   , featureName   :: Text
@@ -398,7 +400,7 @@ type Display = Text
 data IndicatorData
   = IndicatorData
     { indicatorNumbers  :: IndicatorNumbers
-    , indicatorScale    :: [(Double, Maybe Display, Colour)]
+    , indicatorScale    :: IndicatorScale
     } deriving (Eq, Show, Generic)
 instance FromJSON IndicatorData where
   parseJSON = genericParseJSON options
@@ -419,19 +421,33 @@ instance FromJSON IndicatorNumbers where
               headline <- value .:  "headline"
               local    <- value .:  "local"
               national <- value .:  "national"
-              colour   <- value .:  "colour"
               raw      <- value .:  "rawvalue"
               index    <- value .:  "index"
               indexD   <- value .:  "indexDisp"
               return ( (areaid, year, feature)
-                     , Numbers headline local national colour raw index indexD)))
+                     , Numbers headline local national raw index indexD)))
+
+newtype IndicatorScale =
+  IndicatorScale (InsOrdHashMap (Year, Maybe FeatureId) (Double, Double))
+  deriving (Eq, Show, Generic)
+instance FromJSON IndicatorScale where
+  parseJSON
+    = (IndicatorScale . OMap.fromList . V.toList <$>) .
+        (withArray "indicatorscale" $ mapM $
+            (withObject "indicatorscale" $ \value -> do
+              year     <- value .:  "year"
+              feature  <- value .:? "feature"
+         --   detail   <- value .:? "detail"
+              minval   <- value .:  "minval"
+              maxval   <- value .:  "maxval"
+              return ( ( year, feature)
+                     , (minval, maxval))))
 
 data Numbers
   = Numbers
     { headlineDisp :: Text
     , localDisp    :: Text
     , nationalDisp :: Text
-    , colourNum    :: Text
     , rawNum       :: Text
     , indexNum     :: Text
     , indexDisp    :: Text
@@ -439,7 +455,7 @@ data Numbers
   deriving (Eq, Show, Generic)
 
 emptyNumbers :: Numbers
-emptyNumbers = Numbers "" "" "" "" "" "" ""
+emptyNumbers = Numbers "" "" "" "" "" ""
 
 newtype ScaleFunction = ScaleFunction JS.Object deriving (Generic)
 instance Show ScaleFunction where

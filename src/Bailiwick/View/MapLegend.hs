@@ -13,13 +13,13 @@ import Data.Text (Text)
 
 import Reflex
 import Reflex.Dom.Core
-import Language.Javascript.JSaddle (jsg3, MonadJSM, liftJSM, valToObject)
+import Language.Javascript.JSaddle (jsg4, MonadJSM, liftJSM, valToObject)
 
 import Bailiwick.Types
 
 data MapLegendState t
   = MapLegendState
-    { inputValuesD :: Dynamic t (Maybe [(Double, Maybe Display, Colour)])
+    { inputValuesD :: Dynamic t (Maybe (Double, Double))
     }
 
 mapLegend
@@ -40,9 +40,9 @@ mapLegend MapLegendState{..} = do
       width  = 481 :: Int
       height = 120 :: Int
   updateE <- switchHold initialUpdate (updated inputValuesD <$ readyE)
-  performEvent $ ffor (fmapMaybeCheap id updateE) $ \d ->
+  performEvent $ ffor (fmapMaybeCheap id updateE) $ \(minval, maxval) ->
     liftJSM $ do
-      scaleVal <- jsg3 ("updateMapLegend" :: Text) width height d
+      scaleVal <- jsg4 ("updateMapLegend" :: Text) width height minval maxval
       scale <- valToObject scaleVal
       return (ScaleFunction scale)
 

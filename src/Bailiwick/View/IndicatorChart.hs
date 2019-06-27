@@ -16,7 +16,7 @@ import Data.Text (Text)
 import Debug.Trace
 
 import qualified GHCJS.DOM.Element as DOM
-import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM, toJSValListOf)
+import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
 import Reflex.Dom.Core
 
 import Bailiwick.Javascript
@@ -77,7 +77,7 @@ indicatorChart
   => IndicatorChartState t
   -> Dynamic t Bool
   -> m (Event t Message)
-indicatorChart IndicatorChartState{..} zoomD = do
+indicatorChart IndicatorChartState{..} _zoomD = do
   (e, _) <- divClass "chart-wrapper" $ do
     elAttr' "div" ("class" =: "chart-inner") $ do
     --   _ <- divClass "zoom-controls map-zoom active" $ do
@@ -147,7 +147,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
       -> liftJSM . void
           $ do
             let areaname = maybe "" areaName area
-            let units = maybe Percentage indicatorUnits indicator
+            let _units = maybe Percentage indicatorUnits indicator
             let features = case indicator of
                     Just a ->
                         maybe [] OMap.toList (indicatorFeatureText a)
