@@ -12,7 +12,7 @@ module Bailiwick.View.IndicatorChart
 import Control.Monad (join, void)
 import Data.Maybe (fromMaybe)
 import qualified Data.HashMap.Strict.InsOrd as OMap
-import Data.Map (Map)
+import qualified Data.Map as Map
 import Data.Text (Text)
 import Debug.Trace
 
@@ -69,31 +69,15 @@ textLabel ind transform =
   case ind of
     Just i -> do
         let config = indicatorLanguageConfig i
-
-        -- let captions = langLabels config
-        --     caption = lookup transform captions
-
-        "xx"
-
-        -- case caption of
-        --   Just c -> c
-        --   Nothing -> "Nothing"
+            captions = langLabels config
         
-        -- let caption = IMap.lookup transform captions
-
-
-
-        -- "No caption"
-        -- case caption of
-        --   Just c -> c
-        --   Nothing -> "No label"
-
-        -- "caption..."
-        -- case captions of
-        --     Just c -> do
-        --       caption <- lookup transform c
-        --       caption
-        --     Nothing -> "no caption..."
+        case captions of
+          Just c -> do
+            case Map.lookup transform c of
+              Just val -> val
+              Nothing -> "Nothing a"
+          Nothing -> "Nothing b"
+    
     Nothing -> "Non string"
 
 indicatorChart
@@ -175,11 +159,18 @@ indicatorChart IndicatorChartState{..} zoomD = do
         page <- pageD
 
         let chartLabel = textSubstitution area Nothing indicator (join featureId) page
-        let textLabel = "label"
+
+        let label = case (trace ("transform: " ++ show transform) transform) of
+              Just t -> do
+                let l = textLabel indicator t
+                chartLabel l
+              Nothing -> "no thing"
+        
+        -- let label = textLabel indicator transform
 
         
 
-        return (indn, my, indID, indicator, areas, area, areatype, transform, chartType, join featureId, zoom, textLabel)
+        return (indn, my, indID, indicator, areas, area, areatype, transform, chartType, join featureId, zoom, label)
 
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
