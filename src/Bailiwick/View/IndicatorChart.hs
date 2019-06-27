@@ -77,7 +77,7 @@ indicatorChart
   => IndicatorChartState t
   -> Dynamic t Bool
   -> m (Event t Message)
-indicatorChart IndicatorChartState{..} _zoomD = do
+indicatorChart IndicatorChartState{..} zoomD = do
   let pageD = getThemePage <$> routeD
       _chartType = fmap themePageRightChart <$> pageD
 
