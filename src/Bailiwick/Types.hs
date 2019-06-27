@@ -185,7 +185,7 @@ data Language
     , langSingular              :: Maybe Bool
     , langFeatureAsSubjectLabel :: Maybe Bool
     , langCaptions              :: Maybe (Map Text Text)
-    , langLabels                :: Maybe (Map Text Text)
+    , langLabels                :: Map Text Text
     }
     deriving (Eq, Show, Generic)
 

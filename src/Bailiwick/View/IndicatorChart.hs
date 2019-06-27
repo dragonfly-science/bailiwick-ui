@@ -12,7 +12,7 @@ module Bailiwick.View.IndicatorChart
 import Control.Monad (join, void)
 import Data.Maybe (fromMaybe)
 import qualified Data.HashMap.Strict.InsOrd as OMap
-import Data.Map.Internal as IMap
+import Data.Map (Map)
 import Data.Text (Text)
 import Debug.Trace
 
@@ -63,6 +63,38 @@ shapeData mareas (IndicatorNumbers inmap) =
       malter yns Nothing = Just [yns]
       malter yns (Just this) = Just (yns:this)
   in  OMap.toList $ OMap.foldrWithKey step OMap.empty inmap
+
+textLabel :: Maybe Indicator -> Text -> Text
+textLabel ind transform = 
+  case ind of
+    Just i -> do
+        let config = indicatorLanguageConfig i
+
+        -- let captions = langLabels config
+        --     caption = lookup transform captions
+
+        "xx"
+
+        -- case caption of
+        --   Just c -> c
+        --   Nothing -> "Nothing"
+        
+        -- let caption = IMap.lookup transform captions
+
+
+
+        -- "No caption"
+        -- case caption of
+        --   Just c -> c
+        --   Nothing -> "No label"
+
+        -- "caption..."
+        -- case captions of
+        --     Just c -> do
+        --       caption <- lookup transform c
+        --       caption
+        --     Nothing -> "no caption..."
+    Nothing -> "Non string"
 
 indicatorChart
   :: ( Monad m
@@ -144,19 +176,8 @@ indicatorChart IndicatorChartState{..} zoomD = do
 
         let chartLabel = textSubstitution area Nothing indicator (join featureId) page
         let textLabel = "label"
-        -- let textLabel = case indicator of
-        --         Just i -> do
-        --             let config = indicatorLanguageConfig i
-        --                 captions = langCaptions config
-                    
-        --             -- "caption..."
-        --             case captions of
-        --                 Just c -> do
-        --                     let chartLabelToUse = IMap.lookup transform c
 
-        --                     "Caption"
-        --                 Nothing -> "no caption..."
-        --         Nothing -> "Non string"
+        
 
         return (indn, my, indID, indicator, areas, area, areatype, transform, chartType, join featureId, zoom, textLabel)
 

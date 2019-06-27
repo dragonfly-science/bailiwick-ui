@@ -1,6 +1,10 @@
 name: median house price
 language-config:
   subject: median house price
+  labels:
+    absolute-tree: median house price
+    absolute: median house price
+    indexed: median house price, relative to $firstYear$
 themes:
   - housing
 headerTitle: house price in $area$
@@ -29,29 +33,21 @@ absoluteLabel: Price
 noTA: true
 charts:
   - type: map
-    title: >-
-      house price, for $year$
     transforms:
       - name: absolute
-        caption: median house price
     facets:
       - name: year
   - type: timeseries
-    title: house price, by year
     transforms:
       - name: absolute
-        caption: median house price
       - name: indexed
-        caption: median house price, relative to $firstYear$
         formatter: indexed
     order:
       - area
       - year
 
   - type: barchart
-    title: house price, for $year$
     transforms:
       - name: absolute-tree
-        caption: median house price
     facets:
       - name: year

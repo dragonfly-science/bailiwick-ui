@@ -3,7 +3,7 @@ language-config:
   subject: tertiary enrolments
   feature-accessor: at
   subject-accessor: ""
-  levels:
+  labels:
     absolute-tree: tertiary provision (EFTS and STMs)
     absolute: tertiary provision (EFTS and STMs)
     indexed: tertiary provision (EFTS and STMs), relative to $firstYear$
