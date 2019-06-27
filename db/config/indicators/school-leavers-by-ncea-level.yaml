@@ -3,6 +3,12 @@ language-config:
   subject: school leavers
   subject-quantity: number of school leavers
   feature-accessor: with
+  labels:
+    absolute-tree: school leavers in $area$
+    absolute: school leavers
+    percapita: school leavers per 10,000 people
+    percentage-tree: percentage of school leavers in $area$
+    regionalPercentage: percentage of school leavers with $feature$
 themes:
   - education
 source: Ministry of Education <a href="http://www.educationcounts.govt.nz/statistics/schooling/senior-student-attainment/school-leavers2" target="_blank">Senior Student Attainment School Leavers</a>.
@@ -42,30 +48,22 @@ featureOrder:
 rightChart: over-under-barchart
 charts:
   - type: map
-    title: >-
-      percentage of school leavers with $feature$ in $area$ for the year to $yearEndMonth$ $year$
     transforms:
       - name: regionalPercentage
-        caption: percentage of school leavers with $feature$
     facets:
       - name: year
   - type: timeseries
-    title: school leavers with $feature$ in $area$, by year
     transforms:
       - name: percapita
-        caption: school leavers per 10,000 people
       - name: absolute
         caption: school leavers
     order:
       - area
       - year
   - type: over-under-barchart
-    title: school leavers in $area$, for $year$
     transforms:
       - name: percentage-tree
-        caption: percentage of school leavers in $area$
       - name: absolute-tree
-        caption: school leavers in $area$
     mapping:
       - label: Level 1
         dimensions:

@@ -1,6 +1,11 @@
 name: population estimates
 language-config:
   subject: estimated resident population
+  labels:
+    absolute-tree: estimated resident population
+    absolute: number of people
+    indexed: population, relative to $firstYear$
+    rate: Percentage change in population between $prevYear$ and $year$
 themes:
   - population
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/population/estimates_and_projections/subnational-pop-estimates-tables.aspx" target="_blank">Subnational Population Estimates</a>.
@@ -25,30 +30,19 @@ valueType: quantity
 absoluteLabel: population
 charts:
   - type: map
-    title: >
-      change in population between $prevYear$ and $year$
     transforms:
       - name: rate
-        caption: Percentage change in population between $prevYear$ and $year$
     facets:
       - name: year
-
   - type: timeseries
-    title: >
-      estimated resident population, by year
     transforms:
       - name: indexed
-        caption: population, relative to $firstYear$
       - name: absolute
-        caption: number of people
     order:
       - area
       - year
   - type: barchart
-    title: >
-      Estimated resident population, at 30 June $year$
     transforms:
       - name: absolute-tree
-        caption: estimated resident population
     facets:
       - name: year

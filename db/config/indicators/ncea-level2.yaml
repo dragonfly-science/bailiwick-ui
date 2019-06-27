@@ -3,6 +3,10 @@ language-config:
   subject: NCEA level 2 attainment rate for 18-year-olds
   subject-quantity: attainment rate
   feature-accessor: identifying as
+  labels:
+    absolute-tree: Percentage of participating students
+    absolute: Percentage of participating students
+    indexed: Attainment rate, relative to $firstYear$
 themes:
   - education
 source: Ministry of Education <a href="http://www.educationcounts.govt.nz/statistics/schooling/senior-student-attainment/18-year-olds-with-level-2-or-equivalent" target="_blank">Senior Student Attainment 18-year-olds</a>.
@@ -37,27 +41,19 @@ topFeatureLabel: all ethnicities
 rightChart: barchart
 charts:
   - type: map
-    title: >-
-        the NCEA level 2 attainment rate for 18-year-olds[ for $feature$ ethnicities], for $year$
     transforms:
       - name: absolute
-        caption: Percentage of participating students 
     facets:
       - name: year
   - type: timeseries
-    title: NCEA level 2 attainment rate for 18-year-olds[ for $feature$ ethnicities], by year
     transforms:
       - name: absolute
-        caption: Percentage of participating students 
       - name: indexed
-        caption: Attainment rate, relative to $firstYear$ 
     order:
       - area
       - year
   - type: barchart
-    title: NCEA level 2 attainment rate for 18-year-olds in $area$, for $year$
     transforms:
       - name: absolute-tree
-        caption: Percentage of participating students 
     facets:
       - name: year

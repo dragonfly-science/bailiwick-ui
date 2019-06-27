@@ -2,6 +2,10 @@ name: quarterly turnover rate
 language-config:
   subject: annual-average quarterly worker turnover rate
   subject-quantity: turnover rate
+  labels:
+    absolute-tree: annual-average quarterly turnover rate
+    absolute: annual-average quarterly turnover rate
+    indexed: annual-average quarterly turnover rate, relative to $firstYear$
 themes:
   - workforce
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/leed" target="_blank">Linked Employer-Employee Data (LEED)</a>.
@@ -33,27 +37,19 @@ barchartLabelWidth: 240
 barchartTicks: 3
 charts:
   - type: map
-    title: >-
-      worker turnover[ in $feature$], for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute
-        caption: annual-average quarterly turnover rate
     facets:
       - name: year
   - type: timeseries
-    title: worker turnover[ in $feature$], by year
     transforms:
       - name: absolute
-        caption: annual-average quarterly turnover rate
       - name: indexed
-        caption: annual-average quarterly turnover rate, relative to $firstYear$
     order:
       - area
       - year
   - type: barchart
-    title: worker turnover[ in $feature$] in $area$, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: annual-average quarterly turnover rate
     facets:
       - name: year

@@ -126,7 +126,7 @@ instance FromJSON Facet where
 data Chart
   = Chart
   { chartType        :: Text
-  , chartTitle       :: Text
+  , chartTitle       :: Maybe Text
   , chartTransforms2 :: Maybe [Transform]
   , chartTransforms  :: [Transform]
   , chartFacets      :: Maybe [Facet]
@@ -176,15 +176,14 @@ instance FromJSON Transform where
 
 data Language
   = Language
-    { langFeatureAccessor       :: Text
+    { langFeatureAccessor       :: Maybe Text
     , langFeatureLabel          :: Maybe Text
-    , langAreaAccessor          :: Text
-    , langSubject               :: Text
-    , langSubjectShort          :: Text
-    , langSubjectQuantity       :: Text
-    , langSubjectAccessor       :: Text
-    , langSingular              :: Bool
-    , langFeatureAsSubjectLabel :: Bool
+    , langSubject               :: Maybe Text
+    , langSubjectShort          :: Maybe Text
+    , langSubjectQuantity       :: Maybe Text
+    , langSubjectAccessor       :: Maybe Text
+    , langSingular              :: Maybe Bool
+    , langFeatureAsSubjectLabel :: Maybe Bool
     , langCaptions              :: Maybe (Map Text Text)
     , langLabels                :: Maybe (Map Text Text)
     }
@@ -193,6 +192,9 @@ data Language
 langOptions :: Options
 langOptions = defaultOptions
     { fieldLabelModifier = map toLower . drop 4 }
+    { fieldLabelModifier = (\case
+        [] -> []
+        (x:xs) -> toUpper x : xs) . drop 4 }
 
 instance FromJSON Language where
     parseJSON = genericParseJSON langOptions
@@ -269,7 +271,7 @@ data Indicator = Indicator
 --  , indicatorDetailName           :: Maybe Text
 --  , indicatorTopDetailLabel       :: Maybe Text
 --  , indicatorLeftChart            :: Maybe Text
---  , indicatorLanguageConfig       :: Language
+  , indicatorLanguageConfig       :: Language
 --  , indicatorRightChart           :: Maybe Text
 --  , indicatorIcon                 :: Maybe Text
 --  , indicatorNotes                :: Maybe [Text]

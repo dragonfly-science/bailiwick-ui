@@ -1,6 +1,10 @@
 name: GDP per capita
 language-config:
   subject: GDP per capita
+  labels:
+    absolute-tree: GDP per capita
+    absolute: GDP per capita for the year to $yearEndMonth$ $year$
+    indexed: GDP per capita indexed to $firstYear$
 themes:
   - economic
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/economic_indicators/NationalAccounts/regional-gdp-info-releases.aspx" target="_blank">Regional GDP</a> and MBIE <a href="http://www.mbie.govt.nz/info-services/sectors-industries/regions-cities/research/modelled-territorial-authority-gross-domestic-product" target="_blank">Modelled Territorial Authority Gross Domestic Product (MTAGDP)</a>.
@@ -27,20 +31,15 @@ valueType: aggregate
 absoluteLabel: Per capita
 charts:
   - type: map
-    title: >-
-      GDP per capita, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute
-        caption: GDP per capita for the year to $yearEndMonth$ $year$
     facets:
       - name: year
   - type: timeseries
     title: Change in GDP per capita, for the year to $yearEndMonth$
     transforms:
       - name: absolute
-        caption: GDP per capita
       - name: indexed
-        caption: GDP per capita indexed to $firstYear$
         formatter: indexed
     order:
       - area
@@ -50,6 +49,5 @@ charts:
     title: GDP per capita, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: GDP per capita
     facets:
       - name: year

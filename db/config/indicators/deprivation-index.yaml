@@ -1,6 +1,10 @@
 name: deprivation index
 language-config:
   subject: deprivation index
+  labels:
+    absolute: deprivation index
+    absolute-tree: deprivation index
+    indexed: deprivation index, relative to $firstYear$
 themes:
   - social & income
 source: University of Otago, <a href="http://www.otago.ac.nz/wellington/departments/publichealth/research/hirp/otago020194.html" target="_blank">NZDep</a>.
@@ -28,28 +32,19 @@ absoluteLabel: Deprivation
 period: 7
 charts:
   - type: map
-    title: >-
-      deprivation index, for $year$
     transforms:
       - name: absolute
-        caption: deprivation index
     facets:
       - name: year
   - type: timeseries
-    title: deprivation index, by year
     transforms:
       - name: absolute
-        caption: deprivation index
       - name: indexed
-        caption: deprivation index, relative to $firstYear$
     order:
       - area
       - year
-
   - type: barchart
-    title: deprivation index, for $year$
     transforms:
       - name: absolute-tree
-        caption: deprivation index
     facets:
       - name: year

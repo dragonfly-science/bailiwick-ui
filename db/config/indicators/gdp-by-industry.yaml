@@ -2,6 +2,11 @@ name: GDP by industry
 language-config:
   subject: GDP
   feature-accessor: from
+  labels:
+    absolute-tree: GDP, millions of dollars
+    absolute: GDP, millions of dollars
+    indexed: GDP, relative to $firstYear$
+    regionalPercentage: percentage of GDP
 themes:
   - economic
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/economic_indicators/NationalAccounts/regional-gdp-info-releases.aspx" target="_blank">Regional GDP</a> and MBIE <a href="http://www.mbie.govt.nz/info-services/sectors-industries/regions-cities/research/modelled-territorial-authority-gross-domestic-product" target="_blank">Modelled Territorial Authority Gross Domestic Product (MTAGDP)</a>.
@@ -33,29 +38,21 @@ barchartLabelWidth: 240
 barchartTicks: 3
 charts:
   - type: map
-    title: >-
-      share of GDP from $feature$, for the year to $yearEndMonth$ $year$
     transforms:
       - name: regionalPercentage
-        caption: percentage of GDP
         formatter: percentage
     facets:
       - name: year
   - type: timeseries
-    title: GDP from $feature$, by year
     transforms:
       - name: absolute
-        caption: GDP, millions of dollars
       - name: indexed
-        caption: GDP, relative to $firstYear$
     order:
       - area
       - year
 
   - type: barchart
-    title: GDP from $feature$ in $area$, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: GDP, millions of dollars
     facets:
       - name: year

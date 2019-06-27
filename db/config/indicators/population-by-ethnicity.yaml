@@ -3,6 +3,10 @@ language-config:
   subject-quantity: number
   subject-short: people
   feature-accessor: identifying as
+  labels:
+    absolute-tree: Percentage of people
+    absolute: Percentage of people
+    indexed: Percentage of people, relative to $firstYear$
 themes:
   - population
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/Census.aspx" target="_blank">Census data</a>.
@@ -34,27 +38,19 @@ rightChart: barchart
 period: 7
 charts:
   - type: map
-    title: >-
-      People identifying as $feature$ ethnicity, for $year$
     transforms:
       - name: absolute
-        caption: Percentage of people 
     facets:
       - name: year
   - type: timeseries
-    title: people identifying as $feature$ ethnicity, by year
     transforms:
       - name: absolute
-        caption: Percentage of people
       - name: indexed
-        caption: Percentage of people, relative to $firstYear$ 
     order:
       - area
       - year
   - type: barchart
-    title: Ethnicity in $area$, for $year$
     transforms:
       - name: absolute-tree
-        caption: Percentage of people
     facets:
       - name: year

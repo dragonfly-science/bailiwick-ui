@@ -3,6 +3,13 @@ language-config:
   subject: tertiary enrolments
   feature-accessor: at
   subject-accessor: ""
+  labels:
+    absolute-tree: tertiary qualification completions
+    absolute: tertiary qualification completions
+    indexed: tertiary qualification completions, relative to $firstYear$
+    percapita: per capita tertiary qualification completions
+    percentage-tree: percentage of tertiary qualification completions
+    regionalPercentage: percentage of tertiary qualification completions that is in $feature$
 themes:
   - education
 source: Tertiary Education Commission.
@@ -40,32 +47,22 @@ barchartLabelWidth: 140
 barchartTicks: 3'
 charts:
   - type: map
-    title: >-
-      the percentage of tertiary qualification completions[ at $feature$], for the year to $yearEndMonth$ $year$
     transforms:
       - name: regionalPercentage
-        caption: percentage of tertiary qualification completions that is in $feature$
     facets:
       - name: year
   - type: timeseries
-    title: tertiary qualification completions[ at $feature$,] by year
     transforms:
       - name: percapita
-        caption: per capita tertiary qualification completions
       - name: absolute
-        caption: tertiary qualification completions
       - name: indexed
-        caption: tertiary qualification completions, relative to $firstYear$
     order:
       - area
       - year
   - type: barchart
-    title: tertiary qualification completions[ at $feature$] in $area$, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: tertiary qualification completions
       - name: percentage-tree
-        caption: percentage of tertiary qualification completions
     axis:
       - level-1-2
       - level-3-4

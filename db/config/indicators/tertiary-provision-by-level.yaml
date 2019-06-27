@@ -3,6 +3,13 @@ language-config:
   subject: tertiary enrolments
   feature-accessor: at
   subject-accessor: ""
+  levels:
+    absolute-tree: tertiary provision (EFTS and STMs)
+    absolute: tertiary provision (EFTS and STMs)
+    indexed: tertiary provision (EFTS and STMs), relative to $firstYear$
+    percapita: per capita tertiary provision (EFTS and STMs)
+    percentage-tree: percentage of all tertiary provision (EFTS and STMs)
+    regionalPercentage: percentage of provision at $feature$
 themes:
   - education
 source: Tertiary Education Commission.
@@ -41,34 +48,24 @@ barchartLabelWidth: 140
 barchartTicks: 3
 charts:
   - type: map
-    title: >-
-      the percentage of tertiary provision (EFTS and STMs)[ at $feature$], for the year to $yearEndMonth$ $year$
     transforms:
       - name: regionalPercentage
-        caption: percentage of provision at $feature$
     facets:
       - name: year
 
   - type: timeseries
-    title: tertiary provision[ at  $feature$], by year
     transforms:
       - name: percapita
-        caption: per capita tertiary provision (EFTS and STMs)
       - name: absolute
-        caption: tertiary provision (EFTS and STMs)
       - name: indexed
-        caption: tertiary provision (EFTS and STMs), relative to $firstYear$
     order:
       - area
       - year
 
   - type: barchart
-    title: tertiary provision (EFTS and STMs)[, at $feature$] in $area$, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: tertiary provision (EFTS and STMs)
       - name: percentage-tree
-        caption: percentage of all tertiary provision (EFTS and STMs)
     axis:
       - level-1-2
       - level-3-4

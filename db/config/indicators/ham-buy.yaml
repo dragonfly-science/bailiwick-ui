@@ -1,6 +1,9 @@
 name: housing affordability measure (Buy)
 language-config:
   subject: housing affordability measure (Buy)
+  labels:
+    absolute-tree: housing affordability measure (Buy)
+    absolute: housing affordability measure (Buy)
 themes:
   - housing
 source: MBIE <a href="http://www.mbie.govt.nz/info-services/housing-property/sector-information-and-statistics/housing-affordability-measure" target="_blank">Housing Affordability Measure</a>.
@@ -26,25 +29,18 @@ valueType: aggregate
 absoluteLabel: affordability
 charts:
   - type: map
-    title: >-
-      housing affordability measure (Buy), for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute
-        caption: housing affordability measure (Buy)
     facets:
       - name: year
   - type: timeseries
-    title: housing affordability measure (Buy), by year
     transforms:
       - name: absolute
-        caption: housing affordability measure (Buy)
     order:
       - area
       - year
   - type: barchart
-    title: housing affordability measure (Buy), for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: housing affordability measure (Buy)
     facets:
       - name: year

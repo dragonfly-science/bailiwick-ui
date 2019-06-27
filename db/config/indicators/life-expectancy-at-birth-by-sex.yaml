@@ -2,6 +2,10 @@ name: life expectancy at birth by sex
 language-config:
   subject: Life expectancy at birth, by sex
   subject-short: life expectancy at birth
+  labels:
+    absolute-tree: Life Expectancy at Birth
+    absolute: Life Expectancy at Birth
+    indexed: Life Expectancy at Birth, indexed to $firstYear$
 themes:
   - population
 source: Stats NZ <a href="http://archive.stats.govt.nz/browse_for_stats/health/life_expectancy/subnational-period-life-tables-info-releases.aspx" target="_blank">Subnational Period Life Tables</a>. 
@@ -30,30 +34,22 @@ featureOrder:
   - males
 charts:
   - type: map
-    title: >-
-      Life expectancy at birth [of $feature$], for $year$
     transforms:
       - name: absolute
-        caption: Life Expectancy at Birth
     facets:
       - name: year
   - type: timeseries
-    title: change in life expectancy at birth [of $feature$]
     transforms:
       - name: absolute
-        caption: Life Expectancy at Birth
       - name: indexed
-        caption: Life Expectancy at Birth, indexed to $firstYear$
         formatter: indexed
     order:
       - area
       - year
 
   - type: barchart
-    title: Life Expectancy at Birth [of $feature$] in $area$, in $year$
     transforms:
       - name: absolute-tree
-        caption: Life Expectancy at Birth
     facets:
       - name: year
     axis:

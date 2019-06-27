@@ -2,6 +2,10 @@ name: guest nights per capita
 language-config:
   subject-quantity: number 
   subject-short: guest nights per capita
+  labels:
+    absolute-tree: guest nights per capita
+    absolute: guest nights per capita
+    indexed: guest nights per capita, relative to $firstYear$
 themes:
   - tourism
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/industry_sectors/accommodation/info-releases.aspx" target="_blank">Accommodation Survey</a>.
@@ -26,27 +30,19 @@ valueType: aggregate
 absoluteLabel: Per capita
 charts:
   - type: map
-    title: >-
-      guest nights per capita, in year to $yearEndMonth$ $year$
     transforms:
       - name: absolute
-        caption: guest nights per capita
     facets:
       - name: year
   - type: timeseries
-    title: guest nights per capita, by year
     transforms:
       - name: absolute
-        caption: guest nights per capita
       - name: indexed
-        caption: guest nights per capita, relative to $firstYear$
     order:
       - area
       - year
   - type: barchart
-    title: guest nights per capita, in year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: guest nights per capita
     facets:
       - name: year
