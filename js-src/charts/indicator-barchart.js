@@ -16,7 +16,7 @@ export default function (element, params) {
     } else if (window.innerWidth < 600 && lmargin > 140) {
       lmargin = 180;
     }
-    
+
     let margin = {top: 5, right: 25, bottom: 40, left: lmargin};
 
     let setup = chartSetup(element, params, margin, 'basic-barchart');
@@ -27,17 +27,17 @@ export default function (element, params) {
 
     let cache = window.MBIECacheStorage,
         toCache = {},
-        data = setup.data, 
-        year = setup.year, 
-        indicator = setup.indicator, 
-        transform = setup.transform, 
-        area = setup.area, 
+        data = setup.data,
+        year = setup.year,
+        indicator = setup.indicator,
+        transform = setup.transform,
+        area = setup.area,
         areaLevel = setup.areaLevel,
         feature = setup.feature,
         features = setup.features,
         svg = setup.svg,
         base = setup.base,
-        width = setup.width, 
+        width = setup.width,
         height = setup.height;
 
     var legend = d3.select('.chart-inner .legend');
@@ -76,7 +76,7 @@ export default function (element, params) {
             if (label.length > maxLength) {
                 return label.substring(0, maxLength) + '…';
             }
-            
+
             return label;
         });
 
@@ -106,12 +106,12 @@ export default function (element, params) {
         // No parents means NZ is selected - so we will end up showing all
         // available regions.
         if (
-            (feature !== null && isEmpty(parents) && area !== 'New Zealand') || 
+            (feature !== null && isEmpty(parents) && area !== 'New Zealand') ||
             (feature === null && isEmpty(parents))
         ) {
             parents = ['new-zealand'];
         }
-        
+
         // Find all siblings that have one or more same parents.
         var siblingAreas = _.filter(data, function(o) {
             return _.intersection(o[0][3], parents).length > 0;
@@ -150,7 +150,7 @@ export default function (element, params) {
         /// keys renamed to appropriate values).
         if (feature !== null) {
             let areaData = _.groupBy(_.filter(siblingsFilteredByYear, function(o) {
-                return o.name === area; 
+                return o.name === area;
             }), 'feature');
 
             areaData = _.reduce(areaData, function(result, v, k) {
@@ -181,7 +181,7 @@ export default function (element, params) {
         } else {
             siblingsFilteredByYear = _.sortBy(siblingsFilteredByYear, ['value']);
         }
-        
+
         if (!_.hasIn(cachedInd, 'areas')) {
             cachedInd.areas = {};
         }
@@ -241,7 +241,7 @@ export default function (element, params) {
     //     }
     // }
 
-    
+
     // if (none(featureType)) {
     //     var areaDataT = data.get("areas")[area.get("id")];
     //     if (none(areaDataT)) {
@@ -290,7 +290,7 @@ export default function (element, params) {
     // }
     // this.set('_dataState', dataState);
     //}
-        
+
 
     // Update
     // var data = this.get('plotdata'),
@@ -305,7 +305,7 @@ export default function (element, params) {
     // }
     x.domain([0, d3.max(data, function (d) { return d.value; })]);
 
-    
+
     g.attr("height", dataHeight + margin.top + margin.bottom);
     y = y.rangeRoundBands([0, dataHeight], paddingRatio);
     y.domain(data.map(function (d) { return d.name; }));
@@ -319,11 +319,11 @@ export default function (element, params) {
         .selectAll("text")
         .style("text-anchor", "end");
     ySel.exit().remove();
-    
+
     var xSel = g.selectAll("g.x.axis").data([data]),
         xSelEnter = xSel.enter().append("g")
             .attr("class", "x axis");
-    
+
     xSel
         .attr("transform", "translate(0," + (dataHeight + 3) + ")")
         .call(xAxis);
@@ -351,8 +351,8 @@ export default function (element, params) {
                 }
                 return '';
             });
-    
-    
+
+
     if (!Modernizr.touch) {
         barEnter
             .on("mouseover", function (d) {
@@ -363,7 +363,7 @@ export default function (element, params) {
                 }
 
                 name = _.capitalize(name);
-                
+
                 var tooltip = tooltipElem.selectAll('p').data([name, d.display, d.year]),
                     tooltipEnter = tooltip.enter().append('p');
 
@@ -388,8 +388,6 @@ export default function (element, params) {
             });
     }
 
-    console.log('Hi', y, y.rangeBand())
-
     bar
         .attr("y", function (d) { return y(d.name); })
         .attr("height", Math.abs(y.rangeBand()))
@@ -398,7 +396,7 @@ export default function (element, params) {
         .classed("active", function (d) {
             if (feature !== null) {
                 return d.name === currentAreaData[0];
-            } 
+            }
             return d.slug === currentAreaData[0];
         });
 
