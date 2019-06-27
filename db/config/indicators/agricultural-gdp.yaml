@@ -2,6 +2,10 @@ name: agricultural share of regional GDP
 language-config:
   subject: share of GDP from agriculture
   subject-quantity: share
+  labels:
+    absolute-tree: percentage share of GDP
+    absolute: percentage share of GDP
+    indexed: share of GDP, relative to $firstYear$
 themes:
   - agriculture
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/economic_indicators/NationalAccounts/regional-gdp-info-releases.aspx" target="_blank">Regional GDP</a> and MBIE <a href="http://www.mbie.govt.nz/info-services/sectors-industries/regions-cities/research/modelled-territorial-authority-gross-domestic-product" target="_blank">Modelled Territorial Authority Gross Domestic Product (MTAGDP)</a>.
@@ -26,29 +30,20 @@ valueType: aggregate
 absoluteLabel: share
 charts:
   - type: map
-    title: >-
-      agricultural share of GDP, for $year$
     transforms:
       - name: absolute
-        caption: percentage share of GDP
     facets:
       - name: year
   - type: timeseries
-    title: agricultural share of GDP, by year
     transforms:
       - name: absolute
-        caption: percentage share of GDP
       - name: indexed
-        caption: share of GDP, relative to $firstYear$
     order:
       - area
       - year
-
   - type: barchart
-    title: agricultural share of GDP, for $year$
     transforms:
       - name: absolute-tree
-        caption: percentage share of GDP
     facets:
       - name: year
 

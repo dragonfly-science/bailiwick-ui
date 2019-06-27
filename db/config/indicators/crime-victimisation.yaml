@@ -2,6 +2,10 @@ name: crime victimisation
 language-config:
   subject: Annual crime victimisation occurrence per 10,000 population
   subject-short: crime per 10,000 population
+  labels:
+    absolute-tree: Crime victimisation per 10,000 population
+    absolute: Crime victimisation per 10,000 population
+    indexed: Crime victimisation per 10,000 population, indexed to $firstYear$
 themes:
   - social & income
 source: New Zealand Police <a href="http://www.police.govt.nz/about-us/publications-and-statistics/statistics/policedatanz" target="_blank">Victim Time and Place report</a>.
@@ -28,29 +32,20 @@ absoluteLabel: Crime victimisation per 10,000 population
 barchartLabelWidth: 240
 charts:
   - type: map
-    title: >-
-      Crime victimisation [of $feature$] per 10,000 population, for $year$
     transforms:
       - name: absolute
-        caption: Crime victimisation per 10,000 population
     facets:
       - name: year
   - type: timeseries
-    title: change in crime victimisation [of $feature$] per 10,000 population
     transforms:
       - name: absolute
-        caption: Crime victimisation per 10,000 population
       - name: indexed
-        caption: Crime victimisation per 10,000 population, indexed to $firstYear$
         formatter: indexed
     order:
       - area
       - year
-
   - type: barchart
-    title: Crime victimisation per 10,000 population in $area$, in $year$
     transforms:
       - name: absolute-tree
-        caption: Crime victimisation per 10,000 population
     facets:
       - name: year

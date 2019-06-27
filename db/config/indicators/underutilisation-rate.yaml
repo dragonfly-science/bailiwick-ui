@@ -1,6 +1,9 @@
 name: underutilisation rate
 language-config:
   subject: underutilisation rate
+  labels:
+    absolute-tree: percentage of labour force
+    absolute: percentage of labour force
 themes:
   - workforce
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/income-and-work/employment_and_unemployment/labour-market-statistics-information-releases.aspx" target="_blank">Household Labour Force Survey</a>.
@@ -26,25 +29,18 @@ valueType: aggregate
 absoluteLabel: underutilisation rate
 charts:
   - type: map
-    title: >-
-      underutilisation rate, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute
-        caption: percentage of labour force
     facets:
       - name: year
   - type: timeseries
-    title: underutilisation rate, by year
     transforms:
       - name: absolute
-        caption: percentage of labour force
     order:
       - area
       - year
   - type: barchart
-    title: underutilisation rate, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: percentage of labour force
     facets:
       - name: year

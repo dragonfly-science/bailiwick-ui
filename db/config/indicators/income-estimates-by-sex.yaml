@@ -2,6 +2,10 @@ name: income estimates by sex
 language-config:
   subject: Median Income Estimates by sex
   subject-short: median annual income
+  labels:
+    absolute-tree: Median Annual Income
+    absolute: Median Annual Income
+    indexed: Median Annual Income, indexed to $firstYear$
 themes:
   - social & income
 source: Stats NZ <a href="http://innovation.stats.govt.nz/initiatives/experimental-estimates-of-income-from-linked-administrative-data-methods-and-results/" target="_blank">Experimental estimates of income from linked administrative data</a>. 
@@ -35,30 +39,22 @@ featureOrder:
   - both-sexes
 charts:
   - type: map
-    title: >-
-      Median annual income [of $feature$], for $year$
     transforms:
       - name: absolute
-        caption: Median Annual Income
     facets:
       - name: year
   - type: timeseries
-    title: change in median annual income [of $feature$]
     transforms:
       - name: absolute
-        caption: Median Annual Income
       - name: indexed
-        caption: Median Annual Income, indexed to $firstYear$
         formatter: indexed
     order:
       - area
       - year
 
   - type: barchart
-    title: Median Annual Income [of $feature$] in $area$, in $year$
     transforms:
       - name: absolute-tree
-        caption: Median Annual Income
     facets:
       - name: year
     axis:

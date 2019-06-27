@@ -3,6 +3,13 @@ language-config:
   subject: tertiary enrolments
   feature-accessor: aged
   subject-accessor: ""
+  labels:
+    absolute-tree: tertiary enrolments
+    absolute: tertiary enrolments
+    indexed: tertiary enrolments, relative to $firstYear$
+    percapita: per capita tertiary enrolments
+    percentage-tree: percentage of tertiary enrolments
+    regionalPercentage: percentage of tertiary enrolments[ aged $feature$]
 themes:
   - education
 source: Tertiary Education Commission.
@@ -36,32 +43,22 @@ featureOrder:
   - 25-years-and-over
 charts:
   - type: map
-    title: >-
-      the percentage of tertiary enrolments[ aged $feature$], for $year$
     transforms:
       - name: regionalPercentage
-        caption: percentage of tertiary enrolments[ aged $feature$]
     facets:
       - name: year
   - type: timeseries
-    title: tertiary enrolments[ aged $feature$], by year
     transforms:
       - name: percapita
-        caption: per capita tertiary enrolments
       - name: absolute
-        caption: tertiary enrolments
       - name: indexed
-        caption: tertiary enrolments, relative to $firstYear$
     order:
       - area
       - year
   - type: barchart
-    title: tertiary enrolments[ aged $feature$] from $area$, for $year$
     transforms:
       - name: absolute-tree
-        caption: tertiary enrolments
       - name: percentage-tree
-        caption: percentage of tertiary enrolments
     axis:
       - under-21-years
       - 21-24-years

@@ -1,6 +1,9 @@
 name: employment rate
 language-config:
   subject: employment rate
+  labels:
+    absolute: percentage of working-age population
+    absolute-tree: percentage of working-age population
 themes:
   - workforce
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/income-and-work/employment_and_unemployment/labour-market-statistics-information-releases.aspx" target="_blank">Household Labour Force Survey</a>.
@@ -26,25 +29,18 @@ valueType: aggregate
 absoluteLabel: employment
 charts:
   - type: map
-    title: >-
-      employment rate, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute
-        caption: percentage of working-age population
     facets:
       - name: year
   - type: timeseries
-    title: employment rate, by year
     transforms:
       - name: absolute
-        caption: percentage of working-age population
     order:
       - area
       - year
   - type: barchart
-    title: employment rate, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: percentage of working-age population
     facets:
       - name: year

@@ -1,6 +1,9 @@
 name: mean house value
 language-config:
   subject: mean house value
+  labels:
+    absolute: mean house value
+    indexed: mean house value, relative to $firstYear$
 themes:
   - housing
 source: QV.
@@ -27,20 +30,14 @@ valueType: aggregate
 absoluteLabel: value
 charts:
   - type: map
-    title: >-
-      house value, for $year$
     transforms:
       - name: absolute
-        caption: mean house value
     facets:
       - name: year
   - type: timeseries
-    title: house value, by year
     transforms:
       - name: absolute
-        caption: mean house value
       - name: indexed
-        caption: mean house value, relative to $firstYear$
         formatter: indexed
     order:
       - area

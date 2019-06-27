@@ -43,18 +43,8 @@ function negativeScale(colours, min, max, steps) {
 
 /*
  * Generates Map legend based on supplied width, height & scale data
- * @todo - replace scaledata with min / max values
  * */
-export default function(width, height, scaledata, steps = 100) {
-
-    // console.log('scale', scaledata);
-    let minimum = _.reduce(scaledata, function(m, v) {
-        return Math.min(m, v[0]);
-    }, Infinity);
-
-    let maximum = _.reduce(scaledata, function(m, v) {
-        return Math.max(m, v[0]);
-    }, 0);
+export default function(width, height, minimum, maximum, steps = 100) {
 
     // When we have comparision data, let's switch the scales.
     // if (none(this.get('bailiwick.compareArea'))) {

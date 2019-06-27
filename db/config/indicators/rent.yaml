@@ -1,6 +1,10 @@
 name: mean weekly rent
 language-config:
   subject: mean weekly rent
+  labels:
+    absolute-tree: mean weekly rent
+    absolute: mean weekly rent
+    indexed: mean weekly rent, relative to $firstYear$
 themes:
   - housing
 source: MBIE <a href="http://www.mbie.govt.nz/info-services/housing-property/sector-information-and-statistics/rental-bond-data" target="_blank">Tenancy Bond Database</a>.
@@ -28,32 +32,23 @@ valueType: aggregate
 absoluteLabel: rent
 charts:
   - type: map
-    title: >
-       weekly rent, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute
-        caption: mean weekly rent
     facets:
       - name: year
 
   - type: timeseries
-    title: weekly rent, by year
     transforms:
       - name: absolute
-        caption: mean weekly rent
       - name: indexed
-        caption: mean weekly rent, relative to $firstYear$
         formatter: indexed
     order:
       - area
       - year
 
   - type: barchart
-    title: >
-      weekly rent, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: mean weekly rent
     facets:
       - name: year
 

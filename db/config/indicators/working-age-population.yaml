@@ -1,6 +1,11 @@
 name: working age population
 language-config:
   subject: working age population
+  labels:
+    absolute-tree: working age population
+    absolute: working age population
+    indexed: working age population indexed to $firstYear$
+    rate: Percentage change in working age population between $prevYear$ and $year$
 themes:
   - workforce
 source: Statistics New Zealand <a href="http://archive.stats.govt.nz/browse_for_stats/income-and-work/employment_and_unemployment/hlfs-estimated-working-age-population-info-releases.aspx" target="_blank">Household Labour Force Survey Estimated Working-age Population</a>.
@@ -25,28 +30,20 @@ valueType: quantity
 absoluteLabel: working age population
 charts:
   - type: map
-    title: >-
-      working age population, for the year to $yearEndMonth$ $year$
     transforms:
       - name: rate
-        caption: Percentage change in working age population between $prevYear$ and $year$
     facets:
       - name: year
   - type: timeseries
-    title: working age population, by year
     transforms:
       - name: absolute
-        caption: working age population
       - name: indexed
-        caption: working age population indexed to $firstYear$
         formatter: indexed		  
     order:
       - area
       - year
   - type: barchart
-    title: working age population, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: working age population
     facets:
       - name: year

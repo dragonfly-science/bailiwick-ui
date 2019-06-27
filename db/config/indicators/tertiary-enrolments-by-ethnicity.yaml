@@ -3,6 +3,13 @@ language-config:
   subject: tertiary enrolments
   feature-accessor: identifying as
   subject-accessor: ""
+  labels:
+    absolute-tree: tertiary enrolments
+    absolute: all tertiary enrolments
+    indexed: all tertiary enrolments, relative to $firstYear$
+    percapita: per capita tertiary enrolments 
+    percentage-tree: percentage of tertiary enrolments
+    regionalPercentage: percentage of all tertiary enrolments identifying as $feature$
 themes:
   - education
 source: Tertiary Education Commission.
@@ -34,32 +41,22 @@ barchartLabelWidth: 140
 barchartTicks: 3
 charts:
   - type: map
-    title: >-
-      the percentage of all tertiary enrolments identifying as $feature$, for the year to $yearEndMonth$ $year$
     transforms:
       - name: regionalPercentage
-        caption: percentage of all tertiary enrolments identifying as $feature$
     facets:
       - name: year
   - type: timeseries
-    title: tertiary enrolments identifying as $feature$, by year
     transforms:
       - name: percapita
-        caption: per capita tertiary enrolments 
       - name: absolute
-        caption: all tertiary enrolments
       - name: indexed
-        caption: all tertiary enrolments, relative to $firstYear$
     order:
       - area
       - year
   - type: barchart
-    title: all tertiary enrolments identifying as $feature$ in $area$, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: tertiary enrolments
       - name: percentage-tree
-        caption: percentage of tertiary enrolments
     facets:
       - name: year
 

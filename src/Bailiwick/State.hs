@@ -30,6 +30,7 @@ data State t
     , regionD            :: Dynamic t (Maybe Area)
     , areaD              :: Dynamic t (Maybe Area)
     , featureD           :: Dynamic t (Maybe FeatureId)
+    , yearD              :: Dynamic t (Maybe Year)
     , indicatorD         :: Dynamic t (Maybe Indicator)
     , indicatorNumbersD  :: Dynamic t IndicatorNumbers
     }
@@ -74,6 +75,12 @@ make routeD store@Store{..} =
           ThemePageArgs{..} <- getThemePage route
           themePageFeatureId
 
+      yearD = do
+        route <- routeD
+        return $ do
+          ThemePageArgs{..} <- getThemePage route
+          return themePageYear
+
 
   in State
        { routeD             = routeD
@@ -81,6 +88,7 @@ make routeD store@Store{..} =
        , regionD            = fst <$> regta
        , areaD              = snd <$> regta
        , featureD           = featureD
+       , yearD              = yearD
        , indicatorD         = indicatorD
        , indicatorNumbersD  = indicatorNumbersD
        }
@@ -139,19 +147,18 @@ makeMapLegendState
   :: Reflex t
   => State t -> MapLegendState t
 makeMapLegendState State{..} =
-  -- TODO: we need to get the indicator numbers for the current route -
-  --  i.e. - areaId, year, maybe feature.
-  -- From there, we will need to sort indicator numbers & get the
-  -- min & max to pass to d3 to calculate the scale.
-  -- THIS MEANS REPLACING MapLengendState with 2 nums instead of a scale.
-  let indicatorScaleD = do
+  let scaleD = do
+        feature <- featureD
+        myear <- yearD
         mindicator <- indicatorD
         indicatorsData <- storeIndicatorsDataD store
         return $ do
+          year <- myear
           indid <- indicatorId <$> mindicator
           IndicatorData{..} <- OMap.lookup indid indicatorsData
-          return indicatorScale
-  in MapLegendState indicatorScaleD
+          let IndicatorScale scale = indicatorScale
+          OMap.lookup (year, feature) scale
+  in MapLegendState scaleD
 
 
 -- IndicatorChart state

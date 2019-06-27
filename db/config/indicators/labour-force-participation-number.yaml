@@ -1,6 +1,11 @@
 name: labour force participation number
 language-config:
   subject: labour force participation number
+  labels:
+    absolute-tree: labour force participation number
+    absolute: labour force participation number
+    indexed: labour force participation number indexed to $firstYear$
+    rate: Percentage change in labour force participation number between $prevYear$ and $year$
 themes:
   - workforce
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/income-and-work/employment_and_unemployment/labour-market-statistics-information-releases.aspx" target="_blank">Household Labour Force Survey</a>.
@@ -25,28 +30,20 @@ valueType: quantity
 absoluteLabel: labour force participation number
 charts:
   - type: map
-    title: >-
-      labour force participation number, for the year to $yearEndMonth$ $year$
     transforms:
       - name: rate
-        caption: Percentage change in labour force participation number between $prevYear$ and $year$
     facets:
       - name: year
   - type: timeseries
-    title: labour force participation number, by year
     transforms:
       - name: absolute
-        caption: labour force participation number
       - name: indexed
-        caption: labour force participation number indexed to $firstYear$
         formatter: indexed		  
     order:
       - area
       - year
   - type: barchart
-    title: labour force participation number, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: labour force participation number
     facets:
       - name: year

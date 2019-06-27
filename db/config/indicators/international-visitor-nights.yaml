@@ -2,6 +2,12 @@ name: international visitor nights
 language-config:
   subject: visitor nights
   feature-accessor: by visitors from
+  labels:
+    absolute-tree: number of visitor nights
+    absolute: number of visitor nights
+    indexed: visitor nights, relative to $firstYear$
+    percapita: visitor nights, per 10,000 residents
+    regionalPercentage: percentage of visitor nights
 themes:
   - tourism
 source: MBIE <a href="http://www.mbie.govt.nz/info-services/sectors-industries/tourism/tourism-research-data/ivs" target="_blank">International Visitor Survey</a>.
@@ -30,23 +36,16 @@ topFeatureLabel: all international origins
 rightChart: barchart
 charts:
   - type: map
-    title: >-
-      visitor nights from $feature$, for the year to $yearEndMonth$ $year$
     transforms:
       - name: regionalPercentage
-        caption: percentage of visitor nights
         formatter: percentage
     facets:
       - name: year
   - type: timeseries
-    title: visitor nights from $feature$, by year
     transforms:
       - name: absolute
-        caption: number of visitor nights
       - name: indexed
-        caption: visitor nights, relative to $firstYear$
       - name: percapita
-        caption: visitor nights, per 10,000 residents
     order:
       - area
       - year
@@ -55,6 +54,5 @@ charts:
     title: visitor nights in $area$, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: number of visitor nights
     facets:
       - name: year

@@ -3,6 +3,12 @@ language-config:
   subject-short: people employed
   subject-quantity: number
   feature-accessor: that work in
+  labels:
+    absolute-tree: number of people employed
+    absolute: number of people employed
+    indexed: employment relative to $firstYear$
+    percapita: employment per 10,000 people
+    regionalPercentage: percentage of employment that is in $feature$
 themes:
   - workforce
 source: MBIE Detailed Regional Employment Estimates.
@@ -33,30 +39,20 @@ featureName: industry
 barchartLabelWidth: 240
 charts:
   - type: map
-    title: >-
-      employment in $feature$, for the year to $yearEndMonth$ $year$
     transforms:
       - name: regionalPercentage
-        caption: percentage of employment that is in $feature$
     facets:
       - name: year
   - type: timeseries
-    title: employment in $feature$, by year
     transforms:
       - name: percapita
-        caption: employment per 10,000 people
       - name: absolute
-        caption: number of people employed
       - name: indexed
-        caption: employment relative to $firstYear$
     order:
       - area
       - year
-
   - type: barchart
-    title: employment in $feature$ in $area$, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: number of people employed
     facets:
       - name: year

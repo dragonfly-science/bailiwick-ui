@@ -1,6 +1,10 @@
 name: labour force participation rate
 language-config:
   subject: labour force participation rate
+  labels:
+    absolute-tree: percentage of the working-age population
+    absolute: percentage of the working-age population
+    indexed: labour force participation rate, relative to $firstYear$
 themes:
   - workforce
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/income-and-work/employment_and_unemployment/labour-market-statistics-information-releases.aspx" target="_blank">Household Labour Force Survey</a>.
@@ -27,27 +31,19 @@ valueType: aggregate
 absoluteLabel: rate
 charts:
   - type: map
-    title: >-
-      labour force participation, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute
-        caption: percentage of the working-age population
     facets:
       - name: year
   - type: timeseries
-    title: labour force participation, by year
     transforms:
       - name: absolute
-        caption: percentage of the working-age population
       - name: indexed
-        caption: labour force participation rate, relative to $firstYear$
     order:
       - area
       - year
   - type: barchart
-    title: labour force participation, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: percentage of the working-age population
     facets:
       - name: year

@@ -1,6 +1,10 @@
 name: internet
 language-config:
-  subject: households with internet access 
+  subject: households with internet access
+  labels:
+    absolute-tree: percentage of households
+    absolute: percentage of households
+    indexed: proportion of households, relative to $firstYear$
 themes:
   - social & income
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/Census.aspx">Census data</a>.
@@ -26,29 +30,20 @@ absoluteLabel: Internet
 period: 7
 charts:
   - type: map
-    title: >-
-      households with internet access, for $year$
     transforms:
       - name: absolute
-        caption: percentage of households
         formatter: percentage
     facets:
       - name: year
   - type: timeseries
-    title: change in internet access
     transforms:
       - name: absolute
-        caption: percentage of households
       - name: indexed
-        caption: proportion of households, relative to $firstYear$
     order:
       - area
       - year
-
   - type: barchart
-    title: households with internet access, for $year$
     transforms:
       - name: absolute-tree
-        caption: percentage of households
     facets:
       - name: year

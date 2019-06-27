@@ -1,6 +1,11 @@
 name: unemployment number
 language-config:
   subject: unemployment number
+  labels:
+    absolute-tree: unemployment number
+    absolute: unemployment number
+    indexed: unemployment number indexed to $firstYear$
+    rate: Percentage change in unemployment number between $prevYear$ and $year$
 themes:
   - workforce
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/income-and-work/employment_and_unemployment/labour-market-statistics-information-releases.aspx" target="_blank">Household Labour Force Survey</a>.
@@ -25,28 +30,20 @@ valueType: quantity
 absoluteLabel: unemployment number
 charts:
   - type: map
-    title: >-
-      unemployment number, for the year to $yearEndMonth$ $year$
     transforms:
       - name: rate
-        caption: Percentage change in unemployment number between $prevYear$ and $year$
     facets:
       - name: year
   - type: timeseries
-    title: unemployment number, by year
     transforms:
       - name: absolute
-        caption: unemployment number
       - name: indexed
-        caption: unemployment number indexed to $firstYear$
         formatter: indexed		  
     order:
       - area
       - year
   - type: barchart
-    title: unemployment number, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: unemployment number
     facets:
       - name: year
