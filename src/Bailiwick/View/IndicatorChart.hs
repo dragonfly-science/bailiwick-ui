@@ -12,6 +12,7 @@ module Bailiwick.View.IndicatorChart
 import Control.Monad (join, void)
 import Data.Maybe (fromMaybe)
 import qualified Data.HashMap.Strict.InsOrd as OMap
+import Data.Map.Internal as IMap
 import Data.Text (Text)
 import Debug.Trace
 
@@ -22,6 +23,7 @@ import Reflex.Dom.Core
 import Bailiwick.Javascript
 import Bailiwick.Route
 import Bailiwick.Types
+import Bailiwick.View.Text (textSubstitution)
 
 data IndicatorChartState t
   = IndicatorChartState
@@ -138,14 +140,31 @@ indicatorChart IndicatorChartState{..} zoomD = do
         indicator <- indicatorD
         featureId <- _featureId
         zoom <- zoomD
+        page <- pageD
 
-        return (indn, my, indID, indicator, areas, area, areatype, transform, chartType, join featureId, zoom)
+        let chartLabel = textSubstitution area Nothing indicator (join featureId) page
+        let textLabel = "label"
+        -- let textLabel = case indicator of
+        --         Just i -> do
+        --             let config = indicatorLanguageConfig i
+        --                 captions = langCaptions config
+                    
+        --             -- "caption..."
+        --             case captions of
+        --                 Just c -> do
+        --                     let chartLabelToUse = IMap.lookup transform c
+
+        --                     "Caption"
+        --                 Nothing -> "no caption..."
+        --         Nothing -> "Non string"
+
+        return (indn, my, indID, indicator, areas, area, areatype, transform, chartType, join featureId, zoom, textLabel)
 
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
   updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId,
                       Maybe Indicator, Maybe Areas, Maybe Area, Maybe Text,
-                      Maybe Text, Maybe ChartId, Maybe FeatureId, Bool)
+                      Maybe Text, Maybe ChartId, Maybe FeatureId, Bool, Text)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
 
@@ -158,7 +177,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
         Nothing ->                           "updateIndicatorTimeSeries"
 
   performEvent_ $ ffor updateE $ \case
-    (indn, my, indID, indicator, areas, area, areatype, transform, chartType, featureId, zoomD)
+    (indn, my, indID, indicator, areas, area, areatype, transform, chartType, featureId, zoomD, label)
       -> liftJSM . void
           $ do
             let areaname = maybe "" areaName area
@@ -175,6 +194,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
             let zoomed = case zoomD of
                     True -> "true"
                     False -> "false"
+            -- chartLabel text...
             args <- makeJSObject
                      [ ("indictorId",  (unIndicatorId <$> indID))
                      , ("transform",   transform)
@@ -185,7 +205,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
                      , ("zoom",        Just zoomed)
                      ]
             jsg2 ((getJSChartType chartType) :: Text) (_element_raw e)
-                 (shapeData areas indn, my, args, features, chart)
+                 (shapeData areas indn, my, args, features, chart, label)
 
   clickE :: Event t (Maybe Message)
     <- clickEvents e $ \svg -> do
