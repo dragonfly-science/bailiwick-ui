@@ -99,15 +99,15 @@ indicatorChart IndicatorChartState{..} zoomD = do
         --                 let inpAttrD switchD = ffor switchD $ \case
         --                         True  -> ("type" =: "checkbox" <> "class" =: "checked")
         --                         False -> ("type" =: "checkbox")
-        --                 (eZoomIn, _) <- 
+        --                 (eZoomIn, _) <-
         --                     el "label" $ do
         --                         elAttr "input" ("type" =: "checkbox") $ return ()
         --                         elClass' "span" "zoom-in" $ return ()
-        --                 (eZoomOut, _) <- 
+        --                 (eZoomOut, _) <-
         --                     el "label" $ do
         --                         elAttr "input" ("type" =: "checkbox") $ return ()
         --                         elClass' "span" "zoom-out" $ return ()
-                        
+
         --                 return $ leftmost [ tagPromptlyDyn
         --                                         (RightZoomOut . fmap areaId <$> areaD)
         --                                         (domEvent Click eZoomOut)
@@ -115,7 +115,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
         --                                 ]
         --         _ -> return never
         --     Nothing -> return never
-       
+
         divClass "d3-attach" $ return ()
         divClass "tooltip" $ return ()
         divClass "legend" $ return ()
@@ -181,7 +181,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
       -> liftJSM . void
           $ do
             let areaname = maybe "" areaName area
-            let units = maybe Percentage indicatorUnits indicator
+            let _units = maybe Percentage indicatorUnits indicator
             let features = case indicator of
                     Just a ->
                         maybe [] OMap.toList (indicatorFeatureText a)

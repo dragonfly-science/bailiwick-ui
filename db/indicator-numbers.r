@@ -75,11 +75,10 @@ for (indid in names(indicators)) {
   max.range <- max(range)
   values[,min.range:=min.range]
   values[,max.range:=max.range]
-  values[!is.na(Value), colour := colour.teal(Value, min.range, max.range)]
 
   # index value
-    values[values[, .(firstValue = first(Value)), by=.(AreaID, Dimension1, Dimension2)],
-           index := Value/firstValue*100, on=.(AreaID, Dimension1, Dimension2)]
+  values[values[, .(firstValue = first(Value)), by=.(AreaID, Dimension1, Dimension2)],
+         index := Value/firstValue*100, on=.(AreaID, Dimension1, Dimension2)]
 
   summarynumbers <-
       values[,
@@ -89,15 +88,13 @@ for (indid in names(indicators)) {
           headline  = formatValue(unit, Value),
           local     = localformat(unit, previous, Value),
           national  = nationalformat(unit, national, Value),
-          colour    = colour,
           rawvalue  = formatValue('', Value),
           index     = formatValue('', index),
           indexDisp = formatValue('count', index)
           )]
 
-  colourscale <- lapply(seq(min(range), max(range), length.out=100), function(val) {
-    list(val, if(val %in% range) { formatValue(unit,val) } else {NULL}, colour.teal(val,min.range, max.range))
-  })
+  colourscale <- values[, .(minval = min(Value), maxval = max(Value)),
+                          .(year=Year, feature=slugify(Dimension1), detail=slugify(Dimension2))]
 
   cat(as.character(toJSON(list(scale=colourscale, numbers=summarynumbers),
                           null='null', auto_unbox=TRUE)), file=outputfile)
