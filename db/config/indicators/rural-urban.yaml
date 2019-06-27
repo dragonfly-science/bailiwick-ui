@@ -3,6 +3,11 @@ language-config:
   subject-quantity: proportion
   subject-short: the population
   feature-as-subject-label: true
+  labels:
+    absolute-tree: Percentage of the population
+    absolute: urban proportion (percentage)
+    difference: percentage change
+    indexed: urban proportion (relative to $firstYear$)
 themes:
   - population
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/Maps_and_geography/Geographic-areas/urban-rural-profile.aspx" target="_blank">Urban/Rural Profile</a> and  <a href="http://www.stats.govt.nz/browse_for_stats/population/estimates_and_projections.aspx" target="_blank">Population Estimates</a>.
@@ -27,27 +32,19 @@ valueType: aggregate
 absoluteLabel: percent
 charts:
   - type: map
-    title: >-
-      change in the $feature$ proportion of the population, between 30 June $prevYear$ and $year$
     transforms:
       - name: difference
-        caption: percentage change
     facets:
       - name: year
   - type: timeseries
-    title: $feature$ proportion of the population, by year
     transforms:
       - name: absolute
-        caption: urban proportion (percentage)
       - name: indexed
-        caption: urban proportion (relative to $firstYear$)
     order:
       - area
       - year
   - type: barchart
-    title: Rural-urban profile of the population in $area$, at 30 June $year$
     transforms:
       - name: absolute-tree
-        caption: Percentage of the population
     facets:
       - name: year

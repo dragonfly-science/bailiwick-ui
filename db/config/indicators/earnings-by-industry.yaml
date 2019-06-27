@@ -2,6 +2,10 @@ name: earnings by industry
 language-config:
   subject: median annual earnings
   subject-short: median
+  labels:
+    absolute-tree: Median annual earnings
+    absolute: Median annual earnings
+    indexed: Median annual earnings, indexed to $firstYear$
 themes:
   - social & income
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/leed" target="_blank">Linked Employer-Employee Data</a>.
@@ -33,29 +37,21 @@ absoluteLabel: Earnings
 barchartLabelWidth: 240
 charts:
   - type: map
-    title: >-
-      earnings [in $feature$,] for $year$
     transforms:
       - name: absolute
-        caption: Median annual earnings
     facets:
       - name: year
   - type: timeseries
-    title: change in earnings [in $feature$]
     transforms:
       - name: absolute
-        caption: Median annual earnings
       - name: indexed
-        caption: Median annual earnings, indexed to $firstYear$
         formatter: indexed
     order:
       - area
       - year
 
   - type: barchart
-    title: median earnings in $area$, for $year$
     transforms:
       - name: absolute-tree
-        caption: Median annual earnings
     facets:
       - name: year

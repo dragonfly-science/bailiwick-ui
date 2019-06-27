@@ -3,6 +3,10 @@ language-config:
   subject: population
   feature-accessor: in the
   feature-label: age group
+  labels:
+    absolute-tree: Percentage of people
+    absolute: Percentage of people
+    indexed: Percentage of people, relative to $firstYear$
 themes:
   - population
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/population/estimates_and_projections/subnational-pop-estimates-tables.aspx" target="_blank">Subnational Population Estimates</a>.
@@ -35,31 +39,21 @@ featureOrder:
   - 65-years-and-over
 charts:
   - type: map
-    title: >-
-      People in the $feature$ age group, at 30 June $year$
     transforms:
       - name: absolute
-        caption: Percentage of people
     facets:
       - name: year
   - type: timeseries
-    title: people in the $feature$ age group, by year
     transforms:
       - name: absolute
-        caption: Percentage of people
       - name: indexed
-        caption: Percentage of people,  relative to $firstYear$
     order:
       - area
       - year
 
   - type: barchart
-    title: >-
-      people in each age group
-      in $area$, at 30 June $year$
     transforms:
       - name: absolute-tree
-        caption: Percentage of people
     facets:
       - name: year
     axis:

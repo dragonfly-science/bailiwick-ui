@@ -1,6 +1,11 @@
 name: population projections
 language-config:
   subject: projected resident population
+  labels:
+    absolute-tree: resident population
+    absolute: resident population
+    indexed: resident population, relative to $firstYear$
+    rate: Percentage change in population
 themes:
   - population
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/population/estimates_and_projections/subnational-population-projections-info-releases.aspx" target="_blank">Subnational Population Projections (2013 base)</a>.
@@ -29,27 +34,19 @@ period: 5
 primaryYear: "2018"
 charts:
   - type: map
-    title: >-
-      projected change in population, between 30 June $prevYear$ and $year$
     transforms:
       - name: rate
-        caption: Percentage change in population       
     facets:
       - name: year
   - type: timeseries
-    title: projected population, by year
     transforms:
       - name: indexed
-        caption: resident population, relative to $firstYear$
       - name: absolute
-        caption: resident population
     order:
       - area
       - year
   - type: barchart
-    title: projected population, at 30 June $year$
     transforms:
       - name: absolute-tree
-        caption: resident population
     facets:
       - name: year

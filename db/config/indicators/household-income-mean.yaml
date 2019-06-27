@@ -1,6 +1,10 @@
 name: household income (mean)
 language-config:
   subject: mean annual household income
+  labels:
+    absolute-tree: mean annual household income
+    absolute: mean annual household income
+    indexed: mean annual household income, relative to $firstYear$
 themes:
   - social & income
 headerTitle: mean household income in $area$
@@ -27,36 +31,25 @@ valueType: aggregate
 absoluteLabel: income
 charts:
   - type: map
-    title: >
-      mean annual household income, for $year$
     transforms:
       - name: absolute
         formatter: dollars
-        caption: mean annual household income
     facets:
       - name: year
 
   - type: timeseries
-    title: >
-      mean annual household income, by year
     transforms:
       - name: absolute
-        caption: mean annual household income
         formatter: dollars
       - name: indexed
-        caption: mean annual household income, relative to $firstYear$
         formatter: indexed
-
     order:
       - area
       - year
 
   - type: barchart
-    title: >
-      mean annual household income, for $year$
     transforms:
       - name: absolute-tree
-        caption: mean annual household income
         formatter: dollars
     facets:
       - name: year

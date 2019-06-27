@@ -2,6 +2,9 @@ name: national standards achievement
 language-config:
   subject: national standards achievement rate
   subject-quantity: rate
+  labels:
+    absolute-tree: percentage of students achieving at or above standard
+    absolute: percentage of students achieving at or above standard
 themes:
   - education
 headerTitle: national standards achievement [in $feature$] in $area$
@@ -31,18 +34,13 @@ absoluteLabel: achievement
 rightChart: barchart
 charts:
   - type: map
-    title: >-
-      national standards achievement [in $feature$] for $year$
     transforms:
       - name: absolute
-        caption: percentage of students achieving at or above standard
     facets:
       - name: year
 
   - type: barchart
-    title: national standards achievement[ in $feature$], in $area$,  for $year$
     transforms:
       - name: absolute-tree
-        caption: percentage of students achieving at or above standard
     facets:
       - name: year

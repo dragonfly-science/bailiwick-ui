@@ -1,6 +1,11 @@
 name: NEET number
 language-config:
   subject: NEET number
+  labels:
+    absoltute-tree: NEET number
+    absolute: NEET number
+    indexed: NEET number indexed to $firstYear$
+    rate: Percentage change in NEET number between $prevYear$ and $year$
 themes:
   - workforce
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/income-and-work/employment_and_unemployment/labour-market-statistics-information-releases.aspx" target="_blank">Household Labour Force Survey</a>.
@@ -25,28 +30,20 @@ valueType: quantity
 absoluteLabel: NEET number
 charts:
   - type: map
-    title: >-
-      NEET number, for the year to $yearEndMonth$ $year$
     transforms:
       - name: rate
-        caption: Percentage change in NEET number between $prevYear$ and $year$
     facets:
       - name: year
   - type: timeseries
-    title: NEET number, by year
     transforms:
       - name: absolute
-        caption: NEET number
       - name: indexed
-        caption: NEET number indexed to $firstYear$
         formatter: indexed		  
     order:
       - area
       - year
   - type: barchart
-    title: NEET number, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: NEET number
     facets:
       - name: year

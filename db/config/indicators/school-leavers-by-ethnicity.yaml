@@ -2,6 +2,12 @@ name: school leavers by ethnicity
 language-config:
   subject: school leavers
   feature-accessor: identifying as
+  labels:
+    absolute-tree: school leavers in $area$
+    absolute: school leavers identifying as $feature$ in $area$
+    indexed: school leavers identifying as $feature$ in $area$, relative to $firstYear$
+    percentage-tree: Percentage of school leavers in $area$
+    regionalPercentage: Percentage of school leavers identifying as $feature$
 themes:
   - education
 source: Ministry of Education <a href="http://www.educationcounts.govt.nz/statistics/schooling/senior-student-attainment/school-leavers2" target="_blank">Senior Student Attainment School Leavers</a>.
@@ -33,30 +39,21 @@ featureDropdownLabel: select an ethnicity
 rightChart: barchart
 charts:
   - type: map
-    title: >-
-      Percentage of school leavers identifying as $feature$ in $area$ for the year to $yearEndMonth$ $year$
     transforms:
       - name: regionalPercentage
-        caption: Percentage of school leavers identifying as $feature$
     facets:
       - name: year
   - type: timeseries
-    title: school leavers identifying as $feature$ in $area$, by year
     transforms:
       - name: absolute
-        caption: school leavers identifying as $feature$ in $area$
       - name: indexed
-        caption: school leavers identifying as $feature$ in $area$, relative to $firstYear$ 
     order:
       - area
       - year
   - type: barchart
-    title: school leavers in $area$, for $year$
     transforms:
       - name: absolute-tree
-        caption: school leavers in $area$
       - name: percentage-tree
-        caption: Percentage of school leavers in $area$
     facets:
       - name: year
 

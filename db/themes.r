@@ -21,6 +21,8 @@ setkey(REARdb_Source, DatasetID)
 setDT(REARdb_Data)
 setkey(REARdb_Data, DatasetID)
 
+langKeys <- list()
+
 themes <- yaml.load_file(themesfile)
 indicatorsdir <- paste0(dirname(themesfile),'/indicators/')
 indicators <-
@@ -93,9 +95,21 @@ indicators <-
 
       , "years"                = years                                         # :: [Int]
       , "charts"               = indicator$charts
+      , "languageConfig"       = indicator$'language-config'
       ))
   })
 names(indicators) <- sapply(indicators, function(ind) ind$name)
+
+#
+# Get unique keys for indicator language config.
+#
+# keys <-
+#   lapply(list.files(indicatorsdir, '*.yaml'), function (indicatorfile) {
+#     indicator <- yaml.load_file(paste0(indicatorsdir, indicatorfile))
+#     names(indicator$'language-config')
+#   })
+
+# print(unique(unlist(keys)))
 
 cat(as.character(toJSON(
     list("themes" =
@@ -115,5 +129,3 @@ cat(as.character(toJSON(
           )
       })), auto_unbox=TRUE, null="null"))
     , file=outputfile)
-
-

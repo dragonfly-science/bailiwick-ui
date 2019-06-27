@@ -3,7 +3,11 @@ language-config:
   subject: annual actual retail sales values
   labels:
       original: annual actual retail sales values in millions of dollars
+      absolute: annual actual retail sales values in millions of dollars
+      indexed: annual actual retail sales values indexed to $firstYear$
+      absolute-tree: annual actual retail sales values
       ratio-nz: Percentage change in annual actual retail sales values between $prevYear$ and $year$
+      rate: Percentage change in annual actual retail sales values between $prevYear$ and $year$
 themes:
   - economic
 source: Statistics New Zealand <a href="https://www.stats.govt.nz/information-releases/retail-trade-survey-march-2018-quarter" target="_blank">Retail Trade Survey</a> custom dataset.
@@ -30,29 +34,20 @@ valueType: aggregate
 absoluteLabel: Actual values
 charts:
   - type: map
-    title: >-
-      annual actual retail sales values, for the year to $yearEndMonth$ $year$
     transforms:
       - name: rate
-        caption: Percentage change in annual actual retail sales values between $prevYear$ and $year$
     facets:
       - name: year
   - type: timeseries
-    title: Change in annual actual retail sales values, for the year to $yearEndMonth$
     transforms:
       - name: absolute
-        caption: annual actual retail sales values in millions of dollars
       - name: indexed
-        caption: annual actual retail sales values indexed to $firstYear$
         formatter: indexed
     order:
       - area
       - year
-
   - type: barchart
-    title: annual actual retail sales values, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: annual actual retail sales values
     facets:
       - name: year

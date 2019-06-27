@@ -2,6 +2,12 @@ name: new car registrations
 language-config:
   subject-quantity: number
   subject-short: new cars first registered
+  labels:
+    rate: percentage change
+    percapita: car registrations per 10,000 people
+    absolute: number of car registrations
+    absolute-tree: number of car registrations
+    indexed: number of car registrations, relative to $firstYear$
 themes:
   - economic
 source: NZTA <a href="http://www.nzta.govt.nz/resources/registration-statistics/" target="_blank">car registrations</a>.
@@ -25,33 +31,20 @@ tooltipExtra: new cars registered
 absoluteLabel: Cars
 charts:
   - type: map
-    title: >
-      change in new car registrations between $prevYear$ and $year$
     transforms:
       - name: rate
-        caption: percentage change
     facets:
       - name: year
-
   - type: timeseries
-    title: >
-      new car registrations, by year
     transforms:
       - name: percapita
-        caption: car registrations per 10,000 people
       - name: absolute
-        caption: number of car registrations
       - name: indexed
-        caption: number of car registrations, relative to $firstYear$
     order:
       - area
       - year
-
   - type: barchart
-    title: >
-      new car registrations, for $year$
     transforms:
       - name: absolute-tree
-        caption: number of car registrations
     facets:
       - name: year

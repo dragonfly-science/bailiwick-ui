@@ -2,6 +2,10 @@ name: income estimates by age
 language-config:
   subject: Median Income Estimates by age group
   subject-short: median annual income
+  labels:
+    absolute-tree: Median Annual Income
+    absolute: Median Annual Income
+    indexed: Median Annual Income, indexed to $firstYear$
 themes:
   - social & income
 source: Stats NZ <a href="http://innovation.stats.govt.nz/initiatives/experimental-estimates-of-income-from-linked-administrative-data-methods-and-results/" target="_blank">Experimental estimates of income from linked administrative data</a>.
@@ -44,30 +48,21 @@ featureOrder:
   - all-age-groups-above-15
 charts:
   - type: map
-    title: >-
-      Median annual income [of people in $feature$], for $year$
     transforms:
       - name: absolute
-        caption: Median Annual Income
     facets:
       - name: year
   - type: timeseries
-    title: change in median annual income [of people in $feature$]
     transforms:
       - name: absolute
-        caption: Median Annual Income
       - name: indexed
-        caption: Median Annual Income, indexed to $firstYear$
         formatter: indexed
     order:
       - area
       - year
-
   - type: barchart
-    title: Median Annual Income [of people in $feature$] in $area$, in $year$
     transforms:
       - name: absolute-tree
-        caption: Median Annual Income
     facets:
       - name: year
     axis:

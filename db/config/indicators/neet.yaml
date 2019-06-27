@@ -1,6 +1,10 @@
 name: NEET rate
 language-config:
   subject: NEET rate
+  labels:
+    absolute-tree: percentage of youth aged 15 to 24 years
+    absolute: percentage of youth aged 15 to 24 years
+    indexed: NEET rate, relative to $firstYear$
 themes:
   - workforce
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/income-and-work/employment_and_unemployment/labour-market-statistics-information-releases.aspx" target="_blank">Household Labour Force Survey</a>.
@@ -27,27 +31,19 @@ valueType: aggregate
 absoluteLabel: percent
 charts:
   - type: map
-    title: >-
-      youth not in employment, education or training, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute
-        caption: percentage of youth aged 15 to 24 years
     facets:
       - name: year
   - type: timeseries
-    title: youth not in employment, education or training, by year
     transforms:
       - name: absolute
-        caption: percentage of youth aged 15 to 24 years
       - name: indexed
-        caption: NEET rate, relative to $firstYear$
     order:
       - area
       - year
   - type: barchart
-    title: youth not in employment, education or training, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: percentage of youth aged 15 to 24 years
     facets:
       - name: year

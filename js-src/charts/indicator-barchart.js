@@ -388,10 +388,12 @@ export default function (element, params) {
             });
     }
 
+    console.log('Hi', y, y.rangeBand())
+
     bar
         .attr("y", function (d) { return y(d.name); })
-        .attr("height", y.rangeBand())
-        .attr("x", function (d) { return 1; })
+        .attr("height", Math.abs(y.rangeBand()))
+        .attr("x", 1)
         .attr("width", function (d) { return x(d.value) + 1; })
         .classed("active", function (d) {
             if (feature !== null) {

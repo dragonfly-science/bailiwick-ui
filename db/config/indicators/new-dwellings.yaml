@@ -1,6 +1,10 @@
 name: new dwellings
 language-config:
   subject: number of new dwelling consents per 10,000 people
+  labels:
+    absolute-tree: absolute-tree
+    absolute: number of consents per 10,000 people
+    indexed: new dwelling consents per 10,000 people, relative to $firstYear$
 themes:
   - housing
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/industry_sectors/Construction/building-consents-issued-info-releases.aspx" target="_blank">Building Consents Issued</a> and <a href="http://www.stats.govt.nz/browse_for_stats/population/estimates_and_projections/subnational-population-estimates-info-releases.aspx" target="_blank">Subnational Population Estimates</a>.
@@ -26,19 +30,14 @@ absoluteLabel: per 10,000
 rightChart: barchart
 charts:
   - type: map
-    title: new dwelling consents, for $year$
     transforms:
       - name: absolute
-        caption: number of consents per 10,000 people
     facets:
       - name: year
   - type: timeseries
-    title: new dwelling consents, by year
     transforms:
       - name: absolute
-        caption: new dwelling consents per 10,000 people
       - name: indexed
-        caption: new dwelling consents per 10,000 people, relative to $firstYear$
     order:
       - area
       - year
@@ -46,6 +45,5 @@ charts:
     title: new dwelling consents, for $year$
     transforms:
       - name: absolute-tree
-        caption: new dwelling consents per 10,000 people
     facets:
       - name: year

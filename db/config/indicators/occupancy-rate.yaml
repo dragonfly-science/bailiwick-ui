@@ -2,6 +2,10 @@ name: accommodation occupancy rate
 language-config:
   subject: annual average accommodation occupancy rate
   subject-quantity: rate
+  labels:
+    absolute-tree: percentage occupancy
+    absolute: percentage occupancy
+    indexed: occupancy, relative to $year$
 themes:
   - tourism
 headerTitle: accommodation occupancy rate in $area$
@@ -26,28 +30,19 @@ valueType: aggregate
 absoluteLabel: Rate
 charts:
   - type: map
-    title: >-
-      accommodation occupancy rate, for $year$
     transforms:
       - name: absolute
-        caption: percentage occupancy
     facets:
       - name: year
   - type: timeseries
-    title: accommodation occupancy rate, by year
     transforms:
       - name: absolute
-        caption: percentage occupancy
       - name: indexed
-        caption: occupancy, relative to $year$
     order:
       - area
       - year
-
   - type: barchart
-    title: accommodation occupancy rate, for $year$
     transforms:
       - name: absolute-tree
-        caption: percentage occupancy
     facets:
       - name: year

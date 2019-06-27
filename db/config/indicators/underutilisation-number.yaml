@@ -1,6 +1,11 @@
 name: underutilisation number
 language-config:
   subject: underutilisation number
+  labels:
+    absolute-tree: underutilisation number
+    absolute: underutilisation number
+    indexed: underutilisation number indexed to $firstYear$
+    rate: Percentage change in underutilisation number between $prevYear$ and $year$
 themes:
   - workforce
 source: Statistics New Zealand <a href="http://www.stats.govt.nz/browse_for_stats/income-and-work/employment_and_underutilisation/labour-market-statistics-information-releases.aspx" target="_blank">Household Labour Force Survey</a>.
@@ -25,28 +30,20 @@ valueType: quantity
 absoluteLabel: underutilisation number
 charts:
   - type: map
-    title: >-
-      underutilisation number, for the year to $yearEndMonth$ $year$
     transforms:
       - name: rate
-        caption: Percentage change in underutilisation number between $prevYear$ and $year$
     facets:
       - name: year
   - type: timeseries
-    title: underutilisation number, by year
     transforms:
       - name: absolute
-        caption: underutilisation number
       - name: indexed
-        caption: underutilisation number indexed to $firstYear$
         formatter: indexed		  
     order:
       - area
       - year
   - type: barchart
-    title: underutilisation number, for the year to $yearEndMonth$ $year$
     transforms:
       - name: absolute-tree
-        caption: underutilisation number
     facets:
       - name: year

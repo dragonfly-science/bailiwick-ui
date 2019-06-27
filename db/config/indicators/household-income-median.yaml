@@ -1,6 +1,10 @@
 name: household income (median)
 language-config:
   subject: median annual household income
+  labels:
+    absolute-tree: median annual household income
+    absolute: median annual household income
+    indexed: median annual household income, relative to $firstYear$
 themes:
   - social & income
 headerTitle: median household income in $area$
@@ -27,24 +31,16 @@ valueType: aggregate
 absoluteLabel: median income
 charts:
   - type: map
-    title: >
-      median annual household income, for $year$
     transforms:
       - name: absolute
         formatter: dollars
-        caption: median annual household income
     facets:
       - name: year
-
   - type: timeseries
-    title: >
-      median annual household income, by year
     transforms:
       - name: absolute
-        caption: median annual household income
         formatter: dollars
       - name: indexed
-        caption: median annual household income, relative to $firstYear$
         formatter: indexed
 
     order:
@@ -52,11 +48,8 @@ charts:
       - year
 
   - type: barchart
-    title: >
-      median annual household income, for $year$
     transforms:
       - name: absolute-tree
-        caption: median annual household income
         formatter: dollars
     facets:
       - name: year
