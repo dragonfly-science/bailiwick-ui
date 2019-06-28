@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -19,7 +20,7 @@ import qualified Data.HashMap.Strict.InsOrd as OMap
 import qualified Data.Vector as V
 
 import qualified Language.Javascript.JSaddle as JS
-import GHCJS.DOM.Types ()
+import GHCJS.DOM.Types (FromJSString)
 
 import GHC.Generics
 
@@ -301,6 +302,12 @@ newtype FeatureId = FeatureId { featureIdText :: Text }
              FromJSONKey, FromJSON, IsString, JS.ToJSVal)
 
 instance FromJSONKey (Maybe FeatureId)
+instance JS.FromJSVal FeatureId
+#ifdef ghcjs_HOST_OS
+instance JS.PFromJSVal FeatureId where
+    pFromJSVal val = FeatureId (JS.pFromJSVal val)
+#endif
+instance GHCJS.DOM.Types.FromJSString FeatureId
 
 data Feature = Feature
   { featureId     :: FeatureId

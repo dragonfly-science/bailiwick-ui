@@ -10,7 +10,7 @@ module Bailiwick.View.IndicatorChart
 ) where
 
 import Control.Monad (join, void)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isJust)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import qualified Data.Map as Map
 import Data.Text (Text)
@@ -230,9 +230,10 @@ indicatorChart IndicatorChartState{..} zoomD = do
               return (SetYearArea <$> year <*> area)
            "rect" -> do
               area <- DOM.getAttribute svg ("data-bailiwick-area"::Text)
-            --   feature <- DOM.getAttribute svg ("data-bailiwick-feature"::Text)
-
-              return (SetSubArea <$> area)
+              feature <- DOM.getAttribute svg ("data-bailiwick-feature"::Text)
+              if isJust feature
+                then return (SetFeature <$> feature)
+                else return (SetSubArea <$> area)
            "text" -> do
               yeart <- DOM.getAttribute svg ("data-bailiwick-year"::Text)
               let year = read <$> yeart
