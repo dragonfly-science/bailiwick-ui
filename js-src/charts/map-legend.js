@@ -6,6 +6,10 @@ import rgbHex from 'rgb-hex';
 import { computeTicks, getColours } from '../utils/utils'
 
 function positiveScale(colours, min, max) {
+    if (_.isEmpty(colours)) {
+        return null;
+    }
+    
     var startColour = colours['background-rear-positive-light'],
         endColour = colours['background-rear-positive'];
 

@@ -73,13 +73,7 @@ mapLegend MapLegendState{..} = do
   let updateValuesE = updated jsargs
   updateE :: Event t (Maybe (Double, Double), Text)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
-    
---   performEvent $ ffor (fmapMaybeCheap id updateE) $ \(minval, maxval) ->
---     liftJSM $ do
-      
---       scaleVal <- jsg4 ("updateMapLegend" :: Text) width height minval maxval
---       scale <- valToObject scaleVal
---       return (ScaleFunction scale)
+
   performEvent $ ffor updateE $ \case
     (inputValues, label) 
       -> liftJSM $ do
