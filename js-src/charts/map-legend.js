@@ -79,7 +79,6 @@ export default function(width, height, minimum, maximum, steps = 100) {
         .style("stroke", function (d) { return positive(x.invert(d[0])); });
 
     g.selectAll(".caption").remove();
-    console.log("Here I am! ", extent);
 
     let xa = g.call(xAxis);
     xa.append("text")

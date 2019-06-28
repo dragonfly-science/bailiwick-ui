@@ -850,6 +850,7 @@ updateMapIndicator svgBody mapD scaleFunctionD = do
   mapE <- attachPrevious $
            leftmost [ updated mapD
                     , tagPromptlyDyn mapD postBuild
+                    , tagPromptlyDyn mapD (updated scaleFunctionD)
                     ]
   let mapWithScaleE = attachPromptlyDyn scaleFunctionD mapE
 
