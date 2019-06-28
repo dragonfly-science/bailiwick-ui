@@ -8,6 +8,7 @@ module Bailiwick.View.Indicators (
   , IndicatorState(..)
 ) where
 
+import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import Data.Traversable (forM)
 
@@ -87,6 +88,7 @@ makeGoto Indicator{..} routeD = do
                             then y
                             else maximum indicatorYears
                 Nothing -> maximum indicatorYears
+      areatype = themePageAreaType <$> getThemePage route
   return $
     GoTo (ThemePage $ ThemePageArgs
                       indicatorId
@@ -95,6 +97,6 @@ makeGoto Indicator{..} routeD = do
                       year
                       (FeatureId <$> indicatorDefaultFeature)
                       Nothing
-                      "reg"
+                      (fromMaybe "reg" areatype)
                       "indexed"
                       "indexed")
