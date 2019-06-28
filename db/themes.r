@@ -81,7 +81,8 @@ indicators <-
       , "yearEndMonth"         = formatYearEndMonth(sources$YrEndingMth)       # :: Maybe Text
       , "featureText"          = fromMaybe(as.list(features),
                                            indicator$featureText)              # :: Map FeatureId Text
-      , "firstYear"            = fromMaybe("2018", indicator$firstYear)        # :: Text
+      , "firstYear"            = toString(min(years))
+      #fromMaybe("2018", indicator$firstYear)        # :: Text
       , "period"               = fromMaybe(1, indicator$period)                # :: Maybe Int
       , "notes"                = makeList(indicator$notes)                     # :: Maybe [Text]
       , "publishers"           = fromMaybe("unknown publisher",
