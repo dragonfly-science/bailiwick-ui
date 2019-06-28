@@ -7,6 +7,7 @@
 module Bailiwick.View.IndicatorChart
   ( indicatorChart
   , IndicatorChartState(..)
+  , textLabel
 ) where
 
 import Control.Monad (join, void)
@@ -75,10 +76,10 @@ textLabel ind transform =
           Just c -> do
             case Map.lookup transform c of
               Just val -> val
-              Nothing -> "Nothing a"
-          Nothing -> "Nothing b"
-
-    Nothing -> "Non string"
+              Nothing -> ""
+          Nothing -> ""
+    
+    Nothing -> ""
 
 indicatorChart
   :: ( Monad m
@@ -158,17 +159,14 @@ indicatorChart IndicatorChartState{..} zoomD = do
         zoom <- zoomD
         page <- pageD
 
-        let chartLabel = textSubstitution area Nothing indicator (join featureId) page
+        let chartLabel = textSubstitution area Nothing indicator 
+                            (join featureId) page
 
-        let label = case (trace ("transform: " ++ show transform) transform) of
+        let label = case transform of
               Just t -> do
                 let l = textLabel indicator t
                 chartLabel l
-              Nothing -> "no thing"
-
-        -- let label = textLabel indicator transform
-
-
+              Nothing -> ""
 
         return (indn, my, indID, indicator, areas, area, areatype, transform, chartType, join featureId, zoom, label)
 

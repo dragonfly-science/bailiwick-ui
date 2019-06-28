@@ -50,6 +50,7 @@ export default function(element, params, margin, chartType) {
     var feature = params[2].featureId;
     var features = params[3];
     var chartData = params[4];
+    var chartCaption = params[5];
     var cache = window.MBIECacheStorage;
 
     /// Cached data    
@@ -77,6 +78,7 @@ export default function(element, params, margin, chartType) {
         feature: feature,
         features: features,
         chartData: chartData,
+        chartCaption: chartCaption,
         svg: svg,
         base: base,
         width: width,

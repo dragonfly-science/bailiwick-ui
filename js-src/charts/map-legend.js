@@ -21,7 +21,14 @@ function positiveScale(colours, min, max) {
 /*
  * Generates Map legend based on supplied width, height & scale data
  * */
-export default function(width, height, minimum, maximum, steps = 100) {
+export default function(args, steps = 100) {//width, height, minimum, maximum, steps = 100) {
+
+    // console.log('legend', args)
+    let height = Number(args.height),
+        width = Number(args.width),
+        maximum = Number(args.max),
+        minimum = Number(args.min),
+        caption = args.label;
 
     var base = d3.select(".indicator-map-legend"),
         svg = base.select('svg').empty() ? base.append('svg') : base.select('svg'),
@@ -84,7 +91,7 @@ export default function(width, height, minimum, maximum, steps = 100) {
     xa.append("text")
         .attr("class", "caption")
         .attr("y", -6)
-        .text("caption goes here");
+        .text(caption);
 
     return positive;
 }

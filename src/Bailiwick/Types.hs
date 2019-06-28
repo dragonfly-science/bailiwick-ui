@@ -192,10 +192,9 @@ data Language
 
 langOptions :: Options
 langOptions = defaultOptions
-    { fieldLabelModifier = map toLower . drop 4 }
     { fieldLabelModifier = (\case
         [] -> []
-        (x:xs) -> toUpper x : xs) . drop 4 }
+        (x:xs) -> toLower x : xs) . drop 4 }
 
 instance FromJSON Language where
     parseJSON = genericParseJSON langOptions
