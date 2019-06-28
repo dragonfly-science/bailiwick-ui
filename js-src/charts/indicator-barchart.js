@@ -35,6 +35,7 @@ export default function (element, params) {
         areaLevel = setup.areaLevel,
         feature = setup.feature,
         features = setup.features,
+        chartCaption = setup.chartCaption,
         svg = setup.svg,
         base = setup.base,
         width = setup.width,
@@ -329,7 +330,7 @@ export default function (element, params) {
         .call(xAxis);
     xSel.exit().remove();
 
-    var xSelCaption = xSel.selectAll("text.caption").data(["Caption here..."])
+    var xSelCaption = xSel.selectAll("text.caption").data([chartCaption])
         , xSelCaptionEnter = xSelCaption.enter()
             .append("text");
     xSelCaption
@@ -337,7 +338,7 @@ export default function (element, params) {
         .attr("y", 30)
         .attr("x", 0)
         .style("text-anchor", "start")
-        .text("Caption here...");
+        .text(chartCaption);
 
     var bar = g.selectAll(".bar").data(data),
         barEnter = bar.enter().append("rect")

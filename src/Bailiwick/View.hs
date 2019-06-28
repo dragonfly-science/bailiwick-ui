@@ -5,16 +5,19 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RecursiveDo         #-}
 {-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 module Bailiwick.View
 where
 
-import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Fix
+import Control.Monad.IO.Class (MonadIO)
 import Control.Applicative ((<|>))
 import Data.Bool (bool)
+import qualified Data.Map as Map
 import Data.Maybe (isJust)
 import Data.Monoid ((<>))
+import Data.Text (Text)
 
 import Language.Javascript.JSaddle.Types (MonadJSM)
 import qualified GHCJS.DOM.GlobalEventHandlers as Events (scroll)
@@ -422,13 +425,14 @@ indicatorContent leftZoomD rightZoomD regionD map_state map_legend_state indicat
 
         mapClicks <- divClass "svg-wrapper" $ nzmap False map_state setScaleE
         setScaleE <- divClass "legend indicator-map-legend" $ mapLegend map_legend_state
+        -- (mapLegendLabel indicator_chart_state)
         return $ leftmost [zoomClick, mapClicks]
     chartE <- divClass "indicator-chart" $
       indicatorChart indicator_chart_state rightZoomD
     return $ leftmost [ mapE, chartE ]
   summaryE <- divClass "indicator-summary hide-table no-compare" $
     indicatorSummary indicator_summary_state
-  return $ leftmost [contentE, summaryE]
+  return $ leftmost [contentE, summaryE]  
 
 summaryText
   :: ( DomBuilder t m

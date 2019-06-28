@@ -26,7 +26,6 @@ let line = d3.svg.line()
 // data: [{year, rawNum, indexNum, headlineDisp, indexDisp}]
 // @params: (data, current year, current indicator, transform, current area, current area type, chart ID)
 export default function (element, params) {
-    console.log('TS', params)
     let setup = chartSetup(element, params, margin, 'default-timeseries');
 
     if (setup === null) {
@@ -43,6 +42,7 @@ export default function (element, params) {
         areaLevel = setup.areaLevel, 
         feature = setup.feature,
         chartData = setup.chartData,
+        chartCaption = setup.chartCaption,
         svg = setup.svg,
         base = setup.base,
         width = setup.width, 
@@ -288,21 +288,6 @@ export default function (element, params) {
             .attr("x", width + 10)
             .text("Year");
 
-    console.log(chartData)
-
-    let caption = '';
-    let chartTransform = _.filter(chartData.chartTransforms, function(t) {
-        return t.transformName === transform;
-    });
-
-    if (chartTransform.length !== 0) {
-        chartTransform = chartTransform[0];
-
-        caption = chartTransform.transformCaption;
-    }
-
-    // console.log(transform, chartTransform);
-
     // TODO: formatting
     gEnter.append("g")
         .attr("class", "axis axis--y")
@@ -316,12 +301,7 @@ export default function (element, params) {
         .attr("class", "caption title")
         .attr("y", -30)
         .attr("x", 0)
-        .text(caption);
-
-    
-    // .text(
-    //     bailiwick.label(transform)
-    // );
+        .text(chartCaption);
 
     svg.append("clipPath")
         .attr("id", "clipper")

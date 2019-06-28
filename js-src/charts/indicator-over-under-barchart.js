@@ -28,6 +28,7 @@ export default function(element, params) {
         feature = setup.feature,
         features = setup.features,
         chartData = setup.chartData,
+        chartCaption = setup.chartCaption,
         svg = setup.svg,
         base = setup.base,
         width = setup.width, 

@@ -158,7 +158,15 @@ makeMapLegendState State{..} =
           IndicatorData{..} <- OMap.lookup indid indicatorsData
           let IndicatorScale scale = indicatorScale
           OMap.lookup (year, feature) scale
+      area' = do
+        area <- areaD
+        return area
+
   in MapLegendState scaleD
+        routeD
+        area'
+        featureD
+        indicatorD
 
 
 -- IndicatorChart state
