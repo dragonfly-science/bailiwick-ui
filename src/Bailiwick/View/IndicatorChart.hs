@@ -65,19 +65,19 @@ shapeData mareas (IndicatorNumbers inmap) =
   in  OMap.toList $ OMap.foldrWithKey step OMap.empty inmap
 
 textLabel :: Maybe Indicator -> Text -> Text
-textLabel ind transform = 
+textLabel ind transform =
   case ind of
     Just i -> do
         let config = indicatorLanguageConfig i
             captions = langLabels config
-        
+
         case captions of
           Just c -> do
             case Map.lookup transform c of
               Just val -> val
               Nothing -> "Nothing a"
           Nothing -> "Nothing b"
-    
+
     Nothing -> "Non string"
 
 indicatorChart
@@ -165,10 +165,10 @@ indicatorChart IndicatorChartState{..} zoomD = do
                 let l = textLabel indicator t
                 chartLabel l
               Nothing -> "no thing"
-        
+
         -- let label = textLabel indicator transform
 
-        
+
 
         return (indn, my, indID, indicator, areas, area, areatype, transform, chartType, join featureId, zoom, label)
 
@@ -189,7 +189,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
         Nothing ->                           "updateIndicatorTimeSeries"
 
   performEvent_ $ ffor updateE $ \case
-    (indn, my, indID, indicator, areas, area, areatype, transform, chartType, featureId, zoomD, label)
+    (indn, my, indID, indicator, areas, area, areatype, transform, chartType, featureId, zoom, label)
       -> liftJSM . void
           $ do
             let areaname = maybe "" areaName area
@@ -203,7 +203,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
                     charts <- indicatorCharts
                     chartid <- chartType
                     OMap.lookup chartid charts
-            let zoomed = case zoomD of
+            let zoomed = case zoom of
                     True -> "true"
                     False -> "false"
             -- chartLabel text...
