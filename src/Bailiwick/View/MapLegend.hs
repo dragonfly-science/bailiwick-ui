@@ -10,9 +10,7 @@ module Bailiwick.View.MapLegend
   )
 where
 
-import Control.Monad (void)
 import Data.Text (Text, pack)
-import Debug.Trace
 
 import Reflex
 import Reflex.Dom.Core

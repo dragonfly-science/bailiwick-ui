@@ -14,10 +14,8 @@ import Control.Monad.Fix
 import Control.Monad.IO.Class (MonadIO)
 import Control.Applicative ((<|>))
 import Data.Bool (bool)
-import qualified Data.Map as Map
 import Data.Maybe (isJust)
 import Data.Monoid ((<>))
-import Data.Text (Text)
 
 import Language.Javascript.JSaddle.Types (MonadJSM)
 import qualified GHCJS.DOM.GlobalEventHandlers as Events (scroll)
