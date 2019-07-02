@@ -48,13 +48,14 @@ export default function (element, params) {
     var y = d3.scale.ordinal();
     var x = d3.scale.linear();
 
-    var maxLength = 35;
+    var maxLength = 18;
 
     if (window.innerWidth < 400) {
         maxLength = 11;
-    } else if (window.innerWidth < 600) {
-        maxLength = 25;
-    }
+    } 
+    //else if (window.innerWidth < 600) {
+    //     maxLength = 25;
+    // }
 
     var yAxis = d3.svg.axis()
         .scale(y)
@@ -379,7 +380,7 @@ export default function (element, params) {
                     name = features[d.name];
                 }
 
-                name = _.capitalize(name);
+                name = name[0].toUpperCase() + name.slice(1);
 
                 var tooltip = tooltipElem.selectAll('p').data([name, d.display, d.year]),
                     tooltipEnter = tooltip.enter().append('p');
