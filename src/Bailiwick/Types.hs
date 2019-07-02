@@ -463,7 +463,7 @@ data Numbers
   deriving (Eq, Show, Generic)
 
 emptyNumbers :: Numbers
-emptyNumbers = Numbers "" "" "" "" "" ""
+emptyNumbers = Numbers "No data" "No data" "No data" "No data" "No data" "No data"
 
 newtype ScaleFunction = ScaleFunction JS.Object deriving (Generic)
 instance Show ScaleFunction where

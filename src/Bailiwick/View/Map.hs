@@ -535,7 +535,7 @@ nzmap isSummary MapState{..} scaleFunctionE = mdo
     when (not isSummary) $ do
       let transformD = fmap themePageLeftTransform . getThemePage <$> routeD
       elDynAttr "p" (("class" =: ) <$> (fromMaybe "" <$> transformD) <> " number") $ do
-        dynText $ fromMaybe "" <$> getValue tooltipAreaD
+        dynText $ fromMaybe "No data" <$> getValue tooltipAreaD
 
   moveE
     :: Event t (Maybe (AreaInfo, (Int, Int)))
@@ -691,7 +691,7 @@ updateMapSummary svgBody mapD = do
     setAttr ("g" <> changed <> ".coastline > polyline")
             "stroke" cl
     setAttr ("g" <> changed <> " > path")
-            "fill" bg
+            "fill" (if bg == "#FFFFFF" then "url(#lightstripe)" else bg)
 
     if _zoom new
       then do
@@ -703,7 +703,7 @@ updateMapSummary svgBody mapD = do
             Just AreaInfo{..} | (slugify <$> areaRegion) == Just r ->
               forM_ (mouseOverSubareaClass =<< old) $ \cssClass -> do
                 setAttr ("g:not(." <> regionClass <> ")." <> cssClass <> " > path")
-                        "fill" bg
+                        "fill" (if bg == "#FFFFFF" then "url(#lightstripe)" else bg)
                 setAttr ("g:not(." <> regionClass <> ")." <> cssClass <> " > polyline")
                         "stroke" ol
                 setAttr ("g:not(." <> regionClass <> ")." <> cssClass
@@ -716,7 +716,7 @@ updateMapSummary svgBody mapD = do
               subareaType = if r == "auckland" then "ward" else "ta"
 
           -- Selected region
-          setAttr ("g." <> regionClass <> " > path") "fill" srbg
+          setAttr ("g." <> regionClass <> " > path") "fill" (if srbg == "#FFFFFF" then "url(#lightstripe)" else srbg)
           setAttr ("g.coastline." <> regionClass <> " > polyline")
                   "stroke" "none"
           setAttr ("g.inbound." <> regionClass <> "[same_"
@@ -921,7 +921,7 @@ updateMapIndicator svgBody mapD scaleFunctionD = do
             setAttr (sel <> ".inbound[same_reg=FALSE] > polyline") "stroke" ol
             setAttr (sel <> ".inbound[same_reg=FALSE]") "show" "TRUE"
         when (areatype  == "ta") $ do
-            setAttr (sel <> ".inbound[same_ta=TRUE] > polyline") "stroke" colour
+            setAttr (sel <> ".inbound[same_ta=TRUE] > polyline") "stroke" (if colour == "#FFFFFF" then "none" else colour)
             setAttr (sel <> ".inbound[same_ta=TRUE]") "show" "FALSE"
             setAttr (sel <> ".inbound[same_ta=FALSE] > polyline") "stroke" ol
             setAttr (sel <> ".inbound[same_ta=FALSE]") "show" "TRUE"
@@ -930,7 +930,7 @@ updateMapIndicator svgBody mapD scaleFunctionD = do
             setAttr (sel <> ".inbound[same_ward=TRUE]") "show" "FALSE"
             setAttr (sel <> ".inbound[same_ward=FALSE] > polyline") "stroke" ol
             setAttr (sel <> ".inbound[same_ward=FALSE]") "show" "TRUE"
-        setAttr (sel <> " > path") "fill" colour
+        setAttr (sel <> " > path") "fill" (if colour == "#FFFFFF" then "url(#lightstripe)" else colour)
 
     let initial = (_zoomState <$> old) == Nothing
     when (initial) $ do
@@ -940,11 +940,11 @@ updateMapIndicator svgBody mapD scaleFunctionD = do
       forM_ nonaucklandtas $ \(ta, _) -> do
         let tasel = "g." <> ta <> "-" <> "ta"
         tacolour <- liftJSM $ getColour ta
-        setAttr (tasel <> ".inbound[same_ta=TRUE] > polyline") "stroke" tacolour
+        setAttr (tasel <> ".inbound[same_ta=TRUE] > polyline") "stroke" (if tacolour == "#FFFFFF" then "" else tacolour)
         setAttr (tasel <> ".inbound[same_ta=TRUE]") "show" "FALSE"
         setAttr (tasel <> ".inbound[same_ta=FALSE] > polyline") "stroke" ol
         setAttr (tasel <> ".inbound[same_ta=FALSE]") "show" "TRUE"
-        setAttr (tasel <> " > path") "fill" tacolour
+        setAttr (tasel <> " > path") "fill" (if tacolour == "#FFFFFF" then "url(#lightstripe)" else tacolour)
 
     -- Mouse overs
     let updateMouseOver selector = do
@@ -954,7 +954,7 @@ updateMapIndicator svgBody mapD scaleFunctionD = do
             forM_ oldarea $ \cssClass -> do
               let sel = "g." <> cssClass
               colour <- liftJSM $ getColour cssClass
-              setAttr (sel <> " > path") "fill" colour
+              setAttr (sel <> " > path") "fill" (if colour == "#FFFFFF" then "url(#lightstripe)" else colour)
               when (Text.isSuffixOf "-ta" cssClass) $ do
                   setAttr (sel <> "[same_ta=TRUE] > polyline") "stroke" colour
                   setAttr (sel <> "[same_ta=TRUE]") "show" "FALSE"
@@ -967,7 +967,7 @@ updateMapIndicator svgBody mapD scaleFunctionD = do
             forM_ newarea $ \cssClass -> do
               let highlight = "rgb(0, 189, 233)"
                   sel = "g." <> cssClass
-              setAttr (sel <> " > path") "fill" highlight
+              setAttr (sel <> " > path") "fill" (if highlight == "#FFFFFF" then "url(#lightstripe)" else highlight)
               when (Text.isSuffixOf "-region" cssClass) $ do
                   setAttr (sel <> "[same_reg=TRUE] > polyline") "stroke" highlight
                   setAttr (sel <> "[same_reg=TRUE]") "show" "TRUE"
