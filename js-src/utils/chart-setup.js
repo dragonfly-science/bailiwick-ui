@@ -68,6 +68,10 @@ export default function(element, params, margin, chartType) {
         features = feats;
     }
 
+    if (!_.isEmpty(chartCaption)) {
+        chartCaption = chartCaption[0].toUpperCase() + chartCaption.slice(1);
+    }
+
     return {
         data: data,
         year: year,

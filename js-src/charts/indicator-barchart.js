@@ -74,8 +74,8 @@ export default function (element, params) {
             if (_.has(features, d)) {
                 label = features[d];
             }
-
-            label = _.capitalize(label);
+            
+            label = label[0].toUpperCase() + label.slice(1);
 
             if (label.length > maxLength) {
                 return label.substring(0, maxLength) + '…';
@@ -216,13 +216,11 @@ export default function (element, params) {
 
 
     // Handle Units
-    // TODO: handle formatting
-    // var formatter = this.getAttr("caption").get("formatter");
     xAxis.scale(x)
         .orient("bottom")
         .ticks(window.innerWidth < 450 ? 2 : 5)
         .tickFormat(function (d) {
-            if (chartData.length === 0) {
+            if (chartData === null || chartData.length === 0) {
                 return d;
             }
             
@@ -346,6 +344,7 @@ export default function (element, params) {
         .attr("transform", "translate(0," + (dataHeight + 3) + ")")
         .call(xAxis);
     xSel.exit().remove();
+    console.log('hi', chartCaption)
 
     var xSelCaption = xSel.selectAll("text.caption").data([chartCaption])
         , xSelCaptionEnter = xSelCaption.enter()

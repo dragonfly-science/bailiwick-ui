@@ -35,6 +35,10 @@ export default function(args, chart, steps = 100) {
         caption = args.label,
         transform = args.transform;
 
+    if (!_.isEmpty(caption)) {
+        caption = caption[0].toUpperCase() + caption.slice(1);
+    }
+
     var base = d3.select(".indicator-map-legend"),
         svg = base.select('svg').empty() ? base.append('svg') : base.select('svg'),
         colours = getColours(),
