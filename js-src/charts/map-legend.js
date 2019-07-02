@@ -3,6 +3,7 @@ import chroma from 'chroma-js';
 import d3 from 'd3';
 import rgbHex from 'rgb-hex';
 
+import format from '../utils/formatting'
 import { computeTicks, getColours } from '../utils/utils'
 
 function positiveScale(colours, min, max) {
@@ -25,14 +26,14 @@ function positiveScale(colours, min, max) {
 /*
  * Generates Map legend based on supplied width, height & scale data
  * */
-export default function(args, steps = 100) {//width, height, minimum, maximum, steps = 100) {
-
-    // console.log('legend', args)
+export default function(args, chart, steps = 100) {
+    console.log('legend', arguments)
     let height = Number(args.height),
         width = Number(args.width),
         maximum = Number(args.max),
         minimum = Number(args.min),
-        caption = args.label;
+        caption = args.label,
+        transform = args.transform;
 
     var base = d3.select(".indicator-map-legend"),
         svg = base.select('svg').empty() ? base.append('svg') : base.select('svg'),
@@ -59,7 +60,17 @@ export default function(args, steps = 100) {//width, height, minimum, maximum, s
         .orient("bottom")
         .tickSize(13)
         .tickFormat(function(d) {
-          return d;  // TODO Add the format function
+            var trans = _.filter(chart.chartTransforms, function(i) {
+                return i.transformName === transform;
+            });
+
+            var formatter = null; 
+
+            if (trans.length > 0) {
+                formatter = trans[0].transformFormatter;
+            }
+            
+            return format(formatter, d);
         });
 
     svg.empty();

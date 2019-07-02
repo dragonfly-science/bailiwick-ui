@@ -1,6 +1,8 @@
-import d3 from 'd3';
 import _ from 'lodash';
+import d3 from 'd3';
+
 import chartSetup from '../utils/chart-setup';
+import format from '../utils/formatting';
 import { none, isEmpty, present } from '../utils/utils';
 
 const margin = { top: 25, right: 15, bottom: 40, left: 100 };
@@ -40,7 +42,22 @@ export default function(element, params) {
         yAxis = d3.svg.axis()
                   .scale(y)
                   .tickFormat(function (d) {
-                    return Math.abs(d);
+                    if (chartData.length === 0) {
+                        return d;
+                    }
+                    
+                    var trans = _.filter(chartData.chartTransforms, function(i) {
+                        return i.transformName === transform;
+                    });
+        
+                    var formatter = null; 
+        
+                    if (trans.length > 0) {
+                        formatter = trans[0].transformFormatter;
+                    }
+                    
+                    return format(formatter, d);
+                    // return Math.abs(d);
                   })
                   .orient("left");
 

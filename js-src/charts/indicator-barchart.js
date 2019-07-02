@@ -1,10 +1,9 @@
-import d3 from 'd3';
 import _ from 'lodash';
-import chartSetup from '../utils/chart-setup';
+import d3 from 'd3';
+
 import { isEmpty } from '../utils/utils';
-
-
-
+import chartSetup from '../utils/chart-setup';
+import format from '../utils/formatting';
 
 export default function (element, params) {
     //
@@ -35,6 +34,7 @@ export default function (element, params) {
         areaLevel = setup.areaLevel,
         feature = setup.feature,
         features = setup.features,
+        chartData = setup.chartData,
         chartCaption = setup.chartCaption,
         svg = setup.svg,
         base = setup.base,
@@ -44,7 +44,6 @@ export default function (element, params) {
     var legend = d3.select('.chart-inner .legend');
     legend.select('svg').remove();
 
-    var percentageFormatter = d3.format('.1f');
     var tooltipElem;
     var y = d3.scale.ordinal();
     var x = d3.scale.linear();
@@ -62,6 +61,10 @@ export default function (element, params) {
         .orient("left")
         .outerTickSize(0)
         .tickFormat(function(d) {
+            if (d === null) {
+                return '';
+            }
+
             if (d.length === 0) {
                 return '';
             }
@@ -218,9 +221,23 @@ export default function (element, params) {
     xAxis.scale(x)
         .orient("bottom")
         .ticks(window.innerWidth < 450 ? 2 : 5)
-        // .tickFormat(function (d) {
-        //     return formatter(d);
-        // });
+        .tickFormat(function (d) {
+            if (chartData.length === 0) {
+                return d;
+            }
+            
+            var trans = _.filter(chartData.chartTransforms, function(i) {
+                return i.transformName === transform;
+            });
+
+            var formatter = null; 
+
+            if (trans.length > 0) {
+                formatter = trans[0].transformFormatter;
+            }
+            
+            return format(formatter, d);
+        });
     xAxis.tickSize(-1 * dataHeight, 10)
     // Set data
     // var fixedAxis = this.getAttr('config').axis,

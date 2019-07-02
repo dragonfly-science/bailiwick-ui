@@ -7,7 +7,7 @@ import _ from 'lodash'
 
 import { none, isEmpty, present } from '../utils/utils';
 import chartSetup from '../utils/chart-setup';
-import formatting from '../utils/formatting';
+import format from '../utils/formatting';
 
 let yearFormat = d3.time.format('%Y').parse;
 let transforms = ["absolute", "indexed", "percapita"];
@@ -47,6 +47,8 @@ export default function (element, params) {
         base = setup.base,
         width = setup.width, 
         height = setup.height;
+
+    console.log('timeseries', chartData)
 
     // current data...
     var currentYear = svg.attr('data-year'),
@@ -295,7 +297,23 @@ export default function (element, params) {
             .scale(y)
             .orient("left")
             .ticks(10)
-            // .tickFormat(function (d) { return formatter(d); }))
+            .tickFormat(function (d) {
+                if (chartData.length === 0) {
+                    return d;
+                }
+                
+                var trans = _.filter(chartData.chartTransforms, function(i) {
+                    return i.transformName === transform;
+                });
+    
+                var formatter = null; 
+    
+                if (trans.length > 0) {
+                    formatter = trans[0].transformFormatter;
+                }
+                
+                return format(formatter, d);
+            })
         )
         .append("text")
         .attr("class", "caption title")
