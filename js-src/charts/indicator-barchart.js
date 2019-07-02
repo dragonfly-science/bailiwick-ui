@@ -48,14 +48,16 @@ export default function (element, params) {
     var y = d3.scale.ordinal();
     var x = d3.scale.linear();
 
-    var maxLength = 18;
+    var maxLength = 35;
 
     if (window.innerWidth < 400) {
         maxLength = 11;
     } 
-    //else if (window.innerWidth < 600) {
-    //     maxLength = 25;
-    // }
+    else if (window.innerWidth < 600) {
+        maxLength = 25;
+    }
+
+    width = width - margin.left - margin.right;
 
     var yAxis = d3.svg.axis()
         .scale(y)
@@ -238,88 +240,7 @@ export default function (element, params) {
             return format(formatter, d);
         });
     xAxis.tickSize(-1 * dataHeight, 10)
-    // Set data
-    // var fixedAxis = this.getAttr('config').axis,
-        // feature = this.getAttr('feature'),
-        // featureType = this.getAttr("featuretype"),
-        // ftp = featureType || "",
-    // let area = this.getAttr('area');
-
-    // if (!(data && area)) {
-    //     return;
-    // }
-    // var dataState = data.get('id') + "-" + area.get("id") + ftp + this.getAttr('transform');
-    // //if (this.get("_dataState") !== dataState) {
-    // var areaData;
-    // if (none(feature)) {
-    //     var defFeature = this.getAttr('defaultFeature');
-    //     if (present(defFeature)) {
-    //         featureType = defFeature.get('parent');
-    //     }
-    // }
-
-
-    // if (none(featureType)) {
-    //     var areaDataT = data.get("areas")[area.get("id")];
-    //     if (none(areaDataT)) {
-    //         return;
-    //     }
-    //     areaData = areaDataT.features;
-    // } else {
-    //     var a = data.get("areas")[area.get('id')];
-    //     if (none(a)) {
-    //         return;
-    //     }
-    //     var af = a.features;
-    //     if (none(af)) {
-    //         return;
-    //     }
-    //     areaData = af.children.find(function (d) {
-    //         return d.name === featureType;
-    //     });
-    // }
-
-    // if (none(fixedAxis)) {
-    //     areaData.children = areaData.children.sort(function (a, b) {
-    //         return d3.descending(a.absolute, b.absolute);
-    //     });
-    // } else {
-    //     var m = d3.map(areaData.children, function (d) { return d.slug; });
-    //     areaData.children = fixedAxis.map(function (d) {
-    //         return m.get(d);
-    //     });
-    // }
-
-    // if (this.getAttr('transform') === 'percentage') {
-    //     this.set('plotdata', areaData.children.map(function (d) {
-    //         d.value = d.percentage;
-    //         d.dispValue = d.dispPercentage;
-    //         return d;
-    //     }));
-    // } else {
-    //     this.set('plotdata', areaData.children.filter(function (d) {
-    //         return (typeof d !== 'undefined');
-    //     }).map(function (d) {
-    //         d.value = d.absolute;
-    //         d.dispValue = d.dispAbsolute;
-    //         return d;
-    //     }));
-    // }
-    // this.set('_dataState', dataState);
-    //}
-
-
-    // Update
-    // var data = this.get('plotdata'),
-    //     feature = this.getAttr('feature'),
-    //     featureSlug = present(feature) ? feature.get("id") : null,
-    //     _this = this;
-
-    // var caption = this.getAttr("caption");
-    // var data = siblingsFilteredByYear;
-    // if (!(data && svg && data.length > 0 && present(data[0]))) {
-    //     return;
-    // }
+    
     x.domain([0, d3.max(data, function (d) { return d.value; })]);
 
 
@@ -345,7 +266,6 @@ export default function (element, params) {
         .attr("transform", "translate(0," + (dataHeight + 3) + ")")
         .call(xAxis);
     xSel.exit().remove();
-    console.log('hi', chartCaption)
 
     var xSelCaption = xSel.selectAll("text.caption").data([chartCaption])
         , xSelCaptionEnter = xSelCaption.enter()
