@@ -16,16 +16,18 @@
   $nav-side-margin: $central-spacing / 2;
   $nav-grow: 1;
 
-  @include display(flex);
-  @include justify-content(flex-end);
-  @include flex-direction();
+  // @include display(flex);
+  // @include justify-content(flex-end);
+  // @include flex-direction();
+  
 
   width: 100%;
+  max-width: rem($nav-width);
   position: absolute;
   right: 0;
   bottom: rem(20);
-  margin-right: rem(23);
-  z-index: 5;
+  margin-right: rem(8 + 15);
+  // z-index: 5;
 
   .compare-nav {
     @include display(flex);

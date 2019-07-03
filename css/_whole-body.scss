@@ -46,7 +46,8 @@
 
             .left {
               margin-left: rem(24);
-              width: auto;
+              // width: auto;
+              flex-grow: 0;
 
               .indicator-page-header {
                 white-space: nowrap;
@@ -65,10 +66,8 @@
 
             .compare-menu {
                 position: relative;
+                margin-left: auto;
                 bottom: 0;
-                right: 0;
-                width: 100%;
-                max-width: rem(320);
             }
 
             .content {
@@ -85,7 +84,7 @@
                 display: block;
                 width: 100%;
                 margin-bottom: 0;
-                font-size: rem(22);
+                font-size: rem(18);
                 line-height: 1em;
 
                 div {
@@ -114,30 +113,92 @@
 /**
  * Responsive
  * */
+@media #{$breakpoint_medium_tablet} {
+  .whole-body.fixed {
+    header {
+      .title {
+        .left {
+          flex-basis: 50%;
+          margin: 0;
+          padding-left: rem(24);
+        }
+
+        .compare-menu {
+          flex-basis: 50%;
+          flex-grow: 0;
+        }
+
+        .compare-label {
+          div {
+            display: none;
+          }
+
+          button {
+            left: auto;
+            right: rem(12);
+          }
+        }
+
+        .content {
+          @include flex-wrap(nowrap);
+        }
+      }
+    }
+  }
+  
+  
+}
+
+@media #{$breakpoint_medium} {
+  .whole-body {
+    header {
+      .tool-bar {
+        .filter-type {
+          display: block !important;
+        }
+      }
+    }
+  }
+}
+
 @media #{$breakpoint_small} {
     .whole-body {
         &.fixed {
             header {
                 .title {
                     margin-top: 0;
+                    height: rem(100);
 
                     .left,
                     .compare-menu {
                         // width: 100%;
                         // max-width: 100%;
-                        margin-left:0;
-                        padding: 0 rem(24);
+                        // margin-left:0;
+                        // padding: 0 rem(24);
                     }
 
                     .left {
-                      flex-basis: auto;
-                      flex-grow: 1;
+                      // flex-basis: auto;
+                      flex-grow: 0;
                     }
 
                     .compare-menu {
-                        padding-top: .5em;
+                        margin-left: rem(24);
+                        max-width: 100%;
+                        margin-top: rem(12);
+
+                        .compare-nav {
+                          padding-right: rem(48);
+                        }
+                    }
+
+                    .content {
+                      // @include flex-wrap(nowrap);
+                      @include flex-direction(column);
                     }
                 }
+
+                
             }
         }
     }

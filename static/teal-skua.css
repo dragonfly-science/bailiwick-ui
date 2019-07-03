@@ -2754,14 +2754,14 @@ header .title { -webkit-transition: background-image 0.5s ease-in-out, height 2s
 header .title:after { background-color: rgba(41, 101, 117, 0.8); background-image: -webkit-linear-gradient(bottom, rgba(41, 101, 117, 0.8), rgba(41, 101, 117, 0)); background-image: linear-gradient(to top,rgba(41, 101, 117, 0.8), rgba(41, 101, 117, 0)); background-color: transparent; display: block; content: ''; position: absolute; left: 0; bottom: 0; width: 100%; height: 150px; z-index: 0; }
 header .title .content { display: flex; -webkit-box-lines: multiple; -moz-box-lines: multiple; box-lines: multiple; -webkit-flex-wrap: wrap; -moz-flex-wrap: wrap; -ms-flex-wrap: wrap; flex-wrap: wrap; -webkit-box-pack: justify; -moz-box-pack: justify; box-pack: justify; -webkit-justify-content: space-between; -moz-justify-content: space-between; -ms-justify-content: space-between; -o-justify-content: space-between; justify-content: space-between; -ms-flex-pack: justify; padding: 1.25em 8px; position: relative; z-index: 2; }
 header .title .content::after { clear: both; content: ""; display: table; }
-@media (max-width: 768px) { header .title .content { display: block; } }
+@media (max-width: 768px) { header .title .content { display: block; -webkit-box-lines: single; -moz-box-lines: single; box-lines: single; -webkit-flex-wrap: nowrap; -moz-flex-wrap: nowrap; -ms-flex-wrap: nowrap; flex-wrap: nowrap; } }
 header .title .content .context-text { margin: 0 14.5px 0 0; width: 100%; color: #FFFFFF; font-family: "gustan-bold"; font-size: 12px; padding-bottom: 1em; text-transform: uppercase; }
 header .title .content .context-text a { text-decoration: none; }
 header .title .content .page-header { -webkit-flex-basis: 653px; -moz-flex-basis: 653px; flex-basis: 653px; -ms-flex-preferred-size: 653px; -webkit-flex-grow: 2; -moz-flex-grow: 2; flex-grow: 2; -ms-flex-positive: 2; margin: 0 14.5px 14.5px 0; }
 header .title .content .page-header div { width: 100%; }
 header .title .content .title-menus { -webkit-flex-basis: 312px; -moz-flex-basis: 312px; flex-basis: 312px; -ms-flex-preferred-size: 312px; -webkit-flex-grow: 1; -moz-flex-grow: 1; flex-grow: 1; -ms-flex-positive: 1; position: relative; }
 header .title .left { -webkit-flex-grow: 2; -moz-flex-grow: 2; flex-grow: 2; -ms-flex-positive: 2; -webkit-flex-basis: 250px; -moz-flex-basis: 250px; flex-basis: 250px; -ms-flex-preferred-size: 250px; margin: 0 14.5px; position: relative; }
-@media (max-width: 768px) { header .title .left { -webkit-flex-basis: 653px; -moz-flex-basis: 653px; flex-basis: 653px; -ms-flex-preferred-size: 653px; display: block; margin: 0; padding: 0 14.5px; } }
+@media (max-width: 768px) { header .title .left { display: block; margin: 0; padding: 0 14.5px; } }
 header .title .right { -webkit-flex-basis: 312px; -moz-flex-basis: 312px; flex-basis: 312px; -ms-flex-preferred-size: 312px; -webkit-flex-grow: 1; -moz-flex-grow: 1; flex-grow: 1; -ms-flex-positive: 1; margin: 0 14.5px 3.125rem 14.5px; }
 @media (max-width: 768px) { header .title .right { -webkit-flex-basis: 100%; -moz-flex-basis: 100%; flex-basis: 100%; -ms-flex-preferred-size: 100%; -webkit-flex-grow: 0; -moz-flex-grow: 0; flex-grow: 0; -ms-flex-positive: 0; margin-left: 0; margin-right: 0; padding: 0 14.5px; width: 100%; } }
 header .menu-items { -webkit-transition: all 0.5s; -moz-transition: all 0.5s; transition: all 0.5s; -webkit-transform: translate3d(0, 0, 0); -moz-transform: translate3d(0, 0, 0); -ms-transform: translate3d(0, 0, 0); -o-transform: translate3d(0, 0, 0); transform: translate3d(0, 0, 0); -webkit-flex-grow: 1; -moz-flex-grow: 1; flex-grow: 1; -ms-flex-positive: 1; }
@@ -2908,23 +2908,30 @@ footer .bottombar .statement p:last-child { margin-top: 20px; }
 .whole-body.fixed header nav { position: static; display: none; }
 .whole-body.fixed header .title { -webkit-backface-visibility: hidden; backface-visibility: hidden; background-position: center -2.5rem; min-height: 0; position: fixed; width: 100%; top: 0; z-index: 1000; cursor: pointer; }
 .whole-body.fixed header .title:after { background-color: #296575; background-image: -webkit-linear-gradient(bottom, #296575, rgba(41, 101, 117, 0.5)); background-image: linear-gradient(to top,#296575, rgba(41, 101, 117, 0.5)); background-color: transparent; display: block; content: ''; position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 0; }
-.whole-body.fixed header .title .left { margin-left: 1.5rem; width: auto; }
+.whole-body.fixed header .title .left { margin-left: 1.5rem; flex-grow: 0; }
 .whole-body.fixed header .title .left .indicator-page-header { white-space: nowrap; padding-right: 20px; max-width: 640px; text-overflow: ellipsis; overflow: hidden; }
 .whole-body.fixed header .title .right, .whole-body.fixed header .title .back-to-summary, .whole-body.fixed header .title .block-label { display: none; }
-.whole-body.fixed header .title .compare-menu { position: relative; bottom: 0; right: 0; width: 100%; max-width: 20rem; }
+.whole-body.fixed header .title .compare-menu { position: relative; margin-left: auto; bottom: 0; }
 .whole-body.fixed header .title .content { -webkit-box-orient: horizontal; -moz-box-orient: horizontal; box-orient: horizontal; -webkit-flex-direction: row; -moz-flex-direction: row; flex-direction: row; -ms-flex-direction: row; padding: 1.25rem 0; cursor: default; }
 .whole-body.fixed header .title .content .context-text { padding-bottom: 0; }
-.whole-body.fixed header .title .content .page-header, .whole-body.fixed header .title .content .page-header.indicator-page-header { display: block; width: 100%; margin-bottom: 0; font-size: 1.375rem; line-height: 1em; }
+.whole-body.fixed header .title .content .page-header, .whole-body.fixed header .title .content .page-header.indicator-page-header { display: block; width: 100%; margin-bottom: 0; font-size: 1.125rem; line-height: 1em; }
 .whole-body.fixed header .title .content .page-header div, .whole-body.fixed header .title .content .page-header.indicator-page-header div { display: inline; }
 .whole-body.fixed header .summary-page-header { font-size: 1.25rem; line-height: 1em; }
 .whole-body.fixed header .compare-menu { bottom: 0.75rem; }
 .whole-body.fixed .main-content { margin-top: 10.3125rem; }
 
 /** Responsive */
-@media (max-width: 768px) { .whole-body.fixed header .title { margin-top: 0; }
-  .whole-body.fixed header .title .left, .whole-body.fixed header .title .compare-menu { margin-left: 0; padding: 0 1.5rem; }
-  .whole-body.fixed header .title .left { flex-basis: auto; flex-grow: 1; }
-  .whole-body.fixed header .title .compare-menu { padding-top: .5em; } }
+@media (max-width: 1024px) { .whole-body.fixed header .title .left { flex-basis: 50%; margin: 0; padding-left: 1.5rem; }
+  .whole-body.fixed header .title .compare-menu { flex-basis: 50%; flex-grow: 0; }
+  .whole-body.fixed header .title .compare-label div { display: none; }
+  .whole-body.fixed header .title .compare-label button { left: auto; right: 0.75rem; }
+  .whole-body.fixed header .title .content { -webkit-box-lines: single; -moz-box-lines: single; box-lines: single; -webkit-flex-wrap: nowrap; -moz-flex-wrap: nowrap; -ms-flex-wrap: nowrap; flex-wrap: nowrap; } }
+@media (min-width: 769px) and (max-width: 1024px) { .whole-body header .tool-bar .filter-type { display: block !important; } }
+@media (max-width: 768px) { .whole-body.fixed header .title { margin-top: 0; height: 6.25rem; }
+  .whole-body.fixed header .title .left { flex-grow: 0; }
+  .whole-body.fixed header .title .compare-menu { margin-left: 1.5rem; max-width: 100%; margin-top: 0.75rem; }
+  .whole-body.fixed header .title .compare-menu .compare-nav { padding-right: 3rem; }
+  .whole-body.fixed header .title .content { -webkit-box-orient: vertical; -moz-box-orient: vertical; box-orient: vertical; -webkit-flex-direction: column; -moz-flex-direction: column; flex-direction: column; -ms-flex-direction: column; } }
 /** Import elements. */
 .logo { color: #FFFFFF; font-size: 0.9375rem; line-height: 1.1em; display: block; text-decoration: none; background: url("images/mbie-rea-logo.png") no-repeat; width: 8.3125rem; height: 3.125rem; }
 .logo:hover { color: #00BDE9; }
@@ -3024,7 +3031,7 @@ button.close { -webkit-transition: all 0.25s ease; -moz-transition: all 0.25s ea
 button.close i { display: block; }
 button.close i:before { font-family: "mbie-rea"; font-style: normal; font-weight: normal; font-size: 1.5625rem; speak: none; display: block; text-decoration: inherit; text-align: center; color: #FFFFFF; margin-top: .1em; /* For safety - reset parent styles, that can break glyph codes*/ font-variant: normal; text-transform: none; /* fix buttons height, for twitter bootstrap */ line-height: 1em; /* Animation center compensation - margins should be symmetric */ /* remove if not needed */ /* you can be more comfortable with increased icons size */ /* Font smoothing. That was taken from TWBS */ -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; /* Uncomment for 3D effect */ content: ""; }
 
-.compare-menu { display: flex; -webkit-box-pack: end; -moz-box-pack: end; box-pack: end; -webkit-justify-content: flex-end; -moz-justify-content: flex-end; -ms-justify-content: flex-end; -o-justify-content: flex-end; justify-content: flex-end; -ms-flex-pack: end; -webkit-box-orient: horizontal; -moz-box-orient: horizontal; box-orient: horizontal; -webkit-flex-direction: row; -moz-flex-direction: row; flex-direction: row; -ms-flex-direction: row; width: 100%; position: absolute; right: 0; bottom: 1.25rem; margin-right: 1.4375rem; z-index: 5; }
+.compare-menu { width: 100%; max-width: 19.5rem; position: absolute; right: 0; bottom: 1.25rem; margin-right: 1.4375rem; }
 .compare-menu .compare-nav { display: flex; -webkit-box-lines: multiple; -moz-box-lines: multiple; box-lines: multiple; -webkit-flex-wrap: wrap; -moz-flex-wrap: wrap; -ms-flex-wrap: wrap; flex-wrap: wrap; -webkit-box-pack: justify; -moz-box-pack: justify; box-pack: justify; -webkit-justify-content: space-between; -moz-justify-content: space-between; -ms-justify-content: space-between; -o-justify-content: space-between; justify-content: space-between; -ms-flex-pack: justify; -webkit-box-orient: horizontal; -moz-box-orient: horizontal; box-orient: horizontal; -webkit-flex-direction: row; -moz-flex-direction: row; flex-direction: row; -ms-flex-direction: row; max-width: 312px; width: 100%; }
 .compare-menu .compare-label { -webkit-box-orient: horizontal; -moz-box-orient: horizontal; box-orient: horizontal; -webkit-flex-direction: row; -moz-flex-direction: row; flex-direction: row; -ms-flex-direction: row; -webkit-flex-grow: 1; -moz-flex-grow: 1; flex-grow: 1; -ms-flex-positive: 1; font-size: 12px; line-height: 1.2em; padding: 0 12px 0 0; display: inline-block; position: relative; }
 .compare-menu .compare-label div { max-width: 8.4375rem; }
@@ -3466,7 +3473,7 @@ button.close i:before { font-family: "mbie-rea"; font-style: normal; font-weight
 .tool-bar .filter-type.charts .header button i { opacity: 0.5; -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; filter: alpha(opacity=50); -webkit-transition: all 0.25s ease; -moz-transition: all 0.25s ease; transition: all 0.25s ease; display: block; width: 1.625rem; height: 1.625rem; margin-top: -2px; }
 .tool-bar .filter-type.year button { font-size: 0.75rem; }
 .tool-bar .filter-type .label { line-height: 1em; margin-bottom: 20px; }
-.tool-bar .filter-type ul { max-width: 18.125rem; display: flex; list-style: none; flex-wrap: wrap; }
+.tool-bar .filter-type ul { max-width: 18.125rem; display: flex; list-style: none; flex-wrap: wrap; margin-bottom: 1.5rem; }
 .tool-bar .filter-type button { border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: 2px; margin-right: 2px; display: inline-block; float: left; background: #DFF1FC; color: #296575; font-size: 14px; font-weight: normal; line-height: 1em; text-transform: capitalize; outline: none; }
 .tool-bar .filter-type button:hover, .tool-bar .filter-type button.active { color: #FFFFFF; background: #00BDE9; }
 .tool-bar .filter-type button:disabled:hover { background: #DFF1FC; color: #296575; }
@@ -3511,12 +3518,11 @@ button.close i:before { font-family: "mbie-rea"; font-style: normal; font-weight
   .tool-bar .chosen-container { display: inline-block; }
   .tool-bar .options, .tool-bar .label, .tool-bar .summary .top, .tool-bar .summary .actions { display: none; } }
 @media (max-width: 768px) { .tool-bar { height: 4.125rem; }
-  .fixed .tool-bar { top: 4.375rem; }
+  .fixed .tool-bar { top: 6.25rem; }
   .tool-bar .filter-type.area, .tool-bar .filter-type.transform, .tool-bar .filter-type.year { display: none; }
   .tool-bar .filter-type.charts { display: flex; }
   .tool-bar .filter-type.charts .header { margin-bottom: 0; }
   .large .tool-bar { height: 12.25rem; }
-  .large .tool-bar .filters { margin-top: 4.375rem; }
   .large .tool-bar .filter-type.area, .large .tool-bar .filter-type.transform, .large .tool-bar .filter-type.year { display: block; }
   .large .tool-bar .filter-type.area, .large .tool-bar .filter-type.transform { -webkit-flex-basis: 100%; -moz-flex-basis: 100%; flex-basis: 100%; -ms-flex-preferred-size: 100%; }
   .large .tool-bar .filter-type.charts { margin-top: 0; }
@@ -3530,7 +3536,7 @@ button.close i:before { font-family: "mbie-rea"; font-style: normal; font-weight
   .tool-bar .filter-type.view-by { display: none; }
   .tool-bar .filter-type.charts { -webkit-box-ordinal-group: -1; -moz-box-ordinal-group: -1; box-ordinal-group: -1; -webkit-order: -1; -moz-order: -1; order: -1; -ms-flex-order: -1; display: flex; -webkit-box-lines: single; -moz-box-lines: single; box-lines: single; -webkit-flex-wrap: nowrap; -moz-flex-wrap: nowrap; -ms-flex-wrap: nowrap; flex-wrap: nowrap; -webkit-box-orient: columns; -moz-box-orient: columns; box-orient: columns; -webkit-flex-direction: columns; -moz-flex-direction: columns; flex-direction: columns; -ms-flex-direction: columns; -webkit-box-pack: start; -moz-box-pack: start; box-pack: start; -webkit-justify-content: flex-start; -moz-justify-content: flex-start; -ms-justify-content: flex-start; -o-justify-content: flex-start; justify-content: flex-start; -ms-flex-pack: start; padding: 20px 72px 20px 24px; height: 4.125rem; }
   .tool-bar .filter-type.charts .label { display: block; margin-right: 20px; margin-top: 10px; margin-bottom: 0; }
-  .tool-bar .filter-type.charts .header { display: none; }
+  .tool-bar .filter-type.charts .header { right: 4.375rem; }
   .tool-bar .chosen-container .chosen-single { padding: 20px 24px; }
   .tool-bar .chosen-container .chosen-single div { width: 34px; } }
 .zoom-controls { display: flex; position: absolute; top: 0; z-index: 1; }

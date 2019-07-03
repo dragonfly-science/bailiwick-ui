@@ -280,6 +280,7 @@ header {
 
       @media #{$breakpoint_small} {
         display: block;
+        @include flex-wrap(nowrap);
       }
 
       .context-text {
@@ -324,11 +325,13 @@ header {
       @include flex-basis(250px);
 
       @media #{$breakpoint_small} {
-        @include flex-basis($width);
+        // @include flex-basis($width);
         display: block;
         margin: 0;
         padding: 0 $side-margin;
       }
+
+      
 
       margin: 0 $side-margin;
       position: relative;

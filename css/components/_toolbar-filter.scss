@@ -446,6 +446,7 @@ $toolbar-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94) !default; // easeOutQuad
         display: flex;
         list-style: none;
         flex-wrap: wrap;
+        margin-bottom: rem(24);
     }
 
     button {
@@ -732,7 +733,7 @@ $toolbar-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94) !default; // easeOutQuad
     height: rem(66);
 
     .fixed & {
-        top: rem(70);
+        top: rem(100);
     }
 
     .filter-type {
@@ -754,9 +755,9 @@ $toolbar-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94) !default; // easeOutQuad
     .large & {
       height: rem(196);
 
-      .filters {
-        margin-top: rem(70);
-      }
+      // .filters {
+      //   margin-top: rem(70);
+      // }
 
       .filter-type {
         &.area,
@@ -842,7 +843,7 @@ $toolbar-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94) !default; // easeOutQuad
         }
 
         .header {
-          display: none;
+          right: rem(70);
         }
       }
     }

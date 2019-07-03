@@ -342,8 +342,5 @@ export default function (element, params) {
         });
 
     bar.exit().remove();
-
-    console.log('WTF?')
-
     base.classed('svg-loading', false);
 }
