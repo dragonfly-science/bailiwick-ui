@@ -16,6 +16,7 @@ export default function(element, params, margin, chartType) {
             'overunder-barchart': false
         };
 
+
     chartInnerClasses = _.forEach(chartInnerClasses, function(value, key) {
         chartInnerClasses[key] = key === chartType;
     });
@@ -36,8 +37,8 @@ export default function(element, params, margin, chartType) {
     // set chart specific classes.
     d3.select('.chart-inner').classed(chartInnerClasses);
 
-    svg.attr("preserveAspectRatio", "xMinYMin meet")
-        .attr("viewBox", "0 0 481 474");
+    svg.attr("preserveAspectRatio", "xMinYMin meet");
+    // svg.attr("viewBox", "0 0 481 474");
 
     if (isEmpty(data) || isNaN(width) || isNaN(height)) {
         return null;

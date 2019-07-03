@@ -19,12 +19,29 @@
 
     // margin-top: rem(79);
     position: relative;
+    width: 100%;
 
     .d3-attach {
       height: 474px;
+      width: 100%;
+    }
+
+    svg {
       @extend %figure-width;
+      
       display: block;
       overflow: hidden;
+      height: 474px;
+
+      @media #{$breakpoint_large} {
+        width: 481px;
+      }
+    }
+
+    .legend {
+      svg {
+        height: auto;
+      }
     }
   }
 

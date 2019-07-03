@@ -10,7 +10,6 @@ module Bailiwick.View.MapLegend
   )
 where
 
-import Control.Monad (join)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Data.Text (Text, pack)
 

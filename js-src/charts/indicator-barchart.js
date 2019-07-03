@@ -9,13 +9,12 @@ export default function (element, params) {
     //
     // Set up
     //
-    let lmargin = 140;
+    let lmargin = 240;
     if (window.innerWidth < 400) {
       lmargin = 100;
     } else if (window.innerWidth < 600 && lmargin > 140) {
       lmargin = 180;
     }
-
     let margin = {top: 5, right: 25, bottom: 40, left: lmargin};
 
     let setup = chartSetup(element, params, margin, 'basic-barchart');
@@ -56,8 +55,6 @@ export default function (element, params) {
     else if (window.innerWidth < 600) {
         maxLength = 25;
     }
-
-    width = width - margin.left - margin.right;
 
     var yAxis = d3.svg.axis()
         .scale(y)
@@ -201,8 +198,9 @@ export default function (element, params) {
     // }
 
     // data = cache.get(indicator)['areas'][area][year];
-
+    
     tooltipElem = d3.select(element).select(".tooltip");
+
 
     x = x.range([0, width]);
 
@@ -241,7 +239,10 @@ export default function (element, params) {
         });
     xAxis.tickSize(-1 * dataHeight, 10)
     
-    x.domain([0, d3.max(data, function (d) { return d.value; })]);
+    // x.domain([0, d3.max(data, function (d) { return d.value; })]);
+
+    var xExtent = d3.extent(data, function(d) { return d.value; });
+    x.domain([Math.min(0, xExtent[0]), Math.max(0, xExtent[1])]).nice();
 
 
     g.attr("height", dataHeight + margin.top + margin.bottom);
@@ -253,9 +254,7 @@ export default function (element, params) {
         ySelEnter = ySel.enter().append("g")
             .attr("class", "y axis");
     ySel
-        .call(yAxis)
-        .selectAll("text")
-        .style("text-anchor", "end");
+        .call(yAxis);
     ySel.exit().remove();
 
     var xSel = g.selectAll("g.x.axis").data([data]),
@@ -267,15 +266,19 @@ export default function (element, params) {
         .call(xAxis);
     xSel.exit().remove();
 
-    var xSelCaption = xSel.selectAll("text.caption").data([chartCaption])
+    var xSelCaption = svg.selectAll("text.caption").data([chartCaption])
         , xSelCaptionEnter = xSelCaption.enter()
             .append("text");
     xSelCaption
         .attr("class", "caption")
-        .attr("y", 30)
-        .attr("x", 0)
-        .style("text-anchor", "start")
+        .attr("transform", "translate(0," + (dataHeight + 50) + ")")
         .text(chartCaption);
+
+    xSelCaption
+        .attr("x", 
+            base.node().getBoundingClientRect().width - 
+            xSelCaption.node().getBBox().width - margin.right
+        )
 
     var bar = g.selectAll(".bar").data(data),
         barEnter = bar.enter().append("rect")
@@ -339,6 +342,8 @@ export default function (element, params) {
         });
 
     bar.exit().remove();
+
+    console.log('WTF?')
 
     base.classed('svg-loading', false);
 }
