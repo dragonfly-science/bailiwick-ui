@@ -20,7 +20,9 @@ import qualified Data.HashMap.Strict.InsOrd as OMap
 import qualified Data.Vector as V
 
 import qualified Language.Javascript.JSaddle as JS
+#ifdef ghcjs_HOST_OS
 import GHCJS.DOM.Types (FromJSString)
+#endif
 
 import GHC.Generics
 
@@ -305,8 +307,11 @@ instance JS.FromJSVal FeatureId
 #ifdef ghcjs_HOST_OS
 instance JS.PFromJSVal FeatureId where
     pFromJSVal val = FeatureId (JS.pFromJSVal val)
-#endif
 instance GHCJS.DOM.Types.FromJSString FeatureId
+#else
+instance JS.FromJSString FeatureId where
+    fromJSString  = FeatureId . JS.fromJSString
+#endif
 
 data Feature = Feature
   { featureId     :: FeatureId
