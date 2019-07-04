@@ -53,6 +53,7 @@ export default function(element, params, margin, chartType) {
     var chartData = params[4];
     var chartCaption = params[5];
     var cache = window.MBIECacheStorage;
+    var areas = params[6];
 
     /// Cached data    
     if (isEmpty(cache.get(indicator))) {
@@ -79,6 +80,7 @@ export default function(element, params, margin, chartType) {
         indicator: indicator,
         transform: transform,
         area: area,
+        areas: areas,
         areaLevel: areaLevel,
         feature: feature,
         features: features,

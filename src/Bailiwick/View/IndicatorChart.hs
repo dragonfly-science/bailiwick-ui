@@ -53,6 +53,32 @@ shapeData mareas (IndicatorNumbers inmap) =
             Areas areas <- mareas
             area <- OMap.lookup areaid areas
             return (areaParents area)
+    --   areaType featureId
+    --     = case featureId of
+    --             Just feature -> do
+    --                 -- Areas areas <- mareas
+    --                 -- let _id = (featureIdText feature) :: AreaId
+
+    --                 -- "xxx" <> _id
+    --                 -- return name
+    --                 -- area <- OMap.lookup _id areas
+    --                 -- case area of
+    --                 --     Just a -> "domestic"
+    --                 --     Nothing -> "international"
+    --                 "xxx"
+    --             Nothing -> "international"
+        -- = "domestic"
+        -- = fromMaybe "international" $ do
+        --     case featureId of
+        --         Just feature -> do
+        --             Areas areas <- mareas
+        --             areaid <- featureIdText feature
+        --             area <- OMap.lookup areaid areas
+        --             case area of
+        --                 Just a -> "domestic"
+        --                 Nothing -> "international"
+        --         Nothing -> "international"
+            
 
       step (areaid, year, _mfeatureid) Numbers{..} res
          = do
@@ -192,6 +218,9 @@ indicatorChart IndicatorChartState{..} zoomD = do
           $ do
             let areaname = maybe "" areaName area
             let _units = maybe Percentage indicatorUnits indicator
+            let areanames = do
+                    let hash = maybe OMap.empty unAreas areas
+                    OMap.keys hash
             let features = case indicator of
                     Just a ->
                         maybe [] OMap.toList (indicatorFeatureText a)
@@ -215,7 +244,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
                      , ("zoom",        Just zoomed)
                      ]
             jsg2 ((getJSChartType chartType) :: Text) (_element_raw e)
-                 (shapeData areas indn, my, args, features, chart, label)
+                 (shapeData areas indn, my, args, features, chart, label, areanames)
 
   clickE :: Event t (Maybe Message)
     <- clickEvents e $ \svg -> do

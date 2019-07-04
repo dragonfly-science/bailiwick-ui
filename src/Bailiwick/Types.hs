@@ -311,7 +311,7 @@ instance GHCJS.DOM.Types.FromJSString FeatureId
 data Feature = Feature
   { featureId     :: FeatureId
   , featureName   :: Text
-  , featureParent :: Maybe Text
+  , featureParent :: Maybe FeatureId
   } deriving (Eq, Show, Generic)
 
 featureOptions :: Options
