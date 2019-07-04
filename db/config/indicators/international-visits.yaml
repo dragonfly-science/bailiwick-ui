@@ -17,7 +17,6 @@ notes:
 headerTitle: visits from $feature$ to $area$
 slices:
   - international visits by origin
-  - international visits by origin feature sum
 summaryTitle: visits from $feature$ to $area$, for $year$
 headlineNumCaption: >-
   the number of visits from $feature$ to $area$, for the year to $yearEndMonth$ $year$.

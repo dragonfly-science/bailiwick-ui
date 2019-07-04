@@ -14,7 +14,6 @@ themes:
 source: MBIE <a href="http://www.mbie.govt.nz/info-services/sectors-industries/tourism/tourism-research-data/monthly-regional-tourism-estimates" target="_blank">Monthly Regional Tourism Estimates</a>.
 headerTitle: spend by visitors in $area$ {on $detail$}
 slices:
-  - tourism spend($m) by origin feature sum
   - tourism spend($m) by origin
   # - tourism spend by origins and by products
 summaryTitle: spend by visitors from $feature$ {on $detail$}, for the year to $yearEndMonth$ $year$
@@ -31,7 +30,7 @@ units: milliondollars
 valueType: quantity
 featureName: origin
 featureDropdownLabel: select an origin
-# topFeatureLabel: all origins
+topFeatureLabel: all origins
 detailName: product
 topDetailLabel: all products
 rightChart: treemap

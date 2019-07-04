@@ -16,7 +16,6 @@ notes:
 headerTitle: visitor nights from $feature$ in $area$
 slices:
   - international visitor nights by origin
-  - international visitor nights by origin feature sum
 summaryTitle: visitor nights from $feature$ in $area$, for the year to $yearEndMonth$ $year$
 headlineNumCaption: >-
   the number of visitor nights from $feature$ in $area$, for the year to $yearEndMonth$ $year$.

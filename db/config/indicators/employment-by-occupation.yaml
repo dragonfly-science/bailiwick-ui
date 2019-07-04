@@ -1,6 +1,6 @@
 name: employment by occupation
 language-config:
-  subject-quantity: number 
+  subject-quantity: number
   subject-short: people employed
   feature-accessor: as
   labels:
@@ -17,7 +17,6 @@ notes:
 headerTitle: employment in $feature$ in $area$
 slices:
   - employment estimates by occupation (ANZSCO L1) (incl self-employed)
-  - employment estimates by occupation (ANZSCO L1) (incl self-employed) feature sum
 summaryTitle: employment in $feature$ in $area$ in the year to $yearEndMonth$ $year$
 headlineNumCaption: >-
   the number of people employed [as $feature$] in $area$ in the year to $yearEndMonth$ $year$.

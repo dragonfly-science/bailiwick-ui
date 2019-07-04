@@ -17,7 +17,6 @@ notes:
 headerTitle: employment of $feature$ in $area$
 slices:
   - employment estimates by industry (ANSIC06 L1) (incl self-employed)
-  - employment estimates by industry (ANSIC06 L1) (incl self-employed) feature sum
 summaryTitle: employment in $feature$ in $area$ in the year to $yearEndMonth$ $year$
 headlineNumCaption: >-
   the number of people employed [in $feature$] in $area$, in the year to $yearEndMonth$ $year$.
