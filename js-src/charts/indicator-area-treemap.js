@@ -200,6 +200,8 @@ export default function(element, params) {
         ]
     };
 
+    console.log(treemapData)
+
     var cell = svgEnter.data([treemapData]).selectAll("g").data(treemap.nodes),
         cellEnter = cell.enter().append("g").attr("class", "cell"),
         cellTrans = cell;
@@ -221,7 +223,7 @@ export default function(element, params) {
             .append("rect")
             .attr("data-bailiwick-feature", function(d) {
                 var children = _.hasIn(d, 'children');
-                return children ? null : d[0][4]
+                return children ? null : (typeof d[0] !== 'undefined' ? d[0][4] : '')
             });
 
     
@@ -304,7 +306,7 @@ export default function(element, params) {
       .attr("text-anchor", "middle")
       .attr("data-bailiwick-feature", function(d) {
         var children = _.hasIn(d, 'children');
-        return children ? null : d[0][4]
+        return children ? null : (typeof d[0] !== 'undefined' ? d[0][4] : '')
       })
       .text(function(d) {
         var children = _.hasIn(d, 'children');
