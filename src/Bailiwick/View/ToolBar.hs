@@ -57,7 +57,8 @@ toolBar
     -> ToolBarState t
     -> m (Event t (Either () Message))
 toolBar isOpenD ToolBarState{..} = do
-  let areaTypes = OM.fromList [ ("reg", "Regional Council")
+  let areaTypes = OM.fromList [ ("nz", "New Zealand")
+                              , ("reg", "Regional Council")
                               , ("ta", "Territorial Authority")
                               , ("ward", "Auckland wards")]
       absoluteLabel = do
@@ -112,10 +113,12 @@ toolBar isOpenD ToolBarState{..} = do
         rightTransformE <- divClass "filter-type charts" $ do
           elClass "span" "label" $ text "view by"
           divClass "header" $ do
+            (tm, _) <- elDynClass' "button" (("treemap" <>) . bool "" " active" . (==Just (ChartId "treemap")) <$> rightChartD) $ el "i" $ return ()
             (ts, _) <- elDynClass' "button" (("timeseries" <>) . bool "" " active" . (==Just (ChartId "timeseries")) <$> rightChartD) $ el "i" $ return ()
             (bc, _) <- elDynClass' "button" (("barchart" <>) . bool "" " active" . (==Just (ChartId "barchart")) <$> rightChartD) $ el "i" $ return ()
             return $ leftmost
-                [ SetRightChart (ChartId "timeseries") <$ domEvent Click ts
+                [ SetRightChart (ChartId "treemap") <$ domEvent Click tm
+                , SetRightChart (ChartId "timeseries") <$ domEvent Click ts
                 , SetRightChart (ChartId "barchart") <$ domEvent Click bc
                 ]
         return $ leftmost [areaTypeE, transformE, yearE, rightTransformE]

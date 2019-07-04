@@ -200,7 +200,7 @@ export default function(element, params) {
         ]
     };
 
-    console.log(treemapData)
+    // console.log(treemapData)
 
     var cell = svgEnter.data([treemapData]).selectAll("g").data(treemap.nodes),
         cellEnter = cell.enter().append("g").attr("class", "cell"),
@@ -236,9 +236,9 @@ export default function(element, params) {
         if (value.length === 0) {
             return;
         }
+        var key = _.hasIn(d, 0);
 
-        // var name = d[0][4][0].toUpperCase() + d[0][4].slice(1)
-        let name = d[0][4]
+        let name = key ? d[0][4] : '';
         let _name = _.filter(features, function(feature, key) {
             return key === name;
         })
@@ -281,7 +281,9 @@ export default function(element, params) {
         return children ? "none" : "all";
     }).classed("active", function(d) {
         var children = _.hasIn(d, 'children');
-        return children ? false : (d[0][4] === feature);
+        var key = _.hasIn(d, 0);
+        
+        return children ? false : (key ? d[0][4] === feature : false);
     });
 
     if (!first) {
@@ -306,12 +308,15 @@ export default function(element, params) {
       .attr("text-anchor", "middle")
       .attr("data-bailiwick-feature", function(d) {
         var children = _.hasIn(d, 'children');
-        return children ? null : (typeof d[0] !== 'undefined' ? d[0][4] : '')
+        var key = _.hasIn(d, 0);
+        
+        return children ? null : (key ? d[0][4] : '');
       })
       .text(function(d) {
         var children = _.hasIn(d, 'children');
+        var key = _.hasIn(d, 0);
 
-        if (!children) {
+        if (!children && key) {
             let name = d[0][4];
             let _name = _.filter(features, function(feature, key) {
                 return key === name;

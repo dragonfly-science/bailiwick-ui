@@ -27,7 +27,10 @@ function positiveScale(colours, min, max) {
  * Generates Map legend based on supplied width, height & scale data
  * */
 export default function(args, chart, steps = 100) {
-    console.log('legend', arguments)
+    if (_.isEmpty(chart)) {
+        return;
+    }
+
     let height = Number(args.height),
         width = Number(args.width),
         maximum = Number(args.max),
