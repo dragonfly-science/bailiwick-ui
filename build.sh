@@ -11,9 +11,9 @@ rm result/static/db
 mkdir result/static/db/
 cp -r db/dev result/static/db/
 
-## make the validate executible
-nix-env -f . -i -A ghc.bailiwick
-bailwick-validate db/dev
+## make the validate executible TODO make this work
+## nix-env -f . -i -A ghc.bailiwick
+## bailwick-validate db/dev
 
 cd result/
 zip -qr /output/bailiwick-static.zip static
