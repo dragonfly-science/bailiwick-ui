@@ -99,6 +99,24 @@ executable bailiwick
     ghc-options:       -dynamic
   default-language: Haskell2010
 
+executable bailiwick-validate
+  hs-source-dirs: app
+  main-is: validate.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
+  build-depends:       base
+                     , aeson
+                     , filepath
+                     , text
+                     , bailiwick
+  if impl(ghcjs)
+    ghc-options:       -dedupe
+    cpp-options:       -DGHCJS_BROWSER
+    -- -DGHCJS_GC_INTERVAL=60000 -DGHCJS_SCHED_CHECK=100000
+  else
+    ghc-options:       -dynamic
+  default-language: Haskell2010
+
+
 source-repository head
   type:     git
   location: https://github.com/dragonfly-science/bailiwick-ui
