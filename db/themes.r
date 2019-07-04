@@ -41,16 +41,24 @@ indicators <-
     features <- features[!is.na(features)]
     names(features) <- slugify(features)
     if ('all' %in% names(features)) {
-        features['all'] = fromMaybe(paste('all ', indicator$featureName), indicator$topFeatureLabel)
-    }
-    if (length(features) > 0 & !is.null(indicator$featureOrder)) {
-        if ('all' %in% names(features)) {
-            features <- features[c('all', indicator$featureOrder)]
-        } else {
-            features <- features[indicator$featureOrder]
-        }
+        features['all'] <- fromMaybe(paste('all ', indicator$featureName), indicator$topFeatureLabel)
     }
     if (length(features) > 0) {
+        if (!is.null(indicator$featureOrder)) {
+            if (!is.null(indicator$topFeatureLabel)) {
+                features <- features[c('all', indicator$featureOrder)]
+            } else if ('all' %in% names(features)) {
+                features <- features[c('all', indicator$featureOrder)]
+            } else {
+                features <- features[indicator$featureOrder]
+            }
+        } else {
+            if (!is.null(indicator$topFeatureLabel)) {
+                top = indicator$topFeatureLabel
+                names(top) = slugify(top)
+                features <- c(top, features)
+            }
+        }
         defaultFeature <- first(names(features))
     } else {
         defaultFeature <- NULL
@@ -75,6 +83,7 @@ indicators <-
       , "units"                = fromMaybe("count", indicator$units)
       , "valueType"            = fromMaybe("quantity", indicator$valueType)
       , "topDetailLabel"       = indicator$topDetailLabel                      # :: Maybe Text
+      , "topFeatureLabel"      = indicator$topFeatureLabel                     # :: Maybe Text
       , "defaultFeature"       = defaultFeature                                # :: Maybe Text
       , "featureName"          = indicator$featureName                         # :: Maybe Text
       , "featureDropdownLabel" = indicator$featureDropdownLabel                # :: Maybe Text

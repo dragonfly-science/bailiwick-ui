@@ -61,13 +61,27 @@ for (indid in names(indicators)) {
   unit <- indicators[[indid]]$unit
   datasetid <- REARdb_Source[tolower(indicators[[indid]]$slices), DatasetID]
 
+  ## Collect data together
+  ind.data <- REARdb_Data[.(datasetid)]
+  if(!is.null(indicators[[indid]]$topFeatureLabel) & !(NA %in% ind.data$Dimension1) ) {
+      ## Calculate and add feature sum
+      featuresum <-
+          REARdb_Data[.(datasetid),
+                  .(Dimension1 = NA,
+                    Dimension2 = NA,
+                    Value = sum(Value)), .(DatasetID, Year, AreaID)]
+
+      ind.data <- rbind(ind.data, featuresum)
+  }
+  setkey(ind.data, DatasetID, AreaID)
+
   nzid <- REARdb_Areas[areaname=='new-zealand', AreaID]
-  nzdata <- REARdb_Data[.(datasetid, nzid), .(Year, Dimension1, national=Value)]
+  nzdata <- ind.data[.(datasetid, nzid), .(Year, Dimension1, national=Value)]
   values <-
-      REARdb_Data[.(datasetid)][
-        REARdb_Areas, on=.(AreaID)][
+      ind.data[REARdb_Areas, on=.(AreaID)][
         !is.na(Value)][
         nzdata, on=.(Year, Dimension1)]
+
   setkey(values, AreaID, Dimension1, Year)
   values[, previous := shift(Value,1), by=.(AreaID, Dimension1)]
   range <- pretty(values[,Value])
@@ -79,6 +93,14 @@ for (indid in names(indicators)) {
   # index value
   values[values[, .(firstValue = first(Value)), by=.(AreaID, Dimension1, Dimension2)],
          index := Value/firstValue*100, on=.(AreaID, Dimension1, Dimension2)]
+
+  if (any(!is.na(values$Dimension1))) {
+    if(!is.null(indicators[[indid]]$topFeatureLabel)) {
+       values[is.na(Dimension1), Dimension1 := indicators[[indid]]$topFeatureLabel]
+    } else {
+       values[is.na(Dimension1), Dimension1 := 'all']
+    }
+  }
 
   summarynumbers <-
       values[,
