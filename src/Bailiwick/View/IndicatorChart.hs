@@ -192,6 +192,9 @@ indicatorChart IndicatorChartState{..} zoomD = do
           $ do
             let areaname = maybe "" areaName area
             let _units = maybe Percentage indicatorUnits indicator
+            let areanames = do
+                    let hash = maybe OMap.empty unAreas areas
+                    OMap.keys hash
             let features = case indicator of
                     Just a ->
                         maybe [] OMap.toList (indicatorFeatureText a)
@@ -215,7 +218,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
                      , ("zoom",        Just zoomed)
                      ]
             jsg2 ((getJSChartType chartType) :: Text) (_element_raw e)
-                 (shapeData areas indn, my, args, features, chart, label)
+                 (shapeData areas indn, my, args, features, chart, label, areanames)
 
   clickE :: Event t (Maybe Message)
     <- clickEvents e $ \svg -> do

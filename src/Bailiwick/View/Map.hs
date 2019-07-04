@@ -535,7 +535,7 @@ nzmap isSummary MapState{..} scaleFunctionE = mdo
     when (not isSummary) $ do
       let transformD = fmap themePageLeftTransform . getThemePage <$> routeD
       elDynAttr "p" (("class" =: ) <$> (fromMaybe "" <$> transformD) <> " number") $ do
-        dynText $ fromMaybe "" <$> getValue tooltipAreaD
+        dynText $ fromMaybe "No data" <$> getValue tooltipAreaD
 
   moveE
     :: Event t (Maybe (AreaInfo, (Int, Int)))
@@ -916,21 +916,25 @@ updateMapIndicator svgBody mapD scaleFunctionD = do
         let sel = "g." <> area <> "-" <>  areatype
         colour <- liftJSM $ getColour area
         when (areatype  == "region") $ do
-            setAttr (sel <> ".inbound[same_reg=TRUE] > polyline") "stroke" colour
+            setAttr (sel <> ".inbound[same_reg=TRUE] > polyline") "stroke" $
+                (if colour == "#FFFFFF" then "none" else colour)
             setAttr (sel <> ".inbound[same_reg=TRUE]") "show" "FALSE"
             setAttr (sel <> ".inbound[same_reg=FALSE] > polyline") "stroke" ol
             setAttr (sel <> ".inbound[same_reg=FALSE]") "show" "TRUE"
         when (areatype  == "ta") $ do
-            setAttr (sel <> ".inbound[same_ta=TRUE] > polyline") "stroke" colour
+            setAttr (sel <> ".inbound[same_ta=TRUE] > polyline") "stroke" $
+                (if colour == "#FFFFFF" then "none" else colour)
             setAttr (sel <> ".inbound[same_ta=TRUE]") "show" "FALSE"
             setAttr (sel <> ".inbound[same_ta=FALSE] > polyline") "stroke" ol
             setAttr (sel <> ".inbound[same_ta=FALSE]") "show" "TRUE"
         when (areatype  == "ward") $ do
-            setAttr (sel <> ".inbound[same_ward=TRUE] > polyline") "stroke" colour
+            setAttr (sel <> ".inbound[same_ward=TRUE] > polyline") "stroke" $
+                (if colour == "#FFFFFF" then "none" else colour)
             setAttr (sel <> ".inbound[same_ward=TRUE]") "show" "FALSE"
             setAttr (sel <> ".inbound[same_ward=FALSE] > polyline") "stroke" ol
             setAttr (sel <> ".inbound[same_ward=FALSE]") "show" "TRUE"
-        setAttr (sel <> " > path") "fill" colour
+        setAttr (sel <> " > path") "fill" $
+            (if colour == "#FFFFFF" then "url(#lightstripe)" else colour)
 
     let initial = (_zoomState <$> old) == Nothing
     when (initial) $ do
@@ -940,11 +944,13 @@ updateMapIndicator svgBody mapD scaleFunctionD = do
       forM_ nonaucklandtas $ \(ta, _) -> do
         let tasel = "g." <> ta <> "-" <> "ta"
         tacolour <- liftJSM $ getColour ta
-        setAttr (tasel <> ".inbound[same_ta=TRUE] > polyline") "stroke" tacolour
+        setAttr (tasel <> ".inbound[same_ta=TRUE] > polyline") "stroke" $
+            (if tacolour == "#FFFFFF" then "none" else tacolour)
         setAttr (tasel <> ".inbound[same_ta=TRUE]") "show" "FALSE"
         setAttr (tasel <> ".inbound[same_ta=FALSE] > polyline") "stroke" ol
         setAttr (tasel <> ".inbound[same_ta=FALSE]") "show" "TRUE"
-        setAttr (tasel <> " > path") "fill" tacolour
+        setAttr (tasel <> " > path") "fill" $
+            (if tacolour == "#FFFFFF" then "url(#lightstripe)" else tacolour)
 
     -- Mouse overs
     let updateMouseOver selector = do
@@ -954,15 +960,19 @@ updateMapIndicator svgBody mapD scaleFunctionD = do
             forM_ oldarea $ \cssClass -> do
               let sel = "g." <> cssClass
               colour <- liftJSM $ getColour cssClass
-              setAttr (sel <> " > path") "fill" colour
+              setAttr (sel <> " > path") "fill" $
+                (if colour == "#FFFFFF" then "url(#lightstripe)" else colour)
               when (Text.isSuffixOf "-ta" cssClass) $ do
-                  setAttr (sel <> "[same_ta=TRUE] > polyline") "stroke" colour
+                  setAttr (sel <> "[same_ta=TRUE] > polyline") "stroke" $
+                    (if colour == "#FFFFFF" then "none" else colour)
                   setAttr (sel <> "[same_ta=TRUE]") "show" "FALSE"
               when (Text.isSuffixOf "-region" cssClass) $ do
-                  setAttr (sel <> "[same_reg=TRUE] > polyline") "stroke" colour
+                  setAttr (sel <> "[same_reg=TRUE] > polyline") "stroke" $
+                    (if colour == "#FFFFFF" then "none" else colour)
                   setAttr (sel <> "[same_reg=TRUE]") "show" "FALSE"
               when (Text.isSuffixOf "-ward" cssClass) $ do
-                  setAttr (sel <> "[same_ward=TRUE] > polyline") "stroke" colour
+                  setAttr (sel <> "[same_ward=TRUE] > polyline") "stroke" $
+                    (if colour == "#FFFFFF" then "none" else colour)
                   setAttr (sel <> "[same_ward=TRUE]") "show" "FALSE"
             forM_ newarea $ \cssClass -> do
               let highlight = "rgb(0, 189, 233)"

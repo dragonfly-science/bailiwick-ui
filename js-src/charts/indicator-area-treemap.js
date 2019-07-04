@@ -4,6 +4,7 @@ import d3 from 'd3';
 import rgbHex from 'rgb-hex';
 
 import chartSetup from '../utils/chart-setup';
+import format from '../utils/formatting';
 import { isEmpty, getColours, none, present } from '../utils/utils';
 
 
@@ -11,9 +12,9 @@ const margin = {top: 2, right: 2, bottom: 2, left: 2};
 
 
 function wordwrap(d, i) {
-  if (!d.absolute) {
-    return;
-  }
+//   if (!d.absolute) {
+//     return;
+//   }
 
   var t = d3.select(this),
   rectBB = t.select('rect').node().getBBox(),
@@ -30,8 +31,6 @@ export default function(element, params) {
     let colours = getColours();
     let treemap, legendElem, tooltipElem, labels;
     let first = true;
-
-    // console.log('treemap', params);
 
     var startColour = colours['background-rear-positive-light'],
         endColour = colours['background-rear-positive'];
@@ -56,7 +55,8 @@ export default function(element, params) {
         year = setup.year, 
         indicator = setup.indicator, 
         transform = setup.transform, 
-        area = setup.area, 
+        area = setup.area,
+        areas = setup.areas,
         areaLevel = setup.areaLevel,
         feature = setup.feature,
         features = setup.features,
@@ -65,14 +65,24 @@ export default function(element, params) {
         width = setup.width, 
         height = setup.height;
 
+
     legendElem = d3.select(element).select(".legend");
     tooltipElem = d3.select(element).select(".tooltip");
     treemap = d3.layout.treemap()
       .size([width, height])
       .value(function(d) {
-        return d[3]; 
+        var value = _.filter(d[1], function(item) {
+            return item[0] === year;
+        })
+
+        if (value.length > 0) {
+            return Number(value[0][1]);
+        }
+
+        return 0; 
       });
 
+    svg.selectAll('g').remove();
     let g = svg.selectAll("g").data([1]);
     let svgEnter = g.enter()
       .append("g");
@@ -99,10 +109,6 @@ export default function(element, params) {
     //     this.set("plotdata", dataTree.get('areas')[area]);
     //     this.set("dataId", {tree: dataTree.get('id'), area: area});
     //   }
-    
-    let areaData = _.filter(data, function (i) {
-      return i[0][1] === area;
-    });
 
     ///
     /// Draw Labels
@@ -150,123 +156,181 @@ export default function(element, params) {
       });
       legendTexts.exit().remove();
 
+
+
     /// 
     /// Update
     ///
     // var data = this.get("plotdata"),
-    // duration = this.get("duration"),
+    var duration = 1000;
     // feature = this.getAttr("feature"),
     // featureName = present(feature) ? feature.get("name") : null,
     // _this = this;
 
-    // this.$().addClass("svg-loading");
+    let areaData = _.filter(data, function (i) {
+        return i[0][1] === area;
+      });
+    
+    // var root = d3.hierarchy(areaData).sum(function(d){
+    //     console.log(d)
+    //     return 0;
+    // })
 
-    // if (!(svg && data && present(data.features) && data.features.children.length === 2)){
-    //     this.$().removeClass("svg-loading");
-    //   return;
-    // }
+    var grouped = _.groupBy(areaData, function(item) {
+        let key = _.last(item[0]);
 
-    var cell = svgEnter.data(features).selectAll("g")
-      .data(treemap.nodes),
-    cellEnter = cell.enter().append("g")
-      .attr("class", "cell"),
-    cellTrans = cell;
+        return _.indexOf(areas, key) === -1;
+    });
 
-    // labels = 
-    labels = cell.data()[0];
+    let domestic = grouped[false],
+        international = grouped[true];
 
-    // this.set("labels", cell.data()[0].children.map(function(d) {
-    //   return d.name[0].toUpperCase() + d.name.substr(1);
-    // }).reverse());
+    // console.log(domestic, international)
+    let treemapData = {
+        name: 'top',
+        children: [
+            {
+                name: 'domestic',
+                children: domestic
+            },
+            {
+                name: 'international',
+                children: international
+            }
+        ]
+    };
 
-    // if (!first) {
-    //   cellTrans = cellTrans.transition()
-    //     .duration(duration);
-    // }
+    var cell = svgEnter.data([treemapData]).selectAll("g").data(treemap.nodes),
+        cellEnter = cell.enter().append("g").attr("class", "cell"),
+        cellTrans = cell;
+
+    if (!first) {
+      cellTrans = cellTrans.transition()
+        .duration(duration);
+    }
 
     cellTrans.attr("transform", function(d) {
-      return "translate(0,0)";
+      return "translate(" + d.x + "," + d.y + ")";
     });
 
     var rect = cell.selectAll('rect')
-      .data(function(d) { return [d];}),
-    rectEnter = rect.enter()
-      .append("rect")
-      .on("click", function(d, i) {
-        // _this.sendAction('featureAction', d.slug);
+            .data(function(d) { 
+                return [d];
+            }),
+        rectEnter = rect.enter()
+            .append("rect")
+            .on("click", function(d, i) {
+                // _this.sendAction('featureAction', d.slug);
+            });
+
+    
+    if (!Modernizr.touch) {
+      rectEnter.on("mouseover", function(d, i) {
+        var value = _.filter(d[1], function(item) {
+            return item[0] === year;
+        });
+
+        if (value.length === 0) {
+            return;
+        }
+
+        // var name = d[0][4][0].toUpperCase() + d[0][4].slice(1)
+        let name = d[0][4]
+        let _name = _.filter(features, function(feature, key) {
+            return key === name;
+        })
+
+        if (_name.length !== 0) {
+            name = _name[0]
+        }
+        
+        value = Number(d.value)
+        value = value.toFixed(1)
+        value = '$' + format("million dollars", value);
+
+        var tooltip = tooltipElem.selectAll('p').data([name, value]),
+            tooltipEnter = tooltip.enter().append('p');
+
+        tooltip.text(function(d) {
+          return d;
+        }).classed("number", function(d, i) {
+          return i === 1;
+        }).classed("local", function(d, i) {
+          return i === 1;
+        });
+        tooltipElem.style("visibility", "visible")
+          .style("top", function() {
+            return (d3.event.offsetY) + "px";
+          })
+        .style("left", function() {
+          return (d3.event.offsetX) + "px";
+        });
+      }).on("mouseout", function(d, i) {
+        tooltipElem.style("visibility", "hidden");
       });
-    // if (!Modernizr.touch) {
-    //   rectEnter.on("mouseover", function(d, i) {
-    //     var tooltip = tooltipElem.selectAll('p')
-    //       .data([d.name, d.dispAbsolute]),
-    //     tooltipEnter = tooltip.enter().append('p');
-
-
-    //     tooltip.text(function(d) {
-    //       return d;
-    //     }).classed("number", function(d, i) {
-    //       return i === 1;
-    //     }).classed("local", function(d, i) {
-    //       return i === 1;
-    //     });
-    //     tooltipElem.style("visibility", "visible")
-    //       .style("top", function() {
-    //         return (d3.event.offsetY) + "px";
-    //       })
-    //     .style("left", function() {
-    //       return (d3.event.offsetX) + "px";
-    //     });
-    //   }).on("mouseout", function(d, i) {
-    //     tooltipElem.style("visibility", "hidden");
-
-    //   });
-    // }
+    }
 
     rect.style("fill", function(d) {
-      return 'green';//d.children ? color(d.name) : null;
+        var children = _.hasIn(d, 'children');
+        return children ? colour(d.name) : null;
     }).attr("pointer-events", function(d) {
-      return 'all';//d.children ? "none" : "all";
+        var children = _.hasIn(d, 'children');
+        return children ? "none" : "all";
     }).classed("active", function(d) {
-      return false;
-      // return d.name === featureName;
+        var children = _.hasIn(d, 'children');
+        return children ? false : (d[0][4] === feature);
     });
 
-    // if (!first) {
-    //   rect.transition()
-    //     .duration(duration);
-    // }
-    // rect.attr("width", function(d) { return d.dx; })
-    //   .attr("height", function(d) { return d.dy; });
+    if (!first) {
+      rect.transition()
+        .duration(duration);
+    }
 
-    // var text = cell.selectAll("text")
-    //   .data(function(d) {
-    //     return [
-    //       d
-    //     ];
-    //   }),
-    // textEnter = text.enter()
-    //   .append('text')
-    //   .style("pointer-events", "none");
+    rect
+        .attr("width", function(d) { return d.dx; })
+        .attr("height", function(d) { return d.dy; });
 
-    // text
-    //   .style("visibility", "hidden")
-    //   .attr("x", function(d) { return d.dx / 2; })
-    //   .attr("y", function(d) { return d.dy / 2; })
-    //   .attr("dy", ".35em")
-    //   .attr("text-anchor", "middle")
-    //   .text(function(d) {
-    //     return d.children ? null : d.name[0].toUpperCase()
-    //       + d.name.slice(1);
-    //   });
+    var text = cell.selectAll("text")
+      .data(function(d) {
+        return [
+          d
+        ];
+      }),
+    textEnter = text.enter()
+      .append('text')
+      .style("pointer-events", "none");
 
-    // if (first) {
-    //   cellTrans.each(wordwrap);
-    //   first = false;
-    // } else {
-    //   cellTrans.each('end', wordwrap);
-    // }
+    text
+      .style("visibility", "hidden")
+      .attr("x", function(d) { return d.dx / 2; })
+      .attr("y", function(d) { return d.dy / 2; })
+      .attr("dy", ".35em")
+      .attr("text-anchor", "middle")
+      .text(function(d) {
+        var children = _.hasIn(d, 'children');
 
-    // cell.exit().remove();
-    // this.$().removeClass("svg-loading");
+        if (!children) {
+            let name = d[0][4];
+            let _name = _.filter(features, function(feature, key) {
+                return key === name;
+            })
+
+            if (_name.length !== 0) {
+                return _name[0];
+            }
+        }
+
+        return children ? null : '';
+      });
+
+    if (first) {
+      cellTrans.each(wordwrap);
+      first = false;
+    } else {
+      cellTrans.each('end', wordwrap);
+    }
+
+    cell.exit().remove();
+
     base.classed('svg-loading', false);
 }
