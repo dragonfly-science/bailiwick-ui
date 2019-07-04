@@ -219,8 +219,9 @@ export default function(element, params) {
             }),
         rectEnter = rect.enter()
             .append("rect")
-            .on("click", function(d, i) {
-                // _this.sendAction('featureAction', d.slug);
+            .attr("data-bailiwick-feature", function(d) {
+                var children = _.hasIn(d, 'children');
+                return children ? null : d[0][4]
             });
 
     
@@ -290,15 +291,10 @@ export default function(element, params) {
         .attr("width", function(d) { return d.dx; })
         .attr("height", function(d) { return d.dy; });
 
-    var text = cell.selectAll("text")
-      .data(function(d) {
-        return [
-          d
-        ];
-      }),
-    textEnter = text.enter()
-      .append('text')
-      .style("pointer-events", "none");
+    var text = cell.selectAll("text").data(function(d) { return [d]; }),
+        textEnter = text.enter()
+            .append('text')
+            .style("pointer-events", "none");
 
     text
       .style("visibility", "hidden")
@@ -306,6 +302,10 @@ export default function(element, params) {
       .attr("y", function(d) { return d.dy / 2; })
       .attr("dy", ".35em")
       .attr("text-anchor", "middle")
+      .attr("data-bailiwick-feature", function(d) {
+        var children = _.hasIn(d, 'children');
+        return children ? null : d[0][4]
+      })
       .text(function(d) {
         var children = _.hasIn(d, 'children');
 
