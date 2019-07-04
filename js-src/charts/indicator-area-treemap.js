@@ -230,12 +230,20 @@ export default function(element, params) {
             return item[0] === year;
         });
 
-        
         if (value.length === 0) {
             return;
         }
 
-        var name = d[0][4][0].toUpperCase() + d[0][4].slice(1)
+        // var name = d[0][4][0].toUpperCase() + d[0][4].slice(1)
+        let name = d[0][4]
+        let _name = _.filter(features, function(feature, key) {
+            return key === name;
+        })
+
+        if (_name.length !== 0) {
+            name = _name[0]
+        }
+        
         value = Number(d.value)
         value = value.toFixed(1)
         value = '$' + format("million dollars", value);
@@ -303,7 +311,13 @@ export default function(element, params) {
 
         if (!children) {
             let name = d[0][4];
-            return name[0].toUpperCase() + name.slice(1);
+            let _name = _.filter(features, function(feature, key) {
+                return key === name;
+            })
+
+            if (_name.length !== 0) {
+                return _name[0];
+            }
         }
 
         return children ? null : '';

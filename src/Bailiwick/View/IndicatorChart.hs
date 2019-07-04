@@ -53,32 +53,6 @@ shapeData mareas (IndicatorNumbers inmap) =
             Areas areas <- mareas
             area <- OMap.lookup areaid areas
             return (areaParents area)
-    --   areaType featureId
-    --     = case featureId of
-    --             Just feature -> do
-    --                 -- Areas areas <- mareas
-    --                 -- let _id = (featureIdText feature) :: AreaId
-
-    --                 -- "xxx" <> _id
-    --                 -- return name
-    --                 -- area <- OMap.lookup _id areas
-    --                 -- case area of
-    --                 --     Just a -> "domestic"
-    --                 --     Nothing -> "international"
-    --                 "xxx"
-    --             Nothing -> "international"
-        -- = "domestic"
-        -- = fromMaybe "international" $ do
-        --     case featureId of
-        --         Just feature -> do
-        --             Areas areas <- mareas
-        --             areaid <- featureIdText feature
-        --             area <- OMap.lookup areaid areas
-        --             case area of
-        --                 Just a -> "domestic"
-        --                 Nothing -> "international"
-        --         Nothing -> "international"
-            
 
       step (areaid, year, _mfeatureid) Numbers{..} res
          = do
