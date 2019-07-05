@@ -19,10 +19,11 @@ COPY db/ /setup/db/
 COPY nix.conf /etc/nix/nix.conf
 
 # Install a bunch of R libraries to allow creation of json data files
-RUN nix-env -f /setup/db/default.nix -iA bailiwick-data
+RUN nix-env -f  /setup/db/default.nix -iA bailiwick-data
 
 # Install the haskell libraries for compiling reflex and bailiwick to javascript
 RUN cd /setup/ && nix-shell -j6 -A shells.ghcjs --run exit
+RUN cd /setup/ && nix-shell -j6 -A shells.ghc --run exit
 
 ## return to nix conf that will work on gorby
 COPY nix-gorbachev.conf /etc/nix/nix.conf
