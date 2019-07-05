@@ -20,7 +20,7 @@ import Data.Text (Text)
 import Debug.Trace
 
 import qualified GHCJS.DOM.Element as DOM
-import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM)
+import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM, toJSVal, JSVal)
 import Reflex.Dom.Core
 
 import Bailiwick.Javascript
@@ -106,7 +106,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
 
   (e, rightZoomE) <- divClass "chart-wrapper" $ do
     elAttr "div" ("class" =: "chart-inner") $ do
-        
+
         rightZoomE <-
           elAttr "div" ("class" =: ("zoom-controls map-zoom " <> ("active"))) $ do
             let inpAttrD switchD = ffor switchD $ \case
@@ -143,12 +143,18 @@ indicatorChart IndicatorChartState{..} zoomD = do
         areas <- areasD
         return (shapeData areas indn)
 
-      areanamesD = do
+  let makeJSVal a = do
+        val <- liftJSM $ toJSVal a
+        return (Just val)
+  shapedDataJSE <- performEvent (makeJSVal <$> updated shapedDataD)
+  shapedDataJSD <- holdDyn Nothing shapedDataJSE
+
+  let areanamesD = do
         areas <- areasD
         let hash = maybe OMap.empty unAreas areas
         return $ OMap.keys hash
       jsargs = do
-        shapedData <- shapedDataD
+        shapedData <- shapedDataJSD
         areanames <- areanamesD
         my <- _year
         indID <- _iId
@@ -175,7 +181,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
   updateE :: Event t (Maybe Year, Maybe IndicatorId,
-                      Maybe Indicator, ShapedData, [AreaId], Maybe Area, Maybe Text,
+                      Maybe Indicator, Maybe JSVal, [AreaId], Maybe Area, Maybe Text,
                       Maybe Text, Maybe ChartId, Maybe FeatureId, Bool, Text)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
@@ -189,8 +195,8 @@ indicatorChart IndicatorChartState{..} zoomD = do
         Nothing ->                           "updateIndicatorTimeSeries"
 
   performEvent_ $ ffor updateE $ \case
-    (my, indID, indicator, shapedData, areanames, area, areatype, transform, chartType, featureId, zoom, label)
-      -> liftJSM . void
+    (my, indID, indicator, mshapedData, areanames, area, areatype, transform, chartType, featureId, zoom, label)
+      -> liftJSM
           $ do
             let areaname = maybe "" areaName area
             let features = case indicator of
@@ -215,8 +221,11 @@ indicatorChart IndicatorChartState{..} zoomD = do
                      , ("featureId",   (featureIdText <$> featureId))
                      , ("zoom",        Just zoomed)
                      ]
-            jsg2 ((getJSChartType chartType) :: Text) (_element_raw e)
-                 (shapedData, my, args, features, chart, label, areanames)
+            case mshapedData of
+              Just shapedData ->
+                void $ jsg2 ((getJSChartType chartType) :: Text) (_element_raw e)
+                         (shapedData, my, args, features, chart, label, areanames)
+              Nothing -> return ()
 
   clickE :: Event t (Maybe Message)
     <- clickEvents e $ \svg -> do
