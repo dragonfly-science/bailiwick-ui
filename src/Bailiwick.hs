@@ -29,6 +29,6 @@ ui = mdo
          leftmost
             [ let mkMessage r _ = Route.Ready (Route.routePage r)
               in  attachPromptlyDynWith mkMessage routeD readyE
-            , traceEvent "interactE: " interactE]
+            , interactE]
   return ()
 

@@ -176,7 +176,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
 
 
   let getJSChartType chart = case chart of
-        Just a -> case trace ("chart type" ++ show a) a of
+        Just a -> case a of
                     "barchart"            -> "updateAreaBarchart"
                     "over-under-barchart" -> "overUnderBarchart"
                     "treemap"             -> "areaTreeMap"
