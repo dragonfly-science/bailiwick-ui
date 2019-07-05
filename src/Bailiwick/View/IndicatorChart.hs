@@ -4,6 +4,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RecursiveDo         #-}
 module Bailiwick.View.IndicatorChart
   ( indicatorChart
   , IndicatorChartState(..)
@@ -11,6 +12,7 @@ module Bailiwick.View.IndicatorChart
 ) where
 
 import Control.Monad (join, void)
+import Control.Monad.Fix
 import Data.Maybe (fromMaybe, isJust)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import qualified Data.Map as Map
@@ -25,6 +27,12 @@ import Bailiwick.Javascript
 import Bailiwick.Route
 import Bailiwick.Types
 import Bailiwick.View.Text (textSubstitution)
+
+switchDynM
+ :: (MonadHold t m, DomBuilder t m, PostBuild t m)
+ => Dynamic t (m (Event t a)) -> m (Event t a)
+switchDynM = (switchHold never =<<) . dyn
+
 
 data IndicatorChartState t
   = IndicatorChartState
@@ -78,7 +86,7 @@ textLabel ind transform =
               Just val -> val
               Nothing -> ""
           Nothing -> ""
-    
+
     Nothing -> ""
 
 indicatorChart
@@ -91,6 +99,7 @@ indicatorChart
      , HasJSContext (Performable m)
      , MonadJSM m
      , MonadHold t m
+     , MonadFix m
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
   => IndicatorChartState t
@@ -100,42 +109,30 @@ indicatorChart IndicatorChartState{..} zoomD = do
   let pageD = getThemePage <$> routeD
       _chartType = fmap themePageRightChart <$> pageD
 
---   let chartType = do
---         c <- _chartType
---         case c of
---             Just a -> a
---             Nothing -> ()
+  (e, rightZoomE) <- divClass "chart-wrapper" $ do
+    elAttr "div" ("class" =: "chart-inner") $ do
+        rightZoomE <-
+          divClass "zoom-controls map-zoom active" $ do
+              let inpAttrD switchD = ffor switchD $ \case
+                      True  -> ("type" =: "checkbox" <> "class" =: "checked")
+                      False -> ("type" =: "checkbox")
+              (eZoomIn, _) <-
+                  el "label" $ do
+                      elDynAttr "input" (inpAttrD zoomD) $ return ()
+                      elClass' "span" "zoom-in" $ return ()
+              (eZoomOut, _) <-
+                  el "label" $ do
+                      elDynAttr "input" (inpAttrD (not <$> zoomD)) $ return ()
+                      elClass' "span" "zoom-out" $ return ()
 
-  (e, _) <- divClass "chart-wrapper" $ do
-    elAttr' "div" ("class" =: "chart-inner") $ do
+              return $
+                    leftmost [ RightZoomIn <$ domEvent Click eZoomIn
+                             , RightZoomOut Nothing <$ domEvent Click eZoomOut ]
 
-        -- case chartType of
-        --     Just a -> case trace ("chart type" ++ show a) a of
-        --         "timeseries" -> do
-        --             divClass "zoom-controls map-zoom active" $ do
-        --                 let inpAttrD switchD = ffor switchD $ \case
-        --                         True  -> ("type" =: "checkbox" <> "class" =: "checked")
-        --                         False -> ("type" =: "checkbox")
-        --                 (eZoomIn, _) <-
-        --                     el "label" $ do
-        --                         elAttr "input" ("type" =: "checkbox") $ return ()
-        --                         elClass' "span" "zoom-in" $ return ()
-        --                 (eZoomOut, _) <-
-        --                     el "label" $ do
-        --                         elAttr "input" ("type" =: "checkbox") $ return ()
-        --                         elClass' "span" "zoom-out" $ return ()
-
-        --                 return $ leftmost [ tagPromptlyDyn
-        --                                         (RightZoomOut . fmap areaId <$> areaD)
-        --                                         (domEvent Click eZoomOut)
-        --                                 , RightZoomIn <$ domEvent Click eZoomIn
-        --                                 ]
-        --         _ -> return never
-        --     Nothing -> return never
-
-        divClass "d3-attach" $ return ()
+        (e, _) <- elAttr' "div" ("class" =: "d3-attach") $ return ()
         divClass "tooltip" $ return ()
         divClass "legend" $ return ()
+        return (e, rightZoomE)
 
   readyE <- getPostBuild
 
@@ -159,7 +156,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
         zoom <- zoomD
         page <- pageD
 
-        let chartLabel = textSubstitution area Nothing indicator 
+        let chartLabel = textSubstitution area Nothing indicator
                             (join featureId) page
 
         let label = case transform of
@@ -241,7 +238,8 @@ indicatorChart IndicatorChartState{..} zoomD = do
               return (SetYear <$> year)
            _ -> return Nothing
 
-  return $ fmapMaybe id clickE
+  return $ leftmost[ rightZoomE
+                   , fmapMaybe id clickE ]
 
 
   -- TODO: we now know the time series from the indicator,

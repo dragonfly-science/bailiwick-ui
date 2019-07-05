@@ -4,7 +4,7 @@ import _ from 'lodash'
 import { isEmpty } from '../utils/utils';
 
 export default function(element, params, margin, chartType) {
-    let base = d3.select(element).select('.d3-attach'),
+    let base = d3.select(element),
         svg = null,
         width = parseInt(base.style("width")) - margin.left - margin.right,
         height = parseInt(base.style("height")) - margin.top - margin.bottom,
@@ -25,15 +25,15 @@ export default function(element, params, margin, chartType) {
     base.classed('svg-loading', true);
 
     if (
-        d3.select('.chart-inner').empty() || 
-        (!d3.select('.chart-inner').empty() && 
+        d3.select('.chart-inner').empty() ||
+        (!d3.select('.chart-inner').empty() &&
         !d3.select('.chart-inner').classed(chartType))
-        ) 
+        )
     {
         base.select('svg').remove();
         svg = base.append('svg');
     }
-    
+
     // set chart specific classes.
     d3.select('.chart-inner').classed(chartInnerClasses);
 
@@ -55,7 +55,7 @@ export default function(element, params, margin, chartType) {
     var cache = window.MBIECacheStorage;
     var areas = params[6];
 
-    /// Cached data    
+    /// Cached data
     if (isEmpty(cache.get(indicator))) {
         cache.put(indicator, {});
     }
@@ -64,9 +64,9 @@ export default function(element, params, margin, chartType) {
         var feats = {};
 
         _.forEach(features, function(f, i) {
-            feats[f[0]] = f[1]; 
+            feats[f[0]] = f[1];
         })
-        
+
         features = feats;
     }
 

@@ -430,7 +430,7 @@ indicatorContent leftZoomD rightZoomD regionD map_state map_legend_state indicat
     return $ leftmost [ mapE, chartE ]
   summaryE <- divClass "indicator-summary hide-table no-compare" $
     indicatorSummary indicator_summary_state
-  return $ leftmost [contentE, summaryE]  
+  return $ leftmost [contentE, summaryE]
 
 summaryText
   :: ( DomBuilder t m

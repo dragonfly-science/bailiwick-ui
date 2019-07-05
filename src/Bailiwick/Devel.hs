@@ -39,7 +39,7 @@ addDebugMenu = return ()
 #endif
 
 staticfiles :: FilePath
-staticfiles = "dist-newstyle/build/x86_64-linux/ghcjs-8.4.0.1/bailiwick-0.1.0.0/x/bailiwick/build/bailiwick/bailiwick.jsexe/"
+staticfiles = "dist-newstyle/build/x86_64-linux/ghcjs-8.4.0.1/bailiwick-lib-0.1.0.0/x/bailiwick/build/bailiwick/bailiwick.jsexe"
 
 debug :: Int -> JSM () -> IO ()
 debug prt f = do

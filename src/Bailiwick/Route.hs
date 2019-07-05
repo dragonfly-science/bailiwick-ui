@@ -219,7 +219,10 @@ encodeRoute route uri =
                 , [("areatype", encodeUtf8 at) | at /= "reg"] <> [("left-transform", encodeUtf8 lt) | lt /= "absolute"] <> [("right-transform", encodeUtf8 rt)]
                 )
   in uri { uriPath = B.toStrict $ toLazyByteString (encodePath segments [])
-         , uriQuery = Query $ query <> [("mapzoom", "1") | hasAdapter Mapzoom route]}
+         , uriQuery = Query $ query <> [("mapzoom", "1")   | hasAdapter Mapzoom route]
+                                    <> [("rightzoom", "1") | hasAdapter RightZoom route]
+                                    <> [("leftzoom", "1")  | hasAdapter LeftZoom route]
+         }
 
 encodeUri :: URI -> Message -> URI
 encodeUri uri message = encodeRoute (step (decodeUri uri) message) uri
@@ -230,6 +233,8 @@ decodeUri uri =
       Query flags = uriQuery uri
       adapters = mapMaybe mkAdapter flags
       mkAdapter ("mapzoom", "1") = Just Mapzoom
+      mkAdapter ("rightzoom", "1") = Just RightZoom
+      mkAdapter ("leftzoom", "1") = Just LeftZoom
       mkAdapter _ = Nothing
       homePage = Route Summary "" Nothing adapters
       flagMap = M.fromList flags
