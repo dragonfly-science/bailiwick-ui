@@ -66,8 +66,8 @@ export default function(element, params) {
         height = setup.height;
 
 
-    legendElem = d3.select(element).select(".legend");
-    tooltipElem = d3.select(element).select(".tooltip");
+    legendElem = d3.select(element.parentNode).select(".legend");
+    tooltipElem = d3.select(element.parentNode).select(".tooltip");
     treemap = d3.layout.treemap()
       .size([width, height])
       .value(function(d) {

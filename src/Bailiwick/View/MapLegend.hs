@@ -12,7 +12,6 @@ where
 
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Data.Text (Text, pack)
-import Debug.Trace
 
 import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM, valToObject)
 import Reflex

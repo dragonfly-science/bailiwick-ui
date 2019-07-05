@@ -111,23 +111,24 @@ indicatorChart IndicatorChartState{..} zoomD = do
 
   (e, rightZoomE) <- divClass "chart-wrapper" $ do
     elAttr "div" ("class" =: "chart-inner") $ do
+        
         rightZoomE <-
-          divClass "zoom-controls map-zoom active" $ do
-              let inpAttrD switchD = ffor switchD $ \case
-                      True  -> ("type" =: "checkbox" <> "class" =: "checked")
-                      False -> ("type" =: "checkbox")
-              (eZoomIn, _) <-
-                  el "label" $ do
-                      elDynAttr "input" (inpAttrD zoomD) $ return ()
-                      elClass' "span" "zoom-in" $ return ()
-              (eZoomOut, _) <-
-                  el "label" $ do
-                      elDynAttr "input" (inpAttrD (not <$> zoomD)) $ return ()
-                      elClass' "span" "zoom-out" $ return ()
+          elAttr "div" ("class" =: ("zoom-controls map-zoom " <> ("active"))) $ do
+            let inpAttrD switchD = ffor switchD $ \case
+                    True  -> ("type" =: "checkbox" <> "class" =: "checked")
+                    False -> ("type" =: "checkbox")
+            (eZoomIn, _) <-
+                el "label" $ do
+                    elDynAttr "input" (inpAttrD zoomD) $ return ()
+                    elClass' "span" "zoom-in" $ return ()
+            (eZoomOut, _) <-
+                el "label" $ do
+                    elDynAttr "input" (inpAttrD (not <$> zoomD)) $ return ()
+                    elClass' "span" "zoom-out" $ return ()
 
-              return $
-                    leftmost [ RightZoomIn <$ domEvent Click eZoomIn
-                             , RightZoomOut Nothing <$ domEvent Click eZoomOut ]
+            return $
+                leftmost [ RightZoomIn <$ domEvent Click eZoomIn
+                            , RightZoomOut Nothing <$ domEvent Click eZoomOut ]
 
         (e, _) <- elAttr' "div" ("class" =: "d3-attach") $ return ()
         divClass "tooltip" $ return ()
