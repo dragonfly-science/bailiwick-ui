@@ -6,9 +6,30 @@ let
       sha256 = "0zqg9fq7bnl1zr673ij73cd0z95w38qp9i1r7gjc1f5zi8gmpwhx";
     }) {};
   nixpkgs = reflex-platform.nixpkgs;
+  cleanSource = nixpkgs.lib.cleanSourceWith {
+      src = ./.;
+      filter = path: type:
+        nixpkgs.lib.all (i: toString i != path) [
+          # These are .gitignored sow we should exclude them here
+            ./dist
+            ./dist-ghcjs
+            ./dist-newstyle
+            ./db/dev
+            ./node_modules
+        ]
+        && nixpkgs.lib.all (i: i != baseNameOf path) [
+            "result"
+            ".env"
+            "bailiwick.bundle.js.map"
+        ]
+        && nixpkgs.lib.all (i: !(nixpkgs.lib.hasPrefix i (baseNameOf path))) [
+            "nix-serve."
+            ".ghc.environment."
+        ];
+  };
 in reflex-platform.project ({ pkgs, ... }: {
       packages = {
-        bailiwick = ./.;
+        bailiwick = cleanSource;
         reflex-dom-contrib = pkgs.fetchFromGitHub {
           owner = "reflex-frp";
           repo = "reflex-dom-contrib";

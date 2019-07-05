@@ -1,5 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
 
@@ -32,6 +34,12 @@ validate dir = do
   forM_ themes $ \Theme{..} -> do
     putStrLn $ "Theme: " ++ (Text.unpack themeName)
     forM_ themeIndicators $ \Indicator{..} -> do
+--      case indicatorCharts of
+--        Just charts -> forM_ charts $ \Chart{..} -> do
+--          if (chartType == "map")
+--             then do forM_ chartTransforms $ \Transform{..} -> print transformName
+--             else return ()
+--        Nothing -> return()
       _id :: IndicatorData  <- validateFile $ dir </> (Text.unpack (unIndicatorId indicatorId)) <.> "json"
       return ()
 

@@ -96,7 +96,7 @@ executable bailiwick
     cpp-options:       -DGHCJS_BROWSER
     -- -DGHCJS_GC_INTERVAL=60000 -DGHCJS_SCHED_CHECK=100000
   else
-    ghc-options:       -dynamic
+    buildable:        False
   default-language: Haskell2010
 
 executable bailiwick-validate
@@ -108,12 +108,6 @@ executable bailiwick-validate
                      , filepath
                      , text
                      , bailiwick-lib
-  if impl(ghcjs)
-    ghc-options:       -dedupe
-    cpp-options:       -DGHCJS_BROWSER
-    -- -DGHCJS_GC_INTERVAL=60000 -DGHCJS_SCHED_CHECK=100000
-  else
-    ghc-options:       -dynamic
   default-language: Haskell2010
 
 
