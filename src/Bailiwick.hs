@@ -24,7 +24,8 @@ ui = mdo
   routeD <- route' Route.encodeUri Route.decodeUri messagesE
   storeD <- Store.run messagesE
   readyE <- getPostBuild
-  interactE <- View.view (State.make routeD storeD)
+  state <- State.make routeD storeD
+  interactE <- View.view state
   let messagesE =
          leftmost
             [ let mkMessage r _ = Route.Ready (Route.routePage r)

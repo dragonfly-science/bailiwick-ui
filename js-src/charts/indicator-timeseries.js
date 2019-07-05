@@ -1,6 +1,6 @@
 /**
  * Time series used on an indicator
- * 
+ *
  **/
 import d3 from 'd3'
 import _ from 'lodash'
@@ -34,18 +34,18 @@ export default function (element, params) {
 
     let cache = window.MBIECacheStorage,
         toCache = {},
-        data = setup.data, 
-        year = setup.year, 
-        indicator = setup.indicator, 
-        transform = setup.transform, 
-        area = setup.area, 
-        areaLevel = setup.areaLevel, 
+        data = setup.data,
+        year = setup.year,
+        indicator = setup.indicator,
+        transform = setup.transform,
+        area = setup.area,
+        areaLevel = setup.areaLevel,
         feature = setup.feature,
         chartData = setup.chartData,
         chartCaption = setup.chartCaption,
         svg = setup.svg,
         base = setup.base,
-        width = setup.width, 
+        width = setup.width,
         height = setup.height;
 
     console.log('timeseries', chartData)
@@ -106,7 +106,7 @@ export default function (element, params) {
     var areas = [];
 
     // if (!_.hasIn(cache.get(indicator), area) || (
-    //     _.hasIn(cache.get(indicator), area) && 
+    //     _.hasIn(cache.get(indicator), area) &&
     //     !_.hasIn(cache.get(indicator.area), areaKey)
     // )) {
         var transformPos = transforms.indexOf(transform);
@@ -262,7 +262,7 @@ export default function (element, params) {
         .attr("stroke", "rgba(0,0,0,.5)")
         .attr("z", 100)
         .attr("class", "year-line");
-        
+
     /*
      * End year line generation.
      * */
@@ -301,17 +301,17 @@ export default function (element, params) {
                 if (chartData.length === 0) {
                     return d;
                 }
-                
+
                 var trans = _.filter(chartData.chartTransforms, function(i) {
                     return i.transformName === transform;
                 });
-    
-                var formatter = null; 
-    
+
+                var formatter = null;
+
                 if (trans.length > 0) {
                     formatter = trans[0].transformFormatter;
                 }
-                
+
                 return format(formatter, d);
             })
         )
@@ -367,8 +367,8 @@ export default function (element, params) {
             };
             classNames[area] = 'current-area';
             return (
-                _.hasIn(classNames, d.name) ? 
-                    classNames[d.name] : 
+                _.hasIn(classNames, d.name) ?
+                    classNames[d.name] :
                     classNames['default']
             ) + ' area';
             // } else if (d.name === compareAreaName) {
@@ -446,19 +446,19 @@ export default function (element, params) {
                 yPos = y(d.v);
             d3.select(d.area.line).classed("area--hover", true);
             d.area.line.parentNode.appendChild(d.area.line);
-    
-    
+
+
             focusElem.attr("transform", "translate(" + xPos + "," + yPos + ")")
                 .style("visibility", "visible");
             tooltipElem
                 .style("top", (yPos - 90) + "px")
                 .style("left", (xPos) + "px")
                 .style("visibility", "inherit");
-    
+
             var tooltipData = [d.area.name, d.d, d.date.getFullYear()],
                 tooltip = tooltipElem.selectAll('p').data(tooltipData),
                 tooltipEnter = tooltip.enter().append('p');
-    
+
             tooltip.html(function (d) {
                 return d;
             }).classed("number", function (d, i) {
@@ -470,12 +470,12 @@ export default function (element, params) {
             });
             tooltip.exit().remove();
         });
-    
+
         vg.on('mouseout', function (d) {
             if (none(d.area)) {
                 return;
             }
-    
+
             d3.select(d.area.line).classed("area--hover", false);
             focusElem.attr("transform", "translate(-100,-100)").style("visibility", "hidden");
             tooltipElem.style("visibility", "hidden");
@@ -489,8 +489,8 @@ export default function (element, params) {
       .attr('data-transform', transform)
       .attr('data-level', areaLevel)
       .attr('data-indicator', indicator);
-    
-    
+
+
 
     // ----
     // Only update the legend if the area has changed.

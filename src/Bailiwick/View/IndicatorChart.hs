@@ -28,12 +28,6 @@ import Bailiwick.Route
 import Bailiwick.Types
 import Bailiwick.View.Text (textSubstitution)
 
-switchDynM
- :: (MonadHold t m, DomBuilder t m, PostBuild t m)
- => Dynamic t (m (Event t a)) -> m (Event t a)
-switchDynM = (switchHold never =<<) . dyn
-
-
 data IndicatorChartState t
   = IndicatorChartState
     { routeD             :: Dynamic t Route
@@ -44,7 +38,8 @@ data IndicatorChartState t
     , indicatorNumbersD  :: Dynamic t IndicatorNumbers
     }
 
-shapeData :: Maybe Areas -> IndicatorNumbers -> [((AreaId, Text, Text, [Text], Maybe FeatureId), [(Year, Text, Text, Text, Text)])]
+type ShapedData = [((AreaId, Text, Text, [Text], Maybe FeatureId), [(Year, Text, Text, Text, Text)])]
+shapeData :: Maybe Areas -> IndicatorNumbers -> ShapedData
 shapeData mareas (IndicatorNumbers inmap) =
   let lookupAreaName areaid
         = fromMaybe "" $ do
@@ -142,9 +137,18 @@ indicatorChart IndicatorChartState{..} zoomD = do
       _areaType = fmap themePageAreaType <$> pageD
       _featureId = fmap themePageFeatureId <$> pageD
 
-      jsargs = do
+      shapedDataD = do
         indn <- indicatorNumbersD
         areas <- areasD
+        return (shapeData areas indn)
+
+      areanamesD = do
+        areas <- areasD
+        let hash = maybe OMap.empty unAreas areas
+        return $ OMap.keys hash
+      jsargs = do
+        shapedData <- shapedDataD
+        areanames <- areanamesD
         my <- _year
         indID <- _iId
         area <- areaD
@@ -165,12 +169,12 @@ indicatorChart IndicatorChartState{..} zoomD = do
                 chartLabel l
               Nothing -> ""
 
-        return (indn, my, indID, indicator, areas, area, areatype, transform, chartType, join featureId, zoom, label)
+        return (my, indID, indicator, shapedData, areanames, area, areatype, transform, chartType, join featureId, zoom, label)
 
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
-  updateE :: Event t (IndicatorNumbers, Maybe Year, Maybe IndicatorId,
-                      Maybe Indicator, Maybe Areas, Maybe Area, Maybe Text,
+  updateE :: Event t (Maybe Year, Maybe IndicatorId,
+                      Maybe Indicator, ShapedData, [AreaId], Maybe Area, Maybe Text,
                       Maybe Text, Maybe ChartId, Maybe FeatureId, Bool, Text)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
@@ -184,14 +188,10 @@ indicatorChart IndicatorChartState{..} zoomD = do
         Nothing ->                           "updateIndicatorTimeSeries"
 
   performEvent_ $ ffor updateE $ \case
-    (indn, my, indID, indicator, areas, area, areatype, transform, chartType, featureId, zoom, label)
+    (my, indID, indicator, shapedData, areanames, area, areatype, transform, chartType, featureId, zoom, label)
       -> liftJSM . void
           $ do
             let areaname = maybe "" areaName area
-            let _units = maybe Percentage indicatorUnits indicator
-            let areanames = do
-                    let hash = maybe OMap.empty unAreas areas
-                    OMap.keys hash
             let features = case indicator of
                     Just a ->
                         maybe [] OMap.toList (indicatorFeatureText a)
@@ -215,7 +215,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
                      , ("zoom",        Just zoomed)
                      ]
             jsg2 ((getJSChartType chartType) :: Text) (_element_raw e)
-                 (shapeData areas indn, my, args, features, chart, label, areanames)
+                 (shapedData, my, args, features, chart, label, areanames)
 
   clickE :: Event t (Maybe Message)
     <- clickEvents e $ \svg -> do

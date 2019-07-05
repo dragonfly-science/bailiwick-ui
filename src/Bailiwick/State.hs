@@ -4,6 +4,7 @@
 module Bailiwick.State
 where
 
+import Control.Monad.Fix
 import Control.Applicative ((<|>))
 import Data.Maybe (listToMaybe, mapMaybe, fromMaybe)
 
@@ -36,9 +37,13 @@ data State t
     }
 
 make
-  :: (Reflex t)
-  => Dynamic t Route -> Store t -> State t
-make routeD store@Store{..} =
+  :: ( Reflex t
+     , MonadHold t m
+     , MonadFix m
+     )
+  => Dynamic t Route -> Store t -> m (State t)
+make routeD store@Store{..} = do
+  uRouteD   <- holdUniqDyn routeD
   let regta = do
           mareas <- storeAreasD
           case mareas of
@@ -52,14 +57,15 @@ make routeD store@Store{..} =
                   [r]    -> return (Just r, Nothing)
                   _      -> return (Just nz, Nothing)
 
-      mthemepageD = getThemePage <$> routeD
-      indicatorD = do -- Dynamic t
-        mthemepage <- mthemepageD
+  mIndicatorIdD <- holdUniqDyn (fmap themePageIndicatorId . getThemePage <$> uRouteD)
+
+  let indicatorD = do -- Dynamic t
+        mIndicatorId <- mIndicatorIdD
         mthemes <- storeThemesD
         return $ do -- Maybe
             themes <- mthemes
-            themepage <- mthemepage
-            findIndicator themes themepage
+            indicatorId <- mIndicatorId
+            findIndicator themes indicatorId
 
       indicatorNumbersD = do
         mindicator <- indicatorD
@@ -81,14 +87,19 @@ make routeD store@Store{..} =
           ThemePageArgs{..} <- getThemePage route
           return themePageYear
 
+  uFeatureD <- holdUniqDyn featureD
+  uYearD    <- holdUniqDyn yearD
+  uRegionD  <- holdUniqDyn $ fst <$> regta
+  uAreaD    <- holdUniqDyn $ snd <$> regta
 
-  in State
-       { routeD             = routeD
+  return
+    State
+       { routeD             = uRouteD
        , store              = store
-       , regionD            = fst <$> regta
-       , areaD              = snd <$> regta
-       , featureD           = featureD
-       , yearD              = yearD
+       , regionD            = uRegionD
+       , areaD              = uAreaD
+       , featureD           = uFeatureD
+       , yearD              = uYearD
        , indicatorD         = indicatorD
        , indicatorNumbersD  = indicatorNumbersD
        }
@@ -146,7 +157,7 @@ makeMapState State{..} =
 makeMapLegendState
   :: Reflex t
   => State t -> MapLegendState t
-makeMapLegendState State{..} =
+makeMapLegendState State{featureD,yearD,indicatorD,store,routeD} =
   let scaleD = do
         feature <- featureD
         myear <- yearD
@@ -158,15 +169,8 @@ makeMapLegendState State{..} =
           IndicatorData{..} <- OMap.lookup indid indicatorsData
           let IndicatorScale scale = indicatorScale
           OMap.lookup (year, feature) scale
-      area' = do
-        area <- areaD
-        return area
 
-  in MapLegendState scaleD
-        routeD
-        area'
-        featureD
-        indicatorD
+  in MapLegendState scaleD routeD featureD indicatorD
 
 
 -- IndicatorChart state
@@ -198,13 +202,13 @@ makeIndicatorSummaryState State{..} =
 
 
 
-findIndicator :: [Theme] -> ThemePageArgs -> Maybe Indicator
-findIndicator themes ThemePageArgs{themePageIndicatorId}
+findIndicator :: [Theme] -> IndicatorId -> Maybe Indicator
+findIndicator themes indicatorId
   = let indicators = concat $ map themeIndicators $ themes
         loop _ [] = Nothing
         loop indid (i@Indicator{indicatorId}:rest) =
                 if indid == indicatorId then Just i else loop indid rest
-    in loop themePageIndicatorId indicators
+    in loop indicatorId indicators
 
 
 areaList :: Areas -> Text -> [Area]

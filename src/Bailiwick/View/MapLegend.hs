@@ -10,6 +10,7 @@ module Bailiwick.View.MapLegend
   )
 where
 
+import Control.Monad.Fix
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Data.Text (Text, pack)
 import Debug.Trace
@@ -28,7 +29,6 @@ data MapLegendState t
   = MapLegendState
     { inputValuesD       :: Dynamic t (Maybe (Double, Double))
     , routeD             :: Dynamic t Route
-    , areaD              :: Dynamic t (Maybe Area)
     , featureD           :: Dynamic t (Maybe FeatureId)
     , indicatorD         :: Dynamic t (Maybe Indicator)
     }
@@ -43,17 +43,17 @@ mapLegend
      , HasJSContext (Performable m)
      , MonadHold t m
      , DomBuilderSpace m ~ GhcjsDomSpace
+     , MonadFix m
      )
   => MapLegendState t
   -> m (Event t ScaleFunction)
 mapLegend MapLegendState{..} = do
   readyE <- getPostBuild
-  
+
   let pageD = getThemePage <$> routeD
   let _transform = fmap themePageLeftTransform <$> pageD
   let _chartType = fmap themePageLeftChart <$> pageD
   let jsargs = do
-        area <- areaD
         transform <- _transform
         indicator <- indicatorD
         featureId <- featureD
@@ -61,8 +61,7 @@ mapLegend MapLegendState{..} = do
         inputValues <- inputValuesD
         chartType <- _chartType
 
-        let label = mapLegendLabel 
-                        area
+        let label = mapLegendLabel
                         indicator
                         featureId
                         transform
@@ -70,21 +69,22 @@ mapLegend MapLegendState{..} = do
 
         return (inputValues, label, indicator, chartType, transform)
 
-  let initialUpdate = tagPromptlyDyn jsargs readyE
+  ujsargs <- holdUniqDyn jsargs
+  let initialUpdate = tagPromptlyDyn ujsargs readyE
       width  = 481 :: Int
       height = 120 :: Int
 
-  let updateValuesE = updated jsargs
+  let updateValuesE = updated ujsargs
   updateE :: Event t (Maybe (Double, Double), Text, Maybe Indicator, Maybe ChartId, Maybe Text)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
   performEvent $ ffor updateE $ \case
-    (inputValues, label, indicator, chartType, transform) 
+    (inputValues, label, indicator, chartType, transform)
       -> liftJSM $ do
         let range = case inputValues of
                 Just a -> a
                 Nothing -> (0.0, 0.0)
-        
+
         let chart = do
                 Indicator{..} <- indicator
                 charts <- indicatorCharts
@@ -99,28 +99,27 @@ mapLegend MapLegendState{..} = do
                     , ("label",  Just label)
                     , ("transform", transform)
                     ]
-        
+
         scaleVal <- jsg2 ("updateMapLegend" :: Text) args chart
         scale <- valToObject scaleVal
         return (ScaleFunction scale)
 
-mapLegendLabel 
-  :: Maybe Area
-  -> Maybe Indicator
+mapLegendLabel
+  :: Maybe Indicator
   -> Maybe FeatureId
   -> Maybe Text
   -> Maybe ThemePageArgs
   -> Text
-mapLegendLabel area indicator featureId transform page = do
-    let chartLabel = textSubstitution 
-                        area 
-                        Nothing 
-                        indicator 
-                        featureId 
+mapLegendLabel indicator featureId transform page = do
+    let chartLabel = textSubstitution
+                        Nothing
+                        Nothing
+                        indicator
+                        featureId
                         page
-            
+
     let label = case transform of
             Just tr -> textLabel indicator tr
             Nothing -> ""
-    
+
     chartLabel label

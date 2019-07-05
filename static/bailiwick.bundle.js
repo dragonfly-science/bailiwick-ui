@@ -1061,7 +1061,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utils_formatting__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/formatting */ "./js-src/utils/formatting.js");
 /**
  * Time series used on an indicator
- * 
+ *
  **/
 
 
@@ -1156,7 +1156,7 @@ var line = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.line().x(function (d, i
 
   var areaKey = area + '-' + areaLevel + '-' + transform;
   var areas = []; // if (!_.hasIn(cache.get(indicator), area) || (
-  //     _.hasIn(cache.get(indicator), area) && 
+  //     _.hasIn(cache.get(indicator), area) &&
   //     !_.hasIn(cache.get(indicator.area), areaKey)
   // )) {
 
