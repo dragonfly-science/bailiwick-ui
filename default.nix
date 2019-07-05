@@ -21,6 +21,7 @@ let
             "result"
             ".env"
             "bailiwick.bundle.js.map"
+            "Dockerfile"
         ]
         && nixpkgs.lib.all (i: !(nixpkgs.lib.hasPrefix i (baseNameOf path))) [
             "nix-serve."
