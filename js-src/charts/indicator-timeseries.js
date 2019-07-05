@@ -23,6 +23,36 @@ let line = d3.svg.line()
     .x(function (d, i) { return x(d.date); })
     .y(function (d) { return y(d.v); });
 
+function findAreaBounds ( areas, target )
+{
+    let limits = [];
+
+    for ( let i=0; i<areas.length; i++ ) {
+        let area = areas[i];
+
+        if ( target === area.name ) {
+            let vals = area.values.map(function(a) {
+                return a.v;
+            });
+
+            return [ Math.min (...vals), Math.max (...vals) ];
+        }
+    }
+
+    return limits;
+}
+
+const toBool = (val) => {
+    switch (val) {
+        case "true":
+            return true;
+        case "false":
+            return false;
+    }
+
+    return null;
+}
+
 // data: [{year, rawNum, indexNum, headlineDisp, indexDisp}]
 // @params: (data, current year, current indicator, transform, current area, current area type, chart ID)
 export default function (element, params) {
@@ -46,9 +76,8 @@ export default function (element, params) {
         svg = setup.svg,
         base = setup.base,
         width = setup.width,
-        height = setup.height;
-
-    console.log('timeseries', chartData)
+        height = setup.height,
+        zoom = setup.zoom;
 
     // current data...
     var currentYear = svg.attr('data-year'),
@@ -57,10 +86,10 @@ export default function (element, params) {
         currentTransform = svg.attr('data-transform'),
         currentLevel = svg.attr('data-level');
 
-    var legendDiv = d3.select(element).select('.legend');
+    var legendDiv = d3.select(element.parentNode).select('.legend');
     var legendWidth = window.innerWidth < 350 ? 320 : 420;
     var legendHeight = 50;
-    var tooltipElem = d3.select(element).select(".tooltip");
+    var tooltipElem = d3.select(element.parentNode).select(".tooltip");
 
     /// Setup
     x.range([0, width]);
@@ -180,10 +209,11 @@ export default function (element, params) {
 
 
     // TODO: activate when we have zoom
-    // if (this.get("zoomedIn")) {
-    //     let areaVals = findAreaBounds(areas, areaName);
+    let bool = toBool(zoom);
+    if (!_.isNull(bool) && bool) {
+        let areaVals = findAreaBounds(areas, area);
 
-    //     if (typeof compareAreaName != 'undefined') {
+         //     if (typeof compareAreaName != 'undefined') {
     //         let compareVals = findAreaBounds(areas, compareAreaName);
 
     //         yExtent = [Math.min(...[areaVals[0], compareVals[0]])
@@ -192,11 +222,13 @@ export default function (element, params) {
     //         yExtent = areaVals;
     //     }
 
-    //     let diff = Math.abs(yExtent[1] - yExtent[0]);
+        yExtent = areaVals;
 
-    //     yExtent[0] -= (.1 * diff);
-    //     yExtent[1] += (.1 * diff);
-    // }
+        let diff = Math.abs(yExtent[1] - yExtent[0]);
+
+        yExtent[0] -= (.1 * diff);
+        yExtent[1] += (.1 * diff);
+    }
 
     y.domain(yExtent).nice();
     var tickFreq = Math.trunc(years.length / 9) + 1,

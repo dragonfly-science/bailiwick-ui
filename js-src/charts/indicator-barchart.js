@@ -199,7 +199,7 @@ export default function (element, params) {
 
     // data = cache.get(indicator)['areas'][area][year];
     
-    tooltipElem = d3.select(element).select(".tooltip");
+    tooltipElem = d3.select(element.parentNode).select(".tooltip");
 
 
     x = x.range([0, width]);

@@ -207,8 +207,8 @@ function wordwrap(d, i) {
       base = setup.base,
       width = setup.width,
       height = setup.height;
-  legendElem = d3__WEBPACK_IMPORTED_MODULE_2___default.a.select(element).select(".legend");
-  tooltipElem = d3__WEBPACK_IMPORTED_MODULE_2___default.a.select(element).select(".tooltip");
+  legendElem = d3__WEBPACK_IMPORTED_MODULE_2___default.a.select(element.parentNode).select(".legend");
+  tooltipElem = d3__WEBPACK_IMPORTED_MODULE_2___default.a.select(element.parentNode).select(".tooltip");
   treemap = d3__WEBPACK_IMPORTED_MODULE_2___default.a.layout.treemap().size([width, height]).value(function (d) {
     var value = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(d[1], function (item) {
       return item[0] === year;
@@ -641,7 +641,7 @@ __webpack_require__.r(__webpack_exports__);
   data = siblingsFilteredByYear; // }
   // data = cache.get(indicator)['areas'][area][year];
 
-  tooltipElem = d3__WEBPACK_IMPORTED_MODULE_1___default.a.select(element).select(".tooltip");
+  tooltipElem = d3__WEBPACK_IMPORTED_MODULE_1___default.a.select(element.parentNode).select(".tooltip");
   x = x.range([0, width]);
   var g = svg.selectAll("g").data([1]);
   var padding = barGap * (data.length + 1);
@@ -1004,7 +1004,7 @@ var nz = 'New Zealand';
   underBar.exit().remove();
 
   if (!Modernizr.touch) {
-    var tooltipElem = d3__WEBPACK_IMPORTED_MODULE_1___default.a.select(element).select(".tooltip");
+    var tooltipElem = d3__WEBPACK_IMPORTED_MODULE_1___default.a.select(element.parentNode).select(".tooltip");
     svgEnter.selectAll("rect").on("mouseover", function (d) {
       var tooltip = tooltipElem.selectAll('p').data([features[d.feature], d.dispValue]),
           tooltipEnter = tooltip.enter().append('p');
@@ -1059,6 +1059,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/utils */ "./js-src/utils/utils.js");
 /* harmony import */ var _utils_chart_setup__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utils/chart-setup */ "./js-src/utils/chart-setup.js");
 /* harmony import */ var _utils_formatting__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/formatting */ "./js-src/utils/formatting.js");
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
 /**
  * Time series used on an indicator
  *
@@ -1084,8 +1092,38 @@ var line = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.line().x(function (d, i
   return x(d.date);
 }).y(function (d) {
   return y(d.v);
-}); // data: [{year, rawNum, indexNum, headlineDisp, indexDisp}]
+});
+
+function findAreaBounds(areas, target) {
+  var limits = [];
+
+  for (var i = 0; i < areas.length; i++) {
+    var area = areas[i];
+
+    if (target === area.name) {
+      var vals = area.values.map(function (a) {
+        return a.v;
+      });
+      return [Math.min.apply(Math, _toConsumableArray(vals)), Math.max.apply(Math, _toConsumableArray(vals))];
+    }
+  }
+
+  return limits;
+}
+
+var toBool = function toBool(val) {
+  switch (val) {
+    case "true":
+      return true;
+
+    case "false":
+      return false;
+  }
+
+  return null;
+}; // data: [{year, rawNum, indexNum, headlineDisp, indexDisp}]
 // @params: (data, current year, current indicator, transform, current area, current area type, chart ID)
+
 
 /* harmony default export */ __webpack_exports__["default"] = (function (element, params) {
   var setup = Object(_utils_chart_setup__WEBPACK_IMPORTED_MODULE_3__["default"])(element, params, margin, 'default-timeseries');
@@ -1108,18 +1146,18 @@ var line = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.line().x(function (d, i
       svg = setup.svg,
       base = setup.base,
       width = setup.width,
-      height = setup.height;
-  console.log('timeseries', chartData); // current data...
+      height = setup.height,
+      zoom = setup.zoom; // current data...
 
   var currentYear = svg.attr('data-year'),
       currentIndicator = svg.attr('data-indicator'),
       currentArea = svg.attr('data-area'),
       currentTransform = svg.attr('data-transform'),
       currentLevel = svg.attr('data-level');
-  var legendDiv = d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(element).select('.legend');
+  var legendDiv = d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(element.parentNode).select('.legend');
   var legendWidth = window.innerWidth < 350 ? 320 : 420;
   var legendHeight = 50;
-  var tooltipElem = d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(element).select(".tooltip"); /// Setup
+  var tooltipElem = d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(element.parentNode).select(".tooltip"); /// Setup
 
   x.range([0, width]);
   y.range([height, 0]);
@@ -1219,19 +1257,23 @@ var line = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.line().x(function (d, i
       return d.v;
     });
   }))); // TODO: activate when we have zoom
-  // if (this.get("zoomedIn")) {
-  //     let areaVals = findAreaBounds(areas, areaName);
-  //     if (typeof compareAreaName != 'undefined') {
-  //         let compareVals = findAreaBounds(areas, compareAreaName);
-  //         yExtent = [Math.min(...[areaVals[0], compareVals[0]])
-  //             , Math.max(...[areaVals[1], compareVals[1]])];
-  //     } else {
-  //         yExtent = areaVals;
-  //     }
-  //     let diff = Math.abs(yExtent[1] - yExtent[0]);
-  //     yExtent[0] -= (.1 * diff);
-  //     yExtent[1] += (.1 * diff);
-  // }
+
+  var bool = toBool(zoom);
+
+  if (!lodash__WEBPACK_IMPORTED_MODULE_1___default.a.isNull(bool) && bool) {
+    var areaVals = findAreaBounds(areas, area); //     if (typeof compareAreaName != 'undefined') {
+    //         let compareVals = findAreaBounds(areas, compareAreaName);
+    //         yExtent = [Math.min(...[areaVals[0], compareVals[0]])
+    //             , Math.max(...[areaVals[1], compareVals[1]])];
+    //     } else {
+    //         yExtent = areaVals;
+    //     }
+
+    yExtent = areaVals;
+    var diff = Math.abs(yExtent[1] - yExtent[0]);
+    yExtent[0] -= .1 * diff;
+    yExtent[1] += .1 * diff;
+  }
 
   y.domain(yExtent).nice();
   var tickFreq = Math.trunc(years.length / 9) + 1,
@@ -1770,6 +1812,7 @@ __webpack_require__.r(__webpack_exports__);
   var area = params[2].areaname;
   var areaLevel = params[2].areatype;
   var feature = params[2].featureId;
+  var zoom = params[2].zoom;
   var features = params[3];
   var chartData = params[4];
   var chartCaption = params[5];
@@ -1809,7 +1852,8 @@ __webpack_require__.r(__webpack_exports__);
     svg: svg,
     base: base,
     width: width,
-    height: height
+    height: height,
+    zoom: zoom
   };
 });
 

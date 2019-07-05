@@ -3539,7 +3539,8 @@ button.close i:before { font-family: "mbie-rea"; font-style: normal; font-weight
   .tool-bar .filter-type.charts .header { right: 4.375rem; }
   .tool-bar .chosen-container .chosen-single { padding: 20px 24px; }
   .tool-bar .chosen-container .chosen-single div { width: 34px; } }
-.zoom-controls { display: flex; position: absolute; top: 0; z-index: 1; }
+.zoom-controls { display: none; position: absolute; top: 0; z-index: 1; }
+.zoom-controls.active { display: flex; }
 .zoom-controls input { display: none; }
 .zoom-controls label { width: 23px; height: 23px; }
 .zoom-controls label span { border-top-left-radius: 50%; border-top-right-radius: 50%; border-bottom-left-radius: 50%; border-bottom-right-radius: 50%; width: 23px; height: 23px; padding: 0; font-size: 0; line-height: 0; }

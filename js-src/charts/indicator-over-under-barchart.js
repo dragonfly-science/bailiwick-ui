@@ -286,7 +286,7 @@ export default function(element, params) {
     underBar.exit().remove();
 
     if (!Modernizr.touch) {
-      var tooltipElem = d3.select(element).select(".tooltip");
+      var tooltipElem = d3.select(element.parentNode).select(".tooltip");
       svgEnter.selectAll("rect")
         .on("mouseover", function(d) {
           var tooltip = tooltipElem.selectAll('p')

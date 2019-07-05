@@ -1,8 +1,12 @@
 .zoom-controls {
-  @include display(flex);
+  display: none;
   position: absolute;
   top: 0;
   z-index: 1;
+
+  &.active {
+    @include display(flex);
+  }
 
   input {
     display: none;

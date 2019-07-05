@@ -49,6 +49,7 @@ export default function(element, params, margin, chartType) {
     var area = params[2].areaname;
     var areaLevel = params[2].areatype;
     var feature = params[2].featureId;
+    var zoom = params[2].zoom;
     var features = params[3];
     var chartData = params[4];
     var chartCaption = params[5];
@@ -89,6 +90,7 @@ export default function(element, params, margin, chartType) {
         svg: svg,
         base: base,
         width: width,
-        height: height
+        height: height,
+        zoom: zoom
     }
 }
