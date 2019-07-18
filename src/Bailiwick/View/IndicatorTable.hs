@@ -7,6 +7,8 @@ module Bailiwick.View.IndicatorTable
 where
 
 import Data.Bool (bool)
+import qualified Data.Text as Text
+import qualified Data.HashMap.Strict.InsOrd as OMap
 
 import Reflex.Dom.Core
 
@@ -25,6 +27,17 @@ data IndicatorTableState t
   }
 
 
+type IndicatorTable = OMap.InsOrdHashMap (AreaId, Year, Maybe FeatureId) (Year, Numbers)
+
+shapeData :: Maybe Area -> Maybe FeatureId -> IndicatorNumbers -> IndicatorTable
+shapeData marea sel_featureid (IndicatorNumbers inmap) =
+  let sel_areaid = maybe "none" areaId marea
+      find (areaid, year, featureid) numbers =
+        if (sel_areaid == areaid && sel_featureid == featureid)
+            then Just (year, numbers)
+            else Nothing
+  in  OMap.mapMaybeWithKey find inmap
+
 indicatorTable
   :: ( Monad m
      , PostBuild t m
@@ -36,6 +49,8 @@ indicatorTable
   => IndicatorTableState t
   -> m (Event t Message)
 indicatorTable IndicatorTableState{..} = do
+
+  let tableD = shapeData <$> areaD <*> featureD <*> indicatorNumbersD
 
   clickCloseE <- do
     elDynClass "div" (("table-view " <>) . bool "hide" "show" <$> showTableD) $
@@ -77,12 +92,12 @@ indicatorTable IndicatorTableState{..} = do
                   elAttr "th" ("class" =: "transform") $ text "Transform"
                   elAttr "th" ("class" =: "national") $ text "National"
               el "tbody" $ do
-                -- each row represents 1 row in the data set
-                el "tr" $ do
-                  el "td" $ text "Row Year"
-                  elAttr "td" ("class" =: "colour-teal") $ text "Row Original"
-                  elAttr "td" ("class" =: "colour-lighter-blue") $ text "Row Transform"
-                  elAttr "td" ("class" =: "colour-green") $ text "Row National"
+                dyn_ $ ffor tableD $ mapM $ \(year, Numbers{..}) -> do
+                  el "tr" $ do
+                    el "td" $ text (Text.pack $ show year)
+                    elAttr "td" ("class" =: "colour-teal") $ text headlineDisp
+                    elAttr "td" ("class" =: "colour-lighter-blue") $ text localDisp
+                    elAttr "td" ("class" =: "colour-green") $ text nationalDisp
 
           -- ##
           -- If the comparision option is enabled, we show the comparison data...

@@ -26,6 +26,7 @@ import GHCJS.DOM.Window (scrollTo, getPageYOffset)
 import Servant.Reflex
 import Reflex.Dom.Core hiding (Home)
 
+import Bailiwick.Javascript (switchDynM)
 import Bailiwick.State
 import Bailiwick.Route
 import Bailiwick.Types
@@ -38,11 +39,6 @@ import Bailiwick.View.IndicatorChart
 import Bailiwick.View.IndicatorSummary
 import Bailiwick.View.IndicatorTable
 import Bailiwick.View.ToolBar (toolBar)
-
-switchDynM
- :: (MonadHold t m, DomBuilder t m, PostBuild t m)
- => Dynamic t (m (Event t a)) -> m (Event t a)
-switchDynM = (switchHold never =<<) . dyn
 
 
 windowScrolled

@@ -16,13 +16,9 @@ import Reflex
 import Reflex.Dom.Core
 
 import Bailiwick.View.Text (capitalize)
+import Bailiwick.Javascript (switchDynM)
 import Bailiwick.Types
 import Bailiwick.Route
-
-switchDynM
- :: (MonadHold t m, DomBuilder t m, PostBuild t m)
- => Dynamic t (m (Event t a)) -> m (Event t a)
-switchDynM = (switchHold never =<<) . dyn
 
 data IndicatorState t
   = IndicatorState

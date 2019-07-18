@@ -3,7 +3,9 @@
 module Bailiwick.Javascript
   ( clickEvents
   , makeJSObject
-  , elDynHtmlAttr' )
+  , elDynHtmlAttr'
+  , switchDynM
+  )
 where
 
 import Control.Monad (forM_)
@@ -62,4 +64,10 @@ elDynHtmlAttr' elementTag attrs html = do
   postBuild <- getPostBuild
   performEvent_ $ liftJSM . DOM.setInnerHTML (_element_raw e) <$> leftmost [updated html, tag (current html) postBuild]
   return e
+
+switchDynM
+ :: (MonadHold t m, DomBuilder t m, PostBuild t m)
+ => Dynamic t (m (Event t a)) -> m (Event t a)
+switchDynM = (switchHold never =<<) . dyn
+
 
