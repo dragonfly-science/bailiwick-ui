@@ -36,6 +36,7 @@ import Bailiwick.View.AreaSummary (areaSummary, AreaSummaryState)
 import Bailiwick.View.Indicators (indicators)
 import Bailiwick.View.IndicatorChart
 import Bailiwick.View.IndicatorSummary
+import Bailiwick.View.IndicatorTable
 import Bailiwick.View.ToolBar (toolBar)
 
 switchDynM
@@ -361,7 +362,9 @@ mainContent st@State{..} = do
         True  -> summaryContent routeD regionD areaD mapState areaSummaryState
         False -> indicatorContent leftZoomD rightZoomD regionD
                                   mapState mapLegendState
-                                  indicatorChartState indicatorSummaryState
+                                  indicatorChartState
+                                  indicatorSummaryState
+                                  (makeIndicatorTableState st)
 
 summaryContent
     :: ContentConstraints t m
@@ -393,8 +396,14 @@ indicatorContent
     -> MapLegendState t
     -> IndicatorChartState t
     -> IndicatorSummaryState t
+    -> IndicatorTableState t
     -> m (Event t Message)
-indicatorContent leftZoomD rightZoomD regionD map_state map_legend_state indicator_chart_state indicator_summary_state = do
+indicatorContent leftZoomD rightZoomD regionD
+    map_state
+    map_legend_state
+    indicator_chart_state
+    indicator_summary_state
+    indicator_table_state = do
   contentE <- divClass "central-content indicator" $ do
     mapE <- divClass "indicator-map base-map" $
       divClass "map-wrapper" $ mdo
@@ -428,8 +437,9 @@ indicatorContent leftZoomD rightZoomD regionD map_state map_legend_state indicat
     chartE <- divClass "indicator-chart" $
       indicatorChart indicator_chart_state rightZoomD
     return $ leftmost [ mapE, chartE ]
-  summaryE <- divClass "indicator-summary hide-table no-compare" $
+  summaryE <- divClass "indicator-summary hide-table no-compare" $ do
     indicatorSummary indicator_summary_state
+    indicatorTable indicator_table_state
   return $ leftmost [contentE, summaryE]
 
 summaryText

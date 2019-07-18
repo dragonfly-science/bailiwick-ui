@@ -51,6 +51,8 @@ data Message
   | LeftZoomOut (Maybe Text)
   | RightZoomIn
   | RightZoomOut (Maybe Text)
+  | SetShowTable
+  | UnsetShowTable
   deriving (Eq, Show)
 
 data Route
@@ -82,6 +84,7 @@ data Adapter
   = Mapzoom
   | LeftZoom
   | RightZoom
+  | ShowTable
   deriving (Eq, Show)
 
 hasAdapter :: Adapter -> Route -> Bool
@@ -209,6 +212,13 @@ step route message =
     RightZoomOut Nothing
         -> route { routeAdapters = routeAdapters route \\ [RightZoom] }
 
+    SetShowTable
+        -> route { routeAdapters = routeAdapters route <> [ShowTable] }
+
+    UnsetShowTable
+        -> route { routeAdapters = routeAdapters route \\ [ShowTable] }
+
+
 encodeRoute :: Route -> URI -> URI
 encodeRoute route uri =
   let (segments, query) =
@@ -222,6 +232,7 @@ encodeRoute route uri =
          , uriQuery = Query $ query <> [("mapzoom", "1")   | hasAdapter Mapzoom route]
                                     <> [("rightzoom", "1") | hasAdapter RightZoom route]
                                     <> [("leftzoom", "1")  | hasAdapter LeftZoom route]
+                                    <> [("showtable", "1") | hasAdapter ShowTable route]
          }
 
 encodeUri :: URI -> Message -> URI
@@ -235,6 +246,7 @@ decodeUri uri =
       mkAdapter ("mapzoom", "1") = Just Mapzoom
       mkAdapter ("rightzoom", "1") = Just RightZoom
       mkAdapter ("leftzoom", "1") = Just LeftZoom
+      mkAdapter ("showtable", "1") = Just ShowTable
       mkAdapter _ = Nothing
       homePage = Route Summary "" Nothing adapters
       flagMap = M.fromList flags

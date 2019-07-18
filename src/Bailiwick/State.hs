@@ -20,6 +20,7 @@ import Bailiwick.View.Map (MapState(MapState))
 import Bailiwick.View.MapLegend (MapLegendState(MapLegendState))
 import Bailiwick.View.IndicatorChart (IndicatorChartState(IndicatorChartState))
 import Bailiwick.View.IndicatorSummary (IndicatorSummaryState(IndicatorSummaryState))
+import Bailiwick.View.IndicatorTable (IndicatorTableState(IndicatorTableState))
 import Bailiwick.Route
 import Bailiwick.Store
 import Bailiwick.Types
@@ -196,19 +197,34 @@ makeIndicatorSummaryState State{..} =
   let selectedAreaD = zipDynWith (<|>) areaD regionD
   in IndicatorSummaryState routeD selectedAreaD
          (constDyn Nothing)  -- TODO compare area
-         featureD            -- TODO feature
+         featureD            -- feature
+         indicatorD          -- indicator
+         indicatorNumbersD   -- numbers
+
+-- make IndicatorTableState
+makeIndicatorTableState
+  :: Reflex t
+  => State t -> IndicatorTableState t
+makeIndicatorTableState State{..} =
+  let selectedAreaD = zipDynWith (<|>) areaD regionD
+  in IndicatorTableState
+         (hasAdapter ShowTable <$> routeD)
+         routeD
+         selectedAreaD
+         (constDyn Nothing)  -- TODO compare area
+         featureD            -- feature
          indicatorD          -- indicator
          indicatorNumbersD   -- numbers
 
 
 
 findIndicator :: [Theme] -> IndicatorId -> Maybe Indicator
-findIndicator themes indicatorId
+findIndicator themes indid'
   = let indicators = concat $ map themeIndicators $ themes
         loop _ [] = Nothing
         loop indid (i@Indicator{indicatorId}:rest) =
                 if indid == indicatorId then Just i else loop indid rest
-    in loop indicatorId indicators
+    in loop indid' indicators
 
 
 areaList :: Areas -> Text -> [Area]

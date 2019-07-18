@@ -1,18 +1,23 @@
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Bailiwick.Javascript
-  ( clickEvents, makeJSObject )
+  ( clickEvents
+  , makeJSObject
+  , elDynHtmlAttr' )
 where
 
 import Control.Monad (forM_)
 import Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
 import Data.Text (Text)
+import Data.Map (Map)
 
 import qualified GHCJS.DOM.Element as DOM
 import qualified GHCJS.DOM.EventM as DOM
 import qualified GHCJS.DOM.GlobalEventHandlers as DOM
 import qualified GHCJS.DOM.Types as DOM
 
-import Language.Javascript.JSaddle (MonadJSM, obj, setProp, toJSVal, JSM, JSString, Object)
-import Reflex.Dom.Core
+import Language.Javascript.JSaddle (MonadJSM, liftJSM, obj, setProp, toJSVal, JSM, JSString, Object)
+import Reflex.Dom.Core hiding (elDynHtmlAttr')
 
 clickEvents
   :: ( TriggerEvent t m
@@ -39,3 +44,22 @@ makeJSObject assocs = do
             setProp key valJS res
     forM_ assocs build
     return res
+
+elDynHtmlAttr'
+  :: ( Monad m
+     , DomBuilder t m
+     , PostBuild t m
+     , PerformEvent t m
+     , MonadJSM (Performable m)
+     , DomBuilderSpace m ~ GhcjsDomSpace
+     )
+  => Text
+  -> Dynamic t (Map Text Text)
+  -> Dynamic t Text
+  -> m (Element EventResult (DomBuilderSpace m) t)
+elDynHtmlAttr' elementTag attrs html = do
+  (e, _) <- elDynAttr' elementTag attrs $ return ()
+  postBuild <- getPostBuild
+  performEvent_ $ liftJSM . DOM.setInnerHTML (_element_raw e) <$> leftmost [updated html, tag (current html) postBuild]
+  return e
+

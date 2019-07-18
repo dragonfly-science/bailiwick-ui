@@ -23,6 +23,7 @@ library
                        Bailiwick.View.Header
                        Bailiwick.View.IndicatorChart
                        Bailiwick.View.IndicatorSummary
+                       Bailiwick.View.IndicatorTable
                        Bailiwick.View.Indicators
                        Bailiwick.View.Map
                        Bailiwick.View.MapLegend
