@@ -378,14 +378,35 @@
   @include transition(all .5s ease);
   background: $rear-white;
   position: absolute;
-  padding: 0 30px;
+  padding: 0 rem(30);
   width: 100%;
   bottom: 0;
   height: 0;
-  overflow-y: hidden;
+  overflow-y: scroll;
+  border-right: 10px solid #ffffff;
 
   &.no-animation {
     @include transition(none);
+  }
+
+  &::-webkit-scrollbar {
+    width: rem(12);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    width: rem(12);
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    transition: all 0.5s ease-in-out;
+
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  &::-webkit-scrollbar-track {
+    width: rem(12);
+    background-color: #FFFFFF;
   }
 }
 
