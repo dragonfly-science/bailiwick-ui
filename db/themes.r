@@ -3,6 +3,7 @@ library(yaml)
 library(jsonlite)
 source('functions.r')
 source('patch.r')
+source('language.r')
 
 dbfile <- 'data/REARdb.rda'
 themesfile <- 'config/themes.yaml'
@@ -106,6 +107,8 @@ indicators <-
       , "years"                = years                                         # :: [Int]
       , "charts"               = indicator$charts
       , "languageConfig"       = indicator$'language-config'
+      , "captions"             = captions(indicator, length(features) > 0)
+      , "labels"               = labels(indicator, length(features) > 0)
       ))
   })
 names(indicators) <- sapply(indicators, function(ind) ind$name)

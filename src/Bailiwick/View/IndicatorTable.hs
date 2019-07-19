@@ -7,11 +7,13 @@ module Bailiwick.View.IndicatorTable
 where
 
 import Data.Bool (bool)
+import Data.Maybe (catMaybes)
 import qualified Data.Text as Text
 import qualified Data.HashMap.Strict.InsOrd as OMap
 
 import Reflex.Dom.Core
 
+import Bailiwick.View.Text
 import Bailiwick.Route
 import Bailiwick.Types
 
@@ -51,6 +53,25 @@ indicatorTable
 indicatorTable IndicatorTableState{..} = do
 
   let tableD = shapeData <$> areaD <*> featureD <*> indicatorNumbersD
+      pageD = getThemePage <$> routeD
+      subs = (textSubstitution
+                    <$> areaD
+                    <*> compareAreaD
+                    <*> indicatorD
+                    <*> featureD
+                    <*> pageD
+                    <*>)
+
+      headlineD = fmap indicatorHeadlineNumCaption <$> indicatorD
+      localD    = fmap indicatorLocalNumCaption    <$> indicatorD
+      nationalD = fmap indicatorNationalNumCaption <$> indicatorD
+
+      captionD = do
+        headline <- headlineD
+        local    <- localD
+        national  <- nationalD
+        let cols = Text.intercalate "; " $ catMaybes [headline, local, national]
+        return $ "The table shows " <> cols <> ". "
 
   clickCloseE <- do
     elDynClass "div" (("table-view " <>) . bool "hide" "show" <$> showTableD) $
@@ -58,7 +79,7 @@ indicatorTable IndicatorTableState{..} = do
         clickE <-
           el "header" $ do
             divClass "table-caption text" $
-              text "TODO"
+              dynText $ subs $ captionD
             fmap (domEvent Click . fst) $
               divClass "controls" $ do
                 -- requires an event to close the table.

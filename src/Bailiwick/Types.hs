@@ -235,14 +235,14 @@ data Indicator = Indicator
   , indicatorHeadlineNumCaption     :: Text
   , indicatorTooltipExtra           :: Maybe Text
   , indicatorYears                  :: [Year]
+  , indicatorCaptions               :: Maybe (Map Text Text)
+  , indicatorLabels                 :: Maybe (Map Text Text)
 --  , indicatorBarchartLabelWidth     :: Maybe Int
---  , indicatorCaptions               :: Maybe (Map Text Text)
   , indicatorCharts                 :: Maybe (InsOrdHashMap ChartId Chart)
 --  , indicatorDetailName             :: Maybe Text
 --  , indicatorDetails                :: [Text]
 --  , indicatorEnableAreaToggle       :: Bool
 --  , indicatorIcon                   :: Maybe Text
---  , indicatorLabels                 :: Maybe (Map Text Text)
 --  , indicatorMaxFeatures            :: Maybe (Map Text Text)
 --  , indicatorNz                     :: Text
 --  , indicatorPrimaryYear            :: Maybe Text
