@@ -7,7 +7,7 @@ module Bailiwick.View.IndicatorTable
 where
 
 import Data.Bool (bool)
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, fromMaybe)
 import qualified Data.Text as Text
 import qualified Data.HashMap.Strict.InsOrd as OMap
 
@@ -62,16 +62,27 @@ indicatorTable IndicatorTableState{..} = do
                     <*> pageD
                     <*>)
 
-      headlineD = fmap indicatorHeadlineNumCaption <$> indicatorD
-      localD    = fmap indicatorLocalNumCaption    <$> indicatorD
-      nationalD = fmap indicatorNationalNumCaption <$> indicatorD
+      captionsD = fmap indicatorCaptions <$> indicatorD
+      transform = "annual-rate"
+      headlineD = (OMap.lookup "original" =<<) <$> captionsD
+      localD    = (OMap.lookup transform  =<<) <$> captionsD
+      nationalD = (OMap.lookup "ratio-nz" =<<) <$> captionsD
+
+      yearEndMonthD = (indicatorYearEndMonth =<<) <$> indicatorD
 
       captionD = do
-        headline <- headlineD
-        local    <- localD
-        national  <- nationalD
+        headline     <- headlineD
+        local        <- localD
+        national     <- nationalD
+        yearEndMonth <- yearEndMonthD
         let cols = Text.intercalate "; " $ catMaybes [headline, local, national]
-        return $ "The table shows " <> cols <> ". "
+        let suffix = maybe "" (\m -> " Data are for the year to " <> m <> ".") yearEndMonth
+        return $ "The table shows " <> cols <> "." <> suffix
+
+      labelsD = fmap indicatorLabels <$> indicatorD
+      headlineLabelD = (OMap.lookup "original" =<<) <$> labelsD
+      localLabelD    = (OMap.lookup transform  =<<) <$> labelsD
+      nationalLabelD = (OMap.lookup "ratio-nz" =<<) <$> labelsD
 
   clickCloseE <- do
     elDynClass "div" (("table-view " <>) . bool "hide" "show" <$> showTableD) $
@@ -109,9 +120,9 @@ indicatorTable IndicatorTableState{..} = do
                   -- The next 3 header rows need to have correctly formatted titles
                   -- - e.g. "The estimated resident population", "The annual
                   -- percentage chage in ..."
-                  elAttr "th" ("class" =: "original") $ text "Original"
-                  elAttr "th" ("class" =: "transform") $ text "Transform"
-                  elAttr "th" ("class" =: "national") $ text "National"
+                  elAttr "th" ("class" =: "original") $ dynText $ subs (fromMaybe "" <$> headlineLabelD)
+                  elAttr "th" ("class" =: "transform") $ dynText $ subs (fromMaybe "" <$>  localLabelD)
+                  elAttr "th" ("class" =: "national") $ dynText $ subs (fromMaybe "" <$>  nationalLabelD)
               el "tbody" $ do
                 dyn_ $ ffor tableD $ mapM $ \(year, Numbers{..}) -> do
                   el "tr" $ do

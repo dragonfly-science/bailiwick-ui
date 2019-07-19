@@ -235,8 +235,8 @@ data Indicator = Indicator
   , indicatorHeadlineNumCaption     :: Text
   , indicatorTooltipExtra           :: Maybe Text
   , indicatorYears                  :: [Year]
-  , indicatorCaptions               :: Maybe (Map Text Text)
-  , indicatorLabels                 :: Maybe (Map Text Text)
+  , indicatorCaptions               :: InsOrdHashMap Text Text
+  , indicatorLabels                 :: InsOrdHashMap Text Text
 --  , indicatorBarchartLabelWidth     :: Maybe Int
   , indicatorCharts                 :: Maybe (InsOrdHashMap ChartId Chart)
 --  , indicatorDetailName             :: Maybe Text

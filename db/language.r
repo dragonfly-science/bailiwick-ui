@@ -57,7 +57,7 @@ defaultBase <- function (short, lc, hasFeatures) {
       return(paste("the annual percentage point change in", base))
 
     if (caption == 'ratio-nz')
-      return(paste("the ratio of", base, "to the national", subjectQuantity, feature))
+      return(paste0("the ratio of ", base, " to the national ", subjectShort, feature))
 
     if (caption == 'feature-percentage')
       return(paste("the percentage of", subjectShort, area, feature))
