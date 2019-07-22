@@ -2,6 +2,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Bailiwick.View.IndicatorTable
   ( indicatorTable
   , IndicatorTableState(..)
@@ -13,9 +14,17 @@ import Data.Bool (bool)
 import Data.Maybe (catMaybes, fromMaybe)
 import Data.List (sortOn)
 import qualified Data.Text as Text
+import Data.Text (Text)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 
 import Reflex.Dom.Core
+import GHCJS.DOM.Types (BlobPropertyBag(..))
+import GHCJS.DOM.Element (setAttribute)
+import GHCJS.DOM.URL (createObjectURL)
+import GHCJS.DOM.Blob (newBlob)
+import GHCJS.DOM.HTMLElement (newHTMLElement, click)
+import Foreign.JavaScript.Utils (bsToArrayBuffer)
+import Language.Javascript.JSaddle (obj, (<#), MonadJSM, liftJSM, toJSVal)
 
 import Bailiwick.View.Text
 import Bailiwick.Route
@@ -64,6 +73,34 @@ shapeData marea sel_featureid (sortcol,sortdir) (IndicatorNumbers inmap) =
              Desc -> fmap negate . sfc
   in  sortOn sf $ OMap.elems $ OMap.mapMaybeWithKey find inmap
 
+
+exportCSVLink
+  :: ( Monad m
+     , DomBuilder t m
+     , PerformEvent t m
+     , MonadJSM (Performable m)
+     )
+  => Dynamic t IndicatorTable
+  -> m ()
+exportCSVLink tableD = do
+
+  clickE <- fmap (domEvent Click . fst) $
+    elAttr' "button" ("class" =: "export") $ text "Export CSV"
+
+  performEvent_ $ ffor (tagPromptlyDyn tableD clickE) $ \_table -> do
+    liftJSM $ do
+        arrayBuffer <- bsToArrayBuffer $ "contents"
+        o <- obj
+        (o <# ("type" :: Text)) ("text/csv;charset=utf-8"::Text)
+        props <- BlobPropertyBag <$> toJSVal o
+        blob <- newBlob [arrayBuffer] (Just props)
+        url :: Text <- createObjectURL blob
+        e <- newHTMLElement--  ("a" :: Text)
+        setAttribute e ("href"::Text) url
+        setAttribute e ("download"::Text) ("filename.csv"::Text)
+        --click e
+        return ()
+
 indicatorTable
   :: ( Monad m
      , MonadFix m
@@ -72,6 +109,7 @@ indicatorTable
      , PerformEvent t m
      , TriggerEvent t m
      , MonadHold t m
+     , MonadJSM (Performable m)
      )
   => IndicatorTableState t
   -> m (Event t Message)
@@ -137,7 +175,7 @@ indicatorTable IndicatorTableState{..} = mdo
                     elAttr "td" ("class" =: "button" <> "colspan" =: "4") $ do
                       -- there needs to be logic to check whether there can be
                       -- an export button
-                      elAttr "button" ("class" =: "export") $ text "Export CSV"
+                      exportCSVLink tableD
                 sortOrderE'' <-
                   el "thead" $
                     el "tr" $ do
