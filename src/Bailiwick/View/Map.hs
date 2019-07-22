@@ -879,7 +879,7 @@ updateMapIndicator svgBody mapD scaleFunctionD = do
             year <- _year new
             let IndicatorNumbers ismap = _numbers new
             nums <- OM.lookup (area, year, _feature new) ismap
-            return (rawNum nums)
+            rawNum nums
         getColour :: Text -> JSM Text
         getColour areain = do
             case getNum areain of

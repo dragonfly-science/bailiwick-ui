@@ -434,11 +434,22 @@ instance FromJSON IndicatorNumbers where
               headline <- value .:  "headline"
               local    <- value .:  "local"
               national <- value .:  "national"
-              raw      <- value .:  "rawvalue"
-              index    <- value .:  "index"
+              raw      <- value .:? "rawvalue"
+              rawnatl  <- value .:? "rawnational"
+              rawlocal <- value .:? "rawlocal"
+              index    <- value .:? "index"
               indexD   <- value .:  "indexDisp"
               return ( (areaid, year, feature)
-                     , Numbers headline local national raw index indexD)))
+                     , Numbers
+                          { headlineDisp = headline
+                          , localDisp    = local
+                          , nationalDisp = national
+                          , indexDisp    = indexD
+                          , rawNum       = raw
+                          , localNum     = rawlocal
+                          , nationalNum  = rawnatl
+                          , indexNum     = index
+                          })))
 
 newtype IndicatorScale =
   IndicatorScale (InsOrdHashMap (Year, Maybe FeatureId) (Double, Double))
@@ -461,14 +472,17 @@ data Numbers
     { headlineDisp :: Text
     , localDisp    :: Text
     , nationalDisp :: Text
-    , rawNum       :: Text
-    , indexNum     :: Text
     , indexDisp    :: Text
+    , rawNum       :: Maybe Double
+    , localNum     :: Maybe Double
+    , nationalNum  :: Maybe Double
+    , indexNum     :: Maybe Double
     }
   deriving (Eq, Show, Generic)
 
 emptyNumbers :: Numbers
-emptyNumbers = Numbers "No data" "No data" "No data" "No data" "No data" "No data"
+emptyNumbers = Numbers "No data" "No data" "No data" "No data"
+                       Nothing Nothing Nothing Nothing
 
 newtype ScaleFunction = ScaleFunction JS.Object deriving (Generic)
 instance Show ScaleFunction where

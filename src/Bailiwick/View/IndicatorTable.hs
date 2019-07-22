@@ -1,13 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Bailiwick.View.IndicatorTable
   ( indicatorTable
   , IndicatorTableState(..)
   )
 where
 
+import Control.Monad.Fix (MonadFix)
 import Data.Bool (bool)
 import Data.Maybe (catMaybes, fromMaybe)
+import Data.List (sortOn)
 import qualified Data.Text as Text
 import qualified Data.HashMap.Strict.InsOrd as OMap
 
@@ -28,20 +32,41 @@ data IndicatorTableState t
   , indicatorNumbersD  :: Dynamic t IndicatorNumbers
   }
 
+data Column = YearCol | OriginalCol | TransformCol | NationalCol deriving Eq
+instance Show Column where
+  show YearCol = "year"
+  show OriginalCol = "original"
+  show TransformCol = "transform"
+  show NationalCol = "national"
+data Order = Asc | Desc deriving (Eq, Show)
+type SortOrder = (Column, Order)
+type IndicatorTable = [(Year, Numbers)]
 
-type IndicatorTable = OMap.InsOrdHashMap (AreaId, Year, Maybe FeatureId) (Year, Numbers)
-
-shapeData :: Maybe Area -> Maybe FeatureId -> IndicatorNumbers -> IndicatorTable
-shapeData marea sel_featureid (IndicatorNumbers inmap) =
+shapeData
+  :: Maybe Area
+  -> Maybe FeatureId
+  -> SortOrder
+  -> IndicatorNumbers
+  -> IndicatorTable
+shapeData marea sel_featureid (sortcol,sortdir) (IndicatorNumbers inmap) =
   let sel_areaid = maybe "none" areaId marea
       find (areaid, year, featureid) numbers =
         if (sel_areaid == areaid && sel_featureid == featureid)
             then Just (year, numbers)
             else Nothing
-  in  OMap.mapMaybeWithKey find inmap
+      sfc = case sortcol of
+             YearCol -> Just . fromIntegral . fst
+             OriginalCol  -> rawNum . snd
+             TransformCol -> localNum . snd
+             NationalCol  -> nationalNum . snd
+      sf = case sortdir of
+             Asc -> sfc
+             Desc -> fmap negate . sfc
+  in  sortOn sf $ OMap.elems $ OMap.mapMaybeWithKey find inmap
 
 indicatorTable
   :: ( Monad m
+     , MonadFix m
      , PostBuild t m
      , DomBuilder t m
      , PerformEvent t m
@@ -50,9 +75,13 @@ indicatorTable
      )
   => IndicatorTableState t
   -> m (Event t Message)
-indicatorTable IndicatorTableState{..} = do
+indicatorTable IndicatorTableState{..} = mdo
 
-  let tableD = shapeData <$> areaD <*> featureD <*> indicatorNumbersD
+  sortOrderD :: Dynamic t SortOrder
+    <- holdDyn (YearCol, Desc) sortOrderE
+
+  let tableD = shapeData <$> areaD <*> featureD <*> sortOrderD <*> indicatorNumbersD
+
       pageD = getThemePage <$> routeD
       subs = (textSubstitution
                     <$> areaD
@@ -84,7 +113,7 @@ indicatorTable IndicatorTableState{..} = do
       localLabelD    = (OMap.lookup transform  =<<) <$> labelsD
       nationalLabelD = (OMap.lookup "ratio-nz" =<<) <$> labelsD
 
-  clickCloseE <- do
+  (clickCloseE, sortOrderE) <- do
     elDynClass "div" (("table-view " <>) . bool "hide" "show" <$> showTableD) $
       elAttr "div" ("class" =: "panel" <> "style" =: "height: 799px;") $ do
         clickE <-
@@ -97,39 +126,61 @@ indicatorTable IndicatorTableState{..} = do
                 elAttr' "button" ("class" =: "close") $
                   el "i" $ return ()
 
-        elAttr "div" ("class" =: "table-container" <> "style" =: "height: 657px;") $
-          -- ##
-          -- There are 2 tables - 1 with a single region/indicator,
-          -- the second with comparison data.
-          -- ##
+        sortOrderE' <-
+          elAttr "div" ("class" =: "table-container" <> "style" =: "height: 657px;") $
 
-          divClass "single-table" $ do
-            -- may need logic to determine when to use "show" on the table class.
-            elAttr "table" ("class" =: "table-sorter show") $ do
-              el "tfoot" $
-                el "tr" $
-                  elAttr "td" ("class" =: "button" <> "colspan" =: "4") $ do
-                    -- there needs to be logic to check whether there can be
-                    -- an export button
-                    elAttr "button" ("class" =: "export") $ text "Export CSV"
-              el "thead" $
-                el "tr" $ do
-                  -- Each th element needs an event to add "tablesorter-headerDesc" or
-                  -- "tablesorter-headerAsc" if the column is being sorted.
-                  elAttr "th" ("class" =: "year tablesorter-headerDesc") $ text "Year"
-                  -- The next 3 header rows need to have correctly formatted titles
-                  -- - e.g. "The estimated resident population", "The annual
-                  -- percentage chage in ..."
-                  elAttr "th" ("class" =: "original") $ dynText $ subs (fromMaybe "" <$> headlineLabelD)
-                  elAttr "th" ("class" =: "transform") $ dynText $ subs (fromMaybe "" <$>  localLabelD)
-                  elAttr "th" ("class" =: "national") $ dynText $ subs (fromMaybe "" <$>  nationalLabelD)
-              el "tbody" $ do
-                dyn_ $ ffor tableD $ mapM $ \(year, Numbers{..}) -> do
-                  el "tr" $ do
-                    el "td" $ text (Text.pack $ show year)
-                    elAttr "td" ("class" =: "colour-teal") $ text headlineDisp
-                    elAttr "td" ("class" =: "colour-lighter-blue") $ text localDisp
-                    elAttr "td" ("class" =: "colour-green") $ text nationalDisp
+            divClass "single-table" $ do
+              -- may need logic to determine when to use "show" on the table class.
+              elAttr "table" ("class" =: "table-sorter show") $ do
+                el "tfoot" $
+                  el "tr" $
+                    elAttr "td" ("class" =: "button" <> "colspan" =: "4") $ do
+                      -- there needs to be logic to check whether there can be
+                      -- an export button
+                      elAttr "button" ("class" =: "export") $ text "Export CSV"
+                sortOrderE'' <-
+                  el "thead" $
+                    el "tr" $ do
+                      -- Each th element needs an event to add "tablesorter-headerDesc" or
+                      -- "tablesorter-headerAsc" if the column is being sorted.
+                      let tableSortAttrD col = do
+                            (sortCol, direction) <- sortOrderD
+                            let tablesortcss =
+                                    if sortCol == col
+                                        then " tablesorter-header" <> (Text.pack $ show direction)
+                                        else ""
+                            return ("class" =: ((Text.toLower $ Text.pack $ show col) <> tablesortcss))
+
+                      yearClickE <- fmap (domEvent Click . fst)  $
+                        elDynAttr' "th" (tableSortAttrD YearCol) $
+                          text "Year"
+                      originalClickE <- fmap (domEvent Click . fst)  $
+                        elDynAttr' "th" (tableSortAttrD OriginalCol) $
+                          dynText $ subs (fromMaybe "" <$> headlineLabelD)
+                      transformClickE <- fmap (domEvent Click . fst)  $
+                        elDynAttr' "th" (tableSortAttrD TransformCol) $
+                          dynText $ subs (fromMaybe "" <$> localLabelD)
+                      nationalClickE <- fmap (domEvent Click . fst)  $
+                        elDynAttr' "th" (tableSortAttrD NationalCol) $
+                          dynText $ subs (fromMaybe "" <$> nationalLabelD)
+
+                      let f (_, Desc) col = (col, Asc)
+                          f (_, Asc) col = (col, Desc)
+                      return $ attachWith f (current sortOrderD) $
+                                 leftmost [ YearCol      <$ yearClickE
+                                          , OriginalCol  <$ originalClickE
+                                          , TransformCol <$ transformClickE
+                                          , NationalCol  <$ nationalClickE
+                                          ]
+                el "tbody" $ do
+                  dyn_ $ ffor tableD $ mapM $ \(year, Numbers{..}) -> do
+                    el "tr" $ do
+                      el "td" $ text (Text.pack $ show year)
+                      elAttr "td" ("class" =: "colour-teal") $ text headlineDisp
+                      elAttr "td" ("class" =: "colour-lighter-blue") $ text localDisp
+                      elAttr "td" ("class" =: "colour-green") $ text nationalDisp
+
+                return sortOrderE''
 
           -- ##
           -- If the comparision option is enabled, we show the comparison data...
@@ -169,7 +220,7 @@ indicatorTable IndicatorTableState{..} = do
           --         elAttr "td" ("class" =: "double") $ text "Row Ratio"
           --         elAttr "td" ("class" =: "colour-green") $ text "Row Area-t"
           --         elAttr "td" ("class" =: "colour-compare-green") $ text "Row Compare-t"
-        return clickE
+        return (clickE, sortOrderE')
 
   showTableE <- fmap (domEvent Click . fst) $
     divClass "table-button" $

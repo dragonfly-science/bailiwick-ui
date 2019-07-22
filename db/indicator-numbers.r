@@ -50,6 +50,13 @@ localformat <- function(unit, previous, value) {
         formatValue('percentage', 100*(value-previous)/previous)))
 }
 
+localval <- function(unit, previous, value) {
+    ifelse(is.na(previous), NA,
+    ifelse(rep(unit, length(previous)) == 'percentage',
+        value-previous,
+        100*(value-previous)/previous))
+}
+
 nationalformat <- function(unit, national, value) {
     formatValue('ratio', value/national)
 }
@@ -104,15 +111,17 @@ for (indid in names(indicators)) {
 
   summarynumbers <-
       values[,
-        .(areaid    = areaname,
-          year      = Year,
-          feature   = slugify(Dimension1),
-          headline  = formatValue(unit, Value),
-          local     = localformat(unit, previous, Value),
-          national  = nationalformat(unit, national, Value),
-          rawvalue  = formatValue('', Value),
-          index     = formatValue('', index),
-          indexDisp = formatValue('count', index)
+        .(areaid      = areaname,
+          year        = Year,
+          feature     = slugify(Dimension1),
+          headline    = formatValue(unit, Value),
+          local       = localformat(unit, previous, Value),
+          national    = nationalformat(unit, national, Value),
+          rawvalue    = Value,
+          index       = index,
+          rawlocal    = localval(unit, previous, Value),
+          rawnational = Value / national,
+          indexDisp   = formatValue('count', index)
           )]
 
   colourscale <- values[, .(minval = min(Value), maxval = max(Value)),

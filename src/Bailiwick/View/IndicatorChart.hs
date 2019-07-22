@@ -38,7 +38,7 @@ data IndicatorChartState t
     , indicatorNumbersD  :: Dynamic t IndicatorNumbers
     }
 
-type ShapedData = [((AreaId, Text, Text, [Text], Maybe FeatureId), [(Year, Text, Text, Text, Text)])]
+type ShapedData = [((AreaId, Text, Text, [Text], Maybe FeatureId), [(Year, Maybe Double, Maybe Double, Text, Text)])]
 shapeData :: Maybe Areas -> IndicatorNumbers -> ShapedData
 shapeData mareas (IndicatorNumbers inmap) =
   let lookupAreaName areaid
