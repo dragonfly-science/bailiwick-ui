@@ -229,9 +229,10 @@ step route message =
 
 encodeRoute :: Route -> URI -> URI
 encodeRoute route uri =
-  let (segments, query) =
+  let compareArea mca = [("ca", encodeUtf8 ca) | ca <- maybeToList mca]
+      (segments, query) =
         case route of
-          Route Summary area _ _ -> (["summary", area], [])
+          Route Summary area mca _ -> (["summary", area], compareArea mca)
           Route (ThemePage (ThemePageArgs (IndicatorId i) (ChartId lc) (ChartId rc) y f t at lt rt)) area mca _ ->
                 ( ["theme", i, lc, rc, T.pack $ show y, area]
                   <> (featureIdText <$> maybeToList f)
@@ -239,7 +240,7 @@ encodeRoute route uri =
                 , [("areatype", encodeUtf8 at) | at /= "reg"]
                   <> [("left-transform", encodeUtf8 lt) | lt /= "absolute"]
                   <> [("right-transform", encodeUtf8 rt)]
-                  <> [("ca", encodeUtf8 ca) | ca <- maybeToList mca]
+                  <> compareArea mca
                 )
   in uri { uriPath = B.toStrict $ toLazyByteString (encodePath segments [])
          , uriQuery = Query $ query <> [("mapzoom", "1")   | hasAdapter Mapzoom route]
@@ -273,7 +274,7 @@ decodeUri uri =
          good       -> good
 
   in case segments of
-    ["summary", a] -> Route Summary (standardise a) Nothing adapters
+    ["summary", a] -> Route Summary (standardise a) ca adapters
     ("theme":i:lc:rc:y:a:rest) ->
       let fd = case rest of
                      [f, d] -> Just (Just f, Just d)

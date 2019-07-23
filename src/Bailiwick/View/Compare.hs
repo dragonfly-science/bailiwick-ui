@@ -10,10 +10,9 @@ where
 
 import Control.Applicative ((<|>))
 import Control.Monad.Fix (MonadFix)
-import Data.Maybe (fromMaybe, listToMaybe)
+import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import Data.Text (Text)
 import qualified Data.HashMap.Strict.InsOrd as OMap
-import Data.Map (Map)
 import qualified Data.Map as Map
 
 import Reflex.Dom.Core
@@ -67,7 +66,8 @@ compareMenu compareAreaD areasD = mdo
 
   (closeE, setCompareAreaE) <- comparePopup showPopupD compareAreaD areasD
 
-  return $ leftmost [ setCompareAreaE, UnsetCompareArea <$ clearE ]
+  return $ leftmost [ setCompareAreaE
+                    , UnsetCompareArea <$ clearE ]
 
 
 comparePopup
@@ -83,7 +83,23 @@ comparePopup
   -> m (Event t (), Event t Message)
 comparePopup showhideD compareAreaD areasD = mdo
 
-  let regionsD = do
+  let regtaD = do
+        mareas <- areasD
+        mcompare_area <- compareAreaD
+        case (mareas, mcompare_area) of
+          (Just as@(Areas areas), Just compare_area) -> do
+            let al = areaList as compare_area
+                Just nz = OMap.lookup "new-zealand" areas
+            case al of
+                [r, t] -> return (Just r, Just t)
+                [r]    -> return (Just r, Nothing)
+                _      -> return (Just nz, Nothing)
+          _ -> return (Nothing, Nothing)
+        
+      compareRegionD = fst <$> regtaD
+      compareSubareaD = snd <$> regtaD
+      
+      regionsD = do
         mareas <- areasD
         let areas = maybe OMap.empty unAreas mareas
             regions = OMap.filter (\a -> areaLevel a == "reg") areas
@@ -100,13 +116,27 @@ comparePopup showhideD compareAreaD areasD = mdo
             Areas areas <- mareas
             aid <- maid
             thisArea <- OMap.lookup aid areas
-            return $ Areas $
-              OMap.filter (\a -> areaId a `elem` areaChildren thisArea) areas
+            let children = OMap.filter (\a -> areaId a `elem` areaChildren thisArea) areas
+            if OMap.size children > 0
+                then return $ Areas children
+                else return $ Areas $ OMap.filter (\a -> areaId a == aid) areas
 
 
-  selectedRegionD <- holdDyn Nothing selectedRegionE
-  selectedAreaD <- holdDyn Nothing selectedAreaE
-  let currentRegionD = zipDynWith (<|>) selectedRegionD compareAreaD
+  selectedRegionD <-
+     holdDyn Nothing $
+         leftmost [ selectedRegionE
+                  , Nothing <$ clearE 
+                  , Nothing <$ (ffilter (=="") $ updated showhideD)
+                  ]
+  let currentRegionD =
+         zipDynWith (<|>) selectedRegionD (fmap areaId <$> compareRegionD)
+  selectedAreaD <-
+    holdDyn Nothing $
+         leftmost [ selectedAreaE
+                  , Nothing <$ clearE
+                  ]
+  let currentSubareaD = zipDynWith (<|>) selectedAreaD
+                                        (fmap areaId <$> compareSubareaD)
 
   (closeE, selectedRegionE, selectedAreaE, clearE, setAreaE) <-
     divClass "compare-menu" $ do
@@ -117,38 +147,51 @@ comparePopup showhideD compareAreaD areasD = mdo
                el "header" $ do
                  el "h2" $
                    text "Set the area you want to compare with."
-                 selectButton "close" $
+                 selectButton (constDyn "close") $
                    elClass "i" "close-icon-rear-white" $ return ()
             (selectedRegionE', selectedAreaE', clearE', setAreaE') <-
               divClass "body" $ do
-                divClass "row" $
-                  divClass "col last" $
-                    -- TODO: select in ember version was using Chosen.js - we'll
-                    -- have to just use a select for now. Need to list all
-                    -- available areas. Clicking an option disables the
-                    -- "area-selction" row element by adding a "disabled" class.
-                    elClass "select" "" $
-                      el "option" $ text "Choose an area"
+--                divClass "row" $
+--                  divClass "col last" $
+--                    -- TODO: select in ember version was using Chosen.js - we'll
+--                    -- have to just use a select for now. Need to list all
+--                    -- available areas. Clicking an option disables the
+--                    -- "area-selction" row element by adding a "disabled" class.
+--                    elClass "select" "" $
+--                      el "option" $ text "Choose an area"
                 -- TODO: need a dynamic to add a "disabled" class.
                 (selectedRegionE'', selectedAreaE'') <-
                   divClass "row" $ do
+                    let tatitleD = do
+                          ca <- currentRegionD
+                          case ca of
+                            Just "auckland" -> "Select auckland ward"
+                            Just "new-zealand" -> "Select New Zealand"
+                            _ -> "Select territorial authority"
                     (,) <$> selector "area-selection"
-                                     "Select region"
+                                     (constDyn "Select region")
                                      currentRegionD
                                      regionsD
                         <*> selector "ta-selection"
-                                     "Select Territorial Authority"
-                                     currentRegionD
+                                     tatitleD
+                                     currentSubareaD
                                      subareasD
                 (clearE'', setAreaE'') <-
                   divClass "row" $ do
-                    (,) <$> (selectButton "clear" $ text "clear")
+                    let setcss = do
+                          ca <- currentSubareaD
+                          case ca of
+                            Just _ ->  return "set"
+                            Nothing -> return "set disabled"
+                    (,) <$> (selectButton (constDyn "clear") $ text "clear")
                             -- TODO: this button needs to have a "disabled" class added
                             -- if no area is selected
-                        <*> (selectButton "set" $ text "set this area")
+                        <*> (selectButton setcss $ text "set this area")
                 return (selectedRegionE'', selectedAreaE'', clearE'', setAreaE'')
             return (closeE', selectedRegionE', selectedAreaE', clearE', setAreaE')
-  return (closeE, never)
+  return (closeE, leftmost [ maybe UnsetCompareArea SetCompareArea 
+                               <$> tagPromptlyDyn currentSubareaD setAreaE
+                           ])
 
 
 selector
@@ -158,7 +201,7 @@ selector
      , PostBuild t m
      )
   => Text
-  -> Text
+  -> Dynamic t Text
   -> Dynamic t (Maybe AreaId)
   -> Dynamic t Areas
   -> m (Event t (Maybe AreaId))
@@ -176,7 +219,7 @@ selector cssclass title currentD inputD = do
         return $ if Just aid == maid then "active" else ""
 
   divClass ("col " <> cssclass) $ do
-    elClass "span" "label" $ text title
+    elClass "span" "label" $ dynText title
     divClass "container" $ do
       el "ul" $ do
         selectE <-
@@ -190,11 +233,29 @@ selector cssclass title currentD inputD = do
 
 selectButton
   :: ( DomBuilder t m
+     , PostBuild t m
      )
-  => Text
+  => Dynamic t Text
   -> m ()
   -> m (Event t ())
 selectButton cssclass content =
   divClass "col" $ 
     fmap (domEvent Click . fst) $
-      elClass' "button" cssclass $ content
+      elDynClass' "button" cssclass $ content
+
+areaList :: Areas -> Text -> [Area]
+areaList _ "new-zealand" = []
+areaList (Areas areas) p = case (area, parent) of
+                  (Just a, Just b)  -> [b, a]
+                  (Just a, Nothing) -> [a]
+                  _                 -> []
+  where
+    area = OMap.lookup p areas
+    parent = do
+      a <- area
+      listToMaybe
+        [ parentArea
+        | parentArea <- mapMaybe (`OMap.lookup` areas) (areaParents a)
+        , areaLevel parentArea == "reg" ]
+
+
