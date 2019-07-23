@@ -21,6 +21,7 @@ library
                        Bailiwick.View
                        Bailiwick.View.AreaSummary
                        Bailiwick.View.Header
+                       Bailiwick.View.Compare
                        Bailiwick.View.IndicatorChart
                        Bailiwick.View.IndicatorSummary
                        Bailiwick.View.IndicatorTable

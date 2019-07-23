@@ -19,7 +19,7 @@
   // @include display(flex);
   // @include justify-content(flex-end);
   // @include flex-direction();
-  
+
 
   width: 100%;
   max-width: rem($nav-width);
@@ -51,6 +51,12 @@
     padding: 0 12px 0 0;
     display: inline-block;
     position: relative;
+    opacity: 1;
+
+    &.hide {
+        opacity: 0;
+        pointer-events: none;
+    }
 
     div {
         max-width: rem(135);

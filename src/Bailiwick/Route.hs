@@ -53,6 +53,8 @@ data Message
   | RightZoomOut (Maybe Text)
   | SetShowTable
   | UnsetShowTable
+  | SetCompareArea Text
+  | UnsetCompareArea
   deriving (Eq, Show)
 
 data Route
@@ -218,15 +220,26 @@ step route message =
     UnsetShowTable
         -> route { routeAdapters = routeAdapters route \\ [ShowTable] }
 
+    SetCompareArea area
+        -> route { routeCompareArea = Just area }
+
+    UnsetCompareArea
+        -> route { routeCompareArea = Nothing }
+
 
 encodeRoute :: Route -> URI -> URI
 encodeRoute route uri =
   let (segments, query) =
         case route of
           Route Summary area _ _ -> (["summary", area], [])
-          Route (ThemePage (ThemePageArgs (IndicatorId i) (ChartId lc) (ChartId rc) y f t at lt rt)) area _ _ ->
-                ( ["theme", i, lc, rc, T.pack $ show y, area] <> (featureIdText <$> maybeToList f) <> maybeToList t
-                , [("areatype", encodeUtf8 at) | at /= "reg"] <> [("left-transform", encodeUtf8 lt) | lt /= "absolute"] <> [("right-transform", encodeUtf8 rt)]
+          Route (ThemePage (ThemePageArgs (IndicatorId i) (ChartId lc) (ChartId rc) y f t at lt rt)) area mca _ ->
+                ( ["theme", i, lc, rc, T.pack $ show y, area]
+                  <> (featureIdText <$> maybeToList f)
+                  <> maybeToList t
+                , [("areatype", encodeUtf8 at) | at /= "reg"]
+                  <> [("left-transform", encodeUtf8 lt) | lt /= "absolute"]
+                  <> [("right-transform", encodeUtf8 rt)]
+                  <> [("ca", encodeUtf8 ca) | ca <- maybeToList mca]
                 )
   in uri { uriPath = B.toStrict $ toLazyByteString (encodePath segments [])
          , uriQuery = Query $ query <> [("mapzoom", "1")   | hasAdapter Mapzoom route]
@@ -254,6 +267,7 @@ decodeUri uri =
       at = fromMaybe "reg" $ maybeDecodeUtf8 =<< M.lookup "areatype" flagMap
       lt = fromMaybe "absolute" $ maybeDecodeUtf8 =<< M.lookup "left-transform" flagMap
       rt = fromMaybe "absolute" $ maybeDecodeUtf8 =<< M.lookup "right-transform" flagMap
+      ca = maybeDecodeUtf8 =<< M.lookup "ca" flagMap
       standardise = \case
          "wanganui" -> "whanganui"
          good       -> good
@@ -267,6 +281,7 @@ decodeUri uri =
                      [] -> Just (Nothing, Nothing)
                      _ -> Nothing
       in fromMaybe homePage $ (\year (f, d) -> Route (ThemePage (
-            ThemePageArgs (IndicatorId i) (ChartId lc) (ChartId rc) year (FeatureId <$> f) d at lt rt)) a Nothing adapters) <$> readMaybe (T.unpack y) <*> fd
+            ThemePageArgs (IndicatorId i) (ChartId lc) (ChartId rc) year (FeatureId <$> f) d at lt rt))
+             a ca adapters) <$> readMaybe (T.unpack y) <*> fd
     _  -> homePage
 
