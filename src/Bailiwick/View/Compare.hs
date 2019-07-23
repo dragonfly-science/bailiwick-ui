@@ -95,10 +95,10 @@ comparePopup showhideD compareAreaD areasD = mdo
                 [r]    -> return (Just r, Nothing)
                 _      -> return (Just nz, Nothing)
           _ -> return (Nothing, Nothing)
-        
+
       compareRegionD = fst <$> regtaD
       compareSubareaD = snd <$> regtaD
-      
+
       regionsD = do
         mareas <- areasD
         let areas = maybe OMap.empty unAreas mareas
@@ -125,7 +125,7 @@ comparePopup showhideD compareAreaD areasD = mdo
   selectedRegionD <-
      holdDyn Nothing $
          leftmost [ selectedRegionE
-                  , Nothing <$ clearE 
+                  , Nothing <$ clearE
                   , Nothing <$ (ffilter (=="") $ updated showhideD)
                   ]
   let currentRegionD =
@@ -134,6 +134,7 @@ comparePopup showhideD compareAreaD areasD = mdo
     holdDyn Nothing $
          leftmost [ selectedAreaE
                   , Nothing <$ clearE
+                  , Nothing <$ (ffilter (=="") $ updated showhideD)
                   ]
   let currentSubareaD = zipDynWith (<|>) selectedAreaD
                                         (fmap areaId <$> compareSubareaD)
@@ -179,7 +180,7 @@ comparePopup showhideD compareAreaD areasD = mdo
                 (clearE'', setAreaE'') <-
                   divClass "row" $ do
                     let setcss = do
-                          ca <- currentSubareaD
+                          ca <- setAreaD
                           case ca of
                             Just _ ->  return "set"
                             Nothing -> return "set disabled"
@@ -189,8 +190,9 @@ comparePopup showhideD compareAreaD areasD = mdo
                         <*> (selectButton setcss $ text "set this area")
                 return (selectedRegionE'', selectedAreaE'', clearE'', setAreaE'')
             return (closeE', selectedRegionE', selectedAreaE', clearE', setAreaE')
-  return (closeE, leftmost [ maybe UnsetCompareArea SetCompareArea 
-                               <$> tagPromptlyDyn currentSubareaD setAreaE
+  let setAreaD = zipDynWith (<|>) currentSubareaD currentRegionD
+  return (closeE, leftmost [ maybe UnsetCompareArea SetCompareArea
+                               <$> tag (current setAreaD) setAreaE
                            ])
 
 
@@ -239,7 +241,7 @@ selectButton
   -> m ()
   -> m (Event t ())
 selectButton cssclass content =
-  divClass "col" $ 
+  divClass "col" $
     fmap (domEvent Click . fst) $
       elDynClass' "button" cssclass $ content
 
