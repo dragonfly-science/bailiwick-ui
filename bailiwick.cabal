@@ -38,6 +38,7 @@ library
                      , bimap
                      , binary
                      , bytestring
+                     , cassava
                      , containers
                      , data-default
                      , directory

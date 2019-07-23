@@ -15,14 +15,14 @@ import Data.Maybe (catMaybes, fromMaybe)
 import Data.List (sortOn)
 import qualified Data.Text as Text
 import Data.Text (Text)
+import Data.ByteString.Lazy (ByteString, toStrict)
 import qualified Data.HashMap.Strict.InsOrd as OMap
+import qualified Data.Csv as Csv
 
 import Reflex.Dom.Core
 import GHCJS.DOM.Types (BlobPropertyBag(..))
-import GHCJS.DOM.Element (setAttribute)
 import GHCJS.DOM.URL (createObjectURL)
 import GHCJS.DOM.Blob (newBlob)
-import GHCJS.DOM.HTMLElement (newHTMLElement, click)
 import Foreign.JavaScript.Utils (bsToArrayBuffer)
 import Language.Javascript.JSaddle (obj, (<#), MonadJSM, liftJSM, toJSVal)
 
@@ -80,26 +80,18 @@ exportCSVLink
      , PerformEvent t m
      , MonadJSM (Performable m)
      )
-  => Dynamic t IndicatorTable
-  -> m ()
-exportCSVLink tableD = do
+  => Dynamic t ByteString
+  -> m (Event t Text)
+exportCSVLink csvD = do
 
-  clickE <- fmap (domEvent Click . fst) $
-    elAttr' "button" ("class" =: "export") $ text "Export CSV"
-
-  performEvent_ $ ffor (tagPromptlyDyn tableD clickE) $ \_table -> do
+  performEvent $ ffor (updated csvD) $ \csv -> do
     liftJSM $ do
-        arrayBuffer <- bsToArrayBuffer $ "contents"
+        arrayBuffer <- bsToArrayBuffer $ toStrict csv
         o <- obj
         (o <# ("type" :: Text)) ("text/csv;charset=utf-8"::Text)
         props <- BlobPropertyBag <$> toJSVal o
         blob <- newBlob [arrayBuffer] (Just props)
-        url :: Text <- createObjectURL blob
-        e <- newHTMLElement--  ("a" :: Text)
-        setAttribute e ("href"::Text) url
-        setAttribute e ("download"::Text) ("filename.csv"::Text)
-        --click e
-        return ()
+        createObjectURL blob
 
 indicatorTable
   :: ( Monad m
@@ -173,14 +165,42 @@ indicatorTable IndicatorTableState{..} = mdo
                 el "tfoot" $
                   el "tr" $
                     elAttr "td" ("class" =: "button" <> "colspan" =: "4") $ do
-                      -- there needs to be logic to check whether there can be
-                      -- an export button
-                      exportCSVLink tableD
+                      let csvD = do
+                            headline <- subs (fromMaybe "Headline" <$> headlineLabelD)
+                            local    <- subs (fromMaybe "Local" <$> localLabelD)
+                            national <- subs (fromMaybe "National" <$> nationalLabelD)
+                            source   <- subs (maybe "" indicatorPublishers <$> indicatorD)
+                            let header = ( "Year"::Text
+                                         , headline
+                                         , local
+                                         , national
+                                         , "Copyright"::Text
+                                         , "Owner"::Text
+                                         )
+                            table <- tableD
+                            let contents = [ ( Text.pack $ show year
+                                             , maybe "" (Text.pack . show) rawNum
+                                             , maybe "" (Text.pack . show) localNum
+                                             , maybe "" (Text.pack . show) nationalNum
+                                             , "CC-BY-4" :: Text
+                                             , source
+                                             )
+                                           | (year, Numbers{..}) <- table ]
+                            return $ Csv.encode (header:contents)
+
+                      urlE <- exportCSVLink csvD
+                      urlD <- holdDyn "" urlE
+                      let exportAttrD = do
+                            filename <- subs (constDyn "$indid$-$yearEndMonth$-$areaid$.csv")
+                            url <- urlD
+                            return (  "class"    =: "export"
+                                   <> "href"     =: url
+                                   <> "download" =: filename )
+                      elDynAttr "a" exportAttrD $ text "Export CSV"
+
                 sortOrderE'' <-
                   el "thead" $
                     el "tr" $ do
-                      -- Each th element needs an event to add "tablesorter-headerDesc" or
-                      -- "tablesorter-headerAsc" if the column is being sorted.
                       let tableSortAttrD col = do
                             (sortCol, direction) <- sortOrderD
                             let tablesortcss =

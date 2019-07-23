@@ -38,7 +38,9 @@ textSubstitution area compareArea indicator feature themePage =
     let y = themePageYear <$> themePage
         fy = indicatorFirstYear <$> indicator
         yem = indicatorYearEndMonth =<< indicator
+        indid = unIndicatorId . indicatorId <$> indicator
         sa = maybe "New Zealand" areaName area
+        aid = maybe "new-zealand" areaId area
         f = featureIdText <$> feature
         fp = Nothing -- TODO feature types (Tourism spend)
         _d = themePageDetailId <$> themePage --
@@ -56,10 +58,12 @@ textSubstitution area compareArea indicator feature themePage =
         replace findStr (Just replaceStr) = T.replace findStr replaceStr
         replace _ _ = id
     in T.strip
+      . replace "$indid$" indid
       . replace "$year$" (T.pack . show <$> y)
       . replace "$firstYear$" fy
       . replace "$yearEndMonth$" yem
       . T.replace "$area$" a
+      . T.replace "$areaid$" aid
       . T.replace "$selectedArea$" sa
       . replace "$compareArea$" (areaName <$> compareArea)
       . replace "$prevYear$" (T.pack . show <$> p)
