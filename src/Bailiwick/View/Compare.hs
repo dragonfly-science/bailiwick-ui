@@ -8,6 +8,7 @@ module Bailiwick.View.Compare
   )
 where
 
+import Control.Applicative ((<|>))
 import Control.Monad.Fix (MonadFix)
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Text (Text)
@@ -82,34 +83,30 @@ comparePopup
   -> m (Event t (), Event t Message)
 comparePopup showhideD compareAreaD areasD = mdo
 
-  let clickE = fmap (domEvent Click . fst)
-      firstArea = fmap snd . listToMaybe . Map.toList
-
-      regionsD = do
+  let regionsD = do
         mareas <- areasD
         let areas = maybe OMap.empty unAreas mareas
             regions = OMap.filter (\a -> areaLevel a == "reg") areas
             mnz = OMap.lookup "new-zealand" areas
-        return $ case mnz of
+        return $ Areas $ case mnz of
                     Just nz -> OMap.singleton "new-zealand" nz <> regions
                     Nothing -> regions
+
       subareasD = do
-        area <- currentRegionD
+        maid <- currentRegionD
         mareas <- areasD
         return $
-          fromMaybe OMap.empty $ do
+          fromMaybe (Areas OMap.empty) $ do
             Areas areas <- mareas
-            aid <- areaId <$> area
+            aid <- maid
             thisArea <- OMap.lookup aid areas
-            return $ OMap.filter (\a -> areaId a `elem` areaChildren thisArea) areas
+            return $ Areas $
+              OMap.filter (\a -> areaId a `elem` areaChildren thisArea) areas
 
 
-      shuffle (i, (k, v)) = ((i,k), v)
-      regionOptionsD = Map.fromList . map shuffle . zip [1..] . OMap.toList <$> regionsD
-      subareaOptionsD = Map.fromList . map shuffle . zip [1..] . OMap.toList <$> subareasD
-
-  currentRegionD :: Dynamic t (Maybe Area)
-     <- holdDyn Nothing (firstArea <$> selectedRegionE)
+  selectedRegionD <- holdDyn Nothing selectedRegionE
+  selectedAreaD <- holdDyn Nothing selectedAreaE
+  let currentRegionD = zipDynWith (<|>) selectedRegionD compareAreaD
 
   (closeE, selectedRegionE, selectedAreaE, clearE, setAreaE) <-
     divClass "compare-menu" $ do
@@ -120,9 +117,8 @@ comparePopup showhideD compareAreaD areasD = mdo
                el "header" $ do
                  el "h2" $
                    text "Set the area you want to compare with."
-                 clickE $
-                   elClass' "button" "close" $
-                     elClass "i" "close-icon-rear-white" $ return ()
+                 selectButton "close" $
+                   elClass "i" "close-icon-rear-white" $ return ()
             (selectedRegionE', selectedAreaE', clearE', setAreaE') <-
               divClass "body" $ do
                 divClass "row" $
@@ -136,36 +132,69 @@ comparePopup showhideD compareAreaD areasD = mdo
                 -- TODO: need a dynamic to add a "disabled" class.
                 (selectedRegionE'', selectedAreaE'') <-
                   divClass "row" $ do
-                    selectedRegionE''' <-
-                      divClass "col area-selection" $ do
-                        elClass "span" "label" $ text "Selection region"
-                        divClass "container" $ do
-                          el "ul" $ do
-                            listViewWithKey regionOptionsD $ \_k v -> do
-                              (li, _) <- el' "li" $ dynText (areaName <$> v)
-                              return (tag (current v) (domEvent Click li))
-                    selectedAreaE''' <-
-                      divClass "col ta-selection" $ do
-                        elClass "span" "label" $ text "Selection Territorial Authority/Ward"
-                        divClass "container" $ do
-                          el "ul" $ do
-                            listViewWithKey subareaOptionsD $ \_k v -> do
-                              (li, _) <- el' "li" $ dynText (areaName <$> v)
-                              return (tag (current v) (domEvent Click li))
-                    return (selectedRegionE''', selectedAreaE''')
+                    (,) <$> selector "area-selection"
+                                     "Select region"
+                                     currentRegionD
+                                     regionsD
+                        <*> selector "ta-selection"
+                                     "Select Territorial Authority"
+                                     currentRegionD
+                                     subareasD
                 (clearE'', setAreaE'') <-
                   divClass "row" $ do
-                    clearE''' <-
-                      divClass "col" $
-                        clickE $ elClass' "button" "clear" $ text "clear"
-                    setAreaE''' <-
-                      divClass "col" $
-                        -- TODO: this button needs to have a "disabled" class added
-                        -- if no area is selected
-                        clickE $ elClass' "button" "set" $ text "set this area"
-                    return (clearE''', setAreaE''')
+                    (,) <$> (selectButton "clear" $ text "clear")
+                            -- TODO: this button needs to have a "disabled" class added
+                            -- if no area is selected
+                        <*> (selectButton "set" $ text "set this area")
                 return (selectedRegionE'', selectedAreaE'', clearE'', setAreaE'')
             return (closeE', selectedRegionE', selectedAreaE', clearE', setAreaE')
   return (closeE, never)
 
 
+selector
+  :: ( MonadFix m
+     , MonadHold t m
+     , DomBuilder t m
+     , PostBuild t m
+     )
+  => Text
+  -> Text
+  -> Dynamic t (Maybe AreaId)
+  -> Dynamic t Areas
+  -> m (Event t (Maybe AreaId))
+selector cssclass title currentD inputD = do
+
+  let shuffle :: (Int, (AreaId, Area)) -> ((Int, AreaId), Area)
+      shuffle (i, (k, v)) = ((i,k), v)
+      optionsD = Map.fromList
+               . map shuffle
+               . zip [1..]
+               . OMap.toList
+               . unAreas <$> inputD
+      mkclass aid aidD = do
+        maid <- aidD
+        return $ if Just aid == maid then "active" else ""
+
+  divClass ("col " <> cssclass) $ do
+    elClass "span" "label" $ text title
+    divClass "container" $ do
+      el "ul" $ do
+        selectE <-
+          listViewWithKey optionsD $ \(_k,aid) v -> do
+            (li, _) <-
+              elDynClass' "li" (mkclass aid currentD) $
+                dynText (areaName <$> v)
+            return (tag (current v) (domEvent Click li))
+        return $ fmap areaId . fmap snd . listToMaybe . Map.toList <$> selectE
+
+
+selectButton
+  :: ( DomBuilder t m
+     )
+  => Text
+  -> m ()
+  -> m (Event t ())
+selectButton cssclass content =
+  divClass "col" $ 
+    fmap (domEvent Click . fst) $
+      elClass' "button" cssclass $ content
