@@ -25,10 +25,14 @@ RUN nix-env -f  /setup/db/default.nix -iA bailiwick-data
 RUN cd /setup/ && nix-shell -j6 -A shells.ghcjs --run exit
 RUN cd /setup/ && nix-shell -j6 -A shells.ghc --run exit
 
+# Install the javascript dependencies
+COPY javascript.nix /setup/
+COPY node-env.nix /setup/
+COPY node-packages.nix /setup/
+COPY package.json /setup/
+COPY package-lock.json /setup/
+RUN cd /setup/ && nix-shell javascript.nix -j6 -A shell --run 'ln -s $NODE_PATH'
+
 ## return to nix conf that will work on gorby
 COPY nix-gorbachev.conf /etc/nix/nix.conf
 
-ARG AWS_ACCESS_KEY_ID
-ARG AWS_SECRET_ACCESS_KEY
-ENV AWS_ACCESS_KEY_ID $AWS_ACCESS_KEY_ID
-ENV AWS_SECRET_ACCESS_KEY $AWS_SECRET_ACCESS_KEY

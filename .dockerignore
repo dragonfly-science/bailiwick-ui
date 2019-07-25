@@ -8,3 +8,8 @@
 !src/
 !static/
 !db/default.nix
+!javascript.nix
+!node-env.nix
+!node-packages.nix
+!package.json
+!package-lock.json
