@@ -86,1937 +86,10 @@
 /************************************************************************/
 /******/ ({
 
-/***/ "./js-src/cache/cache-store.js":
-/*!*************************************!*\
-  !*** ./js-src/cache/cache-store.js ***!
-  \*************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var cache__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! cache */ "./node_modules/cache/index.js");
-/* harmony import */ var cache__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(cache__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
-/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_1__);
-
-
-/* harmony default export */ __webpack_exports__["default"] = ((function () {
-  var instance;
-
-  function createInstance() {
-    var object = new cache__WEBPACK_IMPORTED_MODULE_0___default.a(5 * 60 * 1000);
-    return object;
-  }
-
-  return {
-    getInstance: function getInstance() {
-      if (!instance) {
-        instance = createInstance();
-      }
-
-      return instance;
-    }
-  };
-})());
-
-/***/ }),
-
-/***/ "./js-src/charts/indicator-area-treemap.js":
-/*!*************************************************!*\
-  !*** ./js-src/charts/indicator-area-treemap.js ***!
-  \*************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
-/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var chroma_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! chroma-js */ "./node_modules/chroma-js/chroma.js");
-/* harmony import */ var chroma_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(chroma_js__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! d3 */ "./node_modules/d3/d3.js");
-/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var rgb_hex__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! rgb-hex */ "./node_modules/rgb-hex/index.js");
-/* harmony import */ var rgb_hex__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(rgb_hex__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _utils_chart_setup__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/chart-setup */ "./js-src/utils/chart-setup.js");
-/* harmony import */ var _utils_formatting__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../utils/formatting */ "./js-src/utils/formatting.js");
-/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../utils/utils */ "./js-src/utils/utils.js");
-
-
-
-
-
-
-
-var margin = {
-  top: 2,
-  right: 2,
-  bottom: 2,
-  left: 2
-};
-
-function wordwrap(d, i) {
-  //   if (!d.absolute) {
-  //     return;
-  //   }
-  var t = d3__WEBPACK_IMPORTED_MODULE_2___default.a.select(this),
-      rectBB = t.select('rect').node().getBBox(),
-      text = t.select('text'),
-      textBB = text.node().getBBox();
-
-  if (textBB.width >= rectBB.width - 1 || textBB.height >= rectBB.height - 1) {
-    text.style('visibility', 'hidden');
-  } else {
-    text.style('visibility', 'inherit');
-  }
-}
-
-/* harmony default export */ __webpack_exports__["default"] = (function (element, params) {
-  var colours = Object(_utils_utils__WEBPACK_IMPORTED_MODULE_6__["getColours"])();
-  var treemap, legendElem, tooltipElem, labels;
-  var first = true;
-  var startColour = colours['background-rear-positive-light'],
-      endColour = colours['background-rear-positive'];
-
-  if (typeof startColour === 'undefined') {
-    return false;
-  }
-
-  var scale = chroma_js__WEBPACK_IMPORTED_MODULE_1___default.a.scale([rgb_hex__WEBPACK_IMPORTED_MODULE_3___default()(startColour), rgb_hex__WEBPACK_IMPORTED_MODULE_3___default()(endColour)]);
-  var colour = d3__WEBPACK_IMPORTED_MODULE_2___default.a.scale.ordinal().domain(["international", "domestic"]).range([scale(0.2), scale(0.8)]); // Setup
-
-  var setup = Object(_utils_chart_setup__WEBPACK_IMPORTED_MODULE_4__["default"])(element, params, margin, 'area-treemap');
-
-  if (setup === null) {
-    return;
-  }
-
-  var cache = window.MBIECacheStorage,
-      toCache = {},
-      data = setup.data,
-      year = setup.year,
-      indicator = setup.indicator,
-      transform = setup.transform,
-      area = setup.area,
-      areas = setup.areas,
-      areaLevel = setup.areaLevel,
-      feature = setup.feature,
-      features = setup.features,
-      svg = setup.svg,
-      base = setup.base,
-      width = setup.width,
-      height = setup.height;
-  legendElem = d3__WEBPACK_IMPORTED_MODULE_2___default.a.select(element.parentNode).select(".legend");
-  tooltipElem = d3__WEBPACK_IMPORTED_MODULE_2___default.a.select(element.parentNode).select(".tooltip");
-  treemap = d3__WEBPACK_IMPORTED_MODULE_2___default.a.layout.treemap().size([width, height]).value(function (d) {
-    var value = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(d[1], function (item) {
-      return item[0] === year;
-    });
-
-    if (value.length > 0) {
-      return Number(value[0][1]);
-    }
-
-    return 0;
-  });
-  svg.selectAll('g').remove();
-  var g = svg.selectAll("g").data([1]);
-  var svgEnter = g.enter().append("g");
-  svgEnter.append("rect").attr("width", width + 2).attr("height", height + 2).attr("x", -1).attr("y", -1).attr("class", "border-rect");
-  first = true; ///
-  /// Data Manager
-  ///
-  // var dataTree = this.getAttr('data'),
-  //   area = this.getAttr('area').get('id'),
-  //   dataId = this.get('dataId');
-  //   if (!dataTree) {
-  //     return;
-  //   }
-  //   if (dataId.tree !== dataTree.get('id') || dataId.area !== area) {
-  //     this.set("plotdata", dataTree.get('areas')[area]);
-  //     this.set("dataId", {tree: dataTree.get('id'), area: area});
-  //   }
-  ///
-  /// Draw Labels
-  ///
-
-  labels = ["International", "Domestic"];
-  var legendWidth = 300;
-  var legendHeight = 80;
-  var legend = legendElem.selectAll("svg").data([labels]);
-  var legendEnter = legend.enter().append("svg");
-  legend.attr("width", legendWidth).attr("height", legendHeight);
-  var legendG = legend.selectAll("g.key").data(function (d) {
-    return [d];
-  }),
-      legendGEnter = legendG.enter().append("g").attr("class", "key");
-  legendG.attr("transform", "translate(" + margin.left + "," + legendHeight / 2 + ")");
-  var legendRects = legendG.selectAll("rect").data(function (d) {
-    return d;
-  }),
-      legendRectsEnter = legendRects.enter().append("rect").attr("height", 8).attr("width", 55);
-  legendRects.attr("x", function (d, i) {
-    return i * 95;
-  }).attr("fill", function (d) {
-    return colour(d.toLowerCase());
-  });
-  var legendTexts = legendG.selectAll("text").data(function (d) {
-    return d;
-  }),
-      legendTextsEnter = legendTexts.enter().append("text").attr("dy", "0.71em").attr("y", 16);
-  legendTexts.attr("x", function (d, i) {
-    return i * 95;
-  }).text(function (d) {
-    return d;
-  });
-  legendTexts.exit().remove(); /// 
-  /// Update
-  ///
-  // var data = this.get("plotdata"),
-
-  var duration = 1000; // feature = this.getAttr("feature"),
-  // featureName = present(feature) ? feature.get("name") : null,
-  // _this = this;
-
-  var areaData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(data, function (i) {
-    return i[0][1] === area;
-  }); // var root = d3.hierarchy(areaData).sum(function(d){
-  //     console.log(d)
-  //     return 0;
-  // })
-
-
-  var grouped = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.groupBy(areaData, function (item) {
-    var key = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.last(item[0]);
-
-    return lodash__WEBPACK_IMPORTED_MODULE_0___default.a.indexOf(areas, key) === -1;
-  });
-
-  var domestic = grouped[false],
-      international = grouped[true]; // console.log(domestic, international)
-
-  var treemapData = {
-    name: 'top',
-    children: [{
-      name: 'domestic',
-      children: domestic
-    }, {
-      name: 'international',
-      children: international
-    }]
-  }; // console.log(treemapData)
-
-  var cell = svgEnter.data([treemapData]).selectAll("g").data(treemap.nodes),
-      cellEnter = cell.enter().append("g").attr("class", "cell"),
-      cellTrans = cell;
-
-  if (!first) {
-    cellTrans = cellTrans.transition().duration(duration);
-  }
-
-  cellTrans.attr("transform", function (d) {
-    return "translate(" + d.x + "," + d.y + ")";
-  });
-  var rect = cell.selectAll('rect').data(function (d) {
-    return [d];
-  }),
-      rectEnter = rect.enter().append("rect").attr("data-bailiwick-feature", function (d) {
-    var children = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 'children');
-
-    return children ? null : typeof d[0] !== 'undefined' ? d[0][4] : '';
-  });
-
-  if (!Modernizr.touch) {
-    rectEnter.on("mouseover", function (d, i) {
-      var value = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(d[1], function (item) {
-        return item[0] === year;
-      });
-
-      if (value.length === 0) {
-        return;
-      }
-
-      var key = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 0);
-
-      var name = key ? d[0][4] : '';
-
-      var _name = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(features, function (feature, key) {
-        return key === name;
-      });
-
-      if (_name.length !== 0) {
-        name = _name[0];
-      }
-
-      value = Number(d.value);
-      value = value.toFixed(1);
-      value = '$' + Object(_utils_formatting__WEBPACK_IMPORTED_MODULE_5__["default"])("million dollars", value);
-      var tooltip = tooltipElem.selectAll('p').data([name, value]),
-          tooltipEnter = tooltip.enter().append('p');
-      tooltip.text(function (d) {
-        return d;
-      }).classed("number", function (d, i) {
-        return i === 1;
-      }).classed("local", function (d, i) {
-        return i === 1;
-      });
-      tooltipElem.style("visibility", "visible").style("top", function () {
-        return d3__WEBPACK_IMPORTED_MODULE_2___default.a.event.offsetY + "px";
-      }).style("left", function () {
-        return d3__WEBPACK_IMPORTED_MODULE_2___default.a.event.offsetX + "px";
-      });
-    }).on("mouseout", function (d, i) {
-      tooltipElem.style("visibility", "hidden");
-    });
-  }
-
-  rect.style("fill", function (d) {
-    var children = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 'children');
-
-    return children ? colour(d.name) : null;
-  }).attr("pointer-events", function (d) {
-    var children = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 'children');
-
-    return children ? "none" : "all";
-  }).classed("active", function (d) {
-    var children = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 'children');
-
-    var key = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 0);
-
-    return children ? false : key ? d[0][4] === feature : false;
-  });
-
-  if (!first) {
-    rect.transition().duration(duration);
-  }
-
-  rect.attr("width", function (d) {
-    return d.dx;
-  }).attr("height", function (d) {
-    return d.dy;
-  });
-  var text = cell.selectAll("text").data(function (d) {
-    return [d];
-  }),
-      textEnter = text.enter().append('text').style("pointer-events", "none");
-  text.style("visibility", "hidden").attr("x", function (d) {
-    return d.dx / 2;
-  }).attr("y", function (d) {
-    return d.dy / 2;
-  }).attr("dy", ".35em").attr("text-anchor", "middle").attr("data-bailiwick-feature", function (d) {
-    var children = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 'children');
-
-    var key = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 0);
-
-    return children ? null : key ? d[0][4] : '';
-  }).text(function (d) {
-    var children = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 'children');
-
-    var key = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 0);
-
-    if (!children && key) {
-      var name = d[0][4];
-
-      var _name = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(features, function (feature, key) {
-        return key === name;
-      });
-
-      if (_name.length !== 0) {
-        return _name[0];
-      }
-    }
-
-    return children ? null : '';
-  });
-
-  if (first) {
-    cellTrans.each(wordwrap);
-    first = false;
-  } else {
-    cellTrans.each('end', wordwrap);
-  }
-
-  cell.exit().remove();
-  base.classed('svg-loading', false);
-});
-
-/***/ }),
-
-/***/ "./js-src/charts/indicator-barchart.js":
-/*!*********************************************!*\
-  !*** ./js-src/charts/indicator-barchart.js ***!
-  \*********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
-/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! d3 */ "./node_modules/d3/d3.js");
-/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/utils */ "./js-src/utils/utils.js");
-/* harmony import */ var _utils_chart_setup__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utils/chart-setup */ "./js-src/utils/chart-setup.js");
-/* harmony import */ var _utils_formatting__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/formatting */ "./js-src/utils/formatting.js");
-
-
-
-
-
-/* harmony default export */ __webpack_exports__["default"] = (function (element, params) {
-  //
-  // Set up
-  //
-  var lmargin = 240;
-
-  if (window.innerWidth < 400) {
-    lmargin = 100;
-  } else if (window.innerWidth < 600 && lmargin > 140) {
-    lmargin = 180;
-  }
-
-  var margin = {
-    top: 5,
-    right: 25,
-    bottom: 40,
-    left: lmargin
-  };
-  var setup = Object(_utils_chart_setup__WEBPACK_IMPORTED_MODULE_3__["default"])(element, params, margin, 'basic-barchart');
-
-  if (setup === null) {
-    return;
-  }
-
-  var cache = window.MBIECacheStorage,
-      toCache = {},
-      data = setup.data,
-      year = setup.year,
-      indicator = setup.indicator,
-      transform = setup.transform,
-      area = setup.area,
-      areaLevel = setup.areaLevel,
-      feature = setup.feature,
-      features = setup.features,
-      chartData = setup.chartData,
-      chartCaption = setup.chartCaption,
-      svg = setup.svg,
-      base = setup.base,
-      width = setup.width,
-      height = setup.height;
-  var legend = d3__WEBPACK_IMPORTED_MODULE_1___default.a.select('.chart-inner .legend');
-  legend.select('svg').remove();
-  var tooltipElem;
-  var y = d3__WEBPACK_IMPORTED_MODULE_1___default.a.scale.ordinal();
-  var x = d3__WEBPACK_IMPORTED_MODULE_1___default.a.scale.linear();
-  var maxLength = 35;
-
-  if (window.innerWidth < 400) {
-    maxLength = 11;
-  } else if (window.innerWidth < 600) {
-    maxLength = 25;
-  }
-
-  var yAxis = d3__WEBPACK_IMPORTED_MODULE_1___default.a.svg.axis().scale(y).orient("left").outerTickSize(0).tickFormat(function (d) {
-    if (d === null) {
-      return '';
-    }
-
-    if (d.length === 0) {
-      return '';
-    }
-
-    var label = d;
-
-    if (lodash__WEBPACK_IMPORTED_MODULE_0___default.a.has(features, d)) {
-      label = features[d];
-    }
-
-    label = label[0].toUpperCase() + label.slice(1);
-
-    if (label.length > maxLength) {
-      return label.substring(0, maxLength) + '…';
-    }
-
-    return label;
-  });
-  var barHeight = 20,
-      barGap = 5;
-  var xAxis = d3__WEBPACK_IMPORTED_MODULE_1___default.a.svg.axis(); // Find the current area in supplied data
-
-  var currentAreaData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(data, function (o) {
-    return o[0][1] === area;
-  });
-
-  if (Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["isEmpty"])(currentAreaData)) {
-    base.classed('svg-loading', false);
-    return false;
-  }
-
-  currentAreaData = currentAreaData[0][0];
-  var cacheKey = 'areas.' + area + '.' + year + '.' + feature + '-' + String(Math.random() * 100); // if (!_.hasIn(cache.get(indicator), cacheKey)) {
-
-  var cachedInd = cache.get(indicator);
-  var parents = currentAreaData[3]; // No parents means NZ is selected - so we will end up showing all
-  // available regions.
-
-  if (feature !== null && Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["isEmpty"])(parents) && area !== 'New Zealand' || feature === null && Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["isEmpty"])(parents)) {
-    parents = ['new-zealand'];
-  } // Find all siblings that have one or more same parents.
-
-
-  var siblingAreas = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(data, function (o) {
-    return lodash__WEBPACK_IMPORTED_MODULE_0___default.a.intersection(o[0][3], parents).length > 0;
-  }); // This is assuming we are looking at NZ.
-
-
-  if (lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(siblingAreas)) {
-    siblingAreas = data;
-  }
-
-  var siblingsFilteredByYear = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.reduce(siblingAreas, function (res, v, k) {
-    var values = {
-      name: v[0][1],
-      slug: v[0][0],
-      display: '',
-      value: 0,
-      year: year,
-      feature: lodash__WEBPACK_IMPORTED_MODULE_0___default.a.last(v[0])
-    };
-
-    var yearVal = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(v[1], function (o) {
-      return o[0] === year;
-    });
-
-    if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(yearVal)) {
-      values.value = Number(yearVal[0][1]);
-      values.display = yearVal[0][3].trim();
-      res.push(values);
-    }
-
-    return res;
-  }, []); ///
-  /// If we have a feature, return area data sorted by feature (with
-  /// keys renamed to appropriate values).
-
-
-  if (feature !== null) {
-    var areaData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.groupBy(lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(siblingsFilteredByYear, function (o) {
-      return o.name === area;
-    }), 'feature');
-
-    areaData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.reduce(areaData, function (result, v, k) {
-      var newData = {
-        name: v[0].feature,
-        slug: v[0].slug,
-        value: v[0].value,
-        year: v[0].year,
-        display: v[0].display
-      };
-      result.push(newData);
-      return result;
-    }, []);
-    siblingsFilteredByYear = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.orderBy(areaData, 'value', 'desc'); // current area data is now looking at the features.
-
-    var newcurrentAreaData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(areaData, function (o) {
-      return o.name === feature;
-    });
-
-    if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(newcurrentAreaData)) {
-      currentAreaData[0] = newcurrentAreaData[0].name;
-    }
-  } else {
-    siblingsFilteredByYear = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.sortBy(siblingsFilteredByYear, ['value']);
-  }
-
-  if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(cachedInd, 'areas')) {
-    cachedInd.areas = {};
-  }
-
-  if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(cachedInd, 'areas.' + area)) {
-    cachedInd.areas[area] = {};
-  }
-
-  cachedInd.areas[area][year] = siblingsFilteredByYear;
-  data = siblingsFilteredByYear; // }
-  // data = cache.get(indicator)['areas'][area][year];
-
-  tooltipElem = d3__WEBPACK_IMPORTED_MODULE_1___default.a.select(element.parentNode).select(".tooltip");
-  x = x.range([0, width]);
-  var g = svg.selectAll("g").data([1]);
-  var padding = barGap * (data.length + 1);
-  var dataHeight = Math.min(barHeight * data.length + padding, height);
-  var paddingRatio = padding / dataHeight;
-  var svgEnter = g.enter().append("g");
-  g.attr("width", width).attr("height", height).attr("transform", "translate(" + margin.left + "," + margin.top + ")"); // Handle Units
-
-  xAxis.scale(x).orient("bottom").ticks(window.innerWidth < 450 ? 2 : 5).tickFormat(function (d) {
-    if (chartData === null || chartData.length === 0) {
-      return d;
-    }
-
-    var trans = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(chartData.chartTransforms, function (i) {
-      return i.transformName === transform;
-    });
-
-    var formatter = null;
-
-    if (trans.length > 0) {
-      formatter = trans[0].transformFormatter;
-    }
-
-    return Object(_utils_formatting__WEBPACK_IMPORTED_MODULE_4__["default"])(formatter, d);
-  });
-  xAxis.tickSize(-1 * dataHeight, 10); // x.domain([0, d3.max(data, function (d) { return d.value; })]);
-
-  var xExtent = d3__WEBPACK_IMPORTED_MODULE_1___default.a.extent(data, function (d) {
-    return d.value;
-  });
-  x.domain([Math.min(0, xExtent[0]), Math.max(0, xExtent[1])]).nice();
-  g.attr("height", dataHeight + margin.top + margin.bottom);
-  y = y.rangeRoundBands([0, dataHeight], paddingRatio);
-  y.domain(data.map(function (d) {
-    return d.name;
-  }));
-  xAxis.tickSize(-1 * dataHeight, 10);
-  var ySel = g.selectAll("g.y.axis").data([data]),
-      ySelEnter = ySel.enter().append("g").attr("class", "y axis");
-  ySel.call(yAxis);
-  ySel.exit().remove();
-  var xSel = g.selectAll("g.x.axis").data([data]),
-      xSelEnter = xSel.enter().append("g").attr("class", "x axis");
-  xSel.attr("transform", "translate(0," + (dataHeight + 3) + ")").call(xAxis);
-  xSel.exit().remove();
-  var xSelCaption = svg.selectAll("text.caption").data([chartCaption]),
-      xSelCaptionEnter = xSelCaption.enter().append("text");
-  xSelCaption.attr("class", "caption").attr("transform", "translate(0," + (dataHeight + 50) + ")").text(chartCaption);
-  xSelCaption.attr("x", base.node().getBoundingClientRect().width - xSelCaption.node().getBBox().width - margin.right);
-  var bar = g.selectAll(".bar").data(data),
-      barEnter = bar.enter().append("rect").attr("class", "bar").attr("data-bailiwick-area", function (d) {
-    return d.slug;
-  }).attr("data-bailiwick-feature", function (d) {
-    if (feature !== null) {
-      return d.name;
-    }
-
-    return '';
-  });
-
-  if (!Modernizr.touch) {
-    barEnter.on("mouseover", function (d) {
-      var name = d.name;
-
-      if (lodash__WEBPACK_IMPORTED_MODULE_0___default.a.has(features, d.name)) {
-        name = features[d.name];
-      }
-
-      name = name[0].toUpperCase() + name.slice(1);
-      var tooltip = tooltipElem.selectAll('p').data([name, d.display, d.year]),
-          tooltipEnter = tooltip.enter().append('p');
-      tooltip.text(function (d) {
-        return d;
-      }).classed("number", function (d, i) {
-        return i === 1;
-      }).classed("local", function (d, i) {
-        return i === 1;
-      });
-      tooltipElem.style("visibility", "visible").style("top", function () {
-        return d3__WEBPACK_IMPORTED_MODULE_1___default.a.event.offsetY + "px";
-      }).style("left", function () {
-        return d3__WEBPACK_IMPORTED_MODULE_1___default.a.event.offsetX + "px";
-      });
-    }).on("mouseout", function (d) {
-      tooltipElem.style("visibility", "hidden");
-    });
-  }
-
-  bar.attr("y", function (d) {
-    return y(d.name);
-  }).attr("height", Math.abs(y.rangeBand())).attr("x", 1).attr("width", function (d) {
-    return x(d.value) + 1;
-  }).classed("active", function (d) {
-    if (feature !== null) {
-      return d.name === currentAreaData[0];
-    }
-
-    return d.slug === currentAreaData[0];
-  });
-  bar.exit().remove();
-  base.classed('svg-loading', false);
-});
-
-/***/ }),
-
-/***/ "./js-src/charts/indicator-over-under-barchart.js":
-/*!********************************************************!*\
-  !*** ./js-src/charts/indicator-over-under-barchart.js ***!
-  \********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
-/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! d3 */ "./node_modules/d3/d3.js");
-/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _utils_chart_setup__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/chart-setup */ "./js-src/utils/chart-setup.js");
-/* harmony import */ var _utils_formatting__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utils/formatting */ "./js-src/utils/formatting.js");
-/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/utils */ "./js-src/utils/utils.js");
-
-
-
-
-
-var margin = {
-  top: 25,
-  right: 15,
-  bottom: 40,
-  left: 100
-};
-var barHeight = 240;
-var percentageCaption = ["Percentage achieved", "Percentage not acheived"];
-var absoluteCaption = ["Achieved", "Not acheived"];
-var nz = 'New Zealand';
-/* harmony default export */ __webpack_exports__["default"] = (function (element, params) {
-  var setup = Object(_utils_chart_setup__WEBPACK_IMPORTED_MODULE_2__["default"])(element, params, margin, 'overunder-barchart');
-
-  if (setup === null) {
-    return;
-  }
-
-  var cache = window.MBIECacheStorage,
-      toCache = {},
-      data = setup.data,
-      year = setup.year,
-      indicator = setup.indicator,
-      transform = setup.transform,
-      area = setup.area,
-      areaLevel = setup.areaLevel,
-      feature = setup.feature,
-      features = setup.features,
-      chartData = setup.chartData,
-      chartCaption = setup.chartCaption,
-      svg = setup.svg,
-      base = setup.base,
-      width = setup.width,
-      height = setup.height;
-  var x = d3__WEBPACK_IMPORTED_MODULE_1___default.a.scale.ordinal(),
-      y = d3__WEBPACK_IMPORTED_MODULE_1___default.a.scale.linear(),
-      xAxis = d3__WEBPACK_IMPORTED_MODULE_1___default.a.svg.axis().scale(x).orient("top"),
-      yAxis = d3__WEBPACK_IMPORTED_MODULE_1___default.a.svg.axis().scale(y).tickFormat(function (d) {
-    if (chartData.length === 0) {
-      return d;
-    }
-
-    var trans = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(chartData.chartTransforms, function (i) {
-      return i.transformName === transform;
-    });
-
-    var formatter = null;
-
-    if (trans.length > 0) {
-      formatter = trans[0].transformFormatter;
-    }
-
-    return Object(_utils_formatting__WEBPACK_IMPORTED_MODULE_3__["default"])(formatter, d); // return Math.abs(d);
-  }).orient("left");
-  x = x.range([0, width]);
-  svg.selectAll('g').remove();
-  var g = svg.selectAll("g").data([1]);
-  var svgEnter = g.enter().append("g");
-  g.attr("width", width).attr("height", height).attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-  var areaData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(data, function (i) {
-    return i[0][1] === area;
-  });
-
-  areaData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.reduce(areaData, function (res, v, k) {
-    var values = {
-      name: v[0][1],
-      slug: v[0][0],
-      display: '',
-      value: 0,
-      year: year,
-      feature: lodash__WEBPACK_IMPORTED_MODULE_0___default.a.last(v[0])
-    };
-
-    var yearVal = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(v[1], function (o) {
-      return o[0] === year;
-    });
-
-    if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(yearVal)) {
-      values.value = Number(yearVal[0][1]);
-      values.display = yearVal[0][3].trim();
-      res.push(values);
-    }
-
-    return res;
-  }, []);
-
-  var mappedData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.reduce(chartData.chartMapping, function (res, v, k) {
-    var vals = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(v.mappingDimensions, function (d) {
-      return {
-        label: d,
-        values: lodash__WEBPACK_IMPORTED_MODULE_0___default.a.first(lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(areaData, function (a) {
-          return a.feature === d;
-        }))
-      };
-    });
-
-    var obj = {
-      label: v.mappingLabel,
-      values: vals
-    };
-    res.push(obj);
-    return res;
-  }, []);
-
-  areaData = mappedData;
-
-  if (Object(_utils_utils__WEBPACK_IMPORTED_MODULE_4__["none"])(areaData)) {
-    return;
-  }
-
-  yAxis.tickSize(-width + 10, 0);
-  x.domain(lodash__WEBPACK_IMPORTED_MODULE_0___default.a.reduce(areaData, function (res, v, k) {
-    res.push(v.label);
-    return res;
-  }, [])).rangeRoundBands([0, width], 0.55, 0.3);
-
-  var over = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.reduce(areaData, function (max, val, key) {
-    var above = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(val.values, function (o) {
-      return o.label.indexOf("above") !== -1;
-    });
-
-    if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(above)) {
-      above = above[0];
-      return Math.max(max, above.values.value);
-    }
-
-    return max;
-  }, 0);
-
-  var under = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.reduce(areaData, function (max, val, key) {
-    var above = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(val.values, function (o) {
-      return o.label.indexOf("below") !== -1;
-    });
-
-    if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(above)) {
-      above = above[0];
-      return Math.max(max, above.values.value);
-    }
-
-    return max;
-  }, 0);
-
-  height = (over + under) / over * barHeight;
-  svgEnter.attr('height', height);
-  y.domain([-1 * under, over]).range([height, 0]);
-  var ySel = svgEnter.selectAll("g.y.axis").data([areaData]),
-      ySelEnter = ySel.enter().append("g").attr("class", "y axis");
-  ySel.call(yAxis);
-  ySel.exit().remove();
-  var yCaption = ySel.selectAll("text.caption").data(transform === "percentage" ? percentageCaption : absoluteCaption);
-  var yCaptionEnter = yCaption.enter().append("text").attr("class", "caption").attr("y", -60).attr("transform", "rotate(270)");
-  yCaption.attr("x", function (d, i) {
-    return -1 * i * height;
-  }).attr("text-anchor", function (d, i) {
-    return i ? "start" : "end";
-  }).text(function (d) {
-    return d;
-  });
-  yCaption.exit().remove();
-  var xSel = svgEnter.selectAll("g.x.axis").data([areaData]),
-      xSelEnter = xSel.enter().append("g").attr("class", "x axis");
-  xSel.call(xAxis);
-  xSel.exit().remove();
-
-  var overData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.reduce(areaData, function (arr, val, key) {
-    var above = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(val.values, function (o) {
-      return o.label.indexOf("above") !== -1;
-    });
-
-    if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(above)) {
-      above = above[0];
-      arr.push({
-        value: above.values.value,
-        label: val.label,
-        name: above.values.name,
-        dispValue: above.values.display,
-        feature: above.values.feature
-      });
-    }
-
-    return arr;
-  }, []);
-
-  var underData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.reduce(areaData, function (arr, val, key) {
-    var below = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(val.values, function (o) {
-      return o.label.indexOf("below") !== -1;
-    });
-
-    if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(below)) {
-      below = below[0];
-      arr.push({
-        value: below.values.value,
-        label: val.label,
-        name: below.values.name,
-        dispValue: below.values.display,
-        feature: below.values.feature
-      });
-    }
-
-    return arr;
-  }, []);
-
-  var overBar = svgEnter.selectAll("rect.overbar").data(overData);
-  var overBarEnter = overBar.enter().append("rect").attr("class", "overbar").attr("data-bailiwick-feature", function (d) {
-    return d.feature;
-  }).on("click", function (d) {// _this.sendAction("featureAction", d.slug);
-  });
-  overBar.attr("y", function (d) {
-    return y(d.value);
-  }).attr("height", function (d) {
-    return y(0) - y(d.value);
-  }).attr("x", function (d) {
-    return x(d.label);
-  }).attr("width", x.rangeBand()).attr("data-bailiwick-feature", function (d) {
-    return d.feature;
-  }).classed("active", function (d) {
-    return d.feature === feature;
-  });
-  overBar.exit().remove();
-  var underBar = svgEnter.selectAll("rect.underbar").data(underData);
-  var underBarEnter = underBar.enter().append("rect").attr("class", "underbar").attr("data-bailiwick-feature", function (d) {
-    return d.feature;
-  }).on("click", function (d) {// _this.sendAction("featureAction", d.slug);
-  });
-  underBar.attr("y", function (d) {
-    return y(0);
-  }).attr("height", function (d) {
-    return y(-1 * d.value) - y(0);
-  }).attr("x", function (d) {
-    return x(d.label);
-  }).attr("width", x.rangeBand()).classed("active", function (d) {
-    return d.feature === feature;
-  });
-  underBar.exit().remove();
-
-  if (!Modernizr.touch) {
-    var tooltipElem = d3__WEBPACK_IMPORTED_MODULE_1___default.a.select(element.parentNode).select(".tooltip");
-    svgEnter.selectAll("rect").on("mouseover", function (d) {
-      var tooltip = tooltipElem.selectAll('p').data([features[d.feature], d.dispValue]),
-          tooltipEnter = tooltip.enter().append('p');
-      tooltip.text(function (d) {
-        if (Object(_utils_utils__WEBPACK_IMPORTED_MODULE_4__["present"])(d) && d.length >= 2) {
-          return d[0].toUpperCase() + d.slice(1);
-        }
-
-        return d;
-      }).classed("number", function (d, i) {
-        return i === 1;
-      }).classed("local", function (d, i) {
-        return i === 1;
-      });
-      tooltipElem.style("visibility", "visible").style("top", function () {
-        return d3__WEBPACK_IMPORTED_MODULE_1___default.a.event.offsetY + "px";
-      }).style("left", function () {
-        return d3__WEBPACK_IMPORTED_MODULE_1___default.a.event.offsetX + "px";
-      });
-    }).on("mouseout", function (d) {
-      tooltipElem.style("visibility", "hidden");
-    });
-  }
-
-  var zline = d3__WEBPACK_IMPORTED_MODULE_1___default.a.svg.line().x(function (d) {
-    return d;
-  }).y(function (d) {
-    return y(0);
-  });
-  var zeroLine = svgEnter.selectAll("path.zeroline").data([[0, width]]);
-  var zeroLineEnter = zeroLine.enter().append('path').attr("class", "zeroline");
-  zeroLine.attr("d", zline);
-  zeroLine.exit().remove();
-  base.classed('svg-loading', false);
-});
-
-/***/ }),
-
-/***/ "./js-src/charts/indicator-timeseries.js":
-/*!***********************************************!*\
-  !*** ./js-src/charts/indicator-timeseries.js ***!
-  \***********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! d3 */ "./node_modules/d3/d3.js");
-/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
-/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/utils */ "./js-src/utils/utils.js");
-/* harmony import */ var _utils_chart_setup__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utils/chart-setup */ "./js-src/utils/chart-setup.js");
-/* harmony import */ var _utils_formatting__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/formatting */ "./js-src/utils/formatting.js");
-function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
-
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
-
-function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
-
-function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
-
-/**
- * Time series used on an indicator
- *
- **/
-
-
-
-
-
-var yearFormat = d3__WEBPACK_IMPORTED_MODULE_0___default.a.time.format('%Y').parse;
-var transforms = ["absolute", "indexed", "percapita"];
-var x = d3__WEBPACK_IMPORTED_MODULE_0___default.a.time.scale();
-var y = d3__WEBPACK_IMPORTED_MODULE_0___default.a.scale.linear();
-var clipHeight = 393;
-var clipWidth = 363;
-var margin = {
-  top: 40,
-  right: 40,
-  bottom: 40,
-  left: 80
-};
-var line = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.line().x(function (d, i) {
-  return x(d.date);
-}).y(function (d) {
-  return y(d.v);
-});
-
-function findAreaBounds(areas, target) {
-  var limits = [];
-
-  for (var i = 0; i < areas.length; i++) {
-    var area = areas[i];
-
-    if (target === area.name) {
-      var vals = area.values.map(function (a) {
-        return a.v;
-      });
-      return [Math.min.apply(Math, _toConsumableArray(vals)), Math.max.apply(Math, _toConsumableArray(vals))];
-    }
-  }
-
-  return limits;
-}
-
-var toBool = function toBool(val) {
-  switch (val) {
-    case "true":
-      return true;
-
-    case "false":
-      return false;
-  }
-
-  return null;
-}; // data: [{year, rawNum, indexNum, headlineDisp, indexDisp}]
-// @params: (data, current year, current indicator, transform, current area, current area type, chart ID)
-
-
-/* harmony default export */ __webpack_exports__["default"] = (function (element, params) {
-  var setup = Object(_utils_chart_setup__WEBPACK_IMPORTED_MODULE_3__["default"])(element, params, margin, 'default-timeseries');
-
-  if (setup === null) {
-    return;
-  }
-
-  var cache = window.MBIECacheStorage,
-      toCache = {},
-      data = setup.data,
-      year = setup.year,
-      indicator = setup.indicator,
-      transform = setup.transform,
-      area = setup.area,
-      areaLevel = setup.areaLevel,
-      feature = setup.feature,
-      chartData = setup.chartData,
-      chartCaption = setup.chartCaption,
-      svg = setup.svg,
-      base = setup.base,
-      width = setup.width,
-      height = setup.height,
-      zoom = setup.zoom; // current data...
-
-  var currentYear = svg.attr('data-year'),
-      currentIndicator = svg.attr('data-indicator'),
-      currentArea = svg.attr('data-area'),
-      currentTransform = svg.attr('data-transform'),
-      currentLevel = svg.attr('data-level');
-  var legendDiv = d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(element.parentNode).select('.legend');
-  var legendWidth = window.innerWidth < 350 ? 320 : 420;
-  var legendHeight = 50;
-  var tooltipElem = d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(element.parentNode).select(".tooltip"); /// Setup
-
-  x.range([0, width]);
-  y.range([height, 0]);
-  var voronoi = d3__WEBPACK_IMPORTED_MODULE_0___default.a.geom.voronoi().x(function (d) {
-    return x(d.date);
-  }).y(function (d) {
-    return y(d.v);
-  }).clipExtent([[-margin.left, -margin.top], [width + margin.right, height + margin.bottom]]); /// Update
-
-  svg.selectAll('g').remove();
-  var g = svg.selectAll('g').data([data]),
-      gEnter = svg.select('.g-enter');
-
-  if (gEnter.empty()) {
-    gEnter = g.enter().append("g").attr('class', 'g-enter');
-  }
-
-  gEnter.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-  var years = []; // if (!_.hasIn(cache.get(indicator), "years")) {
-
-  years = lodash__WEBPACK_IMPORTED_MODULE_1___default.a.uniq(lodash__WEBPACK_IMPORTED_MODULE_1___default.a.reduce(data, function (result, value, key) {
-    return lodash__WEBPACK_IMPORTED_MODULE_1___default.a.reduce(value[1], function (res, v, k) {
-      res.push(v[0]);
-      return res;
-    }, result);
-  }, [])).sort(function (a, b) {
-    return d3__WEBPACK_IMPORTED_MODULE_0___default.a.ascending(a, b);
-  }).map(function (y) {
-    return yearFormat(y.toString());
-  });
-  toCache.years = years; // } else {
-  //     years = cache.get(indicator).years;
-  // }
-
-  var areaKey = area + '-' + areaLevel + '-' + transform;
-  var areas = []; // if (!_.hasIn(cache.get(indicator), area) || (
-  //     _.hasIn(cache.get(indicator), area) &&
-  //     !_.hasIn(cache.get(indicator.area), areaKey)
-  // )) {
-
-  var transformPos = transforms.indexOf(transform);
-  var pos = transformPos === -1 ? 1 : transformPos + 1;
-  var dispPos = transformPos === -1 ? 3 : transformPos + 3;
-  areas = data.map(function (a) {
-    var area = {
-      slug: a[0][0],
-      name: a[0][1],
-      level: a[0][2],
-      dsArea: a[0],
-      feature: lodash__WEBPACK_IMPORTED_MODULE_1___default.a.last(a[0]),
-      values: a[1].map(function (y) {
-        var out = {};
-        out.date = yearFormat(y[0].toString());
-        out.v = Number(y[pos]);
-        out.d = y[dispPos];
-        return out;
-      }).filter(function (d) {
-        return d.v !== null;
-      })
-    }; // Used on mouse events on voroni
-
-    area.values.forEach(function (o) {
-      o.area = area;
-    });
-    return area;
-  }).filter(function (a) {
-    var valid = lodash__WEBPACK_IMPORTED_MODULE_1___default.a.indexOf([area, 'New Zealand'], a.name) !== -1; // switch (a.name) {
-    //     //   case compareAreaName:
-    //     //       valid = true;
-    //     //       break;
-    //     case area:
-    //         valid = true;
-    //         break;
-    //     case 'New Zealand':
-    //         valid = true;
-    //         break;
-    //     default:
-    //         break;
-    // }
-    // If there is a feature, this is only valid iff the node's feature
-    // is the same as the URL.
-
-    if (feature !== null) {
-      return a.level === areaLevel && feature === a.feature || a.name === 'New Zealand' && feature === a.feature;
-    }
-
-    return a.level === areaLevel || valid;
-  });
-  toCache[String(areaKey)] = areas; // } else {
-  //     areas = cache.get(indicator).areas[areaKey];
-  // }
-
-  var xExtent = d3__WEBPACK_IMPORTED_MODULE_0___default.a.extent(years);
-  x.domain(xExtent);
-  var yExtent = d3__WEBPACK_IMPORTED_MODULE_0___default.a.extent(d3__WEBPACK_IMPORTED_MODULE_0___default.a.merge(areas.map(function (a) {
-    return a.values.map(function (d) {
-      return d.v;
-    });
-  }))); // TODO: activate when we have zoom
-
-  var bool = toBool(zoom);
-
-  if (!lodash__WEBPACK_IMPORTED_MODULE_1___default.a.isNull(bool) && bool) {
-    var areaVals = findAreaBounds(areas, area); //     if (typeof compareAreaName != 'undefined') {
-    //         let compareVals = findAreaBounds(areas, compareAreaName);
-    //         yExtent = [Math.min(...[areaVals[0], compareVals[0]])
-    //             , Math.max(...[areaVals[1], compareVals[1]])];
-    //     } else {
-    //         yExtent = areaVals;
-    //     }
-
-    yExtent = areaVals;
-    var diff = Math.abs(yExtent[1] - yExtent[0]);
-    yExtent[0] -= .1 * diff;
-    yExtent[1] += .1 * diff;
-  }
-
-  y.domain(yExtent).nice();
-  var tickFreq = Math.trunc(years.length / 9) + 1,
-      ticks = years.filter(function (t, i) {
-    return i % tickFreq === 0;
-  });
-
-  if (window.innerWidth < 600) {
-    ticks = d3__WEBPACK_IMPORTED_MODULE_0___default.a.extent(years);
-  }
-  /*
-   * Generate the vertical line for the selected year.
-   * */
-
-
-  var xAxisYears = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.axis().scale(x).tickValues(years).orient("bottom");
-  var xAxisHidden = gEnter.select('.axis--x--hidden');
-
-  if (xAxisHidden.empty()) {
-    xAxisHidden = gEnter.append("g").attr("class", "axis axis--x-hidden").attr("transform", "translate(0," + height + ")");
-  }
-
-  xAxisHidden.call(xAxisYears);
-  var allTicks = svg.call(xAxisYears).selectAll(".tick"),
-      lineXpos = 0;
-  allTicks.each(function (data, i) {
-    var tick = d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(this),
-        date = new Date(data),
-        fullYear = date.getFullYear(),
-        targetYear = parseInt(year),
-        transform = d3__WEBPACK_IMPORTED_MODULE_0___default.a.transform(tick.attr("transform")).translate;
-
-    if (targetYear === fullYear) {
-      lineXpos = transform[0];
-    }
-  });
-
-  if (lineXpos <= 0) {
-    lineXpos = 1;
-  }
-
-  var yearLine = gEnter.select(".year-line");
-
-  if (yearLine.empty()) {
-    yearLine = gEnter.append('line');
-  }
-
-  yearLine.transition().duration(500).attr("x1", lineXpos).attr("y1", 0).attr("x2", lineXpos).attr("y2", clipHeight).attr("stroke-width", 1).attr("stroke", "rgba(0,0,0,.5)").attr("z", 100).attr("class", "year-line");
-  /*
-   * End year line generation.
-   * */
-
-  var xAxis = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.axis().scale(x).tickValues(ticks).orient("bottom");
-  var xAxisReal = gEnter.select('.axis--x');
-
-  if (xAxisReal.empty()) {
-    xAxisReal = gEnter.append("g").attr("class", "axis axis--x").attr("transform", "translate(0," + height + ")").attr("z", 100);
-  }
-
-  xAxisReal.call(xAxis).append("text").attr("class", "caption").attr("y", 5).attr("x", width + 10).text("Year"); // TODO: formatting
-
-  gEnter.append("g").attr("class", "axis axis--y").call(d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.axis().scale(y).orient("left").ticks(10).tickFormat(function (d) {
-    if (chartData.length === 0) {
-      return d;
-    }
-
-    var trans = lodash__WEBPACK_IMPORTED_MODULE_1___default.a.filter(chartData.chartTransforms, function (i) {
-      return i.transformName === transform;
-    });
-
-    var formatter = null;
-
-    if (trans.length > 0) {
-      formatter = trans[0].transformFormatter;
-    }
-
-    return Object(_utils_formatting__WEBPACK_IMPORTED_MODULE_4__["default"])(formatter, d);
-  })).append("text").attr("class", "caption title").attr("y", -30).attr("x", 0).text(chartCaption);
-  svg.append("clipPath").attr("id", "clipper").append("rect").attr("x", 0).attr("y", 0).attr("width", clipWidth).attr("height", clipHeight);
-  svg.selectAll(".axis--x g.tick text").attr("data-bailiwick-year", function (d) {
-    return new Date(d).getFullYear();
-  }); // .on("click", function (d) {
-  //     d3.event.preventDefault();
-  //     var year = (new Date(d)).getFullYear();
-  //     console.log('year clicked', year, this);
-  // });
-
-  var path = gEnter.select('.areas').selectAll("path");
-
-  if (path.empty()) {
-    path = gEnter.append("g").attr("class", "areas").selectAll("path");
-  }
-
-  path = path.data(areas);
-  path.enter().append("path");
-  path.attr("d", function (d) {
-    d.line = this;
-    return line(d.values);
-  }); // Data has not actually changed - no path is empty
-  // but need need to update highlighing so grab everything.
-
-  g.selectAll('g.areas').selectAll('path').attr("class", function (d) {
-    var classNames = {
-      'New Zealand': 'new-zealand',
-      'default': 'no-highlight'
-    };
-    classNames[area] = 'current-area';
-    return (lodash__WEBPACK_IMPORTED_MODULE_1___default.a.hasIn(classNames, d.name) ? classNames[d.name] : classNames['default']) + ' area'; // } else if (d.name === compareAreaName) {
-    //     return "compare-area";
-    // } else if (d.name === hover) {
-    //     return "area--hover";
-  }).attr("clip-path", "url(#clipper)");
-  var focusElemEnter = gEnter.append("g").attr("transform", "translate(-100,-100)").attr("class", "focus");
-  focusElemEnter.append("circle").attr("r", 3.5);
-  focusElemEnter.append("text").attr("y", -10);
-  var focusElem = g.selectAll('g.focus');
-  var voronoiGroup = gEnter.append("g").attr("class", "voronoi").attr("clip-path", "url(#clipper)");
-  var vg = voronoiGroup.selectAll("path").data(voronoi(d3__WEBPACK_IMPORTED_MODULE_0___default.a.nest().key(function (d) {
-    return x(d.date) + "," + y(d.v);
-  }).rollup(function (v) {
-    return v[0];
-  }).entries(d3__WEBPACK_IMPORTED_MODULE_0___default.a.merge(areas.map(function (d) {
-    return d.values;
-  }))).map(function (d, i) {
-    return d.values;
-  }))).enter().append("path").attr("d", function (d) {
-    return !Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["present"])(d) ? "M" + d.join("L") + "Z" : "";
-  }).attr("data-bailiwick-year", function (d) {
-    return !Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["present"])(d) ? new Date(d['point'].date).getFullYear() : "";
-  }).attr("data-bailiwick-area", function (d) {
-    return !Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["present"])(d) ? d['point'].area.slug : "";
-  }).datum(function (d) {
-    return !Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["present"])(d) ? d.point : null;
-  }).on("click", function (d) {
-    var year = new Date(d.date).getFullYear(),
-        area = d.area.slug; // console.log(year, d);
-    // console.log(d3.event)
-    // let filter = _this.get('bailiwick.indicator').get('years').filter(function (y) {
-    //     return y.get('name') === d[0];
-    // });
-    // if (filter.length === 1) {
-    //     _this.set('bailiwick.year', filter[0]);
-    // }
-    // _this.transitionTo({ 'year': filter[0], 'area': d.area.dsArea });
-  });
-
-  if (!Modernizr.touch) {
-    vg.on('mouseover', function mouseover(d, i) {
-      if (Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["none"])(d.area)) {
-        return;
-      }
-
-      var xPos = x(d.date),
-          yPos = y(d.v);
-      d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(d.area.line).classed("area--hover", true);
-      d.area.line.parentNode.appendChild(d.area.line);
-      focusElem.attr("transform", "translate(" + xPos + "," + yPos + ")").style("visibility", "visible");
-      tooltipElem.style("top", yPos - 90 + "px").style("left", xPos + "px").style("visibility", "inherit");
-      var tooltipData = [d.area.name, d.d, d.date.getFullYear()],
-          tooltip = tooltipElem.selectAll('p').data(tooltipData),
-          tooltipEnter = tooltip.enter().append('p');
-      tooltip.html(function (d) {
-        return d;
-      }).classed("number", function (d, i) {
-        return i === 1;
-      }).classed("local", function (d, i) {
-        return i !== 0;
-      }).classed("extra", function (d, i) {
-        return i > 1;
-      });
-      tooltip.exit().remove();
-    });
-    vg.on('mouseout', function (d) {
-      if (Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["none"])(d.area)) {
-        return;
-      }
-
-      d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(d.area.line).classed("area--hover", false);
-      focusElem.attr("transform", "translate(-100,-100)").style("visibility", "hidden");
-      tooltipElem.style("visibility", "hidden");
-    });
-  } // update data attributes.
-
-
-  svg.attr('data-year', year).attr('data-area', area).attr('data-transform', transform).attr('data-level', areaLevel).attr('data-indicator', indicator); // ----
-  // Only update the legend if the area has changed.
-  // ----
-
-  if (currentArea === area) {
-    base.classed('svg-loading', false);
-    return false;
-  }
-
-  var legendClasses = ["active", "other"];
-  var legendLabels = ["New Zealand", "Other"];
-
-  if (area !== "New Zealand") {
-    legendLabels.push(area);
-    legendClasses = ["nz", "other", "active"];
-  } // if (present(compareAreaName) && compareAreaName !== "New Zealand" && compareAreaName !== areaName) {
-  //     legendLabels.push(compareAreaName);
-  //     legendClasses.push('compare');
-  // }
-
-
-  var legendData = d3__WEBPACK_IMPORTED_MODULE_0___default.a.zip(legendLabels, legendClasses);
-  var legend = legendDiv.selectAll("svg").data([legendData]);
-  var legendEnter = legend.enter().append("svg");
-  legend.attr("width", legendWidth).attr("height", legendHeight);
-  var legendG = legend.selectAll("g.key").data([legendData]);
-  var legendGEnter = legendG.enter().append("g").attr("class", "key");
-  legendG.attr("transform", "translate(" + (window.innerWidth < 350 ? 20 : margin.left) + "," + legendHeight / 3 + ")");
-  var legendRects = legendG.selectAll("rect").data(legendData);
-  var legendRectsEnter = legendRects.enter().append("rect").attr("height", 8).attr("width", 55);
-  legendRects.attr("x", function (d, i) {
-    return Math.floor(i / 2) * 140;
-  }).attr("y", function (d, i) {
-    return i % 2 * 20;
-  }).attr("class", function (d) {
-    return d[1];
-  });
-  legendRects.exit().remove();
-  var legendTexts = legendG.selectAll("text").data(legendData);
-  var legendTextsEnter = legendTexts.enter().append("text").attr("dx", "65px").attr("dy", "0.7em");
-  legendTexts.attr("x", function (d, i) {
-    return Math.floor(i / 2) * 140;
-  }).attr("y", function (d, i) {
-    return i % 2 * 20;
-  }).text(function (d) {
-    return d[0];
-  });
-  legendTexts.exit().remove(); /// Update cache if necessary
-
-  if (!lodash__WEBPACK_IMPORTED_MODULE_1___default.a.isEmpty(toCache)) {
-    var cachedIndicator = cache.get(indicator); // 1. Years
-
-    if (!lodash__WEBPACK_IMPORTED_MODULE_1___default.a.hasIn(cachedIndicator, "years") && lodash__WEBPACK_IMPORTED_MODULE_1___default.a.hasIn(toCache, "years")) {
-      cachedIndicator.years = toCache.years;
-    } // 2. Areas
-
-
-    if (lodash__WEBPACK_IMPORTED_MODULE_1___default.a.hasIn(toCache, areaKey)) {
-      var areasToCache = {};
-
-      if (lodash__WEBPACK_IMPORTED_MODULE_1___default.a.hasIn(cachedIndicator, "areas")) {
-        areasToCache = cachedIndicator.areas;
-      }
-
-      areasToCache[areaKey] = toCache[areaKey];
-      cachedIndicator.areas = areasToCache;
-    }
-  }
-
-  base.classed('svg-loading', false);
-});
-
-/***/ }),
-
-/***/ "./js-src/charts/map-legend.js":
-/*!*************************************!*\
-  !*** ./js-src/charts/map-legend.js ***!
-  \*************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
-/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var chroma_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! chroma-js */ "./node_modules/chroma-js/chroma.js");
-/* harmony import */ var chroma_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(chroma_js__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! d3 */ "./node_modules/d3/d3.js");
-/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var rgb_hex__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! rgb-hex */ "./node_modules/rgb-hex/index.js");
-/* harmony import */ var rgb_hex__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(rgb_hex__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _utils_formatting__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/formatting */ "./js-src/utils/formatting.js");
-/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../utils/utils */ "./js-src/utils/utils.js");
-
-
-
-
-
-
-
-function positiveScale(colours, min, max) {
-  if (lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(colours)) {
-    return null;
-  }
-
-  var startColour = colours['background-rear-positive-light'],
-      endColour = colours['background-rear-positive'];
-  var scale = chroma_js__WEBPACK_IMPORTED_MODULE_1___default.a.scale([rgb_hex__WEBPACK_IMPORTED_MODULE_3___default()(startColour), rgb_hex__WEBPACK_IMPORTED_MODULE_3___default()(endColour)]);
-  var sf = scale.domain([min, max]);
-  return function (val) {
-    return sf(Number(val));
-  };
-}
-/*
- * Generates Map legend based on supplied width, height & scale data
- * */
-
-
-/* harmony default export */ __webpack_exports__["default"] = (function (args, chart) {
-  var steps = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 100;
-
-  if (lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(chart)) {
-    return;
-  }
-
-  var height = Number(args.height),
-      width = Number(args.width),
-      maximum = Number(args.max),
-      minimum = Number(args.min),
-      caption = args.label,
-      transform = args.transform;
-
-  if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(caption)) {
-    caption = caption[0].toUpperCase() + caption.slice(1);
-  }
-
-  var base = d3__WEBPACK_IMPORTED_MODULE_2___default.a.select(".indicator-map-legend"),
-      svg = base.select('svg').empty() ? base.append('svg') : base.select('svg'),
-      colours = Object(_utils_utils__WEBPACK_IMPORTED_MODULE_5__["getColours"])(),
-      positive = positiveScale(colours, minimum, maximum);
-  var vals = d3__WEBPACK_IMPORTED_MODULE_2___default.a.values([minimum, maximum]);
-  var extent = d3__WEBPACK_IMPORTED_MODULE_2___default.a.extent(vals);
-  var widthRange = window.innerWidth > 460 ? 380 : window.innerWidth - 120; // A position encoding for the key only.
-
-  var x = d3__WEBPACK_IMPORTED_MODULE_2___default.a.scale.linear().domain(extent).range([0, widthRange]);
-  var thresholdBase = x.ticks(7);
-  var xaxisscale = d3__WEBPACK_IMPORTED_MODULE_2___default.a.scale.linear().domain([lodash__WEBPACK_IMPORTED_MODULE_0___default.a.first(thresholdBase), lodash__WEBPACK_IMPORTED_MODULE_0___default.a.last(thresholdBase)]).range([0, widthRange]);
-  var xAxis = d3__WEBPACK_IMPORTED_MODULE_2___default.a.svg.axis().scale(xaxisscale).ticks(7).orient("bottom").tickSize(13).tickFormat(function (d) {
-    var trans = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(chart.chartTransforms, function (i) {
-      return i.transformName === transform;
-    });
-
-    var formatter = null;
-
-    if (trans.length > 0) {
-      formatter = trans[0].transformFormatter;
-    }
-
-    return Object(_utils_formatting__WEBPACK_IMPORTED_MODULE_4__["default"])(formatter, d);
-  });
-  svg.empty();
-  svg.data([1]).attr("width", width).attr("height", height);
-  var step = (width - 100) / steps;
-  var sd = Array.from(Array(steps).keys(), function (i) {
-    return [i * step];
-  });
-  svg.selectAll('g').remove();
-  var g = svg.selectAll("g").data([sd]).enter().append("g").attr("class", "key").attr("transform", "translate(50," + height * 1 / 3 + ")");
-  var legend = g.selectAll("rect").data(sd).enter().append("rect").attr("height", 8).attr("x", function (d) {
-    return d[0] % innerWidth;
-  }).attr("width", step).style("fill", function (d, i) {
-    return positive(x.invert(d[0]));
-  }).style("stroke", function (d) {
-    return positive(x.invert(d[0]));
-  });
-  g.selectAll(".caption").remove();
-  var xa = g.call(xAxis);
-  xa.append("text").attr("class", "caption").attr("y", -6).text(caption);
-  return positive;
-});
-
-/***/ }),
-
-/***/ "./js-src/charts/summary-timeseries.js":
-/*!*********************************************!*\
-  !*** ./js-src/charts/summary-timeseries.js ***!
-  \*********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! d3 */ "./node_modules/d3/d3.js");
-/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_0__);
-
-/* harmony default export */ __webpack_exports__["default"] = (function (element, labelledData, activeLabelName) {
-  var base = d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(element).select('.d3-attach'),
-      svg = base.select('svg').empty() ? base.append('svg') : base.select('svg'),
-      yearFormat = d3__WEBPACK_IMPORTED_MODULE_0___default.a.time.format('%Y').parse,
-      margin = {
-    top: 15,
-    right: 0,
-    bottom: 30,
-    left: 48
-  },
-      baseW = 225,
-      baseH = 120,
-      width = baseW - margin.left - margin.right,
-      height = baseH - margin.top - margin.bottom;
-  svg.attr('width', baseW);
-  svg.attr('height', baseH);
-  var data = labelledData.map(function (d) {
-    return d[1];
-  });
-  var x = d3__WEBPACK_IMPORTED_MODULE_0___default.a.time.scale().range([0, width]);
-  var y = d3__WEBPACK_IMPORTED_MODULE_0___default.a.scale.linear().range([height, 0]);
-  var xAxis = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.axis().scale(x).ticks(5).innerTickSize(3).outerTickSize(0).tickFormat(function (t) {
-    return t.getFullYear().toString().replace(/^20/, "'");
-  }).orient("bottom");
-  var yAxis = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.axis().scale(y).ticks([4]).outerTickSize(0).innerTickSize(-width).tickFormat(function (t) {
-    return '$' + t / 1000 + ' k';
-  }).orient("left");
-  var line = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.line().x(function (d) {
-    return x(yearFormat(d[0].toString()));
-  }).y(function (d) {
-    return y(d[1]);
-  });
-  var g = svg.selectAll('g').data([data]);
-  var gEnter = g.enter().append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-  var yMax = Math.ceil(d3__WEBPACK_IMPORTED_MODULE_0___default.a.max(d3__WEBPACK_IMPORTED_MODULE_0___default.a.merge(data), function (d) {
-    return d[1];
-  }) / 100000) * 100000;
-  x.domain(d3__WEBPACK_IMPORTED_MODULE_0___default.a.extent(data[0], function (d) {
-    return yearFormat(d[0].toString());
-  }));
-  y.domain([0, yMax]);
-  gEnter.append("g").attr("class", "x axis").attr("transform", "translate(0," + height + ")").append("text").attr("x", 50).attr("dy", "2.5em").text("Year");
-  g.selectAll("g.x").call(xAxis);
-  gEnter.append("g").attr("class", "y axis").attr("transform", "translate(-7,0)");
-  g.selectAll("g.y").call(yAxis);
-  var linePlot = g.selectAll("path.line").data(labelledData);
-  linePlot.enter().append("path");
-  linePlot.attr("d", function (d) {
-    return line(d[1]);
-  }).attr("class", function (d, i) {
-    if (activeLabelName === d[0]) {
-      return "line active";
-    }
-
-    return "line";
-  });
-  linePlot.exit().remove();
-});
-
-/***/ }),
-
-/***/ "./js-src/index.js":
-/*!*************************!*\
-  !*** ./js-src/index.js ***!
-  \*************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function(global) {/* harmony import */ var _cache_cache_store__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./cache/cache-store */ "./js-src/cache/cache-store.js");
-/* harmony import */ var _charts_indicator_timeseries__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./charts/indicator-timeseries */ "./js-src/charts/indicator-timeseries.js");
-/* harmony import */ var _charts_map_legend__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./charts/map-legend */ "./js-src/charts/map-legend.js");
-/* harmony import */ var _charts_summary_timeseries__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./charts/summary-timeseries */ "./js-src/charts/summary-timeseries.js");
-/* harmony import */ var _charts_indicator_barchart__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./charts/indicator-barchart */ "./js-src/charts/indicator-barchart.js");
-/* harmony import */ var _charts_indicator_over_under_barchart__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./charts/indicator-over-under-barchart */ "./js-src/charts/indicator-over-under-barchart.js");
-/* harmony import */ var _charts_indicator_area_treemap__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./charts/indicator-area-treemap */ "./js-src/charts/indicator-area-treemap.js");
-/* ///
- * Global Imports
- * /// */
-
-global.MBIECacheStorage = _cache_cache_store__WEBPACK_IMPORTED_MODULE_0__["default"].getInstance();
-
-
-
-
-
-
-/* 
- * Reflex functions
- * ----------------:
- * Any functions that need to interact with Reflex must be made global.
- */
-
-global.updateIndicatorTimeSeries = _charts_indicator_timeseries__WEBPACK_IMPORTED_MODULE_1__["default"];
-global.updateMapLegend = _charts_map_legend__WEBPACK_IMPORTED_MODULE_2__["default"];
-global.updateTimeSeries = _charts_summary_timeseries__WEBPACK_IMPORTED_MODULE_3__["default"];
-global.updateAreaBarchart = _charts_indicator_barchart__WEBPACK_IMPORTED_MODULE_4__["default"];
-global.overUnderBarchart = _charts_indicator_over_under_barchart__WEBPACK_IMPORTED_MODULE_5__["default"];
-global.areaTreeMap = _charts_indicator_area_treemap__WEBPACK_IMPORTED_MODULE_6__["default"];
-/* harmony default export */ __webpack_exports__["default"] = (global);
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../node_modules/webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js")))
-
-/***/ }),
-
-/***/ "./js-src/utils/chart-setup.js":
-/*!*************************************!*\
-  !*** ./js-src/utils/chart-setup.js ***!
-  \*************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! d3 */ "./node_modules/d3/d3.js");
-/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
-/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/utils */ "./js-src/utils/utils.js");
-
-
-
-/* harmony default export */ __webpack_exports__["default"] = (function (element, params, margin, chartType) {
-  var base = d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(element),
-      svg = null,
-      width = parseInt(base.style("width")) - margin.left - margin.right,
-      height = parseInt(base.style("height")) - margin.top - margin.bottom,
-      data = params[0],
-      chartInnerClasses = {
-    'default-timeseries': false,
-    'basic-barchart': false,
-    'area-treemap': false,
-    'overunder-barchart': false
-  };
-  chartInnerClasses = lodash__WEBPACK_IMPORTED_MODULE_1___default.a.forEach(chartInnerClasses, function (value, key) {
-    chartInnerClasses[key] = key === chartType;
-  });
-  svg = base.select('svg');
-  base.classed('svg-loading', true);
-
-  if (d3__WEBPACK_IMPORTED_MODULE_0___default.a.select('.chart-inner').empty() || !d3__WEBPACK_IMPORTED_MODULE_0___default.a.select('.chart-inner').empty() && !d3__WEBPACK_IMPORTED_MODULE_0___default.a.select('.chart-inner').classed(chartType)) {
-    base.select('svg').remove();
-    svg = base.append('svg');
-  } // set chart specific classes.
-
-
-  d3__WEBPACK_IMPORTED_MODULE_0___default.a.select('.chart-inner').classed(chartInnerClasses);
-  svg.attr("preserveAspectRatio", "xMinYMin meet"); // svg.attr("viewBox", "0 0 481 474");
-
-  if (Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["isEmpty"])(data) || isNaN(width) || isNaN(height)) {
-    return null;
-  }
-
-  var year = params[1];
-  var indicator = params[2].indicatorId;
-  var transform = params[2].transform;
-  var area = params[2].areaname;
-  var areaLevel = params[2].areatype;
-  var feature = params[2].featureId;
-  var zoom = params[2].zoom;
-  var features = params[3];
-  var chartData = params[4];
-  var chartCaption = params[5];
-  var cache = window.MBIECacheStorage;
-  var areas = params[6]; /// Cached data
-
-  if (Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["isEmpty"])(cache.get(indicator))) {
-    cache.put(indicator, {});
-  }
-
-  if (!Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["isEmpty"])(features)) {
-    var feats = {};
-
-    lodash__WEBPACK_IMPORTED_MODULE_1___default.a.forEach(features, function (f, i) {
-      feats[f[0]] = f[1];
-    });
-
-    features = feats;
-  }
-
-  if (!lodash__WEBPACK_IMPORTED_MODULE_1___default.a.isEmpty(chartCaption)) {
-    chartCaption = chartCaption[0].toUpperCase() + chartCaption.slice(1);
-  }
-
-  return {
-    data: data,
-    year: year,
-    indicator: indicator,
-    transform: transform,
-    area: area,
-    areas: areas,
-    areaLevel: areaLevel,
-    feature: feature,
-    features: features,
-    chartData: chartData,
-    chartCaption: chartCaption,
-    svg: svg,
-    base: base,
-    width: width,
-    height: height,
-    zoom: zoom
-  };
-});
-
-/***/ }),
-
-/***/ "./js-src/utils/formatting.js":
-/*!************************************!*\
-  !*** ./js-src/utils/formatting.js ***!
-  \************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return formatting; });
-/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! d3 */ "./node_modules/d3/d3.js");
-/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_0__);
-
-
-var commasFormatter = function commasFormatter(value) {
-  var f = "" + value;
-
-  if (f.length > 4) {
-    var val = d3__WEBPACK_IMPORTED_MODULE_0___default.a.format('.1r')(value);
-
-    if (val.charAt(1) === '0') {
-      return d3__WEBPACK_IMPORTED_MODULE_0___default.a.format('.1s')(val);
-    }
-
-    return d3__WEBPACK_IMPORTED_MODULE_0___default.a.format('.2s')(val);
-  }
-
-  return d3__WEBPACK_IMPORTED_MODULE_0___default.a.format('n')(value);
-};
-
-var moneyFormatter = d3__WEBPACK_IMPORTED_MODULE_0___default.a.format(',g');
-
-var percentageFormatter = function percentageFormatter(value) {
-  var _int = parseInt(value);
-
-  if (_int < 10) {
-    return d3__WEBPACK_IMPORTED_MODULE_0___default.a.format('.1r')(value);
-  }
-
-  return d3__WEBPACK_IMPORTED_MODULE_0___default.a.format('.2r')(value);
-};
-
-function formatting(units, value) {
-  switch (units) {
-    case "million dollars":
-      return moneyFormatter(value) + " M";
-
-    case "dollars":
-      return moneyFormatter(value);
-
-    case "percentage":
-      return percentageFormatter(value) + " %";
-  }
-
-  return commasFormatter(value);
-}
-
-/***/ }),
-
-/***/ "./js-src/utils/utils.js":
-/*!*******************************!*\
-  !*** ./js-src/utils/utils.js ***!
-  \*******************************/
-/*! exports provided: computeTicks, none, isEmpty, present, getColours */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "computeTicks", function() { return computeTicks; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "none", function() { return none; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isEmpty", function() { return isEmpty; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "present", function() { return present; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getColours", function() { return getColours; });
-/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
-/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_0__);
-
-/* 
- * computeTicks:
- * -------------
- * @param extent - d3 extent
- * @return array of ticks.
- * 
- * Given a d3 extent, will work out the ticks for a domain.
- */
-
-var computeTicks = function computeTicks(extent) {
-  var nice = d3.scale.linear().domain(extent).nice().ticks();
-
-  if (nice.length < 9) {
-    return nice;
-  } // else if (nice.length % 2 === 0) {
-  //     let diff = nice[nice.length - 1] - nice[nice.length - 2];
-  //     nice.push(nice[nice.length - 1] + diff);
-  // }
-
-
-  return nice.filter(function (d, i) {
-    return i % 2 === 0;
-  });
-};
-/*
- * getColours:
- * -----------
- * looks for elements in the page with a class of "colour" & builds 
- * a map of colournames -> hex.
- */
-
-
-var getColours = function getColours() {
-  var output = {};
-  var colours = document.getElementsByClassName("colour-palette");
-
-  if (colours.length === 0) {
-    return output;
-  }
-
-  var children = document.getElementsByClassName("colour");
-
-  if (children.length === 0) {
-    return output;
-  }
-
-  lodash__WEBPACK_IMPORTED_MODULE_0___default.a.each(children, function (value, i) {
-    var classNames = value.className,
-        el = document.getElementsByClassName(classNames),
-        bg = window.getComputedStyle(el[0], null).getPropertyValue('background-color');
-    output[classNames.split(' ')[0]] = bg;
-  });
-
-  return output; // .each(function(i, el) {
-  //     console.log(i, el)
-  //     // let classNames = $(el).attr('class');
-  //     // self.set(classNames.split(' ')[0], $(el).css('background-color'));
-  // });
-};
-/*
- * General util functions. 
- */
-
-
-var none = function none(obj) {
-  return obj === null || obj === undefined;
-},
-    isEmpty = function isEmpty(obj) {
-  return lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(obj);
-},
-    present = function present(obj) {
-  return isEmpty(obj) || typeof obj === 'string' && /\S/.test(obj) === false;
-};
-
-
-
-/***/ }),
-
-/***/ "./node_modules/cache/index.js":
-/*!*************************************!*\
-  !*** ./node_modules/cache/index.js ***!
-  \*************************************/
+/***/ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/cache/index.js":
+/*!************************************************************************************************************************!*\
+  !*** /nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/cache/index.js ***!
+  \************************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
@@ -2068,10 +141,10 @@ module.exports = Cache;
 
 /***/ }),
 
-/***/ "./node_modules/chroma-js/chroma.js":
-/*!******************************************!*\
-  !*** ./node_modules/chroma-js/chroma.js ***!
-  \******************************************/
+/***/ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/chroma-js/chroma.js":
+/*!*****************************************************************************************************************************!*\
+  !*** /nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/chroma-js/chroma.js ***!
+  \*****************************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -5270,10 +3343,10 @@ module.exports = Cache;
 
 /***/ }),
 
-/***/ "./node_modules/d3/d3.js":
-/*!*******************************!*\
-  !*** ./node_modules/d3/d3.js ***!
-  \*******************************/
+/***/ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/d3/d3.js":
+/*!******************************************************************************************************************!*\
+  !*** /nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/d3/d3.js ***!
+  \******************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -14837,17 +12910,17 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
 
 /***/ }),
 
-/***/ "./node_modules/lodash/lodash.js":
-/*!***************************************!*\
-  !*** ./node_modules/lodash/lodash.js ***!
-  \***************************************/
+/***/ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/lodash/lodash.js":
+/*!**************************************************************************************************************************!*\
+  !*** /nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/lodash/lodash.js ***!
+  \**************************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global, module) {var __WEBPACK_AMD_DEFINE_RESULT__;/**
  * @license
  * Lodash <https://lodash.com/>
- * Copyright JS Foundation and other contributors <https://js.foundation/>
+ * Copyright OpenJS Foundation and other contributors <https://openjsf.org/>
  * Released under MIT license <https://lodash.com/license>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -14858,7 +12931,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
   var undefined;
 
   /** Used as the semantic version number. */
-  var VERSION = '4.17.11';
+  var VERSION = '4.17.14';
 
   /** Used as the size to enable large array optimizations. */
   var LARGE_ARRAY_SIZE = 200;
@@ -17517,16 +15590,10 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
         value.forEach(function(subValue) {
           result.add(baseClone(subValue, bitmask, customizer, subValue, value, stack));
         });
-
-        return result;
-      }
-
-      if (isMap(value)) {
+      } else if (isMap(value)) {
         value.forEach(function(subValue, key) {
           result.set(key, baseClone(subValue, bitmask, customizer, key, value, stack));
         });
-
-        return result;
       }
 
       var keysFunc = isFull
@@ -18450,8 +16517,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
         return;
       }
       baseFor(source, function(srcValue, key) {
+        stack || (stack = new Stack);
         if (isObject(srcValue)) {
-          stack || (stack = new Stack);
           baseMergeDeep(object, source, key, srcIndex, baseMerge, customizer, stack);
         }
         else {
@@ -20268,7 +18335,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
       return function(number, precision) {
         number = toNumber(number);
         precision = precision == null ? 0 : nativeMin(toInteger(precision), 292);
-        if (precision) {
+        if (precision && nativeIsFinite(number)) {
           // Shift with exponential notation to avoid floating-point issues.
           // See [MDN](https://mdn.io/round#Examples) for more details.
           var pair = (toString(number) + 'e').split('e'),
@@ -21451,7 +19518,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
     }
 
     /**
-     * Gets the value at `key`, unless `key` is "__proto__".
+     * Gets the value at `key`, unless `key` is "__proto__" or "constructor".
      *
      * @private
      * @param {Object} object The object to query.
@@ -21459,6 +19526,10 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
      * @returns {*} Returns the property value.
      */
     function safeGet(object, key) {
+      if (key === 'constructor' && typeof object[key] === 'function') {
+        return;
+      }
+
       if (key == '__proto__') {
         return;
       }
@@ -25259,6 +23330,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
           }
           if (maxing) {
             // Handle invocations in a tight loop.
+            clearTimeout(timerId);
             timerId = setTimeout(timerExpired, wait);
             return invokeFunc(lastCallTime);
           }
@@ -29645,9 +27717,12 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
       , 'g');
 
       // Use a sourceURL for easier debugging.
+      // The sourceURL gets injected into the source that's eval-ed, so be careful
+      // with lookup (in case of e.g. prototype pollution), and strip newlines if any.
+      // A newline wouldn't be a valid sourceURL anyway, and it'd enable code injection.
       var sourceURL = '//# sourceURL=' +
-        ('sourceURL' in options
-          ? options.sourceURL
+        (hasOwnProperty.call(options, 'sourceURL')
+          ? (options.sourceURL + '').replace(/[\r\n]/g, ' ')
           : ('lodash.templateSources[' + (++templateCounter) + ']')
         ) + '\n';
 
@@ -29680,7 +27755,9 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
 
       // If `variable` is not specified wrap a with-statement around the generated
       // code to add the data object to the top of the scope chain.
-      var variable = options.variable;
+      // Like with sourceURL, we take care to not check the option's prototype,
+      // as this configuration is a code injection vector.
+      var variable = hasOwnProperty.call(options, 'variable') && options.variable;
       if (!variable) {
         source = 'with (obj) {\n' + source + '\n}\n';
       }
@@ -31885,10 +29962,11 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
     baseForOwn(LazyWrapper.prototype, function(func, methodName) {
       var lodashFunc = lodash[methodName];
       if (lodashFunc) {
-        var key = (lodashFunc.name + ''),
-            names = realNames[key] || (realNames[key] = []);
-
-        names.push({ 'name': methodName, 'func': lodashFunc });
+        var key = lodashFunc.name + '';
+        if (!hasOwnProperty.call(realNames, key)) {
+          realNames[key] = [];
+        }
+        realNames[key].push({ 'name': methodName, 'func': lodashFunc });
       }
     });
 
@@ -31944,14 +30022,14 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
   else {}
 }.call(this));
 
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js"), __webpack_require__(/*! ./../webpack/buildin/module.js */ "./node_modules/webpack/buildin/module.js")(module)))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../webpack/buildin/global.js */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/webpack/buildin/global.js"), __webpack_require__(/*! ./../webpack/buildin/module.js */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/webpack/buildin/module.js")(module)))
 
 /***/ }),
 
-/***/ "./node_modules/rgb-hex/index.js":
-/*!***************************************!*\
-  !*** ./node_modules/rgb-hex/index.js ***!
-  \***************************************/
+/***/ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/rgb-hex/index.js":
+/*!**************************************************************************************************************************!*\
+  !*** /nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/rgb-hex/index.js ***!
+  \**************************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -31998,7 +30076,7 @@ module.exports = (red, green, blue, alpha) => {
 
 /***/ }),
 
-/***/ "./node_modules/webpack/buildin/global.js":
+/***/ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/webpack/buildin/global.js":
 /*!***********************************!*\
   !*** (webpack)/buildin/global.js ***!
   \***********************************/
@@ -32029,7 +30107,7 @@ module.exports = g;
 
 /***/ }),
 
-/***/ "./node_modules/webpack/buildin/module.js":
+/***/ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/webpack/buildin/module.js":
 /*!***********************************!*\
   !*** (webpack)/buildin/module.js ***!
   \***********************************/
@@ -32058,6 +30136,1933 @@ module.exports = function(module) {
 	}
 	return module;
 };
+
+
+/***/ }),
+
+/***/ "./js-src/cache/cache-store.js":
+/*!*************************************!*\
+  !*** ./js-src/cache/cache-store.js ***!
+  \*************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var cache__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! cache */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/cache/index.js");
+/* harmony import */ var cache__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(cache__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lodash */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/lodash/lodash.js");
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_1__);
+
+
+/* harmony default export */ __webpack_exports__["default"] = ((function () {
+  var instance;
+
+  function createInstance() {
+    var object = new cache__WEBPACK_IMPORTED_MODULE_0___default.a(5 * 60 * 1000);
+    return object;
+  }
+
+  return {
+    getInstance: function getInstance() {
+      if (!instance) {
+        instance = createInstance();
+      }
+
+      return instance;
+    }
+  };
+})());
+
+/***/ }),
+
+/***/ "./js-src/charts/indicator-area-treemap.js":
+/*!*************************************************!*\
+  !*** ./js-src/charts/indicator-area-treemap.js ***!
+  \*************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lodash */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/lodash/lodash.js");
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var chroma_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! chroma-js */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/chroma-js/chroma.js");
+/* harmony import */ var chroma_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(chroma_js__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! d3 */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/d3/d3.js");
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var rgb_hex__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! rgb-hex */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/rgb-hex/index.js");
+/* harmony import */ var rgb_hex__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(rgb_hex__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _utils_chart_setup__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/chart-setup */ "./js-src/utils/chart-setup.js");
+/* harmony import */ var _utils_formatting__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../utils/formatting */ "./js-src/utils/formatting.js");
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../utils/utils */ "./js-src/utils/utils.js");
+
+
+
+
+
+
+
+var margin = {
+  top: 2,
+  right: 2,
+  bottom: 2,
+  left: 2
+};
+
+function wordwrap(d, i) {
+  //   if (!d.absolute) {
+  //     return;
+  //   }
+  var t = d3__WEBPACK_IMPORTED_MODULE_2___default.a.select(this),
+      rectBB = t.select('rect').node().getBBox(),
+      text = t.select('text'),
+      textBB = text.node().getBBox();
+
+  if (textBB.width >= rectBB.width - 1 || textBB.height >= rectBB.height - 1) {
+    text.style('visibility', 'hidden');
+  } else {
+    text.style('visibility', 'inherit');
+  }
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (function (element, params) {
+  var colours = Object(_utils_utils__WEBPACK_IMPORTED_MODULE_6__["getColours"])();
+  var treemap, legendElem, tooltipElem, labels;
+  var first = true;
+  var startColour = colours['background-rear-positive-light'],
+      endColour = colours['background-rear-positive'];
+
+  if (typeof startColour === 'undefined') {
+    return false;
+  }
+
+  var scale = chroma_js__WEBPACK_IMPORTED_MODULE_1___default.a.scale([rgb_hex__WEBPACK_IMPORTED_MODULE_3___default()(startColour), rgb_hex__WEBPACK_IMPORTED_MODULE_3___default()(endColour)]);
+  var colour = d3__WEBPACK_IMPORTED_MODULE_2___default.a.scale.ordinal().domain(["international", "domestic"]).range([scale(0.2), scale(0.8)]); // Setup
+
+  var setup = Object(_utils_chart_setup__WEBPACK_IMPORTED_MODULE_4__["default"])(element, params, margin, 'area-treemap');
+
+  if (setup === null) {
+    return;
+  }
+
+  var cache = window.MBIECacheStorage,
+      toCache = {},
+      data = setup.data,
+      year = setup.year,
+      indicator = setup.indicator,
+      transform = setup.transform,
+      area = setup.area,
+      areas = setup.areas,
+      areaLevel = setup.areaLevel,
+      feature = setup.feature,
+      features = setup.features,
+      svg = setup.svg,
+      base = setup.base,
+      width = setup.width,
+      height = setup.height;
+  legendElem = d3__WEBPACK_IMPORTED_MODULE_2___default.a.select(element.parentNode).select(".legend");
+  tooltipElem = d3__WEBPACK_IMPORTED_MODULE_2___default.a.select(element.parentNode).select(".tooltip");
+  treemap = d3__WEBPACK_IMPORTED_MODULE_2___default.a.layout.treemap().size([width, height]).value(function (d) {
+    var value = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(d[1], function (item) {
+      return item[0] === year;
+    });
+
+    if (value.length > 0) {
+      return Number(value[0][1]);
+    }
+
+    return 0;
+  });
+  svg.selectAll('g').remove();
+  var g = svg.selectAll("g").data([1]);
+  var svgEnter = g.enter().append("g");
+  svgEnter.append("rect").attr("width", width + 2).attr("height", height + 2).attr("x", -1).attr("y", -1).attr("class", "border-rect");
+  first = true; ///
+  /// Data Manager
+  ///
+  // var dataTree = this.getAttr('data'),
+  //   area = this.getAttr('area').get('id'),
+  //   dataId = this.get('dataId');
+  //   if (!dataTree) {
+  //     return;
+  //   }
+  //   if (dataId.tree !== dataTree.get('id') || dataId.area !== area) {
+  //     this.set("plotdata", dataTree.get('areas')[area]);
+  //     this.set("dataId", {tree: dataTree.get('id'), area: area});
+  //   }
+  ///
+  /// Draw Labels
+  ///
+
+  labels = ["International", "Domestic"];
+  var legendWidth = 300;
+  var legendHeight = 80;
+  var legend = legendElem.selectAll("svg").data([labels]);
+  var legendEnter = legend.enter().append("svg");
+  legend.attr("width", legendWidth).attr("height", legendHeight);
+  var legendG = legend.selectAll("g.key").data(function (d) {
+    return [d];
+  }),
+      legendGEnter = legendG.enter().append("g").attr("class", "key");
+  legendG.attr("transform", "translate(" + margin.left + "," + legendHeight / 2 + ")");
+  var legendRects = legendG.selectAll("rect").data(function (d) {
+    return d;
+  }),
+      legendRectsEnter = legendRects.enter().append("rect").attr("height", 8).attr("width", 55);
+  legendRects.attr("x", function (d, i) {
+    return i * 95;
+  }).attr("fill", function (d) {
+    return colour(d.toLowerCase());
+  });
+  var legendTexts = legendG.selectAll("text").data(function (d) {
+    return d;
+  }),
+      legendTextsEnter = legendTexts.enter().append("text").attr("dy", "0.71em").attr("y", 16);
+  legendTexts.attr("x", function (d, i) {
+    return i * 95;
+  }).text(function (d) {
+    return d;
+  });
+  legendTexts.exit().remove(); /// 
+  /// Update
+  ///
+  // var data = this.get("plotdata"),
+
+  var duration = 1000; // feature = this.getAttr("feature"),
+  // featureName = present(feature) ? feature.get("name") : null,
+  // _this = this;
+
+  var areaData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(data, function (i) {
+    return i[0][1] === area;
+  }); // var root = d3.hierarchy(areaData).sum(function(d){
+  //     console.log(d)
+  //     return 0;
+  // })
+
+
+  var grouped = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.groupBy(areaData, function (item) {
+    var key = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.last(item[0]);
+
+    return lodash__WEBPACK_IMPORTED_MODULE_0___default.a.indexOf(areas, key) === -1;
+  });
+
+  var domestic = grouped[false],
+      international = grouped[true]; // console.log(domestic, international)
+
+  var treemapData = {
+    name: 'top',
+    children: [{
+      name: 'domestic',
+      children: domestic
+    }, {
+      name: 'international',
+      children: international
+    }]
+  }; // console.log(treemapData)
+
+  var cell = svgEnter.data([treemapData]).selectAll("g").data(treemap.nodes),
+      cellEnter = cell.enter().append("g").attr("class", "cell"),
+      cellTrans = cell;
+
+  if (!first) {
+    cellTrans = cellTrans.transition().duration(duration);
+  }
+
+  cellTrans.attr("transform", function (d) {
+    return "translate(" + d.x + "," + d.y + ")";
+  });
+  var rect = cell.selectAll('rect').data(function (d) {
+    return [d];
+  }),
+      rectEnter = rect.enter().append("rect").attr("data-bailiwick-feature", function (d) {
+    var children = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 'children');
+
+    return children ? null : typeof d[0] !== 'undefined' ? d[0][4] : '';
+  });
+
+  if (!Modernizr.touch) {
+    rectEnter.on("mouseover", function (d, i) {
+      var value = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(d[1], function (item) {
+        return item[0] === year;
+      });
+
+      if (value.length === 0) {
+        return;
+      }
+
+      var key = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 0);
+
+      var name = key ? d[0][4] : '';
+
+      var _name = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(features, function (feature, key) {
+        return key === name;
+      });
+
+      if (_name.length !== 0) {
+        name = _name[0];
+      }
+
+      value = Number(d.value);
+      value = value.toFixed(1);
+      value = '$' + Object(_utils_formatting__WEBPACK_IMPORTED_MODULE_5__["default"])("million dollars", value);
+      var tooltip = tooltipElem.selectAll('p').data([name, value]),
+          tooltipEnter = tooltip.enter().append('p');
+      tooltip.text(function (d) {
+        return d;
+      }).classed("number", function (d, i) {
+        return i === 1;
+      }).classed("local", function (d, i) {
+        return i === 1;
+      });
+      tooltipElem.style("visibility", "visible").style("top", function () {
+        return d3__WEBPACK_IMPORTED_MODULE_2___default.a.event.offsetY + "px";
+      }).style("left", function () {
+        return d3__WEBPACK_IMPORTED_MODULE_2___default.a.event.offsetX + "px";
+      });
+    }).on("mouseout", function (d, i) {
+      tooltipElem.style("visibility", "hidden");
+    });
+  }
+
+  rect.style("fill", function (d) {
+    var children = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 'children');
+
+    return children ? colour(d.name) : null;
+  }).attr("pointer-events", function (d) {
+    var children = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 'children');
+
+    return children ? "none" : "all";
+  }).classed("active", function (d) {
+    var children = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 'children');
+
+    var key = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 0);
+
+    return children ? false : key ? d[0][4] === feature : false;
+  });
+
+  if (!first) {
+    rect.transition().duration(duration);
+  }
+
+  rect.attr("width", function (d) {
+    return d.dx;
+  }).attr("height", function (d) {
+    return d.dy;
+  });
+  var text = cell.selectAll("text").data(function (d) {
+    return [d];
+  }),
+      textEnter = text.enter().append('text').style("pointer-events", "none");
+  text.style("visibility", "hidden").attr("x", function (d) {
+    return d.dx / 2;
+  }).attr("y", function (d) {
+    return d.dy / 2;
+  }).attr("dy", ".35em").attr("text-anchor", "middle").attr("data-bailiwick-feature", function (d) {
+    var children = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 'children');
+
+    var key = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 0);
+
+    return children ? null : key ? d[0][4] : '';
+  }).text(function (d) {
+    var children = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 'children');
+
+    var key = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(d, 0);
+
+    if (!children && key) {
+      var name = d[0][4];
+
+      var _name = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(features, function (feature, key) {
+        return key === name;
+      });
+
+      if (_name.length !== 0) {
+        return _name[0];
+      }
+    }
+
+    return children ? null : '';
+  });
+
+  if (first) {
+    cellTrans.each(wordwrap);
+    first = false;
+  } else {
+    cellTrans.each('end', wordwrap);
+  }
+
+  cell.exit().remove();
+  base.classed('svg-loading', false);
+});
+
+/***/ }),
+
+/***/ "./js-src/charts/indicator-barchart.js":
+/*!*********************************************!*\
+  !*** ./js-src/charts/indicator-barchart.js ***!
+  \*********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lodash */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/lodash/lodash.js");
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! d3 */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/d3/d3.js");
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/utils */ "./js-src/utils/utils.js");
+/* harmony import */ var _utils_chart_setup__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utils/chart-setup */ "./js-src/utils/chart-setup.js");
+/* harmony import */ var _utils_formatting__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/formatting */ "./js-src/utils/formatting.js");
+
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (function (element, params) {
+  //
+  // Set up
+  //
+  var lmargin = 240;
+
+  if (window.innerWidth < 400) {
+    lmargin = 100;
+  } else if (window.innerWidth < 600 && lmargin > 140) {
+    lmargin = 180;
+  }
+
+  var margin = {
+    top: 5,
+    right: 25,
+    bottom: 40,
+    left: lmargin
+  };
+  var setup = Object(_utils_chart_setup__WEBPACK_IMPORTED_MODULE_3__["default"])(element, params, margin, 'basic-barchart');
+
+  if (setup === null) {
+    return;
+  }
+
+  var cache = window.MBIECacheStorage,
+      toCache = {},
+      data = setup.data,
+      year = setup.year,
+      indicator = setup.indicator,
+      transform = setup.transform,
+      area = setup.area,
+      areaLevel = setup.areaLevel,
+      feature = setup.feature,
+      features = setup.features,
+      chartData = setup.chartData,
+      chartCaption = setup.chartCaption,
+      svg = setup.svg,
+      base = setup.base,
+      width = setup.width,
+      height = setup.height;
+  var legend = d3__WEBPACK_IMPORTED_MODULE_1___default.a.select('.chart-inner .legend');
+  legend.select('svg').remove();
+  var tooltipElem;
+  var y = d3__WEBPACK_IMPORTED_MODULE_1___default.a.scale.ordinal();
+  var x = d3__WEBPACK_IMPORTED_MODULE_1___default.a.scale.linear();
+  var maxLength = 35;
+
+  if (window.innerWidth < 400) {
+    maxLength = 11;
+  } else if (window.innerWidth < 600) {
+    maxLength = 25;
+  }
+
+  var yAxis = d3__WEBPACK_IMPORTED_MODULE_1___default.a.svg.axis().scale(y).orient("left").outerTickSize(0).tickFormat(function (d) {
+    if (d === null) {
+      return '';
+    }
+
+    if (d.length === 0) {
+      return '';
+    }
+
+    var label = d;
+
+    if (lodash__WEBPACK_IMPORTED_MODULE_0___default.a.has(features, d)) {
+      label = features[d];
+    }
+
+    label = label[0].toUpperCase() + label.slice(1);
+
+    if (label.length > maxLength) {
+      return label.substring(0, maxLength) + '…';
+    }
+
+    return label;
+  });
+  var barHeight = 20,
+      barGap = 5;
+  var xAxis = d3__WEBPACK_IMPORTED_MODULE_1___default.a.svg.axis(); // Find the current area in supplied data
+
+  var currentAreaData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(data, function (o) {
+    return o[0][1] === area;
+  });
+
+  if (Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["isEmpty"])(currentAreaData)) {
+    base.classed('svg-loading', false);
+    return false;
+  }
+
+  currentAreaData = currentAreaData[0][0];
+  var cacheKey = 'areas.' + area + '.' + year + '.' + feature + '-' + String(Math.random() * 100); // if (!_.hasIn(cache.get(indicator), cacheKey)) {
+
+  var cachedInd = cache.get(indicator);
+  var parents = currentAreaData[3]; // No parents means NZ is selected - so we will end up showing all
+  // available regions.
+
+  if (feature !== null && Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["isEmpty"])(parents) && area !== 'New Zealand' || feature === null && Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["isEmpty"])(parents)) {
+    parents = ['new-zealand'];
+  } // Find all siblings that have one or more same parents.
+
+
+  var siblingAreas = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(data, function (o) {
+    return lodash__WEBPACK_IMPORTED_MODULE_0___default.a.intersection(o[0][3], parents).length > 0;
+  }); // This is assuming we are looking at NZ.
+
+
+  if (lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(siblingAreas)) {
+    siblingAreas = data;
+  }
+
+  var siblingsFilteredByYear = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.reduce(siblingAreas, function (res, v, k) {
+    var values = {
+      name: v[0][1],
+      slug: v[0][0],
+      display: '',
+      value: 0,
+      year: year,
+      feature: lodash__WEBPACK_IMPORTED_MODULE_0___default.a.last(v[0])
+    };
+
+    var yearVal = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(v[1], function (o) {
+      return o[0] === year;
+    });
+
+    if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(yearVal)) {
+      values.value = Number(yearVal[0][1]);
+      values.display = yearVal[0][3].trim();
+      res.push(values);
+    }
+
+    return res;
+  }, []); ///
+  /// If we have a feature, return area data sorted by feature (with
+  /// keys renamed to appropriate values).
+
+
+  if (feature !== null) {
+    var areaData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.groupBy(lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(siblingsFilteredByYear, function (o) {
+      return o.name === area;
+    }), 'feature');
+
+    areaData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.reduce(areaData, function (result, v, k) {
+      var newData = {
+        name: v[0].feature,
+        slug: v[0].slug,
+        value: v[0].value,
+        year: v[0].year,
+        display: v[0].display
+      };
+      result.push(newData);
+      return result;
+    }, []);
+    siblingsFilteredByYear = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.orderBy(areaData, 'value', 'desc'); // current area data is now looking at the features.
+
+    var newcurrentAreaData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(areaData, function (o) {
+      return o.name === feature;
+    });
+
+    if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(newcurrentAreaData)) {
+      currentAreaData[0] = newcurrentAreaData[0].name;
+    }
+  } else {
+    siblingsFilteredByYear = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.sortBy(siblingsFilteredByYear, ['value']);
+  }
+
+  if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(cachedInd, 'areas')) {
+    cachedInd.areas = {};
+  }
+
+  if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.hasIn(cachedInd, 'areas.' + area)) {
+    cachedInd.areas[area] = {};
+  }
+
+  cachedInd.areas[area][year] = siblingsFilteredByYear;
+  data = siblingsFilteredByYear; // }
+  // data = cache.get(indicator)['areas'][area][year];
+
+  tooltipElem = d3__WEBPACK_IMPORTED_MODULE_1___default.a.select(element.parentNode).select(".tooltip");
+  x = x.range([0, width]);
+  var g = svg.selectAll("g").data([1]);
+  var padding = barGap * (data.length + 1);
+  var dataHeight = Math.min(barHeight * data.length + padding, height);
+  var paddingRatio = padding / dataHeight;
+  var svgEnter = g.enter().append("g");
+  g.attr("width", width).attr("height", height).attr("transform", "translate(" + margin.left + "," + margin.top + ")"); // Handle Units
+
+  xAxis.scale(x).orient("bottom").ticks(window.innerWidth < 450 ? 2 : 5).tickFormat(function (d) {
+    if (chartData === null || chartData.length === 0) {
+      return d;
+    }
+
+    var trans = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(chartData.chartTransforms, function (i) {
+      return i.transformName === transform;
+    });
+
+    var formatter = null;
+
+    if (trans.length > 0) {
+      formatter = trans[0].transformFormatter;
+    }
+
+    return Object(_utils_formatting__WEBPACK_IMPORTED_MODULE_4__["default"])(formatter, d);
+  });
+  xAxis.tickSize(-1 * dataHeight, 10); // x.domain([0, d3.max(data, function (d) { return d.value; })]);
+
+  var xExtent = d3__WEBPACK_IMPORTED_MODULE_1___default.a.extent(data, function (d) {
+    return d.value;
+  });
+  x.domain([Math.min(0, xExtent[0]), Math.max(0, xExtent[1])]).nice();
+  g.attr("height", dataHeight + margin.top + margin.bottom);
+  y = y.rangeRoundBands([0, dataHeight], paddingRatio);
+  y.domain(data.map(function (d) {
+    return d.name;
+  }));
+  xAxis.tickSize(-1 * dataHeight, 10);
+  var ySel = g.selectAll("g.y.axis").data([data]),
+      ySelEnter = ySel.enter().append("g").attr("class", "y axis");
+  ySel.call(yAxis);
+  ySel.exit().remove();
+  var xSel = g.selectAll("g.x.axis").data([data]),
+      xSelEnter = xSel.enter().append("g").attr("class", "x axis");
+  xSel.attr("transform", "translate(0," + (dataHeight + 3) + ")").call(xAxis);
+  xSel.exit().remove();
+  var xSelCaption = svg.selectAll("text.caption").data([chartCaption]),
+      xSelCaptionEnter = xSelCaption.enter().append("text");
+  xSelCaption.attr("class", "caption").attr("transform", "translate(0," + (dataHeight + 50) + ")").text(chartCaption);
+  xSelCaption.attr("x", base.node().getBoundingClientRect().width - xSelCaption.node().getBBox().width - margin.right);
+  var bar = g.selectAll(".bar").data(data),
+      barEnter = bar.enter().append("rect").attr("class", "bar").attr("data-bailiwick-area", function (d) {
+    return d.slug;
+  }).attr("data-bailiwick-feature", function (d) {
+    if (feature !== null) {
+      return d.name;
+    }
+
+    return '';
+  });
+
+  if (!Modernizr.touch) {
+    barEnter.on("mouseover", function (d) {
+      var name = d.name;
+
+      if (lodash__WEBPACK_IMPORTED_MODULE_0___default.a.has(features, d.name)) {
+        name = features[d.name];
+      }
+
+      name = name[0].toUpperCase() + name.slice(1);
+      var tooltip = tooltipElem.selectAll('p').data([name, d.display, d.year]),
+          tooltipEnter = tooltip.enter().append('p');
+      tooltip.text(function (d) {
+        return d;
+      }).classed("number", function (d, i) {
+        return i === 1;
+      }).classed("local", function (d, i) {
+        return i === 1;
+      });
+      tooltipElem.style("visibility", "visible").style("top", function () {
+        return d3__WEBPACK_IMPORTED_MODULE_1___default.a.event.offsetY + "px";
+      }).style("left", function () {
+        return d3__WEBPACK_IMPORTED_MODULE_1___default.a.event.offsetX + "px";
+      });
+    }).on("mouseout", function (d) {
+      tooltipElem.style("visibility", "hidden");
+    });
+  }
+
+  bar.attr("y", function (d) {
+    return y(d.name);
+  }).attr("height", Math.abs(y.rangeBand())).attr("x", 1).attr("width", function (d) {
+    return x(d.value) + 1;
+  }).classed("active", function (d) {
+    if (feature !== null) {
+      return d.name === currentAreaData[0];
+    }
+
+    return d.slug === currentAreaData[0];
+  });
+  bar.exit().remove();
+  base.classed('svg-loading', false);
+});
+
+/***/ }),
+
+/***/ "./js-src/charts/indicator-over-under-barchart.js":
+/*!********************************************************!*\
+  !*** ./js-src/charts/indicator-over-under-barchart.js ***!
+  \********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lodash */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/lodash/lodash.js");
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! d3 */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/d3/d3.js");
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _utils_chart_setup__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/chart-setup */ "./js-src/utils/chart-setup.js");
+/* harmony import */ var _utils_formatting__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utils/formatting */ "./js-src/utils/formatting.js");
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/utils */ "./js-src/utils/utils.js");
+
+
+
+
+
+var margin = {
+  top: 25,
+  right: 15,
+  bottom: 40,
+  left: 100
+};
+var barHeight = 240;
+var percentageCaption = ["Percentage achieved", "Percentage not acheived"];
+var absoluteCaption = ["Achieved", "Not acheived"];
+var nz = 'New Zealand';
+/* harmony default export */ __webpack_exports__["default"] = (function (element, params) {
+  var setup = Object(_utils_chart_setup__WEBPACK_IMPORTED_MODULE_2__["default"])(element, params, margin, 'overunder-barchart');
+
+  if (setup === null) {
+    return;
+  }
+
+  var cache = window.MBIECacheStorage,
+      toCache = {},
+      data = setup.data,
+      year = setup.year,
+      indicator = setup.indicator,
+      transform = setup.transform,
+      area = setup.area,
+      areaLevel = setup.areaLevel,
+      feature = setup.feature,
+      features = setup.features,
+      chartData = setup.chartData,
+      chartCaption = setup.chartCaption,
+      svg = setup.svg,
+      base = setup.base,
+      width = setup.width,
+      height = setup.height;
+  var x = d3__WEBPACK_IMPORTED_MODULE_1___default.a.scale.ordinal(),
+      y = d3__WEBPACK_IMPORTED_MODULE_1___default.a.scale.linear(),
+      xAxis = d3__WEBPACK_IMPORTED_MODULE_1___default.a.svg.axis().scale(x).orient("top"),
+      yAxis = d3__WEBPACK_IMPORTED_MODULE_1___default.a.svg.axis().scale(y).tickFormat(function (d) {
+    if (chartData.length === 0) {
+      return d;
+    }
+
+    var trans = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(chartData.chartTransforms, function (i) {
+      return i.transformName === transform;
+    });
+
+    var formatter = null;
+
+    if (trans.length > 0) {
+      formatter = trans[0].transformFormatter;
+    }
+
+    return Object(_utils_formatting__WEBPACK_IMPORTED_MODULE_3__["default"])(formatter, d); // return Math.abs(d);
+  }).orient("left");
+  x = x.range([0, width]);
+  svg.selectAll('g').remove();
+  var g = svg.selectAll("g").data([1]);
+  var svgEnter = g.enter().append("g");
+  g.attr("width", width).attr("height", height).attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  var areaData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(data, function (i) {
+    return i[0][1] === area;
+  });
+
+  areaData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.reduce(areaData, function (res, v, k) {
+    var values = {
+      name: v[0][1],
+      slug: v[0][0],
+      display: '',
+      value: 0,
+      year: year,
+      feature: lodash__WEBPACK_IMPORTED_MODULE_0___default.a.last(v[0])
+    };
+
+    var yearVal = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(v[1], function (o) {
+      return o[0] === year;
+    });
+
+    if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(yearVal)) {
+      values.value = Number(yearVal[0][1]);
+      values.display = yearVal[0][3].trim();
+      res.push(values);
+    }
+
+    return res;
+  }, []);
+
+  var mappedData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.reduce(chartData.chartMapping, function (res, v, k) {
+    var vals = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(v.mappingDimensions, function (d) {
+      return {
+        label: d,
+        values: lodash__WEBPACK_IMPORTED_MODULE_0___default.a.first(lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(areaData, function (a) {
+          return a.feature === d;
+        }))
+      };
+    });
+
+    var obj = {
+      label: v.mappingLabel,
+      values: vals
+    };
+    res.push(obj);
+    return res;
+  }, []);
+
+  areaData = mappedData;
+
+  if (Object(_utils_utils__WEBPACK_IMPORTED_MODULE_4__["none"])(areaData)) {
+    return;
+  }
+
+  yAxis.tickSize(-width + 10, 0);
+  x.domain(lodash__WEBPACK_IMPORTED_MODULE_0___default.a.reduce(areaData, function (res, v, k) {
+    res.push(v.label);
+    return res;
+  }, [])).rangeRoundBands([0, width], 0.55, 0.3);
+
+  var over = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.reduce(areaData, function (max, val, key) {
+    var above = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(val.values, function (o) {
+      return o.label.indexOf("above") !== -1;
+    });
+
+    if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(above)) {
+      above = above[0];
+      return Math.max(max, above.values.value);
+    }
+
+    return max;
+  }, 0);
+
+  var under = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.reduce(areaData, function (max, val, key) {
+    var above = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(val.values, function (o) {
+      return o.label.indexOf("below") !== -1;
+    });
+
+    if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(above)) {
+      above = above[0];
+      return Math.max(max, above.values.value);
+    }
+
+    return max;
+  }, 0);
+
+  height = (over + under) / over * barHeight;
+  svgEnter.attr('height', height);
+  y.domain([-1 * under, over]).range([height, 0]);
+  var ySel = svgEnter.selectAll("g.y.axis").data([areaData]),
+      ySelEnter = ySel.enter().append("g").attr("class", "y axis");
+  ySel.call(yAxis);
+  ySel.exit().remove();
+  var yCaption = ySel.selectAll("text.caption").data(transform === "percentage" ? percentageCaption : absoluteCaption);
+  var yCaptionEnter = yCaption.enter().append("text").attr("class", "caption").attr("y", -60).attr("transform", "rotate(270)");
+  yCaption.attr("x", function (d, i) {
+    return -1 * i * height;
+  }).attr("text-anchor", function (d, i) {
+    return i ? "start" : "end";
+  }).text(function (d) {
+    return d;
+  });
+  yCaption.exit().remove();
+  var xSel = svgEnter.selectAll("g.x.axis").data([areaData]),
+      xSelEnter = xSel.enter().append("g").attr("class", "x axis");
+  xSel.call(xAxis);
+  xSel.exit().remove();
+
+  var overData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.reduce(areaData, function (arr, val, key) {
+    var above = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(val.values, function (o) {
+      return o.label.indexOf("above") !== -1;
+    });
+
+    if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(above)) {
+      above = above[0];
+      arr.push({
+        value: above.values.value,
+        label: val.label,
+        name: above.values.name,
+        dispValue: above.values.display,
+        feature: above.values.feature
+      });
+    }
+
+    return arr;
+  }, []);
+
+  var underData = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.reduce(areaData, function (arr, val, key) {
+    var below = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(val.values, function (o) {
+      return o.label.indexOf("below") !== -1;
+    });
+
+    if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(below)) {
+      below = below[0];
+      arr.push({
+        value: below.values.value,
+        label: val.label,
+        name: below.values.name,
+        dispValue: below.values.display,
+        feature: below.values.feature
+      });
+    }
+
+    return arr;
+  }, []);
+
+  var overBar = svgEnter.selectAll("rect.overbar").data(overData);
+  var overBarEnter = overBar.enter().append("rect").attr("class", "overbar").attr("data-bailiwick-feature", function (d) {
+    return d.feature;
+  }).on("click", function (d) {// _this.sendAction("featureAction", d.slug);
+  });
+  overBar.attr("y", function (d) {
+    return y(d.value);
+  }).attr("height", function (d) {
+    return y(0) - y(d.value);
+  }).attr("x", function (d) {
+    return x(d.label);
+  }).attr("width", x.rangeBand()).attr("data-bailiwick-feature", function (d) {
+    return d.feature;
+  }).classed("active", function (d) {
+    return d.feature === feature;
+  });
+  overBar.exit().remove();
+  var underBar = svgEnter.selectAll("rect.underbar").data(underData);
+  var underBarEnter = underBar.enter().append("rect").attr("class", "underbar").attr("data-bailiwick-feature", function (d) {
+    return d.feature;
+  }).on("click", function (d) {// _this.sendAction("featureAction", d.slug);
+  });
+  underBar.attr("y", function (d) {
+    return y(0);
+  }).attr("height", function (d) {
+    return y(-1 * d.value) - y(0);
+  }).attr("x", function (d) {
+    return x(d.label);
+  }).attr("width", x.rangeBand()).classed("active", function (d) {
+    return d.feature === feature;
+  });
+  underBar.exit().remove();
+
+  if (!Modernizr.touch) {
+    var tooltipElem = d3__WEBPACK_IMPORTED_MODULE_1___default.a.select(element.parentNode).select(".tooltip");
+    svgEnter.selectAll("rect").on("mouseover", function (d) {
+      var tooltip = tooltipElem.selectAll('p').data([features[d.feature], d.dispValue]),
+          tooltipEnter = tooltip.enter().append('p');
+      tooltip.text(function (d) {
+        if (Object(_utils_utils__WEBPACK_IMPORTED_MODULE_4__["present"])(d) && d.length >= 2) {
+          return d[0].toUpperCase() + d.slice(1);
+        }
+
+        return d;
+      }).classed("number", function (d, i) {
+        return i === 1;
+      }).classed("local", function (d, i) {
+        return i === 1;
+      });
+      tooltipElem.style("visibility", "visible").style("top", function () {
+        return d3__WEBPACK_IMPORTED_MODULE_1___default.a.event.offsetY + "px";
+      }).style("left", function () {
+        return d3__WEBPACK_IMPORTED_MODULE_1___default.a.event.offsetX + "px";
+      });
+    }).on("mouseout", function (d) {
+      tooltipElem.style("visibility", "hidden");
+    });
+  }
+
+  var zline = d3__WEBPACK_IMPORTED_MODULE_1___default.a.svg.line().x(function (d) {
+    return d;
+  }).y(function (d) {
+    return y(0);
+  });
+  var zeroLine = svgEnter.selectAll("path.zeroline").data([[0, width]]);
+  var zeroLineEnter = zeroLine.enter().append('path').attr("class", "zeroline");
+  zeroLine.attr("d", zline);
+  zeroLine.exit().remove();
+  base.classed('svg-loading', false);
+});
+
+/***/ }),
+
+/***/ "./js-src/charts/indicator-timeseries.js":
+/*!***********************************************!*\
+  !*** ./js-src/charts/indicator-timeseries.js ***!
+  \***********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! d3 */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/d3/d3.js");
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lodash */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/lodash/lodash.js");
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/utils */ "./js-src/utils/utils.js");
+/* harmony import */ var _utils_chart_setup__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utils/chart-setup */ "./js-src/utils/chart-setup.js");
+/* harmony import */ var _utils_formatting__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/formatting */ "./js-src/utils/formatting.js");
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
+/**
+ * Time series used on an indicator
+ *
+ **/
+
+
+
+
+
+var yearFormat = d3__WEBPACK_IMPORTED_MODULE_0___default.a.time.format('%Y').parse;
+var transforms = ["absolute", "indexed", "percapita"];
+var x = d3__WEBPACK_IMPORTED_MODULE_0___default.a.time.scale();
+var y = d3__WEBPACK_IMPORTED_MODULE_0___default.a.scale.linear();
+var clipHeight = 393;
+var clipWidth = 363;
+var margin = {
+  top: 40,
+  right: 40,
+  bottom: 40,
+  left: 80
+};
+var line = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.line().x(function (d, i) {
+  return x(d.date);
+}).y(function (d) {
+  return y(d.v);
+});
+
+function findAreaBounds(areas, target) {
+  var limits = [];
+
+  for (var i = 0; i < areas.length; i++) {
+    var area = areas[i];
+
+    if (target === area.name) {
+      var vals = area.values.map(function (a) {
+        return a.v;
+      });
+      return [Math.min.apply(Math, _toConsumableArray(vals)), Math.max.apply(Math, _toConsumableArray(vals))];
+    }
+  }
+
+  return limits;
+}
+
+var toBool = function toBool(val) {
+  switch (val) {
+    case "true":
+      return true;
+
+    case "false":
+      return false;
+  }
+
+  return null;
+}; // data: [{year, rawNum, indexNum, headlineDisp, indexDisp}]
+// @params: (data, current year, current indicator, transform, current area, current area type, chart ID)
+
+
+/* harmony default export */ __webpack_exports__["default"] = (function (element, params) {
+  var setup = Object(_utils_chart_setup__WEBPACK_IMPORTED_MODULE_3__["default"])(element, params, margin, 'default-timeseries');
+
+  if (setup === null) {
+    return;
+  }
+
+  var cache = window.MBIECacheStorage,
+      toCache = {},
+      data = setup.data,
+      year = setup.year,
+      indicator = setup.indicator,
+      transform = setup.transform,
+      area = setup.area,
+      areaLevel = setup.areaLevel,
+      feature = setup.feature,
+      chartData = setup.chartData,
+      chartCaption = setup.chartCaption,
+      svg = setup.svg,
+      base = setup.base,
+      width = setup.width,
+      height = setup.height,
+      zoom = setup.zoom; // current data...
+
+  var currentYear = svg.attr('data-year'),
+      currentIndicator = svg.attr('data-indicator'),
+      currentArea = svg.attr('data-area'),
+      currentTransform = svg.attr('data-transform'),
+      currentLevel = svg.attr('data-level');
+  var legendDiv = d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(element.parentNode).select('.legend');
+  var legendWidth = window.innerWidth < 350 ? 320 : 420;
+  var legendHeight = 50;
+  var tooltipElem = d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(element.parentNode).select(".tooltip"); /// Setup
+
+  x.range([0, width]);
+  y.range([height, 0]);
+  var voronoi = d3__WEBPACK_IMPORTED_MODULE_0___default.a.geom.voronoi().x(function (d) {
+    return x(d.date);
+  }).y(function (d) {
+    return y(d.v);
+  }).clipExtent([[-margin.left, -margin.top], [width + margin.right, height + margin.bottom]]); /// Update
+
+  svg.selectAll('g').remove();
+  var g = svg.selectAll('g').data([data]),
+      gEnter = svg.select('.g-enter');
+
+  if (gEnter.empty()) {
+    gEnter = g.enter().append("g").attr('class', 'g-enter');
+  }
+
+  gEnter.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  var years = []; // if (!_.hasIn(cache.get(indicator), "years")) {
+
+  years = lodash__WEBPACK_IMPORTED_MODULE_1___default.a.uniq(lodash__WEBPACK_IMPORTED_MODULE_1___default.a.reduce(data, function (result, value, key) {
+    return lodash__WEBPACK_IMPORTED_MODULE_1___default.a.reduce(value[1], function (res, v, k) {
+      res.push(v[0]);
+      return res;
+    }, result);
+  }, [])).sort(function (a, b) {
+    return d3__WEBPACK_IMPORTED_MODULE_0___default.a.ascending(a, b);
+  }).map(function (y) {
+    return yearFormat(y.toString());
+  });
+  toCache.years = years; // } else {
+  //     years = cache.get(indicator).years;
+  // }
+
+  var areaKey = area + '-' + areaLevel + '-' + transform;
+  var areas = []; // if (!_.hasIn(cache.get(indicator), area) || (
+  //     _.hasIn(cache.get(indicator), area) &&
+  //     !_.hasIn(cache.get(indicator.area), areaKey)
+  // )) {
+
+  var transformPos = transforms.indexOf(transform);
+  var pos = transformPos === -1 ? 1 : transformPos + 1;
+  var dispPos = transformPos === -1 ? 3 : transformPos + 3;
+  areas = data.map(function (a) {
+    var area = {
+      slug: a[0][0],
+      name: a[0][1],
+      level: a[0][2],
+      dsArea: a[0],
+      feature: lodash__WEBPACK_IMPORTED_MODULE_1___default.a.last(a[0]),
+      values: a[1].map(function (y) {
+        var out = {};
+        out.date = yearFormat(y[0].toString());
+        out.v = Number(y[pos]);
+        out.d = y[dispPos];
+        return out;
+      }).filter(function (d) {
+        return d.v !== null;
+      })
+    }; // Used on mouse events on voroni
+
+    area.values.forEach(function (o) {
+      o.area = area;
+    });
+    return area;
+  }).filter(function (a) {
+    var valid = lodash__WEBPACK_IMPORTED_MODULE_1___default.a.indexOf([area, 'New Zealand'], a.name) !== -1; // switch (a.name) {
+    //     //   case compareAreaName:
+    //     //       valid = true;
+    //     //       break;
+    //     case area:
+    //         valid = true;
+    //         break;
+    //     case 'New Zealand':
+    //         valid = true;
+    //         break;
+    //     default:
+    //         break;
+    // }
+    // If there is a feature, this is only valid iff the node's feature
+    // is the same as the URL.
+
+    if (feature !== null) {
+      return a.level === areaLevel && feature === a.feature || a.name === 'New Zealand' && feature === a.feature;
+    }
+
+    return a.level === areaLevel || valid;
+  });
+  toCache[String(areaKey)] = areas; // } else {
+  //     areas = cache.get(indicator).areas[areaKey];
+  // }
+
+  var xExtent = d3__WEBPACK_IMPORTED_MODULE_0___default.a.extent(years);
+  x.domain(xExtent);
+  var yExtent = d3__WEBPACK_IMPORTED_MODULE_0___default.a.extent(d3__WEBPACK_IMPORTED_MODULE_0___default.a.merge(areas.map(function (a) {
+    return a.values.map(function (d) {
+      return d.v;
+    });
+  }))); // TODO: activate when we have zoom
+
+  var bool = toBool(zoom);
+
+  if (!lodash__WEBPACK_IMPORTED_MODULE_1___default.a.isNull(bool) && bool) {
+    var areaVals = findAreaBounds(areas, area); //     if (typeof compareAreaName != 'undefined') {
+    //         let compareVals = findAreaBounds(areas, compareAreaName);
+    //         yExtent = [Math.min(...[areaVals[0], compareVals[0]])
+    //             , Math.max(...[areaVals[1], compareVals[1]])];
+    //     } else {
+    //         yExtent = areaVals;
+    //     }
+
+    yExtent = areaVals;
+    var diff = Math.abs(yExtent[1] - yExtent[0]);
+    yExtent[0] -= .1 * diff;
+    yExtent[1] += .1 * diff;
+  }
+
+  y.domain(yExtent).nice();
+  var tickFreq = Math.trunc(years.length / 9) + 1,
+      ticks = years.filter(function (t, i) {
+    return i % tickFreq === 0;
+  });
+
+  if (window.innerWidth < 600) {
+    ticks = d3__WEBPACK_IMPORTED_MODULE_0___default.a.extent(years);
+  }
+  /*
+   * Generate the vertical line for the selected year.
+   * */
+
+
+  var xAxisYears = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.axis().scale(x).tickValues(years).orient("bottom");
+  var xAxisHidden = gEnter.select('.axis--x--hidden');
+
+  if (xAxisHidden.empty()) {
+    xAxisHidden = gEnter.append("g").attr("class", "axis axis--x-hidden").attr("transform", "translate(0," + height + ")");
+  }
+
+  xAxisHidden.call(xAxisYears);
+  var allTicks = svg.call(xAxisYears).selectAll(".tick"),
+      lineXpos = 0;
+  allTicks.each(function (data, i) {
+    var tick = d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(this),
+        date = new Date(data),
+        fullYear = date.getFullYear(),
+        targetYear = parseInt(year),
+        transform = d3__WEBPACK_IMPORTED_MODULE_0___default.a.transform(tick.attr("transform")).translate;
+
+    if (targetYear === fullYear) {
+      lineXpos = transform[0];
+    }
+  });
+
+  if (lineXpos <= 0) {
+    lineXpos = 1;
+  }
+
+  var yearLine = gEnter.select(".year-line");
+
+  if (yearLine.empty()) {
+    yearLine = gEnter.append('line');
+  }
+
+  yearLine.transition().duration(500).attr("x1", lineXpos).attr("y1", 0).attr("x2", lineXpos).attr("y2", clipHeight).attr("stroke-width", 1).attr("stroke", "rgba(0,0,0,.5)").attr("z", 100).attr("class", "year-line");
+  /*
+   * End year line generation.
+   * */
+
+  var xAxis = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.axis().scale(x).tickValues(ticks).orient("bottom");
+  var xAxisReal = gEnter.select('.axis--x');
+
+  if (xAxisReal.empty()) {
+    xAxisReal = gEnter.append("g").attr("class", "axis axis--x").attr("transform", "translate(0," + height + ")").attr("z", 100);
+  }
+
+  xAxisReal.call(xAxis).append("text").attr("class", "caption").attr("y", 5).attr("x", width + 10).text("Year"); // TODO: formatting
+
+  gEnter.append("g").attr("class", "axis axis--y").call(d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.axis().scale(y).orient("left").ticks(10).tickFormat(function (d) {
+    if (chartData.length === 0) {
+      return d;
+    }
+
+    var trans = lodash__WEBPACK_IMPORTED_MODULE_1___default.a.filter(chartData.chartTransforms, function (i) {
+      return i.transformName === transform;
+    });
+
+    var formatter = null;
+
+    if (trans.length > 0) {
+      formatter = trans[0].transformFormatter;
+    }
+
+    return Object(_utils_formatting__WEBPACK_IMPORTED_MODULE_4__["default"])(formatter, d);
+  })).append("text").attr("class", "caption title").attr("y", -30).attr("x", 0).text(chartCaption);
+  svg.append("clipPath").attr("id", "clipper").append("rect").attr("x", 0).attr("y", 0).attr("width", clipWidth).attr("height", clipHeight);
+  svg.selectAll(".axis--x g.tick text").attr("data-bailiwick-year", function (d) {
+    return new Date(d).getFullYear();
+  }); // .on("click", function (d) {
+  //     d3.event.preventDefault();
+  //     var year = (new Date(d)).getFullYear();
+  //     console.log('year clicked', year, this);
+  // });
+
+  var path = gEnter.select('.areas').selectAll("path");
+
+  if (path.empty()) {
+    path = gEnter.append("g").attr("class", "areas").selectAll("path");
+  }
+
+  path = path.data(areas);
+  path.enter().append("path");
+  path.attr("d", function (d) {
+    d.line = this;
+    return line(d.values);
+  }); // Data has not actually changed - no path is empty
+  // but need need to update highlighing so grab everything.
+
+  g.selectAll('g.areas').selectAll('path').attr("class", function (d) {
+    var classNames = {
+      'New Zealand': 'new-zealand',
+      'default': 'no-highlight'
+    };
+    classNames[area] = 'current-area';
+    return (lodash__WEBPACK_IMPORTED_MODULE_1___default.a.hasIn(classNames, d.name) ? classNames[d.name] : classNames['default']) + ' area'; // } else if (d.name === compareAreaName) {
+    //     return "compare-area";
+    // } else if (d.name === hover) {
+    //     return "area--hover";
+  }).attr("clip-path", "url(#clipper)");
+  var focusElemEnter = gEnter.append("g").attr("transform", "translate(-100,-100)").attr("class", "focus");
+  focusElemEnter.append("circle").attr("r", 3.5);
+  focusElemEnter.append("text").attr("y", -10);
+  var focusElem = g.selectAll('g.focus');
+  var voronoiGroup = gEnter.append("g").attr("class", "voronoi").attr("clip-path", "url(#clipper)");
+  var vg = voronoiGroup.selectAll("path").data(voronoi(d3__WEBPACK_IMPORTED_MODULE_0___default.a.nest().key(function (d) {
+    return x(d.date) + "," + y(d.v);
+  }).rollup(function (v) {
+    return v[0];
+  }).entries(d3__WEBPACK_IMPORTED_MODULE_0___default.a.merge(areas.map(function (d) {
+    return d.values;
+  }))).map(function (d, i) {
+    return d.values;
+  }))).enter().append("path").attr("d", function (d) {
+    return !Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["present"])(d) ? "M" + d.join("L") + "Z" : "";
+  }).attr("data-bailiwick-year", function (d) {
+    return !Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["present"])(d) ? new Date(d['point'].date).getFullYear() : "";
+  }).attr("data-bailiwick-area", function (d) {
+    return !Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["present"])(d) ? d['point'].area.slug : "";
+  }).datum(function (d) {
+    return !Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["present"])(d) ? d.point : null;
+  }).on("click", function (d) {
+    var year = new Date(d.date).getFullYear(),
+        area = d.area.slug; // console.log(year, d);
+    // console.log(d3.event)
+    // let filter = _this.get('bailiwick.indicator').get('years').filter(function (y) {
+    //     return y.get('name') === d[0];
+    // });
+    // if (filter.length === 1) {
+    //     _this.set('bailiwick.year', filter[0]);
+    // }
+    // _this.transitionTo({ 'year': filter[0], 'area': d.area.dsArea });
+  });
+
+  if (!Modernizr.touch) {
+    vg.on('mouseover', function mouseover(d, i) {
+      if (Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["none"])(d.area)) {
+        return;
+      }
+
+      var xPos = x(d.date),
+          yPos = y(d.v);
+      d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(d.area.line).classed("area--hover", true);
+      d.area.line.parentNode.appendChild(d.area.line);
+      focusElem.attr("transform", "translate(" + xPos + "," + yPos + ")").style("visibility", "visible");
+      tooltipElem.style("top", yPos - 90 + "px").style("left", xPos + "px").style("visibility", "inherit");
+      var tooltipData = [d.area.name, d.d, d.date.getFullYear()],
+          tooltip = tooltipElem.selectAll('p').data(tooltipData),
+          tooltipEnter = tooltip.enter().append('p');
+      tooltip.html(function (d) {
+        return d;
+      }).classed("number", function (d, i) {
+        return i === 1;
+      }).classed("local", function (d, i) {
+        return i !== 0;
+      }).classed("extra", function (d, i) {
+        return i > 1;
+      });
+      tooltip.exit().remove();
+    });
+    vg.on('mouseout', function (d) {
+      if (Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["none"])(d.area)) {
+        return;
+      }
+
+      d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(d.area.line).classed("area--hover", false);
+      focusElem.attr("transform", "translate(-100,-100)").style("visibility", "hidden");
+      tooltipElem.style("visibility", "hidden");
+    });
+  } // update data attributes.
+
+
+  svg.attr('data-year', year).attr('data-area', area).attr('data-transform', transform).attr('data-level', areaLevel).attr('data-indicator', indicator); // ----
+  // Only update the legend if the area has changed.
+  // ----
+
+  if (currentArea === area) {
+    base.classed('svg-loading', false);
+    return false;
+  }
+
+  var legendClasses = ["active", "other"];
+  var legendLabels = ["New Zealand", "Other"];
+
+  if (area !== "New Zealand") {
+    legendLabels.push(area);
+    legendClasses = ["nz", "other", "active"];
+  } // if (present(compareAreaName) && compareAreaName !== "New Zealand" && compareAreaName !== areaName) {
+  //     legendLabels.push(compareAreaName);
+  //     legendClasses.push('compare');
+  // }
+
+
+  var legendData = d3__WEBPACK_IMPORTED_MODULE_0___default.a.zip(legendLabels, legendClasses);
+  var legend = legendDiv.selectAll("svg").data([legendData]);
+  var legendEnter = legend.enter().append("svg");
+  legend.attr("width", legendWidth).attr("height", legendHeight);
+  var legendG = legend.selectAll("g.key").data([legendData]);
+  var legendGEnter = legendG.enter().append("g").attr("class", "key");
+  legendG.attr("transform", "translate(" + (window.innerWidth < 350 ? 20 : margin.left) + "," + legendHeight / 3 + ")");
+  var legendRects = legendG.selectAll("rect").data(legendData);
+  var legendRectsEnter = legendRects.enter().append("rect").attr("height", 8).attr("width", 55);
+  legendRects.attr("x", function (d, i) {
+    return Math.floor(i / 2) * 140;
+  }).attr("y", function (d, i) {
+    return i % 2 * 20;
+  }).attr("class", function (d) {
+    return d[1];
+  });
+  legendRects.exit().remove();
+  var legendTexts = legendG.selectAll("text").data(legendData);
+  var legendTextsEnter = legendTexts.enter().append("text").attr("dx", "65px").attr("dy", "0.7em");
+  legendTexts.attr("x", function (d, i) {
+    return Math.floor(i / 2) * 140;
+  }).attr("y", function (d, i) {
+    return i % 2 * 20;
+  }).text(function (d) {
+    return d[0];
+  });
+  legendTexts.exit().remove(); /// Update cache if necessary
+
+  if (!lodash__WEBPACK_IMPORTED_MODULE_1___default.a.isEmpty(toCache)) {
+    var cachedIndicator = cache.get(indicator); // 1. Years
+
+    if (!lodash__WEBPACK_IMPORTED_MODULE_1___default.a.hasIn(cachedIndicator, "years") && lodash__WEBPACK_IMPORTED_MODULE_1___default.a.hasIn(toCache, "years")) {
+      cachedIndicator.years = toCache.years;
+    } // 2. Areas
+
+
+    if (lodash__WEBPACK_IMPORTED_MODULE_1___default.a.hasIn(toCache, areaKey)) {
+      var areasToCache = {};
+
+      if (lodash__WEBPACK_IMPORTED_MODULE_1___default.a.hasIn(cachedIndicator, "areas")) {
+        areasToCache = cachedIndicator.areas;
+      }
+
+      areasToCache[areaKey] = toCache[areaKey];
+      cachedIndicator.areas = areasToCache;
+    }
+  }
+
+  base.classed('svg-loading', false);
+});
+
+/***/ }),
+
+/***/ "./js-src/charts/map-legend.js":
+/*!*************************************!*\
+  !*** ./js-src/charts/map-legend.js ***!
+  \*************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lodash */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/lodash/lodash.js");
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var chroma_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! chroma-js */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/chroma-js/chroma.js");
+/* harmony import */ var chroma_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(chroma_js__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! d3 */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/d3/d3.js");
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var rgb_hex__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! rgb-hex */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/rgb-hex/index.js");
+/* harmony import */ var rgb_hex__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(rgb_hex__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _utils_formatting__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/formatting */ "./js-src/utils/formatting.js");
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../utils/utils */ "./js-src/utils/utils.js");
+
+
+
+
+
+
+
+function positiveScale(colours, min, max) {
+  if (lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(colours)) {
+    return null;
+  }
+
+  var startColour = colours['background-rear-positive-light'],
+      endColour = colours['background-rear-positive'];
+  var scale = chroma_js__WEBPACK_IMPORTED_MODULE_1___default.a.scale([rgb_hex__WEBPACK_IMPORTED_MODULE_3___default()(startColour), rgb_hex__WEBPACK_IMPORTED_MODULE_3___default()(endColour)]);
+  var sf = scale.domain([min, max]);
+  return function (val) {
+    return sf(Number(val));
+  };
+}
+/*
+ * Generates Map legend based on supplied width, height & scale data
+ * */
+
+
+/* harmony default export */ __webpack_exports__["default"] = (function (args, chart) {
+  var steps = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 100;
+
+  if (lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(chart)) {
+    return;
+  }
+
+  var height = Number(args.height),
+      width = Number(args.width),
+      maximum = Number(args.max),
+      minimum = Number(args.min),
+      caption = args.label,
+      transform = args.transform;
+
+  if (!lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(caption)) {
+    caption = caption[0].toUpperCase() + caption.slice(1);
+  }
+
+  var base = d3__WEBPACK_IMPORTED_MODULE_2___default.a.select(".indicator-map-legend"),
+      svg = base.select('svg').empty() ? base.append('svg') : base.select('svg'),
+      colours = Object(_utils_utils__WEBPACK_IMPORTED_MODULE_5__["getColours"])(),
+      positive = positiveScale(colours, minimum, maximum);
+  var vals = d3__WEBPACK_IMPORTED_MODULE_2___default.a.values([minimum, maximum]);
+  var extent = d3__WEBPACK_IMPORTED_MODULE_2___default.a.extent(vals);
+  var widthRange = window.innerWidth > 460 ? 380 : window.innerWidth - 120; // A position encoding for the key only.
+
+  var x = d3__WEBPACK_IMPORTED_MODULE_2___default.a.scale.linear().domain(extent).range([0, widthRange]);
+  var thresholdBase = x.ticks(7);
+  var xaxisscale = d3__WEBPACK_IMPORTED_MODULE_2___default.a.scale.linear().domain([lodash__WEBPACK_IMPORTED_MODULE_0___default.a.first(thresholdBase), lodash__WEBPACK_IMPORTED_MODULE_0___default.a.last(thresholdBase)]).range([0, widthRange]);
+  var xAxis = d3__WEBPACK_IMPORTED_MODULE_2___default.a.svg.axis().scale(xaxisscale).ticks(7).orient("bottom").tickSize(13).tickFormat(function (d) {
+    var trans = lodash__WEBPACK_IMPORTED_MODULE_0___default.a.filter(chart.chartTransforms, function (i) {
+      return i.transformName === transform;
+    });
+
+    var formatter = null;
+
+    if (trans.length > 0) {
+      formatter = trans[0].transformFormatter;
+    }
+
+    return Object(_utils_formatting__WEBPACK_IMPORTED_MODULE_4__["default"])(formatter, d);
+  });
+  svg.empty();
+  svg.data([1]).attr("width", width).attr("height", height);
+  var step = (width - 100) / steps;
+  var sd = Array.from(Array(steps).keys(), function (i) {
+    return [i * step];
+  });
+  svg.selectAll('g').remove();
+  var g = svg.selectAll("g").data([sd]).enter().append("g").attr("class", "key").attr("transform", "translate(50," + height * 1 / 3 + ")");
+  var legend = g.selectAll("rect").data(sd).enter().append("rect").attr("height", 8).attr("x", function (d) {
+    return d[0] % innerWidth;
+  }).attr("width", step).style("fill", function (d, i) {
+    return positive(x.invert(d[0]));
+  }).style("stroke", function (d) {
+    return positive(x.invert(d[0]));
+  });
+  g.selectAll(".caption").remove();
+  var xa = g.call(xAxis);
+  xa.append("text").attr("class", "caption").attr("y", -6).text(caption);
+  return positive;
+});
+
+/***/ }),
+
+/***/ "./js-src/charts/summary-timeseries.js":
+/*!*********************************************!*\
+  !*** ./js-src/charts/summary-timeseries.js ***!
+  \*********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! d3 */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/d3/d3.js");
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_0__);
+
+/* harmony default export */ __webpack_exports__["default"] = (function (element, labelledData, activeLabelName) {
+  var base = d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(element).select('.d3-attach'),
+      svg = base.select('svg').empty() ? base.append('svg') : base.select('svg'),
+      yearFormat = d3__WEBPACK_IMPORTED_MODULE_0___default.a.time.format('%Y').parse,
+      margin = {
+    top: 15,
+    right: 0,
+    bottom: 30,
+    left: 48
+  },
+      baseW = 225,
+      baseH = 120,
+      width = baseW - margin.left - margin.right,
+      height = baseH - margin.top - margin.bottom;
+  svg.attr('width', baseW);
+  svg.attr('height', baseH);
+  var data = labelledData.map(function (d) {
+    return d[1];
+  });
+  var x = d3__WEBPACK_IMPORTED_MODULE_0___default.a.time.scale().range([0, width]);
+  var y = d3__WEBPACK_IMPORTED_MODULE_0___default.a.scale.linear().range([height, 0]);
+  var xAxis = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.axis().scale(x).ticks(5).innerTickSize(3).outerTickSize(0).tickFormat(function (t) {
+    return t.getFullYear().toString().replace(/^20/, "'");
+  }).orient("bottom");
+  var yAxis = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.axis().scale(y).ticks([4]).outerTickSize(0).innerTickSize(-width).tickFormat(function (t) {
+    return '$' + t / 1000 + ' k';
+  }).orient("left");
+  var line = d3__WEBPACK_IMPORTED_MODULE_0___default.a.svg.line().x(function (d) {
+    return x(yearFormat(d[0].toString()));
+  }).y(function (d) {
+    return y(d[1]);
+  });
+  var g = svg.selectAll('g').data([data]);
+  var gEnter = g.enter().append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  var yMax = Math.ceil(d3__WEBPACK_IMPORTED_MODULE_0___default.a.max(d3__WEBPACK_IMPORTED_MODULE_0___default.a.merge(data), function (d) {
+    return d[1];
+  }) / 100000) * 100000;
+  x.domain(d3__WEBPACK_IMPORTED_MODULE_0___default.a.extent(data[0], function (d) {
+    return yearFormat(d[0].toString());
+  }));
+  y.domain([0, yMax]);
+  gEnter.append("g").attr("class", "x axis").attr("transform", "translate(0," + height + ")").append("text").attr("x", 50).attr("dy", "2.5em").text("Year");
+  g.selectAll("g.x").call(xAxis);
+  gEnter.append("g").attr("class", "y axis").attr("transform", "translate(-7,0)");
+  g.selectAll("g.y").call(yAxis);
+  var linePlot = g.selectAll("path.line").data(labelledData);
+  linePlot.enter().append("path");
+  linePlot.attr("d", function (d) {
+    return line(d[1]);
+  }).attr("class", function (d, i) {
+    if (activeLabelName === d[0]) {
+      return "line active";
+    }
+
+    return "line";
+  });
+  linePlot.exit().remove();
+});
+
+/***/ }),
+
+/***/ "./js-src/index.js":
+/*!*************************!*\
+  !*** ./js-src/index.js ***!
+  \*************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* WEBPACK VAR INJECTION */(function(global) {/* harmony import */ var _cache_cache_store__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./cache/cache-store */ "./js-src/cache/cache-store.js");
+/* harmony import */ var _charts_indicator_timeseries__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./charts/indicator-timeseries */ "./js-src/charts/indicator-timeseries.js");
+/* harmony import */ var _charts_map_legend__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./charts/map-legend */ "./js-src/charts/map-legend.js");
+/* harmony import */ var _charts_summary_timeseries__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./charts/summary-timeseries */ "./js-src/charts/summary-timeseries.js");
+/* harmony import */ var _charts_indicator_barchart__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./charts/indicator-barchart */ "./js-src/charts/indicator-barchart.js");
+/* harmony import */ var _charts_indicator_over_under_barchart__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./charts/indicator-over-under-barchart */ "./js-src/charts/indicator-over-under-barchart.js");
+/* harmony import */ var _charts_indicator_area_treemap__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./charts/indicator-area-treemap */ "./js-src/charts/indicator-area-treemap.js");
+/* ///
+ * Global Imports
+ * /// */
+
+global.MBIECacheStorage = _cache_cache_store__WEBPACK_IMPORTED_MODULE_0__["default"].getInstance();
+
+
+
+
+
+
+/* 
+ * Reflex functions
+ * ----------------:
+ * Any functions that need to interact with Reflex must be made global.
+ */
+
+global.updateIndicatorTimeSeries = _charts_indicator_timeseries__WEBPACK_IMPORTED_MODULE_1__["default"];
+global.updateMapLegend = _charts_map_legend__WEBPACK_IMPORTED_MODULE_2__["default"];
+global.updateTimeSeries = _charts_summary_timeseries__WEBPACK_IMPORTED_MODULE_3__["default"];
+global.updateAreaBarchart = _charts_indicator_barchart__WEBPACK_IMPORTED_MODULE_4__["default"];
+global.overUnderBarchart = _charts_indicator_over_under_barchart__WEBPACK_IMPORTED_MODULE_5__["default"];
+global.areaTreeMap = _charts_indicator_area_treemap__WEBPACK_IMPORTED_MODULE_6__["default"];
+/* harmony default export */ __webpack_exports__["default"] = (global);
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/webpack/buildin/global.js */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/webpack/buildin/global.js")))
+
+/***/ }),
+
+/***/ "./js-src/utils/chart-setup.js":
+/*!*************************************!*\
+  !*** ./js-src/utils/chart-setup.js ***!
+  \*************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! d3 */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/d3/d3.js");
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lodash */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/lodash/lodash.js");
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/utils */ "./js-src/utils/utils.js");
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (function (element, params, margin, chartType) {
+  var base = d3__WEBPACK_IMPORTED_MODULE_0___default.a.select(element),
+      svg = null,
+      width = parseInt(base.style("width")) - margin.left - margin.right,
+      height = parseInt(base.style("height")) - margin.top - margin.bottom,
+      data = params[0],
+      chartInnerClasses = {
+    'default-timeseries': false,
+    'basic-barchart': false,
+    'area-treemap': false,
+    'overunder-barchart': false
+  };
+  chartInnerClasses = lodash__WEBPACK_IMPORTED_MODULE_1___default.a.forEach(chartInnerClasses, function (value, key) {
+    chartInnerClasses[key] = key === chartType;
+  });
+  svg = base.select('svg');
+  base.classed('svg-loading', true);
+
+  if (d3__WEBPACK_IMPORTED_MODULE_0___default.a.select('.chart-inner').empty() || !d3__WEBPACK_IMPORTED_MODULE_0___default.a.select('.chart-inner').empty() && !d3__WEBPACK_IMPORTED_MODULE_0___default.a.select('.chart-inner').classed(chartType)) {
+    base.select('svg').remove();
+    svg = base.append('svg');
+  } // set chart specific classes.
+
+
+  d3__WEBPACK_IMPORTED_MODULE_0___default.a.select('.chart-inner').classed(chartInnerClasses);
+  svg.attr("preserveAspectRatio", "xMinYMin meet"); // svg.attr("viewBox", "0 0 481 474");
+
+  if (Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["isEmpty"])(data) || isNaN(width) || isNaN(height)) {
+    return null;
+  }
+
+  var year = params[1];
+  var indicator = params[2].indicatorId;
+  var transform = params[2].transform;
+  var area = params[2].areaname;
+  var areaLevel = params[2].areatype;
+  var feature = params[2].featureId;
+  var zoom = params[2].zoom;
+  var features = params[3];
+  var chartData = params[4];
+  var chartCaption = params[5];
+  var cache = window.MBIECacheStorage;
+  var areas = params[6]; /// Cached data
+
+  if (Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["isEmpty"])(cache.get(indicator))) {
+    cache.put(indicator, {});
+  }
+
+  if (!Object(_utils_utils__WEBPACK_IMPORTED_MODULE_2__["isEmpty"])(features)) {
+    var feats = {};
+
+    lodash__WEBPACK_IMPORTED_MODULE_1___default.a.forEach(features, function (f, i) {
+      feats[f[0]] = f[1];
+    });
+
+    features = feats;
+  }
+
+  if (!lodash__WEBPACK_IMPORTED_MODULE_1___default.a.isEmpty(chartCaption)) {
+    chartCaption = chartCaption[0].toUpperCase() + chartCaption.slice(1);
+  }
+
+  return {
+    data: data,
+    year: year,
+    indicator: indicator,
+    transform: transform,
+    area: area,
+    areas: areas,
+    areaLevel: areaLevel,
+    feature: feature,
+    features: features,
+    chartData: chartData,
+    chartCaption: chartCaption,
+    svg: svg,
+    base: base,
+    width: width,
+    height: height,
+    zoom: zoom
+  };
+});
+
+/***/ }),
+
+/***/ "./js-src/utils/formatting.js":
+/*!************************************!*\
+  !*** ./js-src/utils/formatting.js ***!
+  \************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return formatting; });
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! d3 */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/d3/d3.js");
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(d3__WEBPACK_IMPORTED_MODULE_0__);
+
+
+var commasFormatter = function commasFormatter(value) {
+  var f = "" + value;
+
+  if (f.length > 4) {
+    var val = d3__WEBPACK_IMPORTED_MODULE_0___default.a.format('.1r')(value);
+
+    if (val.charAt(1) === '0') {
+      return d3__WEBPACK_IMPORTED_MODULE_0___default.a.format('.1s')(val);
+    }
+
+    return d3__WEBPACK_IMPORTED_MODULE_0___default.a.format('.2s')(val);
+  }
+
+  return d3__WEBPACK_IMPORTED_MODULE_0___default.a.format('n')(value);
+};
+
+var moneyFormatter = d3__WEBPACK_IMPORTED_MODULE_0___default.a.format(',g');
+
+var percentageFormatter = function percentageFormatter(value) {
+  var _int = parseInt(value);
+
+  if (_int < 10) {
+    return d3__WEBPACK_IMPORTED_MODULE_0___default.a.format('.1r')(value);
+  }
+
+  return d3__WEBPACK_IMPORTED_MODULE_0___default.a.format('.2r')(value);
+};
+
+function formatting(units, value) {
+  switch (units) {
+    case "million dollars":
+      return moneyFormatter(value) + " M";
+
+    case "dollars":
+      return moneyFormatter(value);
+
+    case "percentage":
+      return percentageFormatter(value) + " %";
+  }
+
+  return commasFormatter(value);
+}
+
+/***/ }),
+
+/***/ "./js-src/utils/utils.js":
+/*!*******************************!*\
+  !*** ./js-src/utils/utils.js ***!
+  \*******************************/
+/*! exports provided: computeTicks, none, isEmpty, present, getColours */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "computeTicks", function() { return computeTicks; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "none", function() { return none; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isEmpty", function() { return isEmpty; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "present", function() { return present; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getColours", function() { return getColours; });
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lodash */ "../../../../nix/store/haxn5p8m3xc50g1y9xws11nm2gz90d72-node-dependencies-bailiwick-ui-1.0.0/lib/node_modules/lodash/lodash.js");
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_0__);
+
+/* 
+ * computeTicks:
+ * -------------
+ * @param extent - d3 extent
+ * @return array of ticks.
+ * 
+ * Given a d3 extent, will work out the ticks for a domain.
+ */
+
+var computeTicks = function computeTicks(extent) {
+  var nice = d3.scale.linear().domain(extent).nice().ticks();
+
+  if (nice.length < 9) {
+    return nice;
+  } // else if (nice.length % 2 === 0) {
+  //     let diff = nice[nice.length - 1] - nice[nice.length - 2];
+  //     nice.push(nice[nice.length - 1] + diff);
+  // }
+
+
+  return nice.filter(function (d, i) {
+    return i % 2 === 0;
+  });
+};
+/*
+ * getColours:
+ * -----------
+ * looks for elements in the page with a class of "colour" & builds 
+ * a map of colournames -> hex.
+ */
+
+
+var getColours = function getColours() {
+  var output = {};
+  var colours = document.getElementsByClassName("colour-palette");
+
+  if (colours.length === 0) {
+    return output;
+  }
+
+  var children = document.getElementsByClassName("colour");
+
+  if (children.length === 0) {
+    return output;
+  }
+
+  lodash__WEBPACK_IMPORTED_MODULE_0___default.a.each(children, function (value, i) {
+    var classNames = value.className,
+        el = document.getElementsByClassName(classNames),
+        bg = window.getComputedStyle(el[0], null).getPropertyValue('background-color');
+    output[classNames.split(' ')[0]] = bg;
+  });
+
+  return output; // .each(function(i, el) {
+  //     console.log(i, el)
+  //     // let classNames = $(el).attr('class');
+  //     // self.set(classNames.split(' ')[0], $(el).css('background-color'));
+  // });
+};
+/*
+ * General util functions. 
+ */
+
+
+var none = function none(obj) {
+  return obj === null || obj === undefined;
+},
+    isEmpty = function isEmpty(obj) {
+  return lodash__WEBPACK_IMPORTED_MODULE_0___default.a.isEmpty(obj);
+},
+    present = function present(obj) {
+  return isEmpty(obj) || typeof obj === 'string' && /\S/.test(obj) === false;
+};
+
 
 
 /***/ })

@@ -35,6 +35,14 @@ Now you open your browser at http://localhost:3701
 
 Note, you also need to add a `127.0.0.1 jsaddle.locahost` to your `/etc/hosts` file
 
+## Setting up the d3 based javascript in development mode
+
+```bash
+$ nix-shell javascript -A shell
+[nix-shell:bailiwick-ui]$ ln -sf $NODE_PATH
+[nix-shell:bailiwick-ui]$ npm run develop
+```
+
 
 ## Building docker image for gorbachev
 
