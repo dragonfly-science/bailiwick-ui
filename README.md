@@ -38,7 +38,7 @@ Note, you also need to add a `127.0.0.1 jsaddle.locahost` to your `/etc/hosts` f
 ## Setting up the d3 based javascript in development mode
 
 ```bash
-$ nix-shell javascript -A shell
+$ nix-shell javascript.nix -A shell
 [nix-shell:bailiwick-ui]$ ln -sf $NODE_PATH
 [nix-shell:bailiwick-ui]$ npm run develop
 ```
