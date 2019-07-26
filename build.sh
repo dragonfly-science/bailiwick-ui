@@ -3,7 +3,7 @@
 set -ex
 
 ## Make the d3, non-reflex javascript
-nix-build javascript.nix -A build
+nix-build javascript.nix -A package
 
 ## make the javascript executible
 nix-build deploy.nix
