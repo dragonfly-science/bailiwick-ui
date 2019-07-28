@@ -31,6 +31,7 @@ import Bailiwick.State
 import Bailiwick.Route
 import Bailiwick.Types
 import Bailiwick.View.Header (header)
+import Bailiwick.View.ExportMenu (exportMenu)
 import Bailiwick.View.Map
 import Bailiwick.View.MapLegend
 import Bailiwick.View.AreaSummary (areaSummary, AreaSummaryState)
@@ -108,18 +109,18 @@ view st@State{..} = do
   elDynAttr "div" (("class" =:) <$>
          ((<>) <$> (wholeBodyClass <$> routeD)
                <*> (bool "" " fixed" . isJust <$> marginTopD))) $ mdo
-    (headerE, isOpen)
+    (headerE, isOpen, modalE)
       <- divClass "main-header-area" $
             elDynClass "header" (mainHeaderClass <$> isOpen <*> routeD) $ do
-              navBarE <- navbar
+              (navBarE, modalE') <- navbar
               headerE' <- header (makeHeaderState st)
               (toolBarE, isOpen') <- mdo
                   eithersE <- toolBar isOpen (makeToolBarState st)
                   let (isOpenE, toolBarE) = fanEither eithersE
                   isOpen <- foldDyn (const not) False $ isOpenE
                   return (toolBarE, isOpen)
-              return (leftmost [navBarE, headerE', toolBarE], isOpen')
-    exportE <- exportMenu
+              return (leftmost [navBarE, headerE', toolBarE], isOpen', modalE')
+    exportE <- exportMenu modalE
     mainE <-
       elDynAttr "div" (("class" =: "content main-content" <>) .
              maybe mempty (("style" =:) . ("margin-top: " <>)) <$> marginTopD) $
@@ -137,193 +138,51 @@ view st@State{..} = do
     return $ leftmost [headerE, exportE, mainE, indicatorsE]
 
 
-navbar :: (Monad m, DomBuilder t m) => m (Event t Message)
-navbar =
+navbar
+  :: ( Monad m
+     , DomBuilder t m
+     )
+  => m (Event t Message, Event t Modal)
+navbar = do
+  let clickE = fmap (domEvent Click . fst)
   elClass "nav" "content" $ do
     (logo, _) <- elAttr' "a" ("class" =: "logo font--droid-serif") $ do
       el "span" $ text "Regional"
       el "strong" $ text "Economic Activity"
       el "span" $ text "Web Tool"
 
-    home <- divClass "menu-items" $ do
-      home <- divClass "links" $ do
-        (home, _) <- elAttr' "a" ("class" =: "home button") $ do
-          el "i" $ return ()
-          el "span" $ text "Home"
-        elAttr "a" ("class" =: "indicators left" <> "href" =: "#indicators") $
-          el "span" $ do
-            text "Indicators"
+    (home, modalE) <-
+      divClass "menu-items" $ do
+        home' <- divClass "links" $ do
+          (home, _) <- elAttr' "a" ("class" =: "home button") $ do
             el "i" $ return ()
-        return home
-      divClass "menu-buttons" $ do
-        elClass "button" "download" $ do
-            el "i" $ return ()
-            el "span" $ text "download"
-        elClass "button" "embed" $ do
-            el "i" $ return ()
-            el "span" $ text "embed"
-        elClass "button" "share" $ do
-          el "i" $ return ()
-          el "span" $ text "share"
-      return home
-    return $ GoToHomePage <$ leftmost [domEvent Click logo, domEvent Click home]
+            el "span" $ text "Home"
+          elAttr "a" ("class" =: "indicators left" <> "href" =: "#indicators") $
+            el "span" $ do
+              text "Indicators"
+              el "i" $ return ()
+          return home
+        modalE' <-
+          divClass "menu-buttons" $ do
+            openDownloadE <- clickE $
+              elClass' "button" "download" $ do
+                el "i" $ return ()
+                el "span" $ text "download"
+            openEmbedE <- clickE $
+              elClass' "button" "embed" $ do
+                el "i" $ return ()
+                el "span" $ text "embed"
+            openShareE <- clickE $
+              elClass' "button" "share" $ do
+                el "i" $ return ()
+                el "span" $ text "share"
+            return $ leftmost [ Download <$ openDownloadE
+                              , Embed <$ openEmbedE
+                              , Share <$ openShareE ]
+        return (home', modalE')
+    let gohomeE = GoToHomePage <$ leftmost [domEvent Click logo, domEvent Click home]
+    return (gohomeE, modalE)
 
-
-exportMenu
-    :: ( MonadFix m
-        , MonadHold t m
-        , PostBuild t m
-        , DomBuilder t m
-        )
-    => m (Event t Message)
-exportMenu = do
-    exportE <-
-        -- TODO: need to change "display:none" to "display:flex" when ready to show
-        elAttr "div" ("class" =: "export-dialog" <> "style" =: "display:none;") $ do
-            divClass "export-dialog-main" $ do
-                divClass "export-header" $ do
-                    divClass "export-menu" $ do
-                        elClass "span" "export-type" $ text "Share"
-                        elClass "span" "export-type" $ text "Embed"
-                        elClass "span" "export-type" $ text "Download"
-                    elClass "span" "export-close" $ return ()
-                -- TODO: export-body requires the class of the export option
-                -- selected - i.e. download-menu, share-menu, embed-menu
-                divClass "export-body" $ do
-                    -- SHARE MENU:
-                    elAttr "div" ("class" =: "extra-wrapper" <> "style" =: "display:none") $ do
-                        divClass "export-detail" $
-                            divClass "share-text" $ return ()
-                        divClass "export-controls" $
-                            divClass "social-share" $ do
-                                text "Share this on:"
-                                -- TODO: Needs a share event - opens twitter share URL.
-                                divClass "share-twitter" $ do
-                                    el "i" $ return ()
-                                    text "Twitter"
-                                    return ()
-                                -- TODO: Needs an event - opens modal to share in FB.
-                                divClass "share-facebook" $ do
-                                    el "i" $ return ()
-                                    text "Facebook"
-                                    return ()
-                    elAttr "div" ("class" =: "extra-wrapper" <> "style" =: "display:none") $ do
-                        divClass "export-detail" $
-                            elAttr "input" ("readonly" =: "" <> "class" =: "share-url") $ return ()
-                        divClass "export-controls" $
-                            -- TODO: Needs event to copy URL
-                            divClass "share-copy" $
-                                text "Copy this link to clipboard"
-                    -- EMBED MENU
-                    elAttr "div" ("class" =: "embed-output embed-preview export-detail" <> "style" =: "display:none;") $ return ()
-                        -- TODO: this needs to resize I think on window resize
-                        -- events.
---                        elAttr "iframe" (
---                            "src" =: "/theme/tourism-spend/map/treemap/2018/new-zealand/northland/?embed=dynamic&amp;left-zoom=1&amp;right-transform=absolute&amp;preview=600" <>
---                            "frameborder" =: "0" <>
---                            "scrolling" =: "no" <>
---                            "marginheight" =: "0" <>
---                            "marginwidth" =: "0" <>
---                            "width" =: "600" <>
---                            "id" =: "iFrameResizer1" <>
---                            "style" =: "overflow: hidden; height: 1671px; transform: translateX(106px) scale(0.239378); visibility: inherit;"
---                        ) $ return ()
-                          -- return ()
-                    elAttr "div" ("class" =: "embed-controls export-controls" <> "style" =: "display:none;") $ do
-                        el "div" $ do
-                            divClass "embed-labels" $ text "Customise the view"
-                            divClass "embed-components" $ do
-                                -- TODO: emebed-component requires an event to check/uncheck the input field.
-                                divClass "embed-component" $ do
-                                    elAttr "input" ("type" =: "checkbox") $ return ()
-                                    el "div" $ do
-                                        el "i" $ return ()
-                                        text "Show map"
-                                divClass "embed-component" $ do
-                                    elAttr "input" ("type" =: "checkbox") $ return ()
-                                    el "div" $ do
-                                        el "i" $ return ()
-                                        text "Show chart"
-                                divClass "embed-component" $ do
-                                    elAttr "input" ("type" =: "checkbox") $ return ()
-                                    el "div" $ do
-                                        el "i" $ return ()
-                                        text "Show numbers"
-                            divClass "selector" $
-                                divClass "selector-container" $ do
-                                    -- TODO: requires a dynamic to change text based upon selection below & to add/remove
-                                    -- the class "show-menu" to the ul below.
-                                    elClass "p" "selector-button" $ text "Width: Medium"
-                                    elClass "ul" "selector-menu selector-select" $ do
-                                        -- TODO: li require events to change text above & change width of iframe.
-                                        el "li" $ text "Narrow"
-                                        el "li" $ text "Medium"
-                                        el "li" $ text "Wide"
-                        el "div" $ do
-                            elAttr "textarea" (
-                                    "readonly" =: "" <>
-                                    "spellcheck" =: "false" <>
-                                    "rows" =: "6" <>
-                                    "class" =: "embed-snippet"
-                                ) $ text "&lt;iframe src=\"http://webrear.mbie.govt.nz/theme/tourism-spend/map/treemap/2018/new-zealand/northland/?embed=dynamic&amp;left-zoom=1&amp;right-transform=absolute\" frameborder=\"0\" scrolling=\"no\" marginheight=\"0\" marginwidth=\"0\" width=\"600\" height=\"1671\"&gt;&lt;/iframe&gt;"
-                            divClass "snippet-copy" $ text " &lt;/&gt; Copy html to clipboard"
-                    -- DOWNLOAD MENU
-                    elAttr "div" ("class" =: "extra-wrapper" <> "style" =: "display:none;") $ do
-                        divClass "export-detail" $ do
-                            divClass "download-text" $ do
-                                el "p" $ do
-                                    text "For the selected indicator "
-                                    el "span" $ text "tourism spend"
-                                    text " and the selected area "
-                                    el "span" $ text "New Zealand"
-                                    text " there are 4 data downloads available."
-                                el "p" $ do
-                                    el "i" $ text "Tourism spend"
-                                    text "is all the original data and the derived values used to create visualisations for the tourism spend indicator."
-                        divClass "export-controls download-controls" $ do
-                            divClass "data-labels" $ text "Select the data"
-                            divClass "embed-components" $ do
-                                -- TODO: need events to check the input
-                                divClass "embed-component" $ do
-                                    elAttr "input" ("type" =: "radio" <> "value" =: "indicator") $ return ()
-                                    el "div" $ do
-                                        el "i" $ return ()
-                                        text "Tourism Spend"
-                                    el "div" $ text "813 kB"
-                                divClass "embed-component" $ do
-                                    elAttr "input" ("type" =: "radio" <> "value" =: "indicator") $ return ()
-                                    el "div" $ do
-                                        el "i" $ return ()
-                                        text "New Zealand"
-                                    el "div" $ text "147 kB"
-                                divClass "embed-component" $ do
-                                    elAttr "input" ("type" =: "radio" <> "value" =: "indicator") $ return ()
-                                    el "div" $ do
-                                        el "i" $ return ()
-                                        text "All original data"
-                                    el "div" $ text "2,371 kB"
-                                divClass "embed-component" $ do
-                                    elAttr "input" ("type" =: "radio" <> "value" =: "indicator") $ return ()
-                                    el "div" $ do
-                                        el "i" $ return ()
-                                        text "All data"
-                                    el "div" $ text "10,443 kB"
-                    elAttr "div" ("class" =: "extra-wrapper" <> "style" =: "display:none;") $ do
-                        divClass "export-detail" $ do
-                            divClass "copyright" $ do
-                                divClass "icons" $ do
-                                    divClass "cc-cc" $ return ()
-                                    divClass "cc-by" $ return ()
-                                elAttr "a" (
-                                    "target" =: "_blank" <>
-                                    "href" =: "http://creativecommons.org/licenses/by/4.0/") $ text "Creative Commons Attribution 4.0 International Licence"
-                        divClass "export-controls download-controls" $
-                            -- TODO: needs event to download selected file.
-                            divClass "download-button" $ text "Download file to desktop"
-
-            return never
-
-    return $ exportE
 
 type ContentConstraints t m =
     ( Monad m

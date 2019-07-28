@@ -6,6 +6,7 @@ module Bailiwick.Route
   ( encodeUri
   , decodeUri
   , Message(..)
+  , Modal(..)
   , getIndicatorId
   , Route(..)
   , ThemePageArgs(..)
@@ -87,6 +88,12 @@ data Adapter
   | LeftZoom
   | RightZoom
   | ShowTable
+  deriving (Eq, Show)
+
+data Modal
+  = Download
+  | Embed
+  | Share
   deriving (Eq, Show)
 
 hasAdapter :: Adapter -> Route -> Bool
