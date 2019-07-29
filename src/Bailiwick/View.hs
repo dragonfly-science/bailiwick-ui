@@ -164,21 +164,22 @@ navbar = do
           return home
         modalE' <-
           divClass "menu-buttons" $ do
-            openDownloadE <- clickE $
-              elClass' "button" "download" $ do
-                el "i" $ return ()
-                el "span" $ text "download"
-            openEmbedE <- clickE $
-              elClass' "button" "embed" $ do
-                el "i" $ return ()
-                el "span" $ text "embed"
+--            openDownloadE <- clickE $
+--              elClass' "button" "download" $ do
+--                el "i" $ return ()
+--                el "span" $ text "Download"
+--            openEmbedE <- clickE $
+--              elClass' "button" "embed" $ do
+--                el "i" $ return ()
+--                el "span" $ text "Embed"
             openShareE <- clickE $
               elClass' "button" "share" $ do
                 el "i" $ return ()
-                el "span" $ text "share"
-            return $ leftmost [ Download <$ openDownloadE
-                              , Embed <$ openEmbedE
-                              , Share <$ openShareE ]
+                el "span" $ text "Share"
+            return $ leftmost [ Share <$ openShareE
+--                              , Download <$ openDownloadE
+--                              , Embed <$ openEmbedE
+                              ]
         return (home', modalE')
     let gohomeE = GoToHomePage <$ leftmost [domEvent Click logo, domEvent Click home]
     return (gohomeE, modalE)

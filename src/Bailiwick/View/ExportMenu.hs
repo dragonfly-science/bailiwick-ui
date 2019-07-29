@@ -1,26 +1,33 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecursiveDo #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Bailiwick.View.ExportMenu
   ( exportMenu
   )
 where
 
+import Control.Monad (void)
 import Control.Monad.Fix (MonadFix)
 
+import Language.Javascript.JSaddle (liftJSM, MonadJSM, eval)
 import Reflex.Dom.Core
 
 import Bailiwick.Route
+
 
 exportMenu
   :: ( MonadFix m
      , MonadHold t m
      , PostBuild t m
      , DomBuilder t m
+     , PerformEvent t m
+     , MonadJSM (Performable m)
      )
   => Event t Modal
   -> m (Event t Message)
 exportMenu openE = mdo
+
   let clickE = fmap (domEvent Click . fst)
 
   modeD <- holdDyn Nothing $
@@ -53,14 +60,14 @@ exportMenu openE = mdo
                 divClass "export-menu" $ do
                   selectShareE <- clickE $
                     elClass' "span" "export-type" $ text "Share"
-                  selectEmbedE <- clickE $
-                    elClass' "span" "export-type" $ text "Embed"
-                  selectDownloadE <- clickE $
-                    elClass' "span" "export-type" $ text "Download"
-                  return $ leftmost [ Share    <$ selectShareE
-                                    , Embed    <$ selectEmbedE
-                                    , Download <$ selectDownloadE
-                                    ]
+--                  selectEmbedE <- clickE $
+--                    elClass' "span" "export-type" $ text "Embed"
+--                  selectDownloadE <- clickE $
+--                    elClass' "span" "export-type" $ text "Download"
+                  return $ leftmost [ Share    <$ selectShareE]
+--                                    , Embed    <$ selectEmbedE
+--                                    , Download <$ selectDownloadE
+--                                    ]
               closeE''' <- clickE $
                 elClass' "span" "export-close" $ return ()
               return (closeE''', selectE''')
@@ -76,13 +83,19 @@ exportMenu openE = mdo
 
 
 shareMenu
-  :: ( PostBuild t m
+  :: ( MonadFix m
+     , MonadHold t m
+     , PostBuild t m
      , DomBuilder t m
+     , PerformEvent t m
+     , MonadJSM (Performable m)
      )
   => Dynamic t Bool
   -> m ()
 shareMenu showD = do
-  let showCssD css = ffor showD $ \case
+  let clickE = fmap (domEvent Click . fst)
+
+      showCssD css = ffor showD $ \case
           True  -> css <> ("style" =: "display:flex")
           False -> css <> ("style" =: "display:none")
 
@@ -102,13 +115,26 @@ shareMenu showD = do
           el "i" $ return ()
           text "Facebook"
           return ()
-  elDynAttr "div" (showCssD ("class" =: "extra-wrapper")) $ do
-    divClass "export-detail" $
-      elAttr "input" ("readonly" =: "" <> "class" =: "share-url") $ return ()
-    divClass "export-controls" $
-      -- TODO: Needs event to copy URL
-      divClass "share-copy" $
-        text "Copy this link to clipboard"
+  elDynAttr "div" (showCssD ("class" =: "extra-wrapper")) $ mdo
+
+    currentUrlE <-
+      performEvent ((liftJSM $ getLocationUrl) <$ ffilter (==True) (updated showD))
+    currentUrlD <- holdDyn "" currentUrlE
+
+    performEvent_ $ ffor (tagPromptlyDyn currentUrlD copyE) $ \url -> do
+      void $ liftJSM $ eval $ "clipboard.copy('" <> url <> "')"
+
+    divClass "export-detail" $ do
+      let attrD = do
+            currentUrl <- traceDyn "currentUrlD" currentUrlD
+            return ("value" =: currentUrl <> "class" =: "share-url")
+      elDynAttr "input" attrD $ return ()
+    copyE <- clickE $
+      divClass "export-controls" $
+        -- TODO: Needs event to copy URL
+        elClass' "div" "share-copy" $
+          text "Copy this link to clipboard"
+    return ()
 
 
 embedMenu
