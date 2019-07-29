@@ -168,7 +168,7 @@ backToSummary HeaderState{..} = do
         elClass "i" "fa fa-arrow-left" $ return ()
         text " Back to summary page"
   elDynAttr "div" (disp notSummaryD "page-header indicator-page-header") $ do
-    el "div" $ do
+    elAttr "div" ("id" =: "header-title") $ do
       dynText $ fmap capitalize $ subs $ maybe "" indicatorHeaderTitle <$> indicatorD
   elDynAttr "span" (disp isSummaryD "block-label context-text") $ text "You're looking at"
   elDynAttr "div" (disp isSummaryD "page-header summary-page-header") $ do

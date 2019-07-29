@@ -9,12 +9,55 @@ where
 
 import Control.Monad (void)
 import Control.Monad.Fix (MonadFix)
+import Data.Text (Text)
 
-import Language.Javascript.JSaddle (liftJSM, MonadJSM, eval)
+import Language.Javascript.JSaddle (liftJSM, MonadJSM, call, eval)
 import Reflex.Dom.Core
 
 import Bailiwick.Route
 
+copyToClipboard
+  :: MonadJSM m
+  => Text
+  -> m ()
+copyToClipboard name = liftJSM $ do
+  f <- eval (  "(function(elementname) {"
+            <> "    var copyText = document.getElementById(elementname);"
+            <> "    copyText.select();"
+            <> "    document.execCommand('copy');"
+            <> "})" :: Text)
+  void $ call f f name
+
+
+tweet
+  :: MonadJSM m
+  => m ()
+tweet = liftJSM $ do
+  f <- eval (  "(function() {"
+            <> "    var text = document.getElementById('header-title').innerHTML;"
+            <> "    var url = 'https://twitter.com/intent/tweet';"
+            <> "    var args = [];"
+            <> "    args.push('text=' + text);"
+            <> "    args.push('url=' + location.href);"
+            <> "    args.push('via=MBIEgovtnz');"
+            <> "    window.open(url + '?' + args.join('&'));"
+            <> "})" :: Text)
+  void $ call f f ()
+
+facebookShare
+  :: MonadJSM m
+  => Text
+  -> m ()
+facebookShare name= liftJSM $ do
+  f <- eval (  "(function(elementname) {"
+            <> "  FB.ui({"
+            <> "    method: 'share',"
+            <> "    app_id: '555300107970671',"
+            <> "    href: location.href,"
+            <> "    caption: document.getElementById(elementname).innerHTML"
+            <> "  }, function(response){});"
+            <> "})" :: Text)
+  void $ call f f name
 
 exportMenu
   :: ( MonadFix m
@@ -101,37 +144,37 @@ shareMenu showD = do
 
   elDynAttr "div" (showCssD ("class" =: "extra-wrapper")) $ do
     divClass "export-detail" $
-      divClass "share-text" $ return ()
+      elAttr "div" ("class" =: "share-text" <> "id" =: "share-text") $ return ()
     divClass "export-controls" $
       divClass "social-share" $ do
         text "Share this on:"
-        -- TODO: Needs a share event - opens twitter share URL.
-        divClass "share-twitter" $ do
-          el "i" $ return ()
-          text "Twitter"
-          return ()
-        -- TODO: Needs an event - opens modal to share in FB.
-        divClass "share-facebook" $ do
-          el "i" $ return ()
-          text "Facebook"
-          return ()
+        tweetE <- clickE $
+          elClass' "div" "share-twitter" $ do
+            el "i" $ return ()
+            text "Twitter"
+            return ()
+        performEvent_ $ tweet <$ tweetE
+        facebookE <- clickE $
+          elClass' "div" "share-facebook" $ do
+            el "i" $ return ()
+            text "Facebook"
+            return ()
+        performEvent_ $ facebookShare "share-text" <$ facebookE
   elDynAttr "div" (showCssD ("class" =: "extra-wrapper")) $ mdo
 
     currentUrlE <-
       performEvent ((liftJSM $ getLocationUrl) <$ ffilter (==True) (updated showD))
     currentUrlD <- holdDyn "" currentUrlE
 
-    performEvent_ $ ffor (tagPromptlyDyn currentUrlD copyE) $ \url -> do
-      void $ liftJSM $ eval $ "clipboard.copy('" <> url <> "')"
+    performEvent_ $ copyToClipboard "currenturl" <$ copyE
 
     divClass "export-detail" $ do
       let attrD = do
-            currentUrl <- traceDyn "currentUrlD" currentUrlD
-            return ("value" =: currentUrl <> "class" =: "share-url")
+            currentUrl <- currentUrlD
+            return ("value" =: currentUrl <> "class" =: "share-url" <> "id" =: "currenturl")
       elDynAttr "input" attrD $ return ()
     copyE <- clickE $
       divClass "export-controls" $
-        -- TODO: Needs event to copy URL
         elClass' "div" "share-copy" $
           text "Copy this link to clipboard"
     return ()
