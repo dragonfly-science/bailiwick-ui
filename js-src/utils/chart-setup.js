@@ -43,18 +43,18 @@ export default function(element, params, margin, chartType) {
     if (isEmpty(data) || isNaN(width) || isNaN(height)) {
         return null;
     }
-    var year = params[1];
+    var year = params[2].year;
     var indicator = params[2].indicatorId;
     var transform = params[2].transform;
     var area = params[2].areaname;
     var areaLevel = params[2].areatype;
     var feature = params[2].featureId;
     var zoom = params[2].zoom;
-    var features = params[3];
-    var chartData = params[4];
-    var chartCaption = params[5];
+    var features = params[2].features;
+    var chartData = params[2].chartData;
+    var chartCaption = params[2].chartCaption;
+    var areas = params[2].areas;
     var cache = window.MBIECacheStorage;
-    var areas = params[6];
 
     /// Cached data
     if (isEmpty(cache.get(indicator))) {

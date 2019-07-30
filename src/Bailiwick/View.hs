@@ -288,7 +288,6 @@ indicatorContent leftZoomD rightZoomD regionD
 
         mapClicks <- divClass "svg-wrapper" $ nzmap False map_state setScaleE
         setScaleE <- divClass "legend indicator-map-legend" $ mapLegend map_legend_state
-        -- (mapLegendLabel indicator_chart_state)
         return $ leftmost [zoomClick, mapClicks]
     chartE <- divClass "indicator-chart" $
       indicatorChart indicator_chart_state rightZoomD

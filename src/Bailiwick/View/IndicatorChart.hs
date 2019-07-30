@@ -20,7 +20,7 @@ import Data.Text (Text)
 import Debug.Trace
 
 import qualified GHCJS.DOM.Element as DOM
-import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM, toJSVal, JSVal)
+import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM, toJSVal, JSVal, JSString)
 import Reflex.Dom.Core
 
 import Bailiwick.Javascript
@@ -102,7 +102,6 @@ indicatorChart
   -> m (Event t Message)
 indicatorChart IndicatorChartState{..} zoomD = do
   let pageD = getThemePage <$> routeD
-      _chartType = fmap themePageRightChart <$> pageD
 
   (e, rightZoomE) <- divClass "chart-wrapper" $ do
     elAttr "div" ("class" =: "chart-inner") $ do
@@ -132,13 +131,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
 
   readyE <- getPostBuild
 
-  let _year = fmap themePageYear <$> pageD
-      _iId = fmap themePageIndicatorId <$> pageD
-      _transform = fmap themePageLeftTransform <$> pageD
-      _areaType = fmap themePageAreaType <$> pageD
-      _featureId = fmap themePageFeatureId <$> pageD
-
-      shapedDataD = do
+  let shapedDataD = do
         indn <- indicatorNumbersD
         areas <- areasD
         return (shapeData areas indn)
@@ -153,19 +146,30 @@ indicatorChart IndicatorChartState{..} zoomD = do
         areas <- areasD
         let hash = maybe OMap.empty unAreas areas
         return $ OMap.keys hash
-      jsargs = do
-        shapedData <- shapedDataJSD
+
+      chartTypeD = fmap themePageRightChart <$> pageD
+
+      chartD = do
+        mindicator <- indicatorD
+        mchartType <- chartTypeD
+        return $ do
+          Indicator{..} <- mindicator
+          charts <- indicatorCharts
+          chartid <- mchartType
+          OMap.lookup chartid charts
+      jsargsD = do
+        my  <- fmap themePageYear <$> pageD
+        indId <- fmap themePageIndicatorId <$> pageD
+        transform <- fmap themePageLeftTransform <$> pageD
+        areaType <- fmap themePageAreaType <$> pageD
+        featureId <- fmap themePageFeatureId <$> pageD
         areanames <- areanamesD
-        my <- _year
-        indID <- _iId
-        area <- areaD
-        transform <- _transform
-        areatype <- _areaType
-        chartType <- _chartType
         indicator <- indicatorD
-        featureId <- _featureId
+        area <- areaD
         zoom <- zoomD
         page <- pageD
+        chart <- chartD
+        chartType <- chartTypeD
 
         let chartLabel = textSubstitution area Nothing indicator
                             (join featureId) page
@@ -175,16 +179,37 @@ indicatorChart IndicatorChartState{..} zoomD = do
                 let l = textLabel indicator t
                 chartLabel l
               Nothing -> ""
+        let areaname = maybe "" areaName area
+        let zoomed = case zoom of
+                True -> "true"
+                False -> "false"
 
-        return (my, indID, indicator, shapedData, areanames, area, areatype, transform, chartType, join featureId, zoom, label)
+        let features = case indicator of
+                Just a ->
+                    maybe [] OMap.toList (indicatorFeatureText a)
+                Nothing -> []
 
-  let initialUpdate = tagPromptlyDyn jsargs readyE
-  let updateValuesE = updated jsargs
-  updateE :: Event t (Maybe Year, Maybe IndicatorId,
-                      Maybe Indicator, Maybe JSVal, [AreaId], Maybe Area, Maybe Text,
-                      Maybe Text, Maybe ChartId, Maybe FeatureId, Bool, Text)
-    <- switchHold initialUpdate (updateValuesE <$ readyE)
 
+        return
+          [ ("year",         my)
+          , ("indictorId",   (unIndicatorId <$> indID))
+          , ("transform",    transform)
+          , ("areaname",     Just areaname)
+          , ("areatype",     areatype)
+          , ("chartType",    (unChartId <$> chartType))
+          , ("featureId",    (featureIdText <$> (join featureId)))
+          , ("zoom",         Just zoomed)
+          , ("chartData",    chart)
+          , ("chartCaption", label)
+          , ("features",     features)
+          , ("areas",        areanames)
+          ]
+
+  let mkJSArgs as = liftJSM $ do
+        obj <- mkJSObject [(k, toJSVal v) | (k,v) <- as]
+        return (Just $ toJSVal obj)
+  jsargsJSE <- performEvent (mkJSArgs <$> updated jsargsD)
+  jsargsJSD <- holdDyn Nothing jsargsJSE
 
   let getJSChartType chart = case chart of
         Just a -> case a of
@@ -194,38 +219,18 @@ indicatorChart IndicatorChartState{..} zoomD = do
                     _                     -> "updateIndicatorTimeSeries"
         Nothing ->                           "updateIndicatorTimeSeries"
 
+
+
+  let jsargs = (,,) <$> shapedDataJSD <*> jsargsJSD <*> (getJSChartType <$> chartD)
+  let initialUpdate = tagPromptlyDyn jsargs readyE
+  let updateValuesE = updated jsargs
+  updateE :: Event t (Maybe JSVal, Maybe JSVal, JSString)
+    <- switchHold initialUpdate (updateValuesE <$ readyE)
+
   performEvent_ $ ffor updateE $ \case
-    (my, indID, indicator, mshapedData, areanames, area, areatype, transform, chartType, featureId, zoom, label)
-      -> liftJSM
-          $ do
-            let areaname = maybe "" areaName area
-            let features = case indicator of
-                    Just a ->
-                        maybe [] OMap.toList (indicatorFeatureText a)
-                    Nothing -> []
-            let chart = do
-                    Indicator{..} <- indicator
-                    charts <- indicatorCharts
-                    chartid <- chartType
-                    OMap.lookup chartid charts
-            let zoomed = case zoom of
-                    True -> "true"
-                    False -> "false"
-            -- chartLabel text...
-            args <- makeJSObject
-                     [ ("indictorId",  (unIndicatorId <$> indID))
-                     , ("transform",   transform)
-                     , ("areaname",    Just areaname)
-                     , ("areatype",    areatype)
-                     , ("chartType",   (unChartId <$> chartType))
-                     , ("featureId",   (featureIdText <$> featureId))
-                     , ("zoom",        Just zoomed)
-                     ]
-            case mshapedData of
-              Just shapedData ->
-                void $ jsg2 ((getJSChartType chartType) :: Text) (_element_raw e)
-                         (shapedData, my, args, features, chart, label, areanames)
-              Nothing -> return ()
+    (Just shapedData, Just args, jscharttype)
+      -> liftJSM $ void $ jsg2 jscharttype (_element_raw e) (shapedData, args)
+    _ -> return ()
 
   clickE :: Event t (Maybe Message)
     <- clickEvents e $ \svg -> do
@@ -252,47 +257,3 @@ indicatorChart IndicatorChartState{..} zoomD = do
                    , fmapMaybe id clickE ]
 
 
-  -- TODO: we now know the time series from the indicator,
-  -- we just need to retrieve the current "chartD" json from the
-  -- api (giving us a ChartData). Once we have the ChartData, we can then
-  -- pass it on to the jsg2 call below.
---   let chartFilenameD = (fromMaybe "none" . ((listToMaybe . indicatorTimeseries) =<<)
---                  <$> indicatorD)
---                  <> "-11d88bc13.json"
---   chartD <- State.getChartData $ traceDyn "chartFilenameD" chartFilenameD
-
-  -- let _showAttr True  = "display: block"
-  --     _showAttr False = "display: none"
-  -- (_e, _) <- elDynAttr' "div" (constDyn $ "class" =: "basic-barchart") $
-  --   elAttr "div" ("class"=:"d3-attach" <> "style"=:"width: 480px; height: 530px") $ return ()
-
---   -- Data to pass to chart:
---   -- - Years?
---   -- - indicator
---   -- - area
---   -- - caption
---   -- - chartData
---   -- - compareArea
---   delayE <- delay 2.0 =<< getPostBuild
---   performEvent_ $ ffor (leftmost
---                        [ attachWithMaybe (flip $ const id) (current chartD) delayE
---                        , traceEventWith (("HERE: "++) . Prelude.take 100 . show) $ fmapMaybe id $ updated chartD]
---                        )
---                        $ \chart -> do
---     _ <- liftJSM $ jsg2 ("updateAreaBarchart" :: Text)
---                    (_element_raw e :: Element)
---                    (Array $ chartDataValues chart)
---     return ()
-
--- updateIndicatorTimeSeries
---
---   let initialUpdate = tagPromptlyDyn inputValuesD readyE
---   let updateValuesE = updated inputValuesD
---   updateE <- switchHold initialUpdate (updateValuesE <$ readyE)
---   performEvent_ $ ffor updateE $ \case
---     Just (d, area) -> liftJSM . void $ do
---          jsg3 ("updateTimeSeries" :: Text) (_element_raw e) d (maybe "" areaId area)
---     _ -> return ()
-
-
-  -- return never

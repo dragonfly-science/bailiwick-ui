@@ -492,12 +492,14 @@ nzmap isSummary MapState{..} scaleFunctionE = mdo
   svgBodyD <- holdDyn Nothing (Just <$> svgBodyE)
   scaleFunctionD <- holdDyn Nothing (Just <$> scaleFunctionE)
 
-  loadedSvg <- switchDynM $ ffor ((isSummary,) <$> svgBodyD) $ \case
-    (_, Nothing)          -> return never
-    (True, Just svgBody)  -> do
+  --- Main map drawing code here
+  loadedSvg <- switchDynM $ ffor ((isSummary,,) <$> svgBodyD <*> scaleFunctionD) $ \case
+    (_, Nothing, _)          -> return never
+    (False, _, Nothing)      -> return never
+    (True, Just svgBody, _)  -> do
       updateMapSummary svgBody mapD
-    (False, Just svgBody) -> do
-      updateMapIndicator svgBody mapD scaleFunctionD
+    (False, Just svgBody, Just scaleFunction) -> do
+      updateMapIndicator svgBody mapD scaleFunction
 
 
   let tooltipArea
@@ -823,9 +825,9 @@ updateMapIndicator
      )
   => self
   -> Dynamic t Map
-  -> Dynamic t (Maybe ScaleFunction)
+  -> ScaleFunction
   -> m (Event t ())
-updateMapIndicator svgBody mapD scaleFunctionD = do
+updateMapIndicator svgBody mapD (ScaleFunction scale)= do
   let setAttr
          :: (MonadJSM m0)
          => Text -> Text -> Text -> m0 ()
@@ -850,12 +852,10 @@ updateMapIndicator svgBody mapD scaleFunctionD = do
   mapE <- attachPrevious $
            leftmost [ updated mapD
                     , tagPromptlyDyn mapD postBuild
-                    , tagPromptlyDyn mapD (updated scaleFunctionD)
                     ]
-  let mapWithScaleE = attachPromptlyDyn scaleFunctionD mapE
 
   -- Main update function
-  performEvent . ffor mapWithScaleE $ \(mscale, (old, new)) -> do
+  performEvent . ffor mapE $ \(old, new) -> do
 
     -- Update the transform, but only if it has changed
     when ((_zoomState <$> old) /= Just (_zoomState new)) $ do
@@ -885,11 +885,8 @@ updateMapIndicator svgBody mapD scaleFunctionD = do
             case getNum areain of
               Nothing -> return "#FFFFFF"
               Just num -> do
-                case mscale of
-                  Nothing -> return "#FFFFFF"
-                  Just (ScaleFunction scale) -> do
-                    colVal <- call scale global num
-                    valToText colVal
+                colVal <- call scale global num
+                valToText colVal
 
 
         selectReg (_,t) = t == "region"

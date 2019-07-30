@@ -18,7 +18,7 @@ import qualified GHCJS.DOM.EventM as DOM
 import qualified GHCJS.DOM.GlobalEventHandlers as DOM
 import qualified GHCJS.DOM.Types as DOM
 
-import Language.Javascript.JSaddle (MonadJSM, liftJSM, obj, setProp, toJSVal, JSM, JSString, Object)
+import Language.Javascript.JSaddle (MonadJSM, liftJSM, obj, setProp, JSVal, ToJSVal, toJSVal, JSM, JSString, Object)
 import Reflex.Dom.Core hiding (elDynHtmlAttr')
 
 clickEvents
@@ -36,6 +36,19 @@ clickEvents e handler =
         MaybeT $ handler svgelement
   in  wrapDomEvent htmlelement (`DOM.on` DOM.click) doHandler
 
+
+toJSValDyn
+  :: ( MonadHold t m
+     , ToJSVal val
+     , DomBuilder t m
+     , PostBuild t m
+     , MonadJSM m
+     )
+  => Dynamic t val
+  -> m (Dynamic t (Maybe JSVal))
+toJSValDyn valD = do
+  valE <- dyn $ fmap (liftJSM . toJSVal) valD
+  holdDyn Nothing (Just <$> valE)
 
 
 makeJSObject :: [(JSString, Maybe Text)] -> JSM Object
