@@ -43,12 +43,14 @@ toJSValDyn
      , ToJSVal val
      , DomBuilder t m
      , PostBuild t m
+     , PerformEvent t m
      , MonadJSM m
+     , MonadJSM (Performable m)
      )
   => Dynamic t val
   -> m (Dynamic t (Maybe JSVal))
 toJSValDyn valD = do
-  valE <- dyn $ fmap (liftJSM . toJSVal) valD
+  valE <- performEvent $ fmap (liftJSM . toJSVal) (updated valD)
   holdDyn Nothing (Just <$> valE)
 
 
