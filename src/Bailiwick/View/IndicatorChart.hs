@@ -20,7 +20,7 @@ import Data.Text (Text)
 import Debug.Trace
 
 import qualified GHCJS.DOM.Element as DOM
-import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM, toJSVal, JSVal, JSString)
+import Language.Javascript.JSaddle (jsg2, obj, setProp, MonadJSM, JSM, liftJSM, ToJSVal, toJSVal, JSVal, JSString)
 import Reflex.Dom.Core
 
 import Bailiwick.Javascript
@@ -83,6 +83,43 @@ textLabel ind transform =
           Nothing -> ""
 
     Nothing -> ""
+
+data ChartArgs
+  = ChartArgs
+    { chartArgsYear           :: Maybe Year
+    , chartArgsIndictorId     :: Maybe Text
+    , chartArgsTransform      :: Maybe Text
+    , chartArgsAreaname       :: Maybe Text
+    , chartArgsAreatype       :: Maybe Text
+    , chartArgsChartType      :: Maybe Text
+    , chartArgsFeatureId      :: Maybe Text
+    , chartArgsZoom           :: Maybe Bool
+    , chartArgsChartData      :: Maybe Chart
+    , chartArgsChartCaption   :: Text
+    , chartArgsFeatures       :: [(FeatureId, Text)]
+    , chartArgsAreas          :: [Text]
+    } deriving (Eq, Show)
+
+instance ToJSVal ChartArgs where
+  toJSVal ChartArgs{..} = do
+    res <- obj
+    let set :: ToJSVal a => JSString -> a -> JSM ()
+        set key val = do
+            valJS <- toJSVal val
+            setProp key valJS res
+    set "year"          chartArgsYear
+    set "indictorId"    chartArgsIndictorId
+    set "transform"     chartArgsTransform
+    set "areaname"      chartArgsAreaname
+    set "areatype"      chartArgsAreatype
+    set "chartType"     chartArgsChartType
+    set "featureId"     chartArgsFeatureId
+    set "zoom"          chartArgsZoom
+    set "chartData"     chartArgsChartData
+    set "chartCaption"  chartArgsChartCaption
+    set "features"      chartArgsFeatures
+    set "areas"         chartArgsAreas
+    toJSVal res
 
 indicatorChart
   :: ( Monad m
@@ -157,6 +194,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
           charts <- indicatorCharts
           chartid <- mchartType
           OMap.lookup chartid charts
+
       jsargsD = do
         my  <- fmap themePageYear <$> pageD
         indId <- fmap themePageIndicatorId <$> pageD
@@ -180,36 +218,29 @@ indicatorChart IndicatorChartState{..} zoomD = do
                 chartLabel l
               Nothing -> ""
         let areaname = maybe "" areaName area
-        let zoomed = case zoom of
-                True -> "true"
-                False -> "false"
 
         let features = case indicator of
                 Just a ->
                     maybe [] OMap.toList (indicatorFeatureText a)
                 Nothing -> []
 
+        return $ ChartArgs
+                      { chartArgsYear          = my
+                      , chartArgsIndictorId    = (unIndicatorId <$> indId)
+                      , chartArgsTransform     = transform
+                      , chartArgsAreaname      = Just areaname
+                      , chartArgsAreatype      = areaType
+                      , chartArgsChartType     = (unChartId <$> chartType)
+                      , chartArgsFeatureId     = (featureIdText <$> (join featureId))
+                      , chartArgsZoom          = Just zoom
+                      , chartArgsChartData     = chart
+                      , chartArgsChartCaption  = label
+                      , chartArgsFeatures      = features
+                      , chartArgsAreas         = areanames
+                      }
 
-        return
-          [ ("year",         my)
-          , ("indictorId",   (unIndicatorId <$> indID))
-          , ("transform",    transform)
-          , ("areaname",     Just areaname)
-          , ("areatype",     areatype)
-          , ("chartType",    (unChartId <$> chartType))
-          , ("featureId",    (featureIdText <$> (join featureId)))
-          , ("zoom",         Just zoomed)
-          , ("chartData",    chart)
-          , ("chartCaption", label)
-          , ("features",     features)
-          , ("areas",        areanames)
-          ]
 
-  let mkJSArgs as = liftJSM $ do
-        obj <- mkJSObject [(k, toJSVal v) | (k,v) <- as]
-        return (Just $ toJSVal obj)
-  jsargsJSE <- performEvent (mkJSArgs <$> updated jsargsD)
-  jsargsJSD <- holdDyn Nothing jsargsJSE
+  jsargsJSD <- toJSValDyn jsargsD
 
   let getJSChartType chart = case chart of
         Just a -> case a of
@@ -221,7 +252,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
 
 
 
-  let jsargs = (,,) <$> shapedDataJSD <*> jsargsJSD <*> (getJSChartType <$> chartD)
+  let jsargs = (,,) <$> shapedDataJSD <*> jsargsJSD <*> (getJSChartType <$> chartTypeD)
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
   updateE :: Event t (Maybe JSVal, Maybe JSVal, JSString)

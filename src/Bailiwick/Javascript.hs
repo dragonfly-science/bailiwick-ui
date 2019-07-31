@@ -5,6 +5,7 @@ module Bailiwick.Javascript
   , makeJSObject
   , elDynHtmlAttr'
   , switchDynM
+  , toJSValDyn
   )
 where
 
@@ -18,7 +19,7 @@ import qualified GHCJS.DOM.EventM as DOM
 import qualified GHCJS.DOM.GlobalEventHandlers as DOM
 import qualified GHCJS.DOM.Types as DOM
 
-import Language.Javascript.JSaddle (MonadJSM, liftJSM, obj, setProp, JSVal, ToJSVal, toJSVal, JSM, JSString, Object)
+import Language.Javascript.JSaddle (MonadJSM, liftJSM, obj, setProp, ToJSVal, JSVal, toJSVal, JSM, JSString, Object)
 import Reflex.Dom.Core hiding (elDynHtmlAttr')
 
 clickEvents
