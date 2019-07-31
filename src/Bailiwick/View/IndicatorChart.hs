@@ -120,6 +120,23 @@ instance ToJSVal ChartArgs where
     set "areas"         chartArgsAreas
     toJSVal res
 
+toJSValDynHold
+  :: ( Eq val
+     , ToJSVal val
+     , PostBuild t m
+     , DomBuilder t m
+     , PerformEvent t m
+     , MonadJSM (Performable m)
+     , MonadJSM m
+     , MonadHold t m
+     , MonadFix m
+     )
+  => Dynamic t val
+  -> m (Dynamic t (Maybe JSVal))
+toJSValDynHold valD = do
+  valDU <- holdUniqDyn valD
+  toJSValDyn valDU
+
 indicatorChart
   :: ( Monad m
      , PostBuild t m
@@ -167,11 +184,8 @@ indicatorChart IndicatorChartState{..} zoomD = do
 
   readyE <- getPostBuild
 
-  let shapedDataD = do
-        indn <- indicatorNumbersD
-        areas <- areasD
-        return (shapeData areas indn)
-  shapedDataJSD <- toJSValDyn shapedDataD
+  let shapedDataD = shapeData <$> areasD <*> indicatorNumbersD
+  shapedDataJSD <- toJSValDyn (traceDynWith (const "shapeData") shapedDataD)
 
   let areanamesD = do
         areas <- areasD
@@ -211,24 +225,24 @@ indicatorChart IndicatorChartState{..} zoomD = do
   chartTypeJSD  <- toJSValDyn (fmap unChartId <$> chartTypeD)
   featureIdJSD  <- toJSValDyn (fmap featureIdText <$> featureIdD)
   zoomJSD       <- toJSValDyn zoomD
-  chartJSD      <- toJSValDyn chartD
-  labelJSD      <- toJSValDyn labelD
+  chartJSD      <- toJSValDynHold chartD
+  labelJSD      <- toJSValDynHold labelD
   featuresJSD   <- toJSValDyn (maybe [] OMap.toList . (indicatorFeatureText =<<) <$> indicatorD)
   areanamesJSD  <- toJSValDyn areanamesD
 
   let jsargsD = ChartArgs
-                 <$> myJSD
-                 <*> indIdJSD
-                 <*> transformJSD
-                 <*> areanameJSD
-                 <*> areaTypeJSD
-                 <*> chartTypeJSD
-                 <*> featureIdJSD
-                 <*> zoomJSD
-                 <*> chartJSD
-                 <*> labelJSD
-                 <*> featuresJSD
-                 <*> areanamesJSD
+                 <$> traceDynWith (const "year") myJSD
+                 <*> traceDynWith (const "indId") indIdJSD
+                 <*> traceDynWith (const "transform") transformJSD
+                 <*> traceDynWith (const "areaname") areanameJSD
+                 <*> traceDynWith (const "areatype") areaTypeJSD
+                 <*> traceDynWith (const "chartype") chartTypeJSD
+                 <*> traceDynWith (const "featureId") featureIdJSD
+                 <*> traceDynWith (const "zoom") zoomJSD
+                 <*> traceDynWith (const "chart") chartJSD
+                 <*> traceDynWith (const "label") labelJSD
+                 <*> traceDynWith (const "features") featuresJSD
+                 <*> traceDynWith (const "areanames") areanamesJSD
 
   jsargsJSD <- toJSValDyn jsargsD
 
@@ -256,7 +270,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
   clickE :: Event t (Maybe Message)
     <- clickEvents e $ \svg -> do
          target_element :: Text <- DOM.getTagName svg
-         case trace ("El" ++ show target_element) target_element of
+         case target_element of
            "path" -> do
               yeart <- DOM.getAttribute svg ("data-bailiwick-year"::Text)
               area <- DOM.getAttribute svg ("data-bailiwick-area"::Text)
