@@ -11,7 +11,7 @@ module Bailiwick.View.IndicatorChart
   , textLabel
 ) where
 
-import Control.Monad (join, void)
+import Control.Monad (void)
 import Control.Monad.Fix
 import Data.Maybe (fromMaybe, isJust)
 import qualified Data.HashMap.Strict.InsOrd as OMap
@@ -20,7 +20,8 @@ import Data.Text (Text)
 import Debug.Trace
 
 import qualified GHCJS.DOM.Element as DOM
-import Language.Javascript.JSaddle (jsg2, obj, setProp, MonadJSM, JSM, liftJSM, ToJSVal, toJSVal, JSVal, JSString)
+import Language.Javascript.JSaddle
+   (jsg2, obj, setProp, MonadJSM, liftJSM, ToJSVal, toJSVal, JSVal, valNull, JSString)
 import Reflex.Dom.Core
 
 import Bailiwick.Javascript
@@ -86,27 +87,25 @@ textLabel ind transform =
 
 data ChartArgs
   = ChartArgs
-    { chartArgsYear           :: Maybe Year
-    , chartArgsIndictorId     :: Maybe Text
-    , chartArgsTransform      :: Maybe Text
-    , chartArgsAreaname       :: Maybe Text
-    , chartArgsAreatype       :: Maybe Text
-    , chartArgsChartType      :: Maybe Text
-    , chartArgsFeatureId      :: Maybe Text
-    , chartArgsZoom           :: Maybe Bool
-    , chartArgsChartData      :: Maybe Chart
-    , chartArgsChartCaption   :: Text
-    , chartArgsFeatures       :: [(FeatureId, Text)]
-    , chartArgsAreas          :: [Text]
-    } deriving (Eq, Show)
+    { chartArgsYear           :: Maybe JSVal
+    , chartArgsIndictorId     :: Maybe JSVal
+    , chartArgsTransform      :: Maybe JSVal
+    , chartArgsAreaname       :: Maybe JSVal
+    , chartArgsAreatype       :: Maybe JSVal
+    , chartArgsChartType      :: Maybe JSVal
+    , chartArgsFeatureId      :: Maybe JSVal
+    , chartArgsZoom           :: Maybe JSVal
+    , chartArgsChartData      :: Maybe JSVal
+    , chartArgsChartCaption   :: Maybe JSVal
+    , chartArgsFeatures       :: Maybe JSVal
+    , chartArgsAreas          :: Maybe JSVal
+    }
 
 instance ToJSVal ChartArgs where
   toJSVal ChartArgs{..} = do
     res <- obj
-    let set :: ToJSVal a => JSString -> a -> JSM ()
-        set key val = do
-            valJS <- toJSVal val
-            setProp key valJS res
+    let set key val = do
+            setProp key (fromMaybe valNull val) res
     set "year"          chartArgsYear
     set "indictorId"    chartArgsIndictorId
     set "transform"     chartArgsTransform
@@ -172,12 +171,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
         indn <- indicatorNumbersD
         areas <- areasD
         return (shapeData areas indn)
-
-  let makeJSVal a = do
-        val <- liftJSM $ toJSVal a
-        return (Just val)
-  shapedDataJSE <- performEvent (makeJSVal <$> updated shapedDataD)
-  shapedDataJSD <- holdDyn Nothing shapedDataJSE
+  shapedDataJSD <- toJSValDyn shapedDataD
 
   let areanamesD = do
         areas <- areasD
@@ -195,50 +189,46 @@ indicatorChart IndicatorChartState{..} zoomD = do
           chartid <- mchartType
           OMap.lookup chartid charts
 
-      jsargsD = do
-        my  <- fmap themePageYear <$> pageD
-        indId <- fmap themePageIndicatorId <$> pageD
-        transform <- fmap themePageLeftTransform <$> pageD
-        areaType <- fmap themePageAreaType <$> pageD
-        featureId <- fmap themePageFeatureId <$> pageD
-        areanames <- areanamesD
+      featureIdD = (themePageFeatureId =<<) <$> pageD
+      transformD = fmap themePageLeftTransform <$> pageD
+      labelD = do
         indicator <- indicatorD
         area <- areaD
-        zoom <- zoomD
+        featureId <- featureIdD
         page <- pageD
-        chart <- chartD
-        chartType <- chartTypeD
+        let chartLabel = textSubstitution area Nothing indicator featureId page
+        mtransform <- transformD
+        return $ do
+          transform <- mtransform
+          let l = textLabel indicator transform
+          return $ chartLabel l
 
-        let chartLabel = textSubstitution area Nothing indicator
-                            (join featureId) page
+  myJSD         <- toJSValDyn (fmap themePageYear <$> pageD)
+  indIdJSD      <- toJSValDyn (fmap (unIndicatorId . themePageIndicatorId) <$> pageD)
+  transformJSD  <- toJSValDyn transformD
+  areanameJSD   <- toJSValDyn (fmap areaName <$> areaD)
+  areaTypeJSD   <- toJSValDyn (fmap themePageAreaType <$> pageD)
+  chartTypeJSD  <- toJSValDyn (fmap unChartId <$> chartTypeD)
+  featureIdJSD  <- toJSValDyn (fmap featureIdText <$> featureIdD)
+  zoomJSD       <- toJSValDyn zoomD
+  chartJSD      <- toJSValDyn chartD
+  labelJSD      <- toJSValDyn labelD
+  featuresJSD   <- toJSValDyn (maybe [] OMap.toList . (indicatorFeatureText =<<) <$> indicatorD)
+  areanamesJSD  <- toJSValDyn areanamesD
 
-        let label = case transform of
-              Just t -> do
-                let l = textLabel indicator t
-                chartLabel l
-              Nothing -> ""
-        let areaname = maybe "" areaName area
-
-        let features = case indicator of
-                Just a ->
-                    maybe [] OMap.toList (indicatorFeatureText a)
-                Nothing -> []
-
-        return $ ChartArgs
-                      { chartArgsYear          = my
-                      , chartArgsIndictorId    = (unIndicatorId <$> indId)
-                      , chartArgsTransform     = transform
-                      , chartArgsAreaname      = Just areaname
-                      , chartArgsAreatype      = areaType
-                      , chartArgsChartType     = (unChartId <$> chartType)
-                      , chartArgsFeatureId     = (featureIdText <$> (join featureId))
-                      , chartArgsZoom          = Just zoom
-                      , chartArgsChartData     = chart
-                      , chartArgsChartCaption  = label
-                      , chartArgsFeatures      = features
-                      , chartArgsAreas         = areanames
-                      }
-
+  let jsargsD = ChartArgs
+                 <$> myJSD
+                 <*> indIdJSD
+                 <*> transformJSD
+                 <*> areanameJSD
+                 <*> areaTypeJSD
+                 <*> chartTypeJSD
+                 <*> featureIdJSD
+                 <*> zoomJSD
+                 <*> chartJSD
+                 <*> labelJSD
+                 <*> featuresJSD
+                 <*> areanamesJSD
 
   jsargsJSD <- toJSValDyn jsargsD
 

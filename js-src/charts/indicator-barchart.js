@@ -51,7 +51,7 @@ export default function (element, params) {
 
     if (window.innerWidth < 400) {
         maxLength = 11;
-    } 
+    }
     else if (window.innerWidth < 600) {
         maxLength = 25;
     }
@@ -74,7 +74,7 @@ export default function (element, params) {
             if (_.has(features, d)) {
                 label = features[d];
             }
-            
+
             label = label[0].toUpperCase() + label.slice(1);
 
             if (label.length > maxLength) {
@@ -198,7 +198,7 @@ export default function (element, params) {
     // }
 
     // data = cache.get(indicator)['areas'][area][year];
-    
+
     tooltipElem = d3.select(element.parentNode).select(".tooltip");
 
 
@@ -224,21 +224,21 @@ export default function (element, params) {
             if (chartData === null || chartData.length === 0) {
                 return d;
             }
-            
+
             var trans = _.filter(chartData.chartTransforms, function(i) {
                 return i.transformName === transform;
             });
 
-            var formatter = null; 
+            var formatter = null;
 
             if (trans.length > 0) {
                 formatter = trans[0].transformFormatter;
             }
-            
+
             return format(formatter, d);
         });
     xAxis.tickSize(-1 * dataHeight, 10)
-    
+
     // x.domain([0, d3.max(data, function (d) { return d.value; })]);
 
     var xExtent = d3.extent(data, function(d) { return d.value; });
@@ -275,8 +275,8 @@ export default function (element, params) {
         .text(chartCaption);
 
     xSelCaption
-        .attr("x", 
-            base.node().getBoundingClientRect().width - 
+        .attr("x",
+            base.node().getBoundingClientRect().width -
             xSelCaption.node().getBBox().width - margin.right
         )
 
@@ -300,7 +300,7 @@ export default function (element, params) {
                 var name = d.name;
 
                 if (_.has(features, d.name)) {
-                    name = features[d.name];
+                    name = features[d.name] || "";
                 }
 
                 name = name[0].toUpperCase() + name.slice(1);

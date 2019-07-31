@@ -330,7 +330,7 @@ export default function (element, params) {
             .orient("left")
             .ticks(10)
             .tickFormat(function (d) {
-                if (chartData.length === 0) {
+                if (chartData === null || chartData.length === 0) {
                     return d;
                 }
 
