@@ -17,7 +17,6 @@ import Data.Maybe (fromMaybe, isJust)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import qualified Data.Map as Map
 import Data.Text (Text)
-import Debug.Trace
 
 import qualified GHCJS.DOM.Element as DOM
 import Language.Javascript.JSaddle
@@ -92,7 +91,6 @@ data ChartArgs
     , chartArgsTransform      :: Maybe JSVal
     , chartArgsAreaname       :: Maybe JSVal
     , chartArgsAreatype       :: Maybe JSVal
-    , chartArgsChartType      :: Maybe JSVal
     , chartArgsFeatureId      :: Maybe JSVal
     , chartArgsZoom           :: Maybe JSVal
     , chartArgsChartData      :: Maybe JSVal
@@ -111,7 +109,6 @@ instance ToJSVal ChartArgs where
     set "transform"     chartArgsTransform
     set "areaname"      chartArgsAreaname
     set "areatype"      chartArgsAreatype
-    set "chartType"     chartArgsChartType
     set "featureId"     chartArgsFeatureId
     set "zoom"          chartArgsZoom
     set "chartData"     chartArgsChartData
@@ -122,6 +119,7 @@ instance ToJSVal ChartArgs where
 
 toJSValDynHold
   :: ( Eq val
+     , Show val
      , ToJSVal val
      , PostBuild t m
      , DomBuilder t m
@@ -131,7 +129,7 @@ toJSValDynHold
      , MonadHold t m
      , MonadFix m
      )
-  => Dynamic t val
+  => Dynamic t (Maybe val)
   -> m (Dynamic t (Maybe JSVal))
 toJSValDynHold valD = do
   valDU <- holdUniqDyn valD
@@ -154,7 +152,6 @@ indicatorChart
   -> Dynamic t Bool
   -> m (Event t Message)
 indicatorChart IndicatorChartState{..} zoomD = do
-  let pageD = getThemePage <$> routeD
 
   (e, rightZoomE) <- divClass "chart-wrapper" $ do
     elAttr "div" ("class" =: "chart-inner") $ do
@@ -185,7 +182,11 @@ indicatorChart IndicatorChartState{..} zoomD = do
   readyE <- getPostBuild
 
   let shapedDataD = shapeData <$> areasD <*> indicatorNumbersD
-  shapedDataJSD <- toJSValDyn (traceDynWith (const "shapeData") shapedDataD)
+  let emptyToNothing [] = Nothing
+      emptyToNothing as = Just as
+  shapedDataJSD <- toJSValDynHold $ (emptyToNothing <$> shapedDataD)
+
+  let pageD = getThemePage <$> routeD
 
   let areanamesD = do
         areas <- areasD
@@ -194,9 +195,11 @@ indicatorChart IndicatorChartState{..} zoomD = do
 
       chartTypeD = fmap themePageRightChart <$> pageD
 
-      chartD = do
+  chartTypeUD <- holdUniqDyn chartTypeD
+
+  let chartD = do
         mindicator <- indicatorD
-        mchartType <- chartTypeD
+        mchartType <- chartTypeUD
         return $ do
           Indicator{..} <- mindicator
           charts <- indicatorCharts
@@ -217,36 +220,51 @@ indicatorChart IndicatorChartState{..} zoomD = do
           let l = textLabel indicator transform
           return $ chartLabel l
 
+
   myJSD         <- toJSValDyn (fmap themePageYear <$> pageD)
   indIdJSD      <- toJSValDyn (fmap (unIndicatorId . themePageIndicatorId) <$> pageD)
   transformJSD  <- toJSValDyn transformD
   areanameJSD   <- toJSValDyn (fmap areaName <$> areaD)
   areaTypeJSD   <- toJSValDyn (fmap themePageAreaType <$> pageD)
-  chartTypeJSD  <- toJSValDyn (fmap unChartId <$> chartTypeD)
   featureIdJSD  <- toJSValDyn (fmap featureIdText <$> featureIdD)
-  zoomJSD       <- toJSValDyn zoomD
-  chartJSD      <- toJSValDynHold chartD
-  labelJSD      <- toJSValDynHold labelD
-  featuresJSD   <- toJSValDyn (maybe [] OMap.toList . (indicatorFeatureText =<<) <$> indicatorD)
-  areanamesJSD  <- toJSValDyn areanamesD
+  zoomJSD       <- toJSValDyn (Just <$> zoomD)
+  chartJSD      <- toJSValDyn chartD
+  labelJSD      <- toJSValDyn labelD
+  featuresJSD   <- toJSValDyn (fmap OMap.toList . (indicatorFeatureText =<<) <$> indicatorD)
+  areanamesJSD  <- toJSValDyn (Just <$> areanamesD)
 
-  let jsargsD = ChartArgs
-                 <$> traceDynWith (const "year") myJSD
-                 <*> traceDynWith (const "indId") indIdJSD
-                 <*> traceDynWith (const "transform") transformJSD
-                 <*> traceDynWith (const "areaname") areanameJSD
-                 <*> traceDynWith (const "areatype") areaTypeJSD
-                 <*> traceDynWith (const "chartype") chartTypeJSD
-                 <*> traceDynWith (const "featureId") featureIdJSD
-                 <*> traceDynWith (const "zoom") zoomJSD
-                 <*> traceDynWith (const "chart") chartJSD
-                 <*> traceDynWith (const "label") labelJSD
-                 <*> traceDynWith (const "features") featuresJSD
-                 <*> traceDynWith (const "areanames") areanamesJSD
+  let jsargsD = Just <$> (ChartArgs
+                           <$> myJSD
+                           <*> indIdJSD
+                           <*> transformJSD
+                           <*> areanameJSD
+                           <*> areaTypeJSD
+                           <*> featureIdJSD
+                           <*> zoomJSD
+                           <*> chartJSD
+                           <*> labelJSD
+                           <*> featuresJSD
+                           <*> areanamesJSD)
 
-  jsargsJSD <- toJSValDyn jsargsD
+  let chartArgsComplete Nothing = False
+      chartArgsComplete (Just ChartArgs{..})
+        = let test = map isJust [ chartArgsYear
+                                , chartArgsIndictorId
+                                , chartArgsTransform
+                                , chartArgsAreaname
+                                , chartArgsAreatype
+                                , chartArgsZoom
+                                , chartArgsChartData
+                                , chartArgsChartCaption
+                                , chartArgsAreas
+                                ]
+          in all id test
 
-  let getJSChartType chart = case chart of
+
+  jsargsJSD <- toJSValFilterDyn chartArgsComplete jsargsD
+
+  let getJSChartType :: Maybe ChartId -> JSString
+      getJSChartType chart = case chart of
         Just a -> case a of
                     "barchart"            -> "updateAreaBarchart"
                     "over-under-barchart" -> "overUnderBarchart"
@@ -256,16 +274,16 @@ indicatorChart IndicatorChartState{..} zoomD = do
 
 
 
-  let jsargs = (,,) <$> shapedDataJSD <*> jsargsJSD <*> (getJSChartType <$> chartTypeD)
+  let jsargs = (,,) <$> shapedDataJSD <*> jsargsJSD <*> (getJSChartType <$> chartTypeUD)
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
   updateE :: Event t (Maybe JSVal, Maybe JSVal, JSString)
-    <- switchHold initialUpdate (updateValuesE <$ readyE)
+      <- switchHold initialUpdate (updateValuesE <$ readyE)
 
   performEvent_ $ ffor updateE $ \case
     (Just shapedData, Just args, jscharttype)
-      -> liftJSM $ void $ jsg2 jscharttype (_element_raw e) (shapedData, args)
-    _ -> return ()
+      -> do liftJSM $ void $ jsg2 jscharttype (_element_raw e) (shapedData, args)
+    _ -> do return ()
 
   clickE :: Event t (Maybe Message)
     <- clickEvents e $ \svg -> do

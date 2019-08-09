@@ -6,6 +6,7 @@ module Bailiwick.Javascript
   , elDynHtmlAttr'
   , switchDynM
   , toJSValDyn
+  , toJSValFilterDyn
   )
 where
 
@@ -41,16 +42,34 @@ clickEvents e handler =
 toJSValDyn
   :: ( MonadHold t m
      , ToJSVal val
+     , Show val
      , DomBuilder t m
      , PostBuild t m
      , PerformEvent t m
      , MonadJSM m
      , MonadJSM (Performable m)
      )
-  => Dynamic t val
+  => Dynamic t (Maybe val)
   -> m (Dynamic t (Maybe JSVal))
 toJSValDyn valD = do
-  valE <- performEvent $ fmap (liftJSM . toJSVal) (updated valD)
+  let conv a = liftJSM $ toJSVal a
+  valE <- performEvent $ fmapMaybeCheap (fmap conv) (updated valD)
+  holdDyn Nothing (Just <$> valE)
+
+toJSValFilterDyn
+  :: ( MonadHold t m
+     , ToJSVal val
+     , DomBuilder t m
+     , PostBuild t m
+     , PerformEvent t m
+     , MonadJSM m
+     , MonadJSM (Performable m)
+     )
+  => (Maybe val -> Bool)
+  -> Dynamic t (Maybe val)
+  -> m (Dynamic t (Maybe JSVal))
+toJSValFilterDyn fil valD = do
+  valE <- performEvent $ fmapMaybeCheap (fmap (liftJSM . toJSVal)) (ffilter fil $ updated valD)
   holdDyn Nothing (Just <$> valE)
 
 

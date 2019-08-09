@@ -5,9 +5,10 @@ import { isEmpty } from '../utils/utils';
 
 export default function(element, params, margin, chartType) {
     let base = d3.select(element),
+        chartRect = d3.select(".indicator-chart")[0][0].getBoundingClientRect(),
         svg = null,
-        width = parseInt(base.style("width")) - margin.left - margin.right,
-        height = parseInt(base.style("height")) - margin.top - margin.bottom,
+        width = parseInt(chartRect.width) - margin.left - margin.right,
+        height = parseInt(base.style('height')) - margin.top - margin.bottom,
         data = params[0],
         chartInnerClasses = {
             'default-timeseries': false,
@@ -40,9 +41,6 @@ export default function(element, params, margin, chartType) {
     svg.attr("preserveAspectRatio", "xMinYMin meet");
     // svg.attr("viewBox", "0 0 481 474");
 
-    if (isEmpty(data) || isNaN(width) || isNaN(height)) {
-        return null;
-    }
     var year = params[1].year;
     var indicator = params[1].indicatorId;
     var transform = params[1].transform;

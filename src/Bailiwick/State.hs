@@ -95,7 +95,7 @@ make routeD store@Store{..} = do
 
   return
     State
-       { routeD             = uRouteD
+       { routeD             = routeD
        , store              = store
        , regionD            = uRegionD
        , areaD              = uAreaD
