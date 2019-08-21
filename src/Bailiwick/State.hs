@@ -139,7 +139,14 @@ makeHeaderState
   => State t -> HeaderState t
 makeHeaderState State{..} =
   let areasD = storeAreasD store
-  in  HeaderState routeD regionD areaD featureD areasD indicatorD
+  in  HeaderState
+        routeD
+        regionD
+        yearD
+        areaD
+        featureD
+        areasD
+        indicatorD
 
 -- Indicator state
 makeIndicatorState
@@ -185,7 +192,7 @@ makeMapState State{..} =
 makeMapLegendState
   :: Reflex t
   => State t -> MapLegendState t
-makeMapLegendState State{featureD,yearD,indicatorD,store,routeD} =
+makeMapLegendState State{..} =
   let scaleD = do
         feature <- featureD
         myear <- yearD
@@ -198,8 +205,13 @@ makeMapLegendState State{featureD,yearD,indicatorD,store,routeD} =
           let IndicatorScale scale = indicatorScale
           OMap.lookup (year, feature) scale
 
-  in MapLegendState scaleD routeD featureD indicatorD
-
+  in MapLegendState
+        scaleD
+        yearD
+        featureD
+        transformD
+        chartTypeD
+        indicatorD
 
 -- IndicatorChart state
 makeIndicatorChartState
@@ -208,7 +220,6 @@ makeIndicatorChartState
 makeIndicatorChartState State{..} =
   let selectedAreaD = zipDynWith (<|>) areaD regionD
   in IndicatorChartState
-          routeD
           selectedAreaD
           chartTypeD
           featureD
@@ -218,7 +229,6 @@ makeIndicatorChartState State{..} =
           (storeAreasD store)
           indicatorD
           indicatorNumbersD
-
 
 -- make IndicatorSummaryState
 makeIndicatorSummaryState
