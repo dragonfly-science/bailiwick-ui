@@ -33,10 +33,10 @@ import Bailiwick.Types
 data IndicatorTableState t
   = IndicatorTableState
   { showTableD         :: Dynamic t Bool
-  , routeD             :: Dynamic t Route
   , areaD              :: Dynamic t (Maybe Area)
   , compareAreaD       :: Dynamic t (Maybe Area)
   , featureD           :: Dynamic t (Maybe FeatureId)
+  , yearD              :: Dynamic t (Maybe Year)
   , indicatorD         :: Dynamic t (Maybe Indicator)
   , indicatorNumbersD  :: Dynamic t IndicatorNumbers
   }
@@ -112,13 +112,13 @@ indicatorTable IndicatorTableState{..} = mdo
 
   let tableD = shapeData <$> areaD <*> featureD <*> sortOrderD <*> indicatorNumbersD
 
-      pageD = getThemePage <$> routeD
       subs = (textSubstitution
                     <$> areaD
                     <*> compareAreaD
                     <*> indicatorD
                     <*> featureD
-                    <*> pageD
+                    <*> (constDyn Nothing)
+                    <*> yearD
                     <*>)
 
       captionsD = fmap indicatorCaptions <$> indicatorD

@@ -35,6 +35,9 @@ data State t
     , yearD              :: Dynamic t (Maybe Year)
     , indicatorD         :: Dynamic t (Maybe Indicator)
     , indicatorNumbersD  :: Dynamic t IndicatorNumbers
+    , chartTypeD         :: Dynamic t (Maybe ChartId)
+    , transformD         :: Dynamic t (Maybe TransformId)
+    , areaTypeD          :: Dynamic t (Maybe AreaType)
     }
 
 make
@@ -88,10 +91,31 @@ make routeD store@Store{..} = do
           ThemePageArgs{..} <- getThemePage route
           return themePageYear
 
+      chartTypeD = do
+        route <- routeD
+        return $ do
+          ThemePageArgs{..} <- getThemePage route
+          return themePageRightChart
+
+      transformD = do
+        route <- routeD
+        return $ do
+          ThemePageArgs{..} <- getThemePage route
+          return themePageLeftTransform
+
+      areaTypeD = do
+        route <- routeD
+        return $ do
+          ThemePageArgs{..} <- getThemePage route
+          return themePageAreaType
+
   uFeatureD <- holdUniqDyn featureD
   uYearD    <- holdUniqDyn yearD
   uRegionD  <- holdUniqDyn $ fst <$> regta
   uAreaD    <- holdUniqDyn $ snd <$> regta
+  uChartTypeD <- holdUniqDyn chartTypeD
+  uTransformD <- holdUniqDyn transformD
+  uAreaTypeD  <- holdUniqDyn areaTypeD
 
   return
     State
@@ -103,6 +127,9 @@ make routeD store@Store{..} = do
        , yearD              = uYearD
        , indicatorD         = indicatorD
        , indicatorNumbersD  = indicatorNumbersD
+       , chartTypeD         = uChartTypeD
+       , transformD         = uTransformD
+       , areaTypeD          = uAreaTypeD
        }
 
 
@@ -183,8 +210,12 @@ makeIndicatorChartState State{..} =
   in IndicatorChartState
           routeD
           selectedAreaD
+          chartTypeD
+          featureD
+          transformD
+          yearD
+          areaTypeD
           (storeAreasD store)
-          (constDyn Nothing) -- TO DO Feature
           indicatorD
           indicatorNumbersD
 
@@ -195,9 +226,11 @@ makeIndicatorSummaryState
   => State t -> IndicatorSummaryState t
 makeIndicatorSummaryState State{..} =
   let selectedAreaD = zipDynWith (<|>) areaD regionD
-  in IndicatorSummaryState routeD selectedAreaD
+  in IndicatorSummaryState
+         selectedAreaD
          (constDyn Nothing)  -- TODO compare area
          featureD            -- feature
+         yearD
          indicatorD          -- indicator
          indicatorNumbersD   -- numbers
 
@@ -209,13 +242,12 @@ makeIndicatorTableState State{..} =
   let selectedAreaD = zipDynWith (<|>) areaD regionD
   in IndicatorTableState
          (hasAdapter ShowTable <$> routeD)
-         routeD
          selectedAreaD
          (constDyn Nothing)  -- TODO compare area
          featureD            -- feature
+         yearD
          indicatorD          -- indicator
          indicatorNumbersD   -- numbers
-
 
 
 findIndicator :: [Theme] -> IndicatorId -> Maybe Indicator
@@ -244,24 +276,3 @@ areaList (Areas areas) p = case (area, parent) of
         , areaLevel parentArea == "reg" ]
 
 
-getRoute :: State t -> Route
-getRoute = undefined
-
-
-getAreas :: State t -> Areas
-getAreas _ = Areas OMap.empty
-
-getAreaSummaries :: State t -> AreaSummaries
-getAreaSummaries = undefined
-
-getRegion :: State t -> Maybe Area
-getRegion _ = Nothing
-
-getSubArea :: State t -> Maybe Area
-getSubArea _ = Nothing
-
-
-
-
-stateCompareArea :: State t -> Maybe Area
-stateCompareArea = undefined

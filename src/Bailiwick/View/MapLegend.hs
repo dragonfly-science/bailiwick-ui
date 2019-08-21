@@ -26,10 +26,12 @@ import Bailiwick.View.Text (textSubstitution)
 
 data MapLegendState t
   = MapLegendState
-    { inputValuesD       :: Dynamic t (Maybe (Double, Double))
-    , routeD             :: Dynamic t Route
-    , featureD           :: Dynamic t (Maybe FeatureId)
-    , indicatorD         :: Dynamic t (Maybe Indicator)
+    { inputValuesD     :: Dynamic t (Maybe (Double, Double))
+    , yearD            :: Dynamic t (Maybe Year)
+    , featureD         :: Dynamic t (Maybe FeatureId)
+    , transformD       :: Dynamic t (Maybe TransformId)
+    , chartTypeD       :: Dynamic t (Maybe ChartId)
+    , indicatorD       :: Dynamic t (Maybe Indicator)
     }
 
 mapLegend
@@ -49,22 +51,19 @@ mapLegend
 mapLegend MapLegendState{..} = do
   readyE <- getPostBuild
 
-  let pageD = getThemePage <$> routeD
-  let _transform = fmap themePageLeftTransform <$> pageD
-  let _chartType = fmap themePageLeftChart <$> pageD
   let jsargs = do
-        transform <- _transform
+        transform <- transformD
+        chartType <- chartTypeD
         indicator <- indicatorD
         featureId <- featureD
-        page <- pageD
+        year <- yearD
         inputValues <- inputValuesD
-        chartType <- _chartType
 
         let label = mapLegendLabel
                         indicator
                         featureId
                         transform
-                        page
+                        year
 
         return (inputValues, label, indicator, chartType, transform)
 
@@ -107,15 +106,16 @@ mapLegendLabel
   :: Maybe Indicator
   -> Maybe FeatureId
   -> Maybe Text
-  -> Maybe ThemePageArgs
+  -> Maybe Year
   -> Text
-mapLegendLabel indicator featureId transform page = do
+mapLegendLabel indicator featureId transform year = do
     let chartLabel = textSubstitution
                         Nothing
                         Nothing
                         indicator
                         featureId
-                        page
+                        Nothing
+                        year
 
     let label = case transform of
             Just tr -> textLabel indicator tr

@@ -30,10 +30,13 @@ import Bailiwick.View.Text (textSubstitution)
 
 data IndicatorChartState t
   = IndicatorChartState
-    { routeD             :: Dynamic t Route
-    , areaD              :: Dynamic t (Maybe Area)
+    { areaD              :: Dynamic t (Maybe Area)
+    , chartTypeD         :: Dynamic t (Maybe ChartId)
+    , featureD           :: Dynamic t (Maybe FeatureId)
+    , transformD         :: Dynamic t (Maybe TransformId)
+    , yearD              :: Dynamic t (Maybe Year)
+    , areaTypeD          :: Dynamic t (Maybe AreaType)
     , areasD             :: Dynamic t (Maybe Areas)
-    , featureD           :: Dynamic t (Maybe Feature)
     , indicatorD         :: Dynamic t (Maybe Indicator)
     , indicatorNumbersD  :: Dynamic t IndicatorNumbers
     }
@@ -59,10 +62,10 @@ shapeData mareas (IndicatorNumbers inmap) =
 
       step (areaid, year, _mfeatureid) Numbers{..} res
          = do
-          let featureId = do
+          let feature = do
                 f <- _mfeatureid
                 return f
-              key = (areaid, lookupAreaName areaid, lookupAreaLevel areaid, lookupAreaParents areaid, featureId)
+              key = (areaid, lookupAreaName areaid, lookupAreaLevel areaid, lookupAreaParents areaid, feature)
            in  OMap.alter (malter (year, rawNum, indexNum, headlineDisp, indexDisp)) key res
       malter yns Nothing = Just [yns]
       malter yns (Just this) = Just (yns:this)
@@ -186,34 +189,26 @@ indicatorChart IndicatorChartState{..} zoomD = do
       emptyToNothing as = Just as
   shapedDataJSD <- toJSValDynHold $ (emptyToNothing <$> shapedDataD)
 
-  let pageD = getThemePage <$> routeD
-
   let areanamesD = do
         areas <- areasD
         let hash = maybe OMap.empty unAreas areas
         return $ OMap.keys hash
 
-      chartTypeD = fmap themePageRightChart <$> pageD
-
-  chartTypeUD <- holdUniqDyn chartTypeD
-
   let chartD = do
         mindicator <- indicatorD
-        mchartType <- chartTypeUD
+        mchartType <- chartTypeD
         return $ do
           Indicator{..} <- mindicator
           charts <- indicatorCharts
           chartid <- mchartType
           OMap.lookup chartid charts
 
-      featureIdD = (themePageFeatureId =<<) <$> pageD
-      transformD = fmap themePageLeftTransform <$> pageD
       labelD = do
         indicator <- indicatorD
         area <- areaD
-        featureId <- featureIdD
-        page <- pageD
-        let chartLabel = textSubstitution area Nothing indicator featureId page
+        feature <- featureD
+        year <- yearD
+        let chartLabel = textSubstitution area Nothing indicator feature Nothing year
         mtransform <- transformD
         return $ do
           transform <- mtransform
@@ -221,12 +216,12 @@ indicatorChart IndicatorChartState{..} zoomD = do
           return $ chartLabel l
 
 
-  myJSD         <- toJSValDyn (fmap themePageYear <$> pageD)
-  indIdJSD      <- toJSValDyn (fmap (unIndicatorId . themePageIndicatorId) <$> pageD)
+  myJSD         <- toJSValDyn yearD
+  indIdJSD      <- toJSValDyn (fmap (unIndicatorId . indicatorId) <$> indicatorD)
   transformJSD  <- toJSValDyn transformD
   areanameJSD   <- toJSValDyn (fmap areaName <$> areaD)
-  areaTypeJSD   <- toJSValDyn (fmap themePageAreaType <$> pageD)
-  featureIdJSD  <- toJSValDyn (fmap featureIdText <$> featureIdD)
+  areaTypeJSD   <- toJSValDyn areaTypeD
+  featureJSD    <- toJSValDyn (fmap featureIdText <$> featureD)
   zoomJSD       <- toJSValDyn (Just <$> zoomD)
   chartJSD      <- toJSValDyn chartD
   labelJSD      <- toJSValDyn labelD
@@ -239,7 +234,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
                            <*> transformJSD
                            <*> areanameJSD
                            <*> areaTypeJSD
-                           <*> featureIdJSD
+                           <*> featureJSD
                            <*> zoomJSD
                            <*> chartJSD
                            <*> labelJSD
@@ -274,7 +269,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
 
 
 
-  let jsargs = (,,) <$> shapedDataJSD <*> jsargsJSD <*> (getJSChartType <$> chartTypeUD)
+  let jsargs = (,,) <$> shapedDataJSD <*> jsargsJSD <*> (getJSChartType <$> chartTypeD)
   let initialUpdate = tagPromptlyDyn jsargs readyE
   let updateValuesE = updated jsargs
   updateE :: Event t (Maybe JSVal, Maybe JSVal, JSString)

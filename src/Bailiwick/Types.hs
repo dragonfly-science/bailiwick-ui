@@ -27,6 +27,7 @@ import GHCJS.DOM.Types (FromJSString)
 import GHC.Generics
 
 type AreaId = Text
+type AreaType = Text
 data Area
   = Area
     { areaId       :: AreaId
@@ -297,6 +298,9 @@ instance FromJSON Indicator where
     parseJSON = genericParseJSON indicatorOptions
 
 type Indicators = InsOrdHashMap IndicatorId Indicator
+
+type TransformId = Text
+type DetailId = Text
 
 newtype FeatureId = FeatureId { featureIdText :: Text }
    deriving (Eq, Ord, Show, Generic, Hashable,

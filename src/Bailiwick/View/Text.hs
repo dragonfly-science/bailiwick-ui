@@ -31,35 +31,34 @@ textSubstitution
   -> Maybe Area
   -> Maybe Indicator
   -> Maybe FeatureId
-  -> Maybe ThemePageArgs
+  -> Maybe DetailId
+  -> Maybe Year
   -> Text
   -> Text
-textSubstitution area compareArea indicator feature themePage =
-    let y = themePageYear <$> themePage
-        fy = indicatorFirstYear <$> indicator
+textSubstitution area compareArea indicator feature detail year =
+    let fy = indicatorFirstYear <$> indicator
         yem = indicatorYearEndMonth =<< indicator
         indid = unIndicatorId . indicatorId <$> indicator
         sa = maybe "New Zealand" areaName area
         aid = maybe "new-zealand" areaId area
         f = featureIdText <$> feature
         fp = Nothing -- TODO feature types (Tourism spend)
-        _d = themePageDetailId <$> themePage --
         dl = Nothing -- TODO d <|> (indicatorTopDetailLabel =<< indicator)
         ip = indicatorPeriod =<< indicator
-        p = (-) <$> y <*> ip
+        p = (-) <$> year <*> ip
         a = case (areaName <$> compareArea) of
               Just ca' ->
                      "<span class='active'>" <> sa <>
                      "</span><span class='compare'> (and " <> ca' <> ")</span>"
               _ -> sa
         fl = case indicatorFeatureText =<< indicator of
-              Just ft -> (`M.lookup` ft) =<< themePageFeatureId =<< themePage
+              Just ft -> (`M.lookup` ft) =<< feature
               _ -> f <|> (indicatorDefaultFeature =<< indicator)
         replace findStr (Just replaceStr) = T.replace findStr replaceStr
         replace _ _ = id
     in T.strip
       . replace "$indid$" indid
-      . replace "$year$" (T.pack . show <$> y)
+      . replace "$year$" (T.pack . show <$> year)
       . replace "$firstYear$" fy
       . replace "$yearEndMonth$" yem
       . T.replace "$area$" a
@@ -71,7 +70,7 @@ textSubstitution area compareArea indicator feature themePage =
       . replace "$featureType$" fp
       . replace "$detail$" dl
       . T.pack
-      . removeDetailBrackets (themePageDetailId =<< themePage)
+      . removeDetailBrackets detail
       . removeFeatureBrackets (f)
       . T.unpack
 

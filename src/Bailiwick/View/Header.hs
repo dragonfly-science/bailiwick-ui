@@ -28,6 +28,7 @@ data HeaderState t
   = HeaderState
   { routeD     :: Dynamic t Route
   , areaD      :: Dynamic t (Maybe Area)
+  , yearD      :: Dynamic t (Maybe Year)
   , subareaD   :: Dynamic t (Maybe Area)
   , featureD   :: Dynamic t (Maybe FeatureId)
   , areasD     :: Dynamic t (Maybe Areas)
@@ -159,7 +160,8 @@ backToSummary HeaderState{..} = do
                 <*> (constDyn Nothing)
                 <*> indicatorD
                 <*> (constDyn Nothing)
-                <*> (getThemePage <$> routeD)
+                <*> (constDyn Nothing)
+                <*> yearD
                 <*>)
 
   (e, _) <-

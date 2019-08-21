@@ -74,9 +74,9 @@ data ThemePageArgs
   , themePageYear           :: Year
   , themePageFeatureId      :: Maybe FeatureId
   , themePageDetailId       :: Maybe Text
-  , themePageAreaType       :: Text
-  , themePageLeftTransform  :: Text
-  , themePageRightTransform :: Text
+  , themePageAreaType       :: AreaType
+  , themePageLeftTransform  :: TransformId
+  , themePageRightTransform :: TransformId
   } deriving (Eq, Show)
 
 data Page

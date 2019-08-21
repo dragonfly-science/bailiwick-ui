@@ -24,10 +24,10 @@ import Bailiwick.Route
 
 data IndicatorSummaryState t
   = IndicatorSummaryState
-  { routeD             :: Dynamic t Route
-  , areaD              :: Dynamic t (Maybe Area)
+  { areaD              :: Dynamic t (Maybe Area)
   , compareAreaD       :: Dynamic t (Maybe Area)
   , featureD           :: Dynamic t (Maybe FeatureId)
+  , yearD              :: Dynamic t (Maybe Year)
   , indicatorD         :: Dynamic t (Maybe Indicator)
   , indicatorNumbersD  :: Dynamic t IndicatorNumbers
   }
@@ -53,11 +53,12 @@ indicatorSummary IndicatorSummaryState{..} = do
                 <*> compareAreaD
                 <*> indicatorD
                 <*> featureD
-                <*> (getThemePage <$> routeD)
+                <*> (constDyn Nothing)
+                <*> yearD
                 <*>)
       summaryNumsD = do
         mareaid <- fmap areaId <$> areaD
-        myear   <- fmap themePageYear . getThemePage <$> routeD
+        myear   <- yearD
         feature <- featureD
         IndicatorNumbers ismap <- indicatorNumbersD
         return $ fromMaybe emptyNumbers $ do
