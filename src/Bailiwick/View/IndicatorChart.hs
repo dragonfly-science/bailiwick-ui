@@ -20,7 +20,7 @@ import Data.Text (Text)
 
 import qualified GHCJS.DOM.Element as DOM
 import Language.Javascript.JSaddle
-   (jsg2, obj, setProp, MonadJSM, liftJSM, ToJSVal, toJSVal, JSVal, valNull, JSString)
+   (jsg2, obj, setProp, MonadJSM, JSM, liftJSM, ToJSVal, toJSVal, JSVal, valNull, JSString)
 import Reflex.Dom.Core
 
 import Bailiwick.Javascript
@@ -89,24 +89,26 @@ textLabel ind transform =
 
 data ChartArgs
   = ChartArgs
-    { chartArgsYear           :: Maybe JSVal
-    , chartArgsIndictorId     :: Maybe JSVal
-    , chartArgsTransform      :: Maybe JSVal
-    , chartArgsAreaname       :: Maybe JSVal
-    , chartArgsAreatype       :: Maybe JSVal
-    , chartArgsFeatureId      :: Maybe JSVal
-    , chartArgsZoom           :: Maybe JSVal
-    , chartArgsChartData      :: Maybe JSVal
-    , chartArgsChartCaption   :: Maybe JSVal
-    , chartArgsFeatures       :: Maybe JSVal
-    , chartArgsAreas          :: Maybe JSVal
+    { chartArgsYear           :: Maybe Year
+    , chartArgsIndictorId     :: Maybe Text
+    , chartArgsTransform      :: Maybe Text
+    , chartArgsAreaname       :: Maybe AreaId
+    , chartArgsAreatype       :: Maybe AreaType
+    , chartArgsFeatureId      :: Maybe Text
+    , chartArgsZoom           :: Maybe Bool
+    , chartArgsChartData      :: Maybe Chart
+    , chartArgsChartCaption   :: Maybe Text
+    , chartArgsFeatures       :: Maybe [(FeatureId, Text)]
+    , chartArgsAreas          :: Maybe [AreaId]
     }
 
 instance ToJSVal ChartArgs where
   toJSVal ChartArgs{..} = do
     res <- obj
-    let set key val = do
-            setProp key (fromMaybe valNull val) res
+    let set :: ToJSVal v => JSString -> Maybe v -> JSM ()
+        set key val = do
+            jsval <- mapM toJSVal val
+            setProp key (fromMaybe valNull jsval) res
     set "year"          chartArgsYear
     set "indictorId"    chartArgsIndictorId
     set "transform"     chartArgsTransform
@@ -216,45 +218,33 @@ indicatorChart IndicatorChartState{..} zoomD = do
           return $ chartLabel l
 
 
-  myJSD         <- toJSValDyn yearD
-  indIdJSD      <- toJSValDyn (fmap (unIndicatorId . indicatorId) <$> indicatorD)
-  transformJSD  <- toJSValDyn transformD
-  areanameJSD   <- toJSValDyn (fmap areaName <$> areaD)
-  areaTypeJSD   <- toJSValDyn areaTypeD
-  featureJSD    <- toJSValDyn (fmap featureIdText <$> featureD)
-  zoomJSD       <- toJSValDyn (Just <$> zoomD)
-  chartJSD      <- toJSValDyn chartD
-  labelJSD      <- toJSValDyn labelD
-  featuresJSD   <- toJSValDyn (fmap OMap.toList . (indicatorFeatureText =<<) <$> indicatorD)
-  areanamesJSD  <- toJSValDyn (Just <$> areanamesD)
-
   let jsargsD = Just <$> (ChartArgs
-                           <$> myJSD
-                           <*> indIdJSD
-                           <*> transformJSD
-                           <*> areanameJSD
-                           <*> areaTypeJSD
-                           <*> featureJSD
-                           <*> zoomJSD
-                           <*> chartJSD
-                           <*> labelJSD
-                           <*> featuresJSD
-                           <*> areanamesJSD)
+                           <$> yearD
+                           <*> (fmap (unIndicatorId . indicatorId) <$> indicatorD)
+                           <*> transformD
+                           <*> (fmap areaName <$> areaD)
+                           <*> areaTypeD
+                           <*> (fmap featureIdText <$> featureD)
+                           <*> (Just <$> zoomD)
+                           <*> chartD
+                           <*> labelD
+                           <*> (fmap OMap.toList . (indicatorFeatureText =<<) <$> indicatorD)
+                           <*> (Just <$> areanamesD)
+                          )
 
   let chartArgsComplete Nothing = False
       chartArgsComplete (Just ChartArgs{..})
-        = let test = map isJust [ chartArgsYear
-                                , chartArgsIndictorId
-                                , chartArgsTransform
-                                , chartArgsAreaname
-                                , chartArgsAreatype
-                                , chartArgsZoom
-                                , chartArgsChartData
-                                , chartArgsChartCaption
-                                , chartArgsAreas
-                                ]
+        = let test = [ isJust chartArgsYear
+                     , isJust chartArgsIndictorId
+                     , isJust chartArgsTransform
+                     , isJust chartArgsAreaname
+                     , isJust chartArgsAreatype
+                     , isJust chartArgsZoom
+                     , isJust chartArgsChartData
+                     , isJust chartArgsChartCaption
+                     , isJust chartArgsAreas
+                     ]
           in all id test
-
 
   jsargsJSD <- toJSValFilterDyn chartArgsComplete jsargsD
 
