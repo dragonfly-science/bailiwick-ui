@@ -19,7 +19,6 @@ import Reflex
 import Reflex.Dom.Core
 
 import Bailiwick.Javascript
-import Bailiwick.Route
 import Bailiwick.Types
 import Bailiwick.View.IndicatorChart (textLabel)
 import Bailiwick.View.Text (textSubstitution)

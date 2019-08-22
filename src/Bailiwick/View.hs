@@ -205,7 +205,6 @@ mainContent
     => State t
     -> m (Event t Message)
 mainContent st@State{..} = do
-  isSummary <- holdUniqDyn ((== Summary) . routePage <$> routeD)
   let leftZoomD = hasAdapter Mapzoom <$> routeD
       rightZoomD = hasAdapter RightZoom <$> routeD
       mapState = makeMapState st
@@ -214,7 +213,7 @@ mainContent st@State{..} = do
       indicatorSummaryState = makeIndicatorSummaryState st
       indicatorChartState = makeIndicatorChartState st
   switchDynM $
-     ffor isSummary $ \case
+     ffor isSummaryD $ \case
         True  -> summaryContent routeD regionD areaD mapState areaSummaryState
         False -> indicatorContent leftZoomD rightZoomD regionD
                                   mapState mapLegendState

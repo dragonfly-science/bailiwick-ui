@@ -26,13 +26,14 @@ import Bailiwick.Types
 
 data HeaderState t
   = HeaderState
-  { routeD     :: Dynamic t Route
-  , areaD      :: Dynamic t (Maybe Area)
-  , yearD      :: Dynamic t (Maybe Year)
-  , subareaD   :: Dynamic t (Maybe Area)
-  , featureD   :: Dynamic t (Maybe FeatureId)
-  , areasD     :: Dynamic t (Maybe Areas)
-  , indicatorD :: Dynamic t (Maybe Indicator)
+  { isSummaryD   :: Dynamic t Bool
+  , areaD        :: Dynamic t (Maybe Area)
+  , subareaD     :: Dynamic t (Maybe Area)
+  , compareAreaD :: Dynamic t (Maybe AreaId)
+  , yearD        :: Dynamic t (Maybe Year)
+  , featureD     :: Dynamic t (Maybe FeatureId)
+  , areasD       :: Dynamic t (Maybe Areas)
+  , indicatorD   :: Dynamic t (Maybe Indicator)
   }
 
 header
@@ -133,7 +134,7 @@ header hs@HeaderState{..} = mdo
                               , SetRegion <$> fmapMaybe id (updated uniqRegion)
                               , SetFeature . FeatureId <$> fmapMaybe id (updated uniqFeature)
                               ]
-      compareE <- compareMenu (routeCompareArea <$> routeD) areasD
+      compareE <- compareMenu compareAreaD areasD
       return $ leftmost [backToSummaryE, menuE, compareE]
 
 backToSummary
@@ -151,9 +152,7 @@ backToSummary HeaderState{..} = do
           if bool
             then "class" =: cssclass <> mempty
             else "class" =: cssclass <> displayNone
-      pageD = routePage <$> routeD
-      isSummaryD  = (Summary ==) <$> pageD
-      notSummaryD = (Summary /=) <$> pageD
+      notSummaryD = not <$> isSummaryD
 
   let subs = (textSubstitution
                 <$> ((<|>) <$> subareaD <*> areaD)

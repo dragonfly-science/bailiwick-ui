@@ -10,14 +10,11 @@ import Control.Applicative ((<|>))
 import Data.Maybe (isJust)
 import Data.Char (isSpace, toUpper)
 
-
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.HashMap.Strict.InsOrd as M (lookup)
 
-import Bailiwick.Route
 import Bailiwick.Types
-
 
 capitalize :: Text -> Text
 capitalize inp =

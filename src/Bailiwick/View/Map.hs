@@ -65,7 +65,7 @@ import Language.Javascript.JSaddle
 import Reflex.Dom.Core
 import Reflex.Dom.Builder.Immediate (wrapDomEvent)
 
-import Bailiwick.Route
+import Bailiwick.Route hiding (isSummary)
 import Bailiwick.Types
 
 data MapState t

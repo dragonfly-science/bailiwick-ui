@@ -20,7 +20,6 @@ import Language.Javascript.JSaddle (MonadJSM)
 import Bailiwick.View.Text
 import Bailiwick.Javascript (elDynHtmlAttr')
 import Bailiwick.Types
-import Bailiwick.Route
 
 data IndicatorSummaryState t
   = IndicatorSummaryState

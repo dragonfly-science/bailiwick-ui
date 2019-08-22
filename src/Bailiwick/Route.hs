@@ -14,6 +14,7 @@ module Bailiwick.Route
   , Page(..)
   , hasAdapter
   , Adapter(..)
+  , isSummary
   )
 where
 
@@ -62,7 +63,7 @@ data Route
   = Route
   { routePage        :: Page
   , routeArea        :: Text
-  , routeCompareArea :: Maybe Text
+  , routeCompareArea :: Maybe AreaId
   , routeAdapters    :: [Adapter]
   } deriving (Eq, Show)
 

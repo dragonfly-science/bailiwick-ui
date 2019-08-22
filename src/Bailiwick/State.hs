@@ -28,6 +28,7 @@ import Bailiwick.Types
 data State t
   = State
     { routeD             :: Dynamic t Route
+    , isSummaryD         :: Dynamic t Bool
     , store              :: Store t
     , regionD            :: Dynamic t (Maybe Area)
     , areaD              :: Dynamic t (Maybe Area)
@@ -38,6 +39,7 @@ data State t
     , chartTypeD         :: Dynamic t (Maybe ChartId)
     , transformD         :: Dynamic t (Maybe TransformId)
     , areaTypeD          :: Dynamic t (Maybe AreaType)
+    , compareAreaD       :: Dynamic t (Maybe AreaId)
     }
 
 make
@@ -109,17 +111,23 @@ make routeD store@Store{..} = do
           ThemePageArgs{..} <- getThemePage route
           return themePageAreaType
 
-  uFeatureD <- holdUniqDyn featureD
-  uYearD    <- holdUniqDyn yearD
-  uRegionD  <- holdUniqDyn $ fst <$> regta
-  uAreaD    <- holdUniqDyn $ snd <$> regta
-  uChartTypeD <- holdUniqDyn chartTypeD
-  uTransformD <- holdUniqDyn transformD
-  uAreaTypeD  <- holdUniqDyn areaTypeD
+      compareAreaD = routeCompareArea <$> routeD
+      isSummaryD = isSummary <$> routeD
+
+  uIsSummaryD    <- holdUniqDyn isSummaryD
+  uFeatureD      <- holdUniqDyn featureD
+  uYearD         <- holdUniqDyn yearD
+  uRegionD       <- holdUniqDyn $ fst <$> regta
+  uAreaD         <- holdUniqDyn $ snd <$> regta
+  uChartTypeD    <- holdUniqDyn chartTypeD
+  uTransformD    <- holdUniqDyn transformD
+  uAreaTypeD     <- holdUniqDyn areaTypeD
+  uCompareAreaD  <- holdUniqDyn compareAreaD
 
   return
     State
        { routeD             = routeD
+       , isSummaryD         = uIsSummaryD
        , store              = store
        , regionD            = uRegionD
        , areaD              = uAreaD
@@ -130,6 +138,7 @@ make routeD store@Store{..} = do
        , chartTypeD         = uChartTypeD
        , transformD         = uTransformD
        , areaTypeD          = uAreaTypeD
+       , compareAreaD       = uCompareAreaD
        }
 
 
@@ -140,10 +149,11 @@ makeHeaderState
 makeHeaderState State{..} =
   let areasD = storeAreasD store
   in  HeaderState
-        routeD
+        isSummaryD
         regionD
-        yearD
         areaD
+        compareAreaD
+        yearD
         featureD
         areasD
         indicatorD
