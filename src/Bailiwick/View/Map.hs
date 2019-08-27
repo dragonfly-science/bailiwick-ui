@@ -20,7 +20,7 @@ module Bailiwick.View.Map
   )
 where
 
-import Control.Monad ((>=>), (<=<), forever, void, when, join)
+import Control.Monad ((>=>), forever, void, when, join)
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Concurrent
 import Control.Applicative (liftA2, Alternative(..))
@@ -70,10 +70,14 @@ import Bailiwick.Types
 
 data MapState t
   = MapState
-    { routeD             :: Dynamic t Route
+    { adaptersD          :: Dynamic t [Adapter]
     , regionD            :: Dynamic t (Maybe Area)
     , subareaD           :: Dynamic t (Maybe Area)
     , areasD             :: Dynamic t (Maybe Areas)
+    , transformD         :: Dynamic t (Maybe TransformId)
+    , areaTypeD          :: Dynamic t (Maybe AreaType)
+    , featureD           :: Dynamic t (Maybe FeatureId)
+    , yearD              :: Dynamic t (Maybe Year)
     , indicatorNumbersD  :: Dynamic t IndicatorNumbers
     }
 
@@ -432,7 +436,7 @@ nzmap
     -> Event t ScaleFunction
     -> m (Event t Message)
 nzmap isSummary MapState{..} scaleFunctionE = mdo
-  zoomD <- holdUniqDyn ( hasAdapter Mapzoom <$> routeD)
+  zoomD <- holdUniqDyn ( hasAdapter Mapzoom <$> adaptersD)
   let areaD = zipDynWith (<|>) subareaD regionD
 
   -- Show the svg when it is loaded
@@ -473,9 +477,9 @@ nzmap isSummary MapState{..} scaleFunctionE = mdo
   -- Unique dyns
   mapregionidD  <- holdUniqDyn $ fmap areaId <$> regionD
   mapsubareaidD <- holdUniqDyn $ fmap areaId <$> subareaD
-  mapareatypeD  <- holdUniqDyn $ fmap themePageAreaType . getThemePage <$> routeD
-  mapfeatureD   <- holdUniqDyn $ (themePageFeatureId <=< getThemePage) <$> routeD
-  mapyearD      <- holdUniqDyn $ fmap themePageYear . getThemePage <$> routeD
+  mapareatypeD  <- holdUniqDyn $ areaTypeD
+  mapfeatureD   <- holdUniqDyn $ featureD
+  mapyearD      <- holdUniqDyn $ yearD
   let mapD
         = Map <$> zoomD
               <*> zoomStateT
@@ -504,19 +508,19 @@ nzmap isSummary MapState{..} scaleFunctionE = mdo
 
   let tooltipArea
          :: Maybe Areas
-         -> Route
+         -> [Adapter]
          -> Maybe (AreaInfo, (Int, Int))
          -> Maybe ((AreaInfo, (Int, Int)), Area)
       tooltipArea _ _ Nothing = Nothing
       tooltipArea Nothing _ _ = Nothing
-      tooltipArea (Just areas) route (Just (ai, xy)) =
+      tooltipArea (Just areas) adapters (Just (ai, xy)) =
         let maybeAreaId =
-              if hasAdapter Mapzoom route
+              if hasAdapter Mapzoom adapters
                 then areaWard ai <|> areaTa ai
                 else areaRegion ai
         in ((ai, xy),) <$> (((`OM.lookup` (unAreas areas)) . slugify) =<< maybeAreaId)
       tooltipAreaD :: Dynamic t (Maybe ((AreaInfo, (Int, Int)), Area))
-      tooltipAreaD = tooltipArea <$> areasD <*> routeD <*> mouseOverFullD
+      tooltipAreaD = tooltipArea <$> areasD <*> adaptersD <*> mouseOverFullD
       showStyle Nothing = "visibility:hidden;"
       showStyle (Just ((_, (x,y)), _)) = Text.pack $
           "visibility:visible; left:" <> show (x + 8) <> "px; top:" <> show (y + 8) <> "px;"
@@ -535,7 +539,6 @@ nzmap isSummary MapState{..} scaleFunctionE = mdo
   elDynAttr "div" (("class" =: "tooltip" <>) . ("style" =:) . showStyle <$> tooltipAreaD) $ do
     el "p" $ dynText $ maybe "" (areaName . snd) <$> tooltipAreaD
     when (not isSummary) $ do
-      let transformD = fmap themePageLeftTransform . getThemePage <$> routeD
       elDynAttr "p" (("class" =: ) <$> (fromMaybe "" <$> transformD) <> " number") $ do
         dynText $ fromMaybe "No data" <$> getValue tooltipAreaD
 
@@ -570,16 +573,16 @@ nzmap isSummary MapState{..} scaleFunctionE = mdo
 
   -- The click event depends on the state
   let makeMessages
-        :: (Maybe Area, Maybe Area, Route, Maybe Text)
+        :: (Maybe Area, Maybe Area, [Adapter], Maybe Text)
         -> Maybe AreaInfo
         -> Maybe Message
-      makeMessages (mregion, msubarea, route, areatype) ai =
+      makeMessages (mregion, msubarea, adapters, areatype) ai =
         let region         = slugify <$> (areaRegion =<< ai)
             ta             = slugify <$> (areaTa =<< ai)
             ward           = slugify <$> (areaWard =<< ai)
             currentRegion  = areaId <$> mregion
             currentSubarea = areaId <$> msubarea
-            iszoomed       = hasAdapter Mapzoom route
+            iszoomed       = hasAdapter Mapzoom adapters
             auckland       = "auckland" :: Text
             subarea        = if region == Just auckland then ward else ta
         in  if
@@ -603,9 +606,9 @@ nzmap isSummary MapState{..} scaleFunctionE = mdo
       combinedD = do
         region  <- regionD
         subarea <- subareaD
-        route   <- routeD
+        adapters <- adaptersD
         areatype <- mapareatypeD
-        return (region, subarea, route, areatype)
+        return (region, subarea, adapters, areatype)
   return $ attachPromptlyDynWithMaybe makeMessages combinedD clickE
 
 

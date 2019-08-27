@@ -92,9 +92,8 @@ areaSummary AreaSummaryState{..} = do
   return $ (\(areatype, Indicator{..}) ->
       GoTo (ThemePage $ ThemePageArgs
         indicatorId
-        indicatorDefaultChartLeft
         indicatorDefaultChartRight
-        2017 Nothing Nothing areatype "indexed" "indexed")
+        2017 Nothing Nothing areatype "indexed")
         ) <$> (attachPromptlyDyn areaTypeD gotoIndicatorE)
 
 switchDynM

@@ -22,10 +22,11 @@ import Bailiwick.Route
 
 data IndicatorState t
   = IndicatorState
-  { routeD      :: Dynamic t Route
-  , area        :: Dynamic t (Maybe Area)
-  , indicator   :: Dynamic t (Maybe IndicatorId)
-  , themes      :: Dynamic t (Maybe [Theme])
+  { selectedAreaD  :: Dynamic t (Maybe Area)
+  , indicatorD     :: Dynamic t (Maybe Indicator)
+  , yearD          :: Dynamic t (Maybe Year)
+  , areaTypeD      :: Dynamic t (Maybe AreaType)
+  , themesD        :: Dynamic t (Maybe [Theme])
   }
 
 
@@ -39,7 +40,7 @@ indicators
      )
   => IndicatorState t
   -> m (Event t Message)
-indicators IndicatorState{..} = do
+indicators is@IndicatorState{..} = do
   divClass "themes-outer indicators-section" $ do
     elAttr "span" ("id" =: "indicators") $ return ()
     divClass "content" $
@@ -49,50 +50,47 @@ indicators IndicatorState{..} = do
             el "p" $ do
               el "i" $ return ()
               text "Indicators for "
-              dynText $ maybe "New Zealand" areaName <$> area
-        divClass "theme-cards" $ switchDynM $ ffor themes $ \case
+              dynText $ maybe "New Zealand" areaName <$> selectedAreaD
+        divClass "theme-cards" $ switchDynM $ ffor themesD $ \case
           Nothing -> return never
-          Just themes' -> do
-            fmap leftmost . forM themes' $ \Theme{..} ->
+          Just themes -> do
+            fmap leftmost . forM themes $ \Theme{..} ->
               divClass "theme-card" $ do
                 divClass ("card-header card-header-" <> themeId) $ do
                   el "i" $ return ()
                   text themeName
                 divClass "card-copy" $
                   el "ul" $
-                    fmap leftmost . forM themeIndicators $ \ind@Indicator{..} -> do
+                    fmap leftmost . forM themeIndicators $ \ind -> do
                       let ilcss = do
-                            indid <- indicator
+                            indid <- fmap indicatorId <$> indicatorD
                             return $
-                              if indid == Just indicatorId
+                              if indid == Just (indicatorId ind)
                                 then "class" =: "indicator-list selected"
                                 else "class" =: "indicator-list"
                       click <- fmap (domEvent Click . fst) . elDynAttr' "li" ilcss $
-                        text $ capitalize indicatorName
-                      return $ tagPromptlyDyn (makeGoto ind routeD) click
+                        text $ capitalize (indicatorName ind)
+                      return $ tagPromptlyDyn (makeGoto ind is) click
 
 makeGoto
   :: Monad (Dynamic t)
   => Indicator
-  -> Dynamic t Route
+  -> IndicatorState t
   -> Dynamic t Message
-makeGoto Indicator{..} routeD = do
-  route <- routeD
-  let myear = themePageYear <$> getThemePage route
-      year = case myear of
+makeGoto Indicator{..} IndicatorState{..} = do
+  myear <- yearD
+  areatype <- areaTypeD
+  let year = case myear of
                 Just y -> if y `elem` indicatorYears
                             then y
                             else maximum indicatorYears
                 Nothing -> maximum indicatorYears
-      areatype = themePageAreaType <$> getThemePage route
   return $
     GoTo (ThemePage $ ThemePageArgs
                       indicatorId
-                      indicatorDefaultChartLeft
                       indicatorDefaultChartRight
                       year
                       (FeatureId <$> indicatorDefaultFeature)
                       Nothing
                       (fromMaybe "reg" areatype)
-                      "indexed"
                       "indexed")

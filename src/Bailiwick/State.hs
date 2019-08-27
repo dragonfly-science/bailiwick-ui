@@ -1,6 +1,8 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE LambdaCase #-}
 module Bailiwick.State
 where
 
@@ -11,6 +13,7 @@ import Data.Maybe (listToMaybe, mapMaybe, fromMaybe)
 import Data.Text (Text)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Reflex.Dom.Core
+import Language.Javascript.JSaddle.Types (MonadJSM)
 
 import Bailiwick.View.Header (HeaderState(HeaderState))
 import Bailiwick.View.Indicators (IndicatorState(IndicatorState))
@@ -22,13 +25,13 @@ import Bailiwick.View.IndicatorChart (IndicatorChartState(IndicatorChartState))
 import Bailiwick.View.IndicatorSummary (IndicatorSummaryState(IndicatorSummaryState))
 import Bailiwick.View.IndicatorTable (IndicatorTableState(IndicatorTableState))
 import Bailiwick.Route
-import Bailiwick.Store
+import Bailiwick.Store as Store
 import Bailiwick.Types
 
 data State t
   = State
-    { routeD             :: Dynamic t Route
-    , isSummaryD         :: Dynamic t Bool
+    { isSummaryD         :: Dynamic t Bool
+    , adaptersD          :: Dynamic t [Adapter]
     , store              :: Store t
     , regionD            :: Dynamic t (Maybe Area)
     , areaD              :: Dynamic t (Maybe Area)
@@ -42,32 +45,102 @@ data State t
     , compareAreaD       :: Dynamic t (Maybe AreaId)
     }
 
-make
+route
   :: ( Reflex t
+     , Monad m
+     )
+  => State t
+  -> m (Event t Route)
+route State{..} = return never
+
+run
+  :: ( Reflex t
+     , TriggerEvent t m
+     , PerformEvent t m
+     , HasJSContext (Performable m)
+     , MonadJSM (Performable m)
      , MonadHold t m
      , MonadFix m
      )
-  => Dynamic t Route -> Store t -> m (State t)
-make routeD store@Store{..} = do
-  uRouteD   <- holdUniqDyn routeD
-  let regta = do
-          mareas <- storeAreasD
-          case mareas of
-            Nothing -> return (Nothing, Nothing)
-            Just as@(Areas areas) -> do
-              route_area <- routeArea <$> routeD
-              let al = areaList as route_area
-                  Just nz = OMap.lookup "new-zealand" areas
-              case al of
-                  [r, t] -> return (Just r, Just t)
-                  [r]    -> return (Just r, Nothing)
-                  _      -> return (Just nz, Nothing)
+  => Event t Message
+  -> m (State t)
+run messageE = do
 
-  mIndicatorIdD <- holdUniqDyn (fmap themePageIndicatorId . getThemePage <$> uRouteD)
+  store <- Store.run messageE
+
+  isSummaryD <-
+    holdDyn False $ fforMaybe messageE $ \case
+      Ready (Route Summary _ _ _) -> Just True
+      GoToHomePage                -> Just True
+      _                           -> Just False
+
+  adaptersD <-
+    holdDyn [] $ fforMaybe messageE $ \case
+      Ready (Route _ _ _ adapters) -> Just $ adapters
+      _                            -> Nothing
+
+  yearD <-
+    holdDyn Nothing $ fmap Just $ fforMaybe messageE $ \case
+      Ready (Route (ThemePage tba) _ _ _)  -> Just $ themePageYear tba
+      GoTo (ThemePage tba)                -> Just $ themePageYear tba
+      SetYear year                        -> Just year
+      SetYearArea year _                  -> Just year
+      _                                   -> Nothing
+
+  featureD <-
+    holdDyn Nothing $ fmap Just $ fforMaybe messageE $ \case
+      Ready (Route (ThemePage tba) _ _ _)  -> themePageFeatureId tba
+      GoTo (ThemePage tba)                -> themePageFeatureId tba
+      SetFeature featureId                -> Just featureId
+      _                                   -> Nothing
+
+  chartTypeD <-
+    holdDyn Nothing $ fmap Just $ fforMaybe messageE $ \case
+      Ready (Route (ThemePage tba) _ _ _)  -> Just $ themePageChartType tba
+      GoTo (ThemePage tba)                -> Just $ themePageChartType tba
+      SetChartType chartId                -> Just chartId
+      _                                   -> Nothing
+
+  transformD <-
+    holdDyn Nothing $ fmap Just $ fforMaybe messageE $ \case
+      Ready (Route (ThemePage tba) _ _ _)  -> Just $ themePageTransform tba
+      GoTo (ThemePage tba)                -> Just $ themePageTransform tba
+      SetTransform transform              -> Just transform
+      _                                   -> Nothing
+
+  areaTypeD <-
+    holdDyn Nothing $ fmap Just $ fforMaybe messageE $ \case
+      Ready (Route (ThemePage tba) _ _ _)  -> Just $ themePageAreaType tba
+      SetRegion _                         -> Just $ "reg"
+      SetSubArea "auckland"               -> Just $ "ward"
+      SetSubArea _                        -> Just $ "ta"
+      GoTo (ThemePage tba)                -> Just $ themePageAreaType tba
+      SetAreaType areaType                -> Just areaType
+      _                                   -> Nothing
+
+  compareAreaD <-
+    holdDyn Nothing $ fmap Just $ fforMaybe messageE $ \case
+      Ready (Route _ _ ca _) -> ca
+      SetCompareArea ca     -> Just ca
+      UnsetCompareArea      -> Nothing
+      _                     -> Nothing
+
+  indicatorIdD <-
+    holdDyn Nothing $ fmap Just $ fforMaybe messageE $ \case
+      Ready (Route (ThemePage tba) _ _ _) -> Just $ themePageIndicatorId tba
+      GoTo (ThemePage tba)               -> Just $ themePageIndicatorId tba
+      _                                  -> Nothing
+
+  areaIdD <-
+    holdDyn Nothing $ fmap Just $ fforMaybe messageE $ \case
+      Ready (Route _ area_id _ _) -> Just area_id
+      SetSubArea area_id          -> Just area_id
+      SetRegion area_id           -> Just area_id
+      _                           -> Nothing
 
   let indicatorD = do -- Dynamic t
-        mIndicatorId <- mIndicatorIdD
-        mthemes <- storeThemesD
+        mIndicatorId <- indicatorIdD
+        mthemes <- storeThemesD store
         return $ do -- Maybe
             themes <- mthemes
             indicatorId <- mIndicatorId
@@ -75,72 +148,29 @@ make routeD store@Store{..} = do
 
       indicatorNumbersD = do
         mindicator <- indicatorD
-        indicatorsData <- storeIndicatorsDataD
+        indicatorsData <- storeIndicatorsDataD store
         return $ fromMaybe (IndicatorNumbers OMap.empty) $ do
           indid <- indicatorId <$> mindicator
           IndicatorData{..} <- OMap.lookup indid indicatorsData
           return indicatorNumbers
 
-      featureD = do
-        route <- routeD
-        return $ do
-          ThemePageArgs{..} <- getThemePage route
-          themePageFeatureId
+      regtaD = do
+          mareas <- storeAreasD store
+          marea_id <- areaIdD
+          case (mareas, marea_id) of
+            (Just as@(Areas areas), Just route_area) -> do
+              let al = areaList as route_area
+                  Just nz = OMap.lookup "new-zealand" areas
+              case al of
+                  [r, t] -> return (Just r, Just t)
+                  [r]    -> return (Just r, Nothing)
+                  _      -> return (Just nz, Nothing)
+            _  -> return (Nothing, Nothing)
 
-      yearD = do
-        route <- routeD
-        return $ do
-          ThemePageArgs{..} <- getThemePage route
-          return themePageYear
+      regionD = fst <$> regtaD
+      areaD = snd <$> regtaD
 
-      chartTypeD = do
-        route <- routeD
-        return $ do
-          ThemePageArgs{..} <- getThemePage route
-          return themePageRightChart
-
-      transformD = do
-        route <- routeD
-        return $ do
-          ThemePageArgs{..} <- getThemePage route
-          return themePageLeftTransform
-
-      areaTypeD = do
-        route <- routeD
-        return $ do
-          ThemePageArgs{..} <- getThemePage route
-          return themePageAreaType
-
-      compareAreaD = routeCompareArea <$> routeD
-      isSummaryD = isSummary <$> routeD
-
-  uIsSummaryD    <- holdUniqDyn isSummaryD
-  uFeatureD      <- holdUniqDyn featureD
-  uYearD         <- holdUniqDyn yearD
-  uRegionD       <- holdUniqDyn $ fst <$> regta
-  uAreaD         <- holdUniqDyn $ snd <$> regta
-  uChartTypeD    <- holdUniqDyn chartTypeD
-  uTransformD    <- holdUniqDyn transformD
-  uAreaTypeD     <- holdUniqDyn areaTypeD
-  uCompareAreaD  <- holdUniqDyn compareAreaD
-
-  return
-    State
-       { routeD             = routeD
-       , isSummaryD         = uIsSummaryD
-       , store              = store
-       , regionD            = uRegionD
-       , areaD              = uAreaD
-       , featureD           = uFeatureD
-       , yearD              = uYearD
-       , indicatorD         = indicatorD
-       , indicatorNumbersD  = indicatorNumbersD
-       , chartTypeD         = uChartTypeD
-       , transformD         = uTransformD
-       , areaTypeD          = uAreaTypeD
-       , compareAreaD       = uCompareAreaD
-       }
-
+  return State{..}
 
 -- Header state
 makeHeaderState
@@ -164,16 +194,26 @@ makeIndicatorState
   => State t -> IndicatorState t
 makeIndicatorState State{..} =
   let selectedAreaD = zipDynWith (<|>) areaD regionD
-      indId = fmap themePageIndicatorId . getThemePage <$> routeD
-  in  IndicatorState routeD selectedAreaD indId (storeThemesD $ store)
+      areasD  = storeAreasD store
+      themesD = storeThemesD store
+  in  IndicatorState
+        selectedAreaD
+        indicatorD
+        yearD
+        areaTypeD
+        themesD
 
 -- ToolBar State
 makeToolBarState
   :: Reflex t
   => State t -> ToolBarState t
 makeToolBarState State{..} =
-  let mthemepageD = getThemePage <$> routeD
-  in  ToolBarState mthemepageD indicatorD
+  ToolBarState
+     indicatorD
+     areaTypeD
+     transformD
+     chartTypeD
+     yearD
 
 -- Area Summary state
 makeSummaryState
@@ -196,14 +236,25 @@ makeMapState
   :: Reflex t
   => State t -> MapState t
 makeMapState State{..} =
-  MapState routeD regionD areaD (storeAreasD $ store) indicatorNumbersD
+  let areasD = storeAreasD $ store
+  in MapState
+      adaptersD
+      regionD
+      areaD
+      areasD
+      transformD
+      areaTypeD
+      featureD
+      yearD
+      indicatorNumbersD
+
 
 -- Map Legend state
 makeMapLegendState
   :: Reflex t
   => State t -> MapLegendState t
 makeMapLegendState State{..} =
-  let scaleD = do
+  let inputValuesD = do
         feature <- featureD
         myear <- yearD
         mindicator <- indicatorD
@@ -216,12 +267,13 @@ makeMapLegendState State{..} =
           OMap.lookup (year, feature) scale
 
   in MapLegendState
-        scaleD
+        inputValuesD
         yearD
         featureD
         transformD
         chartTypeD
         indicatorD
+
 
 -- IndicatorChart state
 makeIndicatorChartState
@@ -261,7 +313,7 @@ makeIndicatorTableState
 makeIndicatorTableState State{..} =
   let selectedAreaD = zipDynWith (<|>) areaD regionD
   in IndicatorTableState
-         (hasAdapter ShowTable <$> routeD)
+         (hasAdapter ShowTable <$> adaptersD)
          selectedAreaD
          (constDyn Nothing)  -- TODO compare area
          featureD            -- feature

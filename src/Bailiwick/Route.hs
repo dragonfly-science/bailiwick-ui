@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE LambdaCase   #-}
 module Bailiwick.Route
-  ( encodeUri
+  ( encodeRoute
   , decodeUri
   , Message(..)
   , Modal(..)
@@ -24,7 +24,7 @@ import Data.List ((\\))
 
 import Data.Text (Text)
 import qualified Data.Text as T (pack, unpack, isPrefixOf)
-import Data.Text.Encoding (decodeUtf8', encodeUtf8)
+import Data.Text.Encoding (decodeUtf8, decodeUtf8', encodeUtf8)
 import Text.Read (readMaybe)
 import qualified Data.ByteString.Lazy as B
 import Data.Binary.Builder (toLazyByteString)
@@ -35,14 +35,13 @@ import qualified Data.Map as M (lookup, fromList)
 import Bailiwick.Types
 
 data Message
-  = Ready Page
+  = Ready Route
   | SetRegion Text
   | SetSubArea Text
   | SetFeature FeatureId
   | SetAreaType Text
-  | SetRightChart ChartId
-  | SetLeftTransform Text
-  | SetRightTransform Text
+  | SetChartType ChartId
+  | SetTransform Text
   | SetYear Year
   | SetYearArea Year Text
   | GoTo Page
@@ -70,14 +69,12 @@ data Route
 data ThemePageArgs
   = ThemePageArgs
   { themePageIndicatorId    :: IndicatorId
-  , themePageLeftChart      :: ChartId
-  , themePageRightChart     :: ChartId
+  , themePageChartType      :: ChartId
   , themePageYear           :: Year
   , themePageFeatureId      :: Maybe FeatureId
   , themePageDetailId       :: Maybe Text
   , themePageAreaType       :: AreaType
-  , themePageLeftTransform  :: TransformId
-  , themePageRightTransform :: TransformId
+  , themePageTransform      :: TransformId
   } deriving (Eq, Show)
 
 data Page
@@ -97,8 +94,8 @@ data Modal
   | Share
   deriving (Eq, Show)
 
-hasAdapter :: Adapter -> Route -> Bool
-hasAdapter adapter Route{..} = adapter `elem` routeAdapters
+hasAdapter :: Adapter -> [Adapter] -> Bool
+hasAdapter adapter adapters = adapter `elem` adapters
 
 getThemePage :: Route -> Maybe ThemePageArgs
 getThemePage Route{routePage = ThemePage args} = Just args
@@ -116,7 +113,7 @@ getIndicatorId :: Message -> Maybe IndicatorId
 getIndicatorId = \case
   GoTo (ThemePage ThemePageArgs{..})
      -> Just themePageIndicatorId
-  Ready (ThemePage ThemePageArgs{..})
+  Ready (Route (ThemePage ThemePageArgs{..}) _ _ _)
      -> Just themePageIndicatorId
   _  -> Nothing
 
@@ -153,16 +150,12 @@ step route message =
         -> let update args = args { themePageAreaType = at }
            in  updateTP update route
 
-    SetRightChart c
-        -> let update args = args { themePageRightChart = c }
+    SetChartType c
+        -> let update args = args { themePageChartType = c }
            in  updateTP update route
 
-    SetLeftTransform lt
-        -> let update args = args { themePageLeftTransform = lt }
-           in  updateTP update route
-
-    SetRightTransform rt
-        -> let update args = args { themePageRightTransform = rt }
+    SetTransform lt
+        -> let update args = args { themePageTransform = lt }
            in  updateTP update route
 
     SetYear y
@@ -235,30 +228,27 @@ step route message =
         -> route { routeCompareArea = Nothing }
 
 
-encodeRoute :: Route -> URI -> URI
-encodeRoute route uri =
+encodeRoute :: Route -> Text
+encodeRoute route =
   let compareArea mca = [("ca", encodeUtf8 ca) | ca <- maybeToList mca]
       (segments, query) =
         case route of
           Route Summary area mca _ -> (["summary", area], compareArea mca)
-          Route (ThemePage (ThemePageArgs (IndicatorId i) (ChartId lc) (ChartId rc) y f t at lt rt)) area mca _ ->
-                ( ["theme", i, lc, rc, T.pack $ show y, area]
+          Route (ThemePage (ThemePageArgs (IndicatorId i) (ChartId rc) y f t at lt)) area mca _ ->
+                ( ["theme", i, rc, T.pack $ show y, area]
                   <> (featureIdText <$> maybeToList f)
                   <> maybeToList t
                 , [("areatype", encodeUtf8 at) | at /= "reg"]
-                  <> [("left-transform", encodeUtf8 lt) | lt /= "absolute"]
-                  <> [("right-transform", encodeUtf8 rt)]
+                  <> [("transform", encodeUtf8 lt) | lt /= "absolute"]
                   <> compareArea mca
                 )
-  in uri { uriPath = B.toStrict $ toLazyByteString (encodePath segments [])
-         , uriQuery = Query $ query <> [("mapzoom", "1")   | hasAdapter Mapzoom route]
-                                    <> [("rightzoom", "1") | hasAdapter RightZoom route]
-                                    <> [("leftzoom", "1")  | hasAdapter LeftZoom route]
-                                    <> [("showtable", "1") | hasAdapter ShowTable route]
-         }
-
-encodeUri :: URI -> Message -> URI
-encodeUri uri message = encodeRoute (step (decodeUri uri) message) uri
+      uri = URI { uriPath = B.toStrict $ toLazyByteString (encodePath segments [])
+                , uriQuery = Query $ query <> [("mapzoom", "1")   | hasAdapter Mapzoom (routeAdapters route)]
+                                     <> [("rightzoom", "1") | hasAdapter RightZoom (routeAdapters route)]
+                                     <> [("leftzoom", "1")  | hasAdapter LeftZoom (routeAdapters route)]
+                                     <> [("showtable", "1") | hasAdapter ShowTable (routeAdapters route)]
+                 }
+  in decodeUtf8 $ serializeURIRef' uri
 
 decodeUri :: URI -> Route
 decodeUri uri =
@@ -274,8 +264,7 @@ decodeUri uri =
       flagMap = M.fromList flags
       maybeDecodeUtf8 = either (const Nothing) Just . decodeUtf8'
       at = fromMaybe "reg" $ maybeDecodeUtf8 =<< M.lookup "areatype" flagMap
-      lt = fromMaybe "absolute" $ maybeDecodeUtf8 =<< M.lookup "left-transform" flagMap
-      rt = fromMaybe "absolute" $ maybeDecodeUtf8 =<< M.lookup "right-transform" flagMap
+      lt = fromMaybe "absolute" $ maybeDecodeUtf8 =<< M.lookup "transform" flagMap
       ca = maybeDecodeUtf8 =<< M.lookup "ca" flagMap
       standardise = \case
          "wanganui" -> "whanganui"
@@ -283,14 +272,14 @@ decodeUri uri =
 
   in case segments of
     ["summary", a] -> Route Summary (standardise a) ca adapters
-    ("theme":i:lc:rc:y:a:rest) ->
+    ("theme":i:rc:y:a:rest) ->
       let fd = case rest of
                      [f, d] -> Just (Just f, Just d)
                      [f] -> Just (Just f, Nothing)
                      [] -> Just (Nothing, Nothing)
                      _ -> Nothing
       in fromMaybe homePage $ (\year (f, d) -> Route (ThemePage (
-            ThemePageArgs (IndicatorId i) (ChartId lc) (ChartId rc) year (FeatureId <$> f) d at lt rt))
+            ThemePageArgs (IndicatorId i) (ChartId rc) year (FeatureId <$> f) d at lt))
              a ca adapters) <$> readMaybe (T.unpack y) <*> fd
     _  -> homePage
 

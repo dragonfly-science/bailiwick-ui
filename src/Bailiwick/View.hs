@@ -28,7 +28,7 @@ import Reflex.Dom.Core hiding (Home)
 
 import Bailiwick.Javascript (switchDynM)
 import Bailiwick.State
-import Bailiwick.Route
+import Bailiwick.Route hiding (isSummary)
 import Bailiwick.Types
 import Bailiwick.View.Header (header)
 import Bailiwick.View.ExportMenu (exportMenu)
@@ -95,23 +95,23 @@ view st@State{..} = do
     divClass "background-rear-dark-map-main-bg colour" $ return ()
     divClass "background-rear-dark-map-hover-bg colour" $ return ()
 
-  let marginTop (ThemePage _) = bool Nothing (Just "349px") . (> 140)
-      marginTop _ = bool Nothing (Just "279px") . (> 140)
-      marginTopD = marginTop <$> (routePage <$> routeD) <*> scrollPosD
-      wholeBodyClass route =
-        "whole-body " <> case routePage route of
-                              ThemePage _ -> "theme-whole-body"
-                              Summary -> "summary-whole-body"
-      mainHeaderClass isOpen route =
-         "main-header " <> case routePage route of
-                              ThemePage _ -> if isOpen then "large" else "small"
-                              Summary -> "closed"
+  let marginTop False = bool Nothing (Just "349px") . (> 140)
+      marginTop True = bool Nothing (Just "279px") . (> 140)
+      marginTopD = marginTop <$> isSummaryD <*> scrollPosD
+      wholeBodyClass isSummary =
+        "whole-body " <> if isSummary
+                           then "summary-whole-body"
+                           else "theme-whole-body"
+      mainHeaderClass isOpen isSummary =
+         "main-header " <> if isSummary
+                              then "closed"
+                              else if isOpen then "large" else "small"
   elDynAttr "div" (("class" =:) <$>
-         ((<>) <$> (wholeBodyClass <$> routeD)
+         ((<>) <$> (wholeBodyClass <$> isSummaryD)
                <*> (bool "" " fixed" . isJust <$> marginTopD))) $ mdo
     (headerE, isOpen, modalE)
       <- divClass "main-header-area" $
-            elDynClass "header" (mainHeaderClass <$> isOpen <*> routeD) $ do
+            elDynClass "header" (mainHeaderClass <$> isOpen <*> isSummaryD) $ do
               (navBarE, modalE') <- navbar
               headerE' <- header (makeHeaderState st)
               (toolBarE, isOpen') <- mdo
@@ -205,8 +205,8 @@ mainContent
     => State t
     -> m (Event t Message)
 mainContent st@State{..} = do
-  let leftZoomD = hasAdapter Mapzoom <$> routeD
-      rightZoomD = hasAdapter RightZoom <$> routeD
+  let leftZoomD = hasAdapter Mapzoom <$> adaptersD
+      rightZoomD = hasAdapter RightZoom <$> adaptersD
       mapState = makeMapState st
       mapLegendState = makeMapLegendState st
       areaSummaryState = makeSummaryState st
@@ -214,7 +214,7 @@ mainContent st@State{..} = do
       indicatorChartState = makeIndicatorChartState st
   switchDynM $
      ffor isSummaryD $ \case
-        True  -> summaryContent routeD regionD areaD mapState areaSummaryState
+        True  -> summaryContent adaptersD regionD areaD mapState areaSummaryState
         False -> indicatorContent leftZoomD rightZoomD regionD
                                   mapState mapLegendState
                                   indicatorChartState
@@ -223,18 +223,18 @@ mainContent st@State{..} = do
 
 summaryContent
     :: ContentConstraints t m
-    => Dynamic t Route
+    => Dynamic t [Adapter]
     -> Dynamic t (Maybe Area)
     -> Dynamic t (Maybe Area)
     -> MapState t
     -> AreaSummaryState t
     -> m (Event t Message)
-summaryContent routeD regionD areaD map_state area_summary_state=
+summaryContent adaptersD regionD areaD map_state area_summary_state=
   divClass "central-content summary" $ do
     messagesE
      <-
        divClass "navigation-map base-map" $ do
-         zoomClick <- summaryText routeD regionD areaD
+         zoomClick <- summaryText adaptersD regionD areaD
          mapClicks <- divClass "svg-wrapper" $ nzmap True map_state never
          return $ leftmost [zoomClick, mapClicks]
 
@@ -299,22 +299,22 @@ indicatorContent leftZoomD rightZoomD regionD
 summaryText
   :: ( DomBuilder t m
      , PostBuild t m )
-  => Dynamic t Route
+  => Dynamic t [Adapter]
   -> Dynamic t (Maybe Area)
   -> Dynamic t (Maybe Area)
   -> m (Event t Message)
-summaryText routeD regionD areaD = do
+summaryText adaptersD regionD areaD = do
 
-  let area = routeArea <$> routeD
+  let area = fmap areaId <$> zipDynWith (<|>) areaD regionD
       homeAttr = ffor area $ \case
-            "new-zealand" -> ("class" =: "text-wrapper" <> "style" =: "display: block")
-            _             -> ("class" =: "text-wrapper" <> "style" =: "display: none")
+            Just "new-zealand" -> ("class" =: "text-wrapper" <> "style" =: "display: block")
+            _                  -> ("class" =: "text-wrapper" <> "style" =: "display: none")
       summaryAttr = ffor area $ \case
-            "new-zealand" -> ("class" =: "text-wrapper" <> "style" =: "display: none")
-            _             -> ("class" =: "text-wrapper" <> "style" =: "display: block")
+            Just "new-zealand" -> ("class" =: "text-wrapper" <> "style" =: "display: none")
+            _                  -> ("class" =: "text-wrapper" <> "style" =: "display: block")
 
       -- Zoom in and out button
-      zoomed = hasAdapter Mapzoom <$> routeD
+      zoomed = hasAdapter Mapzoom <$> adaptersD
       zoomAttr = ffor zoomed $ \case
                     True -> ( "class" =: "zoom-out-small")
                     False -> ( "class" =: "zoom-in-small")
@@ -355,8 +355,8 @@ summaryText routeD regionD areaD = do
        <- elAttr' "div" ("class" =: "map-zoom") $ do
            dynText zoomText
            elDynAttr "span" zoomAttr $ return ()
-    return $ ffor (tagPromptlyDyn ((,) <$> routeD <*> regionD) (domEvent Click zoom)) $ \case
-      (r,a) | hasAdapter Mapzoom r -> ZoomOut (areaId <$> a)
+    return $ ffor (tagPromptlyDyn ((,) <$> adaptersD <*> regionD) (domEvent Click zoom)) $ \case
+      (as,a) | hasAdapter Mapzoom as -> ZoomOut (areaId <$> a)
       _ -> ZoomIn
 
 footer :: (Monad m, DomBuilder t m) => m ()

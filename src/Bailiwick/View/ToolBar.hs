@@ -39,8 +39,11 @@ import Bailiwick.Types
 
 data ToolBarState t
   = ToolBarState
-  { themepageD  :: Dynamic t (Maybe ThemePageArgs)
-  , indicatorD  :: Dynamic t (Maybe Indicator)
+  { indicatorD  :: Dynamic t (Maybe Indicator)
+  , areaTypeD   :: Dynamic t (Maybe AreaType)
+  , transformD  :: Dynamic t (Maybe TransformId)
+  , chartTypeD  :: Dynamic t (Maybe ChartId)
+  , yearD       :: Dynamic t (Maybe Year)
   }
 
 toolBar
@@ -72,13 +75,10 @@ toolBar isOpenD ToolBarState{..} = do
         return $ OM.fromList [(T.pack $ show y, T.pack $ show y)
                              | y <- reverse (maybe ([]) indicatorYears ind)]
 
-      areaTypeD              = fmap themePageAreaType <$> themepageD
-      leftTransformD         = fmap themePageLeftTransform <$> themepageD
-      rightChartD            = fmap themePageRightChart <$> themepageD
-      yearD                  = fmap (T.pack . show . themePageYear) <$> themepageD
+      textYearD = fmap (T.pack . show) <$> yearD
 
       setAreaEvent           = fmap (fmap SetAreaType . fmapMaybe id)
-      setLeftTransformEvent  = fmap (fmap SetLeftTransform . fmapMaybe id)
+      setTransformEvent      = fmap (fmap SetTransform . fmapMaybe id)
       setYearEvent           = fmap (fmap SetYear . fmapMaybe id . fmap (readMaybe . T.unpack =<<))
   divClass "tool-bar" $ do
     dropdownsE <- divClass "summary content" $ do
@@ -88,13 +88,13 @@ toolBar isOpenD ToolBarState{..} = do
           areaTypeE <- setAreaEvent $ divClass "element" $
             el "div" $
               toolbarDropdown "area" (constDyn "") never (constDyn True) areaTypeD (constDyn areaTypes)
-          transformE <- setLeftTransformEvent $ divClass "element" $
+          transformE <- setTransformEvent $ divClass "element" $
             divClass "toolbar-transform" $
-              toolbarDropdown "transform" (constDyn "") never (constDyn True) leftTransformD
+              toolbarDropdown "transform" (constDyn "") never (constDyn True) transformD
                 transforms
           yearE <- setYearEvent $ divClass "element" $
             el "div" $
-              toolbarDropdown "year" (constDyn "") never (constDyn True) yearD yearsD
+              toolbarDropdown "year" (constDyn "") never (constDyn True) textYearD yearsD
           return $ leftmost [areaTypeE, transformE, yearE]
       isOpenE <- divClass "actions content" $ mdo
         (b, _) <- elDynAttr' "button" (("class" =:) . bool "open-button" "close-button" <$> isOpenD) $
@@ -107,21 +107,21 @@ toolBar isOpenD ToolBarState{..} = do
           elClass "span" "label" $ text "view by:"
         areaTypeE <- setAreaEvent $ toolbarList "area" (constDyn "") never (constDyn True) areaTypeD
           (constDyn areaTypes)
-        transformE <- setLeftTransformEvent $ toolbarList "transform" (constDyn "") never (constDyn True) leftTransformD
+        transformE <- setTransformEvent $ toolbarList "transform" (constDyn "") never (constDyn True) transformD
           transforms
-        yearE <- setYearEvent $ toolbarList "year" (constDyn "") never (constDyn True) yearD yearsD
-        rightTransformE <- divClass "filter-type charts" $ do
+        yearE <- setYearEvent $ toolbarList "year" (constDyn "") never (constDyn True) textYearD yearsD
+        chartTypeE <- divClass "filter-type charts" $ do
           elClass "span" "label" $ text "view by"
           divClass "header" $ do
-            (tm, _) <- elDynClass' "button" (("treemap" <>) . bool "" " active" . (==Just (ChartId "treemap")) <$> rightChartD) $ el "i" $ return ()
-            (ts, _) <- elDynClass' "button" (("timeseries" <>) . bool "" " active" . (==Just (ChartId "timeseries")) <$> rightChartD) $ el "i" $ return ()
-            (bc, _) <- elDynClass' "button" (("barchart" <>) . bool "" " active" . (==Just (ChartId "barchart")) <$> rightChartD) $ el "i" $ return ()
+            (tm, _) <- elDynClass' "button" (("treemap" <>) . bool "" " active" . (==Just (ChartId "treemap")) <$> chartTypeD) $ el "i" $ return ()
+            (ts, _) <- elDynClass' "button" (("timeseries" <>) . bool "" " active" . (==Just (ChartId "timeseries")) <$> chartTypeD) $ el "i" $ return ()
+            (bc, _) <- elDynClass' "button" (("barchart" <>) . bool "" " active" . (==Just (ChartId "barchart")) <$> chartTypeD) $ el "i" $ return ()
             return $ leftmost
-                [ SetRightChart (ChartId "treemap") <$ domEvent Click tm
-                , SetRightChart (ChartId "timeseries") <$ domEvent Click ts
-                , SetRightChart (ChartId "barchart") <$ domEvent Click bc
+                [ SetChartType (ChartId "treemap")    <$ domEvent Click tm
+                , SetChartType (ChartId "timeseries") <$ domEvent Click ts
+                , SetChartType (ChartId "barchart")   <$ domEvent Click bc
                 ]
-        return $ leftmost [areaTypeE, transformE, yearE, rightTransformE]
+        return $ leftmost [areaTypeE, yearE, transformE, chartTypeE]
     return $ leftmost [dropdownsE, Right <$> filterE]
 
 toolbarDropdown
