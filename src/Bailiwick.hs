@@ -7,11 +7,10 @@ module Bailiwick (
     ui
 ) where
 
-import Control.Monad (void)
 import Control.Monad.Fix
 
 import Reflex.Dom.Core
-import Reflex.Dom.Contrib.Router (route, getURI)
+import Reflex.Dom.Contrib.Router (route)
 
 import qualified Bailiwick.Route as Route
 import qualified Bailiwick.State as State
@@ -22,14 +21,17 @@ ui :: ( MonadFix m
       )  => m ()
 ui = do
   readyE <- getPostBuild
-  initialURIE <- performEvent (getURI <$ readyE)
-  let initialRouteE = Route.Ready . Route.decodeUri <$> initialURIE
 
   rec
-    void $ route never -- (Route.encodeRoute <$> routeE)
+    uriD <- route $ attachPromptlyDynWith Route.encodeRoute
+                                          initialUriD
+                                          (State.route state)
+    let uriE = tag (current uriD) readyE
+    initialUriD <- holdDyn Nothing (Just <$> uriE)
 
-    state <- State.run (traceEvent "messagesE" $ leftmost [initialRouteE, messageE])
-    -- routeE <- State.route state
+    state <- State.run $ leftmost [ Route.Ready . Route.decodeUri <$> uriE
+                                  , messageE
+                                  ]
 
     messageE <- View.view state
 

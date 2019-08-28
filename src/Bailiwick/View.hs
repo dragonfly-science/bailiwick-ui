@@ -16,6 +16,7 @@ import Control.Applicative ((<|>))
 import Data.Bool (bool)
 import Data.Maybe (isJust)
 import Data.Monoid ((<>))
+import Data.Set (Set)
 
 import Language.Javascript.JSaddle.Types (MonadJSM)
 import qualified GHCJS.DOM.GlobalEventHandlers as Events (scroll)
@@ -28,7 +29,7 @@ import Reflex.Dom.Core hiding (Home)
 
 import Bailiwick.Javascript (switchDynM)
 import Bailiwick.State
-import Bailiwick.Route hiding (isSummary)
+import Bailiwick.Route
 import Bailiwick.Types
 import Bailiwick.View.Header (header)
 import Bailiwick.View.ExportMenu (exportMenu)
@@ -223,7 +224,7 @@ mainContent st@State{..} = do
 
 summaryContent
     :: ContentConstraints t m
-    => Dynamic t [Adapter]
+    => Dynamic t (Set Adapter)
     -> Dynamic t (Maybe Area)
     -> Dynamic t (Maybe Area)
     -> MapState t
@@ -298,7 +299,7 @@ indicatorContent leftZoomD rightZoomD regionD
 summaryText
   :: ( DomBuilder t m
      , PostBuild t m )
-  => Dynamic t [Adapter]
+  => Dynamic t (Set Adapter)
   -> Dynamic t (Maybe Area)
   -> Dynamic t (Maybe Area)
   -> m (Event t Message)

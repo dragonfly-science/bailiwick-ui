@@ -31,6 +31,7 @@ import Data.Functor (($>))
 import Data.Maybe (fromMaybe, isNothing, isJust, fromJust)
 import Data.Foldable (Foldable(..), forM_)
 import Data.Text (Text)
+import Data.Set (Set)
 import qualified Data.Text as Text
 import qualified Data.HashMap.Strict.InsOrd as OM (lookup, elems)
 
@@ -65,12 +66,12 @@ import Language.Javascript.JSaddle
 import Reflex.Dom.Core
 import Reflex.Dom.Builder.Immediate (wrapDomEvent)
 
-import Bailiwick.Route hiding (isSummary)
+import Bailiwick.Route
 import Bailiwick.Types
 
 data MapState t
   = MapState
-    { adaptersD          :: Dynamic t [Adapter]
+    { adaptersD          :: Dynamic t (Set Adapter)
     , regionD            :: Dynamic t (Maybe Area)
     , subareaD           :: Dynamic t (Maybe Area)
     , areasD             :: Dynamic t (Maybe Areas)
@@ -508,7 +509,7 @@ nzmap isSummary MapState{..} scaleFunctionE = mdo
 
   let tooltipArea
          :: Maybe Areas
-         -> [Adapter]
+         -> Set Adapter
          -> Maybe (AreaInfo, (Int, Int))
          -> Maybe ((AreaInfo, (Int, Int)), Area)
       tooltipArea _ _ Nothing = Nothing
@@ -573,7 +574,7 @@ nzmap isSummary MapState{..} scaleFunctionE = mdo
 
   -- The click event depends on the state
   let makeMessages
-        :: (Maybe Area, Maybe Area, [Adapter], Maybe Text)
+        :: (Maybe Area, Maybe Area, Set Adapter, Maybe Text)
         -> Maybe AreaInfo
         -> Maybe Message
       makeMessages (mregion, msubarea, adapters, areatype) ai =

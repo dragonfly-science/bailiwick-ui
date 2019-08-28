@@ -10,20 +10,18 @@ module Bailiwick.Route
   , getIndicatorId
   , Route(..)
   , ThemePageArgs(..)
-  , getThemePage
   , Page(..)
   , hasAdapter
   , Adapter(..)
-  , isSummary
   )
 where
 
-import Data.Maybe (mapMaybe, fromMaybe, maybeToList, isNothing)
+import Data.Maybe (mapMaybe, fromMaybe, maybeToList)
 import Data.Monoid ((<>))
-import Data.List ((\\))
+import Data.Set (Set, fromList, member)
 
 import Data.Text (Text)
-import qualified Data.Text as T (pack, unpack, isPrefixOf)
+import qualified Data.Text as T (pack, unpack)
 import Data.Text.Encoding (decodeUtf8, decodeUtf8', encodeUtf8)
 import Text.Read (readMaybe)
 import qualified Data.ByteString.Lazy as B
@@ -61,9 +59,9 @@ data Message
 data Route
   = Route
   { routePage        :: Page
-  , routeArea        :: Text
+  , routeArea        :: AreaId
   , routeCompareArea :: Maybe AreaId
-  , routeAdapters    :: [Adapter]
+  , routeAdapters    :: Set Adapter
   } deriving (Eq, Show)
 
 data ThemePageArgs
@@ -86,7 +84,7 @@ data Adapter
   | LeftZoom
   | RightZoom
   | ShowTable
-  deriving (Eq, Show)
+  deriving (Eq, Show, Ord)
 
 data Modal
   = Download
@@ -94,20 +92,8 @@ data Modal
   | Share
   deriving (Eq, Show)
 
-hasAdapter :: Adapter -> [Adapter] -> Bool
-hasAdapter adapter adapters = adapter `elem` adapters
-
-getThemePage :: Route -> Maybe ThemePageArgs
-getThemePage Route{routePage = ThemePage args} = Just args
-getThemePage _ = Nothing
-
-isSummary :: Route -> Bool
-isSummary = isNothing . getThemePage
-
-updateTP :: (ThemePageArgs -> ThemePageArgs) -> Route -> Route
-updateTP f s@Route{routePage = ThemePage args}
-    = s{ routePage = ThemePage $ f args }
-updateTP _ s = s
+hasAdapter :: Adapter -> Set Adapter -> Bool
+hasAdapter adapter adapters = adapter `member` adapters
 
 getIndicatorId :: Message -> Maybe IndicatorId
 getIndicatorId = \case
@@ -118,118 +104,10 @@ getIndicatorId = \case
   _  -> Nothing
 
 
--- import Debug.Trace
-step :: Route -> Message -> Route
-step route message =
-  case message of
 
-    Ready _page
-        -> route
-
-    SetRegion reg
-        -> let route' = route { routeArea = reg }
-               update args = args { themePageAreaType = "reg" }
-           in  updateTP update route'
-
-    SetSubArea sa
-        -> let route' = route { routeArea = sa
-                              , routeAdapters = routeAdapters route <> [Mapzoom, LeftZoom, RightZoom]
-                              }
-               at = if T.isPrefixOf "auckland" sa
-                      then "ward"
-                      else "ta"
-               update args = args { themePageAreaType = at }
-           in  updateTP update route'
-
-    SetFeature feature
-        -> let update args = args { themePageFeatureId = Just feature }
-           in  updateTP update route
-
-
-    SetAreaType at
-        -> let update args = args { themePageAreaType = at }
-           in  updateTP update route
-
-    SetChartType c
-        -> let update args = args { themePageChartType = c }
-           in  updateTP update route
-
-    SetTransform lt
-        -> let update args = args { themePageTransform = lt }
-           in  updateTP update route
-
-    SetYear y
-        -> let update args = args { themePageYear = y }
-           in  updateTP update route
-
-    SetYearArea y a
-        -> let route' = route { routeArea = a }
-               update args = args { themePageYear = y }
-           in  updateTP update route'
-
-    GoTo page
-        -> route { routePage = page }
-
-    GoToHomePage
-        -> route { routeArea = "new-zealand"
-                 , routePage = Summary
-                 , routeAdapters = routeAdapters route \\ [Mapzoom, LeftZoom, RightZoom]
-                 }
-
-    ZoomIn
-        -> route { routeAdapters = routeAdapters route <> [Mapzoom] }
-
-    LeftZoomIn
-        -> route { routeAdapters = routeAdapters route <> [LeftZoom] }
-
-    RightZoomIn
-        -> route { routeAdapters = routeAdapters route <> [RightZoom] }
-
-    ZoomOut (Just reg)
-        -> if isSummary route
-             then route { routeArea = reg
-                        , routeAdapters = routeAdapters route \\ [Mapzoom]
-                        }
-             else route { routeAdapters = routeAdapters route \\ [Mapzoom] }
-
-    ZoomOut Nothing
-        -> route { routeAdapters = routeAdapters route \\ [LeftZoom] }
-
-    LeftZoomOut (Just reg)
-        -> if isSummary route
-             then route { routeArea = reg
-                        , routeAdapters = routeAdapters route \\ [LeftZoom]
-                        }
-             else route { routeAdapters = routeAdapters route \\ [LeftZoom] }
-
-    LeftZoomOut Nothing
-        -> route { routeAdapters = routeAdapters route \\ [LeftZoom] }
-
-    RightZoomOut (Just reg)
-        -> if isSummary route
-             then route { routeArea = reg
-                        , routeAdapters = routeAdapters route \\ [RightZoom]
-                        }
-             else route { routeAdapters = routeAdapters route \\ [RightZoom] }
-
-    RightZoomOut Nothing
-        -> route { routeAdapters = routeAdapters route \\ [RightZoom] }
-
-    SetShowTable
-        -> route { routeAdapters = routeAdapters route <> [ShowTable] }
-
-    UnsetShowTable
-        -> route { routeAdapters = routeAdapters route \\ [ShowTable] }
-
-    SetCompareArea area
-        -> route { routeCompareArea = Just area }
-
-    UnsetCompareArea
-        -> route { routeCompareArea = Nothing }
-
-
-encodeRoute :: Route -> Text
-encodeRoute route =
+encodeRoute :: Maybe (URIRef Absolute) -> Route -> Text
+encodeRoute Nothing _ = ""
+encodeRoute (Just uri) route =
   let compareArea mca = [("ca", encodeUtf8 ca) | ca <- maybeToList mca]
       (segments, query) =
         case route of
@@ -242,19 +120,20 @@ encodeRoute route =
                   <> [("transform", encodeUtf8 lt) | lt /= "absolute"]
                   <> compareArea mca
                 )
-      uri = URI { uriPath = B.toStrict $ toLazyByteString (encodePath segments [])
-                , uriQuery = Query $ query <> [("mapzoom", "1")   | hasAdapter Mapzoom (routeAdapters route)]
-                                     <> [("rightzoom", "1") | hasAdapter RightZoom (routeAdapters route)]
-                                     <> [("leftzoom", "1")  | hasAdapter LeftZoom (routeAdapters route)]
-                                     <> [("showtable", "1") | hasAdapter ShowTable (routeAdapters route)]
+      cha a = hasAdapter a (routeAdapters route)
+      uri' = uri { uriPath = B.toStrict $ toLazyByteString (encodePath segments [])
+                 , uriQuery = Query $ query <> [("mapzoom", "1")   | cha Mapzoom]
+                                           <> [("rightzoom", "1") | cha RightZoom]
+                                           <> [("leftzoom", "1")  | cha LeftZoom]
+                                           <> [("showtable", "1") | cha ShowTable]
                  }
-  in decodeUtf8 $ serializeURIRef' uri
+  in decodeUtf8 $ serializeURIRef' uri'
 
 decodeUri :: URI -> Route
 decodeUri uri =
   let segments = decodePathSegments (uriPath uri)
       Query flags = uriQuery uri
-      adapters = mapMaybe mkAdapter flags
+      adapters = fromList $ mapMaybe mkAdapter flags
       mkAdapter ("mapzoom", "1") = Just Mapzoom
       mkAdapter ("rightzoom", "1") = Just RightZoom
       mkAdapter ("leftzoom", "1") = Just LeftZoom

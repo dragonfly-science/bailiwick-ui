@@ -8,6 +8,8 @@ where
 import Control.Monad.Fix
 import Control.Applicative ((<|>))
 import Data.Maybe (listToMaybe, mapMaybe, fromMaybe)
+import Data.Set (Set)
+import qualified Data.Set as Set
 
 import Data.Text (Text)
 import qualified Data.HashMap.Strict.InsOrd as OMap
@@ -30,7 +32,7 @@ import Bailiwick.Types
 data State t
   = State
     { isSummaryD         :: Dynamic t Bool
-    , adaptersD          :: Dynamic t [Adapter]
+    , adaptersD          :: Dynamic t (Set Adapter)
     , store              :: Store t
     , regionD            :: Dynamic t (Maybe Area)
     , areaD              :: Dynamic t (Maybe Area)
@@ -47,11 +49,31 @@ data State t
 
 route
   :: ( Reflex t
-     , Monad m
      )
   => State t
-  -> m (Event t Route)
-route state = return never
+  -> Event t Route
+route state =
+  let routeD = do
+        isSummary <- isSummaryD state
+        area <- maybe "new-zealand" areaId <$> selectedAreaD state
+        compareArea <- compareAreaD state
+        adapters <- adaptersD state
+
+        args <- ThemePageArgs
+                      <$> (fromMaybe "" . fmap indicatorId <$> indicatorD state)
+                      <*> (fromMaybe "" <$> chartTypeD state)
+                      <*> (fromMaybe 2019 <$> yearD state)
+                      <*> featureD state
+                      <*> return Nothing
+                      <*> (fromMaybe "" <$> areaTypeD state)
+                      <*> (fromMaybe "" <$> transformD state)
+        
+        let page = if isSummary
+                     then Summary
+                     else ThemePage args
+        return (Route page area compareArea adapters)
+
+  in updated routeD
 
 
 run
@@ -71,14 +93,21 @@ run messageE = do
 
   isSummaryD <- 
     holdDyn False $ fforMaybe messageE $ \case
-      Ready (Route Summary _ _ _) -> Just True
-      GoToHomePage                -> Just True
-      GoTo Summary                -> Just True
-      _                           -> Just False
+      Ready (Route Summary _ _ _)  -> Just True
+      GoToHomePage                 -> Just True
+      GoTo Summary                 -> Just True
+      GoTo (ThemePage _)           -> Just False
+      _                            -> Nothing
 
   adaptersD <-
-    holdDyn [] $ fforMaybe messageE $ \case
-      Ready (Route _ _ _ adapters) -> Just $ adapters
+    foldDyn ($) Set.empty $ fforMaybe messageE $ \case
+      Ready (Route _ _ _ adapters) -> Just (const adapters)
+      SetSubArea _                 -> Just (Set.insert Mapzoom)
+      GoToHomePage                 -> Just (Set.delete Mapzoom)
+      ZoomIn                       -> Just (Set.insert Mapzoom)
+      ZoomOut _                    -> Just (Set.delete Mapzoom)
+      SetShowTable                 -> Just (Set.insert ShowTable)
+      UnsetShowTable               -> Just (Set.delete ShowTable)
       _                            -> Nothing
 
   yearD <-
@@ -138,6 +167,9 @@ run messageE = do
       Ready (Route _ area_id _ _) -> Just area_id
       SetSubArea area_id          -> Just area_id
       SetRegion area_id           -> Just area_id
+      SetYearArea _ area_id       -> Just area_id
+      ZoomOut (Just area_id)      -> Just area_id
+      GoToHomePage                -> Just "new-zealand"
       _                           -> Nothing
 
   let indicatorD = do -- Dynamic t
