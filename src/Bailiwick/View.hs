@@ -279,8 +279,7 @@ indicatorContent leftZoomD rightZoomD regionD
                    return ()
                 elClass' "span" "zoom-out" $
                    return ()
-            return $ leftmost [ tagPromptlyDyn
-                                    (ZoomOut . fmap areaId <$> regionD)
+            return $ leftmost [ tag (current (ZoomOut . fmap areaId <$> regionD))
                                     (domEvent Click eZoomOut)
                               , ZoomIn <$ domEvent Click eZoomIn
                               ]
@@ -355,7 +354,8 @@ summaryText adaptersD regionD areaD = do
        <- elAttr' "div" ("class" =: "map-zoom") $ do
            dynText zoomText
            elDynAttr "span" zoomAttr $ return ()
-    return $ ffor (tagPromptlyDyn ((,) <$> adaptersD <*> regionD) (domEvent Click zoom)) $ \case
+    return $ ffor (tag ((,) <$> (current adaptersD) <*> (current regionD))
+                       (domEvent Click zoom)) $ \case
       (as,a) | hasAdapter Mapzoom as -> ZoomOut (areaId <$> a)
       _ -> ZoomIn
 

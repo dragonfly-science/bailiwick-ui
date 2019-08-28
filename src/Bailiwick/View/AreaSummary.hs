@@ -94,7 +94,7 @@ areaSummary AreaSummaryState{..} = do
         indicatorId
         indicatorDefaultChartRight
         2017 Nothing Nothing areatype "indexed")
-        ) <$> (attachPromptlyDyn areaTypeD gotoIndicatorE)
+        ) <$> (attach (current areaTypeD) gotoIndicatorE)
 
 switchDynM
  :: (MonadHold t m, DomBuilder t m, PostBuild t m)

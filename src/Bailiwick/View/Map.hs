@@ -609,7 +609,7 @@ nzmap isSummary MapState{..} scaleFunctionE = mdo
         adapters <- adaptersD
         areatype <- mapareatypeD
         return (region, subarea, adapters, areatype)
-  return $ attachPromptlyDynWithMaybe makeMessages combinedD clickE
+  return $ attachWithMaybe makeMessages (current combinedD) clickE
 
 
 

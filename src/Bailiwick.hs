@@ -21,18 +21,17 @@ ui :: ( MonadFix m
       , MonadWidget t m
       )  => m ()
 ui = do
-  readyE <- getPostBuild
-  loadedD <- holdUniqDyn =<< holdDyn False (True <$ readyE)
-  initialURIE <- performEvent (getURI <$ updated loadedD)
-  let initialRouteE = Route.Ready . Route.decodeUri <$> initialURIE
+--   readyE <- getPostBuild
+--   initialURIE <- performEvent (getURI <$ readyE)
+--   let initialRouteE = Route.Ready . Route.decodeUri <$> initialURIE
 
   rec
-    void $ route (Route.encodeRoute <$> routeE)
+    void $ route never -- (Route.encodeRoute <$> routeE)
 
-    state <- State.run $ leftmost [initialRouteE, interactE]
-    routeE <- State.route state
+    state <- State.run (traceEvent "messagesE" messagesE) -- $ leftmost [initialRouteE, interactE]
+    -- routeE <- State.route state
 
-    interactE <- View.view state
+    messagesE <- View.view state
 
   return ()
 

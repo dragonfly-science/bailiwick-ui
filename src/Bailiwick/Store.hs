@@ -10,6 +10,7 @@
 module Bailiwick.Store
   ( Store(..)
   , run
+  , empty
   )
 where
 

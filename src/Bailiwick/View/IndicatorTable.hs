@@ -288,4 +288,5 @@ indicatorTable IndicatorTableState{..} = mdo
           dynText (bool "show table" "hide table" <$> showTableD)
 
   let openclose = bool SetShowTable UnsetShowTable
-  return (tagPromptlyDyn (openclose <$> showTableD) (leftmost [showTableE, clickCloseE]))
+  return (tag (openclose <$> (current showTableD))
+              (leftmost [showTableE, clickCloseE]))
