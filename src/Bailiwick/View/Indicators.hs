@@ -70,7 +70,7 @@ indicators is@IndicatorState{..} = do
                                 else "class" =: "indicator-list"
                       click <- fmap (domEvent Click . fst) . elDynAttr' "li" ilcss $
                         text $ capitalize (indicatorName ind)
-                      return $ tagPromptlyDyn (makeGoto ind is) click
+                      return $ tag (current (makeGoto ind is)) click
 
 makeGoto
   :: Monad (Dynamic t)

@@ -114,7 +114,7 @@ summaryNumbers messageE store@Store{..} = do
             case OM.lookup indid numbers of
               Just _ -> Nothing
               Nothing -> Just indid
-  let indicatorE = attachPromptlyDynWithMaybe test storeIndicatorsDataD messageE
+  let indicatorE = attachWithMaybe test (current storeIndicatorsDataD) messageE
 
   indicatorD <- holdDyn Nothing (Just <$> indicatorE)
 
@@ -127,7 +127,7 @@ summaryNumbers messageE store@Store{..} = do
 
   numbersD <-
     foldDyn (uncurry OM.insert) OM.empty
-                 $ attachPromptlyDynWithMaybe (\mind i -> (,i) <$> mind) indicatorD
+                 $ attachWithMaybe (\mind i -> (,i) <$> mind) (current indicatorD)
                  $ fmapMaybe id
                  $ catchApi "getIndicatorData" numbersE
 
