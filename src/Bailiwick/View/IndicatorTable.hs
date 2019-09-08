@@ -3,6 +3,7 @@
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 module Bailiwick.View.IndicatorTable
   ( indicatorTable
   , IndicatorTableState(..)
@@ -27,6 +28,7 @@ import Foreign.JavaScript.Utils (bsToArrayBuffer)
 import Language.Javascript.JSaddle (obj, (<#), MonadJSM, liftJSM, toJSVal)
 
 import Bailiwick.View.Text
+import Bailiwick.Javascript (switchDynM)
 import Bailiwick.Route
 import Bailiwick.Types
 
@@ -105,7 +107,38 @@ indicatorTable
      )
   => IndicatorTableState t
   -> m (Event t Message)
-indicatorTable IndicatorTableState{..} = mdo
+indicatorTable its@IndicatorTableState{..} = do
+
+  clickCloseE <- switchDynM $ ffor showTableD $ \case
+    True  -> tableView its
+    False -> return never
+
+  showTableE <- fmap (domEvent Click . fst) $
+    divClass "table-button" $
+      elClass' "button" "show-table" $
+        el "span" $ do
+          el "i" $ return ()
+          dynText (bool "show table" "hide table" <$> showTableD)
+
+  let openclose = bool SetShowTable UnsetShowTable
+
+  return (tag (openclose <$> (current showTableD))
+              (leftmost [showTableE, clickCloseE]))
+
+
+tableView
+  :: ( Monad m
+     , MonadFix m
+     , PostBuild t m
+     , DomBuilder t m
+     , PerformEvent t m
+     , TriggerEvent t m
+     , MonadHold t m
+     , MonadJSM (Performable m)
+     )
+  => IndicatorTableState t
+  -> m (Event t ())
+tableView IndicatorTableState{..} = mdo
 
   sortOrderD :: Dynamic t SortOrder
     <- holdDyn (YearCol, Desc) sortOrderE
@@ -143,7 +176,7 @@ indicatorTable IndicatorTableState{..} = mdo
       localLabelD    = (OMap.lookup transform  =<<) <$> labelsD
       nationalLabelD = (OMap.lookup "ratio-nz" =<<) <$> labelsD
 
-  (clickCloseE, sortOrderE) <- do
+  (clickCloseE, sortOrderE) <-
     elDynClass "div" (("table-view " <>) . bool "hide" "show" <$> showTableD) $
       elAttr "div" ("class" =: "panel" <> "style" =: "height: 799px;") $ do
         clickE <-
@@ -152,7 +185,6 @@ indicatorTable IndicatorTableState{..} = mdo
               dynText $ subs $ captionD
             fmap (domEvent Click . fst) $
               divClass "controls" $ do
-                -- requires an event to close the table.
                 elAttr' "button" ("class" =: "close") $
                   el "i" $ return ()
 
@@ -279,14 +311,4 @@ indicatorTable IndicatorTableState{..} = mdo
           --         elAttr "td" ("class" =: "colour-green") $ text "Row Area-t"
           --         elAttr "td" ("class" =: "colour-compare-green") $ text "Row Compare-t"
         return (clickE, sortOrderE')
-
-  showTableE <- fmap (domEvent Click . fst) $
-    divClass "table-button" $
-      elClass' "button" "show-table" $
-        el "span" $ do
-          el "i" $ return ()
-          dynText (bool "show table" "hide table" <$> showTableD)
-
-  let openclose = bool SetShowTable UnsetShowTable
-  return (tag (openclose <$> (current showTableD))
-              (leftmost [showTableE, clickCloseE]))
+  return clickCloseE
