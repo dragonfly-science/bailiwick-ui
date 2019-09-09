@@ -3,8 +3,7 @@
 set -ex
 
 ## Make the d3, non-reflex javascript
-nix-build javascript.nix -A package
-cp result/bin/bailiwick.bundle.js static/
+nix-shell javascript.nix -A shell --command 'ln -sf $NODE_PATH; npm run build'
 
 ## make the javascript executible
 nix-build deploy.nix
