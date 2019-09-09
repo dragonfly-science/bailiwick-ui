@@ -67,7 +67,7 @@ route state =
                       <*> return Nothing
                       <*> (fromMaybe "" <$> areaTypeD state)
                       <*> (fromMaybe "" <$> transformD state)
-        
+
         let page = if isSummary
                      then Summary
                      else ThemePage args
@@ -91,7 +91,7 @@ run messageE = do
 
   store <- Store.run messageE
 
-  isSummaryD <- 
+  isSummaryD <-
     holdDyn False $ fforMaybe messageE $ \case
       Ready (Route Summary _ _ _)  -> Just True
       GoToHomePage                 -> Just True
@@ -102,7 +102,7 @@ run messageE = do
   adaptersD <-
     foldDyn ($) Set.empty $ fforMaybe messageE $ \case
       Ready (Route _ _ _ adapters) -> Just (const adapters)
-      SetSubArea _                 -> Just (Set.insert Mapzoom)
+      SetSubArea _ _               -> Just (Set.insert Mapzoom)
       GoToHomePage                 -> Just (Set.delete Mapzoom)
       ZoomIn                       -> Just (Set.insert Mapzoom)
       ZoomOut _                    -> Just (Set.delete Mapzoom)
@@ -143,8 +143,7 @@ run messageE = do
     holdDyn Nothing $ fmap Just $ fforMaybe messageE $ \case
       Ready (Route (ThemePage tba) _ _ _) -> Just $ themePageAreaType tba
       SetRegion _                         -> Just $ "reg"
-      SetSubArea "auckland"               -> Just $ "ward"
-      SetSubArea _                        -> Just $ "ta"
+      SetSubArea at _                     -> Just at
       GoTo (ThemePage tba)                -> Just $ themePageAreaType tba
       SetAreaType at                      -> Just at
       _                                   -> Nothing
@@ -165,7 +164,7 @@ run messageE = do
   areaIdD <-
     holdDyn Nothing $ fmap Just $ fforMaybe messageE $ \case
       Ready (Route _ area_id _ _) -> Just area_id
-      SetSubArea area_id          -> Just area_id
+      SetSubArea _ area_id          -> Just area_id
       SetRegion area_id           -> Just area_id
       SetYearArea _ area_id       -> Just area_id
       ZoomOut (Just area_id)      -> Just area_id

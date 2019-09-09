@@ -596,8 +596,13 @@ nzmap isSummary MapState{..} scaleFunctionE = mdo
                 -> Just (SetRegion (fromJust region))
             | currentSubarea /= subarea &&
               (iszoomed || not isSummary) &&
+              isJust subarea &&
+              (auckland `Text.isPrefixOf` (fromJust subarea))
+                -> Just (SetSubArea "ward" $ fromJust subarea)
+            | currentSubarea /= subarea &&
+              (iszoomed || not isSummary) &&
               isJust subarea
-                -> Just (SetSubArea $ fromJust subarea)
+                -> Just (SetSubArea "ta" $ fromJust subarea)
             | isNothing region &&
               iszoomed
                 -> Just (ZoomOut region)

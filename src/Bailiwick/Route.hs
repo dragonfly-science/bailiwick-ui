@@ -35,7 +35,7 @@ import Bailiwick.Types
 data Message
   = Ready Route
   | SetRegion Text
-  | SetSubArea Text
+  | SetSubArea Text Text
   | SetFeature FeatureId
   | SetAreaType Text
   | SetChartType ChartId

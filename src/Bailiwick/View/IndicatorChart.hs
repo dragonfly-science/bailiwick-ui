@@ -16,7 +16,7 @@ import Control.Monad.Fix
 import Data.Maybe (fromMaybe, isJust)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import qualified Data.Map as Map
-import Data.Text (Text)
+import Data.Text (Text, isPrefixOf)
 
 import qualified GHCJS.DOM.Element as DOM
 import Language.Javascript.JSaddle
@@ -284,7 +284,9 @@ indicatorChart IndicatorChartState{..} zoomD = do
               feature <- DOM.getAttribute svg ("data-bailiwick-feature"::Text)
               if isJust feature
                 then return (SetFeature <$> feature)
-                else return (SetSubArea <$> area)
+                else if Just True == (isPrefixOf "auckland"  <$> area)
+                  then return (SetSubArea "ward" <$> area)
+                  else return (SetSubArea "ta" <$> area)
            "text" -> do
               yeart <- DOM.getAttribute svg ("data-bailiwick-year"::Text)
               let year = read <$> yeart

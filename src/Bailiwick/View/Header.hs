@@ -12,7 +12,7 @@ import Control.Applicative ((<|>))
 import Data.Monoid ((<>))
 import Data.Maybe (fromMaybe, listToMaybe)
 
-import Data.Text (Text)
+import Data.Text (Text, isPrefixOf)
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
@@ -130,7 +130,12 @@ header hs@HeaderState{..} = mdo
             uniqSubarea <- holdUniqDyn subarea
             uniqFeature <- holdUniqDyn feature
 
-            return $ leftmost [ SetSubArea <$> fmapMaybe id (updated uniqSubarea)
+            let makeSetSubArea sa =
+                 if "auckland" `isPrefixOf` sa
+                   then SetSubArea "ward" sa
+                   else SetSubArea "ta" sa
+
+            return $ leftmost [ makeSetSubArea <$> fmapMaybe id (updated uniqSubarea)
                               , SetRegion <$> fmapMaybe id (updated uniqRegion)
                               , SetFeature . FeatureId <$> fmapMaybe id (updated uniqFeature)
                               ]
