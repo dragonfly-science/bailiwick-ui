@@ -44,7 +44,7 @@ data State t
     , chartTypeD         :: Dynamic t (Maybe ChartId)
     , transformD         :: Dynamic t (Maybe TransformId)
     , areaTypeD          :: Dynamic t (Maybe AreaType)
-    , compareAreaD       :: Dynamic t (Maybe AreaId)
+    , compareAreaD       :: Dynamic t (Maybe Area)
     }
 
 route
@@ -71,7 +71,7 @@ route state =
         let page = if isSummary
                      then Summary
                      else ThemePage args
-        return (Route page area compareArea adapters)
+        return (Route page area (areaId <$> compareArea) adapters)
 
   in updated routeD
 
@@ -148,7 +148,7 @@ run messageE = do
       SetAreaType at                      -> Just at
       _                                   -> Nothing
 
-  compareAreaD <-
+  compareAreaIdD <-
     holdDyn Nothing $ fmap Just $ fforMaybe messageE $ \case
       Ready (Route _ _ ca _) -> ca
       SetCompareArea ca     -> Just ca
@@ -203,6 +203,14 @@ run messageE = do
       regionD = fst <$> regtaD
       areaD = snd <$> regtaD
       selectedAreaD = zipDynWith (<|>) areaD regionD
+
+      compareAreaD = do
+          mareas <- storeAreasD store
+          marea_id <- compareAreaIdD
+          return $ do
+            Areas areas <- mareas
+            area_id <- marea_id
+            OMap.lookup area_id areas
 
   return $ State
               { isSummaryD         = isSummaryD
@@ -329,7 +337,10 @@ makeMapLegendState State{indicatorD,store,yearD,featureD,transformD,chartTypeD} 
 makeIndicatorChartState
   :: Reflex t
   => State t -> IndicatorChartState t
-makeIndicatorChartState State{selectedAreaD,featureD,chartTypeD,transformD,yearD,areaTypeD,indicatorD,indicatorNumbersD,store} =
+makeIndicatorChartState State{selectedAreaD,
+                              featureD,chartTypeD,transformD,yearD,
+                              areaTypeD,indicatorD,indicatorNumbersD,
+                              store, compareAreaD} =
       IndicatorChartState
          selectedAreaD
          chartTypeD
@@ -338,6 +349,7 @@ makeIndicatorChartState State{selectedAreaD,featureD,chartTypeD,transformD,yearD
          yearD
          areaTypeD
          (storeAreasD store)
+         compareAreaD
          indicatorD
          indicatorNumbersD
 

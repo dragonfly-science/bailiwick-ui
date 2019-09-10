@@ -52,6 +52,7 @@ export default function(element, params, margin, chartType) {
     var chartData = params[1].chartData;
     var chartCaption = params[1].chartCaption;
     var areas = params[1].areas;
+    var compareArea = params[1].compareArea;
     var cache = window.MBIECacheStorage;
 
     /// Cached data
@@ -85,6 +86,7 @@ export default function(element, params, margin, chartType) {
         features: features,
         chartData: chartData,
         chartCaption: chartCaption,
+        compareArea: compareArea,
         svg: svg,
         base: base,
         width: width,

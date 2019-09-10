@@ -72,6 +72,7 @@ $rear-toolbar-text:               $rear-dark-gray !default;
 $rear-footer-bg:                  $rear-black !default;
 
 // Additional colours.
+$rear-compare-highlight:          $rear-dark-gray !default;
 $rear-compare-panel-background:   $rear-dark-gray !default;
 $rear-table-row-hover:            #f7fbfe !default;
 
@@ -100,6 +101,7 @@ $COLOURS: ("rear-dark-gray",                $rear-dark-gray),
           ("rear-main-highlight",           $rear-main-highlight),
           ("rear-alternative-highlight",    $rear-alternative-highlight),
           ("rear-secondary-highlight",      $rear-secondary-highlight),
+          ("rear-compare-highlight",        $rear-compare-highlight),
           ("rear-inactive",                 $rear-inactive),
           ("rear-focus",                    $rear-focus),
           ("rear-negative",                 $rear-negative),

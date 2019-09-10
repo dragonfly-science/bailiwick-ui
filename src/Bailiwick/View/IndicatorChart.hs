@@ -37,6 +37,7 @@ data IndicatorChartState t
     , yearD              :: Dynamic t (Maybe Year)
     , areaTypeD          :: Dynamic t (Maybe AreaType)
     , areasD             :: Dynamic t (Maybe Areas)
+    , compareAreaD       :: Dynamic t (Maybe Area)
     , indicatorD         :: Dynamic t (Maybe Indicator)
     , indicatorNumbersD  :: Dynamic t IndicatorNumbers
     }
@@ -100,6 +101,7 @@ data ChartArgs
     , chartArgsChartCaption   :: Maybe Text
     , chartArgsFeatures       :: Maybe [(FeatureId, Text)]
     , chartArgsAreas          :: Maybe [AreaId]
+    , chartArgsCompareArea    :: Maybe AreaId
     }
 
 instance ToJSVal ChartArgs where
@@ -120,6 +122,7 @@ instance ToJSVal ChartArgs where
     set "chartCaption"  chartArgsChartCaption
     set "features"      chartArgsFeatures
     set "areas"         chartArgsAreas
+    set "compareArea"   chartArgsCompareArea
     toJSVal res
 
 toJSValDynHold
@@ -230,6 +233,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
                            <*> labelD
                            <*> (fmap OMap.toList . (indicatorFeatureText =<<) <$> indicatorD)
                            <*> (Just <$> areanamesD)
+                           <*> (fmap areaName <$> compareAreaD)
                           )
 
   let chartArgsComplete Nothing = False

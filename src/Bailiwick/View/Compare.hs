@@ -26,21 +26,13 @@ compareMenu
      , PostBuild t m
      , DomBuilder t m
      )
-  => Dynamic t (Maybe AreaId)
+  => Dynamic t (Maybe Area)
   -> Dynamic t (Maybe Areas)
   -> m (Event t Message)
 compareMenu compareAreaD areasD = mdo
 
   let clickE = fmap (domEvent Click . fst)
-      ca = do
-        mCompareArea <- compareAreaD
-        mAreas <- areasD
-        return $ fromMaybe "" $ do
-          caid <- mCompareArea
-          Areas areas <- mAreas
-          Area{..} <- OMap.lookup caid areas
-          return areaName
-
+      ca = maybe "" areaName <$> compareAreaD
 
   (clearE, popupE) <-
     divClass "compare-menu" $ do
@@ -64,7 +56,7 @@ compareMenu compareAreaD areasD = mdo
                                            , " hide" <$ closeE
                                            , "" <$ popupE  ]
 
-  (closeE, setCompareAreaE) <- comparePopup showPopupD compareAreaD areasD
+  (closeE, setCompareAreaE) <- comparePopup showPopupD (fmap areaId <$> compareAreaD) areasD
 
   return $ leftmost [ setCompareAreaE
                     , UnsetCompareArea <$ clearE ]
@@ -81,11 +73,11 @@ comparePopup
   -> Dynamic t (Maybe AreaId)
   -> Dynamic t (Maybe Areas)
   -> m (Event t (), Event t Message)
-comparePopup showhideD compareAreaD areasD = mdo
+comparePopup showhideD compareAreaIdD areasD = mdo
 
   let regtaD = do
         mareas <- areasD
-        mcompare_area <- compareAreaD
+        mcompare_area <- compareAreaIdD
         case (mareas, mcompare_area) of
           (Just as@(Areas areas), Just compare_area) -> do
             let al = areaList as compare_area

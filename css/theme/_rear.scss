@@ -59,6 +59,7 @@ $rear-background:                 #DFF1FC;
 $rear-main-highlight:             #296575;
 $rear-alternative-highlight:      #00BDE9;
 $rear-secondary-highlight:        #7AC82D;
+$rear-compare-highlight:          #31C19E;
 $rear-inactive:                   #BAD4E0;
 $rear-focus:                      #477DCA;
 
@@ -93,7 +94,7 @@ $rear-toolbar-text:               $rear-dark-gray;
 $rear-footer-bg:                  $rear-main-highlight;
 
 // Additional colours.
-$rear-compare-panel-background:   #31c19e;
+$rear-compare-panel-background:   $rear-compare-highlight;
 $rear-table-row-hover:            #f7fbfe;
 $rear-default-header-background:  #3b8092;
 

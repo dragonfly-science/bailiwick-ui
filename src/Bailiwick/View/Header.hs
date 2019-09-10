@@ -29,7 +29,7 @@ data HeaderState t
   { isSummaryD   :: Dynamic t Bool
   , areaD        :: Dynamic t (Maybe Area)
   , subareaD     :: Dynamic t (Maybe Area)
-  , compareAreaD :: Dynamic t (Maybe AreaId)
+  , compareAreaD :: Dynamic t (Maybe Area)
   , yearD        :: Dynamic t (Maybe Year)
   , featureD     :: Dynamic t (Maybe FeatureId)
   , areasD       :: Dynamic t (Maybe Areas)

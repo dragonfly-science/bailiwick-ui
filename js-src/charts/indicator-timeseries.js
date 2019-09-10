@@ -73,11 +73,13 @@ export default function (element, params) {
         feature = setup.feature,
         chartData = setup.chartData,
         chartCaption = setup.chartCaption,
+        compareArea = setup.compareArea,
         svg = setup.svg,
         base = setup.base,
         width = setup.width,
         height = setup.height,
         zoom = setup.zoom;
+
 
     // current data...
     var currentYear = svg.attr('data-year'),
@@ -168,21 +170,20 @@ export default function (element, params) {
             return area;
         })
         .filter(function (a) {
-            let valid = _.indexOf([area, 'New Zealand'], a.name) !== -1;
-
-            // switch (a.name) {
-            //     //   case compareAreaName:
-            //     //       valid = true;
-            //     //       break;
-            //     case area:
-            //         valid = true;
-            //         break;
-            //     case 'New Zealand':
-            //         valid = true;
-            //         break;
-            //     default:
-            //         break;
-            // }
+            var valid = false;
+            switch (a.name) {
+                case compareArea:
+                    valid = true;
+                    break;
+                case area:
+                    valid = true;
+                    break;
+                case 'New Zealand':
+                    valid = true;
+                    break;
+                default:
+                    break;
+            }
 
             // If there is a feature, this is only valid iff the node's feature
             // is the same as the URL.
@@ -213,14 +214,14 @@ export default function (element, params) {
     if (!_.isNull(bool) && bool) {
         let areaVals = findAreaBounds(areas, area);
 
-         //     if (typeof compareAreaName != 'undefined') {
-    //         let compareVals = findAreaBounds(areas, compareAreaName);
+        if (typeof compareArea != 'undefined') {
+            let compareVals = findAreaBounds(areas, compareArea);
 
-    //         yExtent = [Math.min(...[areaVals[0], compareVals[0]])
-    //             , Math.max(...[areaVals[1], compareVals[1]])];
-    //     } else {
-    //         yExtent = areaVals;
-    //     }
+            yExtent = [Math.min(...[areaVals[0], compareVals[0]])
+                , Math.max(...[areaVals[1], compareVals[1]])];
+        } else {
+            yExtent = areaVals;
+        }
 
         yExtent = areaVals;
 
@@ -398,15 +399,12 @@ export default function (element, params) {
                 'default': 'no-highlight',
             };
             classNames[area] = 'current-area';
+            classNames[compareArea] = 'compare-area';
             return (
                 _.hasIn(classNames, d.name) ?
                     classNames[d.name] :
                     classNames['default']
             ) + ' area';
-            // } else if (d.name === compareAreaName) {
-            //     return "compare-area";
-            // } else if (d.name === hover) {
-            //     return "area--hover";
         }).attr("clip-path", "url(#clipper)");
 
     var focusElemEnter = gEnter.append("g")
@@ -538,11 +536,12 @@ export default function (element, params) {
         legendLabels.push(area);
         legendClasses = ["nz", "other", "active"];
     }
-    // if (present(compareAreaName) && compareAreaName !== "New Zealand" && compareAreaName !== areaName) {
-    //     legendLabels.push(compareAreaName);
-    //     legendClasses.push('compare');
-    // }
+    if (!present(compareArea) && compareArea !== "New Zealand" && compareArea !== area) {
+        legendLabels.push(compareArea);
+        legendClasses.push('compare');
+    }
     var legendData = d3.zip(legendLabels, legendClasses);
+    console.log(legendData);
 
     var legend = legendDiv.selectAll("svg").data([legendData]);
     var legendEnter = legend.enter().append("svg");
