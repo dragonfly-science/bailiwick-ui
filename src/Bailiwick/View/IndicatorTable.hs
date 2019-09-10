@@ -474,11 +474,13 @@ compareTableView IndicatorTableState{..} = mdo
                                           ]
                 el "tbody" $ do
                   dyn_ $ ffor tableD $ mapM $ \(year, ((area, comp), ratio)) -> do
+                    let showRatio Nothing = "-"
+                        showRatio (Just r) = show ((fromIntegral $ round (100.0 * r)) / 100.0)
                     el "tr" $ do
                       elAttr "td" ("class" =: "double") $  text (Text.pack $ show year)
                       elAttr "td" ("class" =: "colour-green") $ text (headlineDisp area)
                       elAttr "td" ("class" =: "colour-compare-green") $ text (headlineDisp comp)
-                      elAttr "td" ("class" =: "double") $ text (Text.pack $ show ratio)
+                      elAttr "td" ("class" =: "double") $ text (Text.pack $ showRatio ratio)
                       elAttr "td" ("class" =: "colour-green") $ text (nationalDisp area)
                       elAttr "td" ("class" =: "colour-compare-green") $ text (nationalDisp comp)
 
