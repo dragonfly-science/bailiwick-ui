@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE RecursiveDo #-}
@@ -10,6 +11,7 @@ module Bailiwick.View.IndicatorTable
   )
 where
 
+import Control.Monad (void)
 import Control.Monad.Fix (MonadFix)
 import Data.Bool (bool)
 import Data.Maybe (catMaybes, fromMaybe)
@@ -20,7 +22,7 @@ import Data.ByteString.Lazy (ByteString, toStrict)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import qualified Data.Csv as Csv
 
-import Reflex.Dom.Core
+import Reflex.Dom.Core hiding (elDynHtmlAttr')
 import GHCJS.DOM.Types (BlobPropertyBag(..))
 import GHCJS.DOM.URL (createObjectURL)
 import GHCJS.DOM.Blob (newBlob)
@@ -28,7 +30,7 @@ import Foreign.JavaScript.Utils (bsToArrayBuffer)
 import Language.Javascript.JSaddle (obj, (<#), MonadJSM, liftJSM, toJSVal)
 
 import Bailiwick.View.Text
-import Bailiwick.Javascript (switchDynM)
+import Bailiwick.Javascript (switchDynM, elDynHtmlAttr')
 import Bailiwick.Route
 import Bailiwick.Types
 
@@ -155,6 +157,7 @@ indicatorTable
      , TriggerEvent t m
      , MonadHold t m
      , MonadJSM (Performable m)
+     , DomBuilderSpace m ~ GhcjsDomSpace
      )
   => IndicatorTableState t
   -> m (Event t Message)
@@ -335,6 +338,7 @@ compareTableView
      , TriggerEvent t m
      , MonadHold t m
      , MonadJSM (Performable m)
+     , DomBuilderSpace m ~ GhcjsDomSpace
      )
   => IndicatorTableState t
   -> m (Event t ())
@@ -428,9 +432,9 @@ compareTableView IndicatorTableState{..} = mdo
                                    <> "download" =: filename )
                       elDynAttr "a" exportAttrD $ text "Export CSV"
                     elAttr "td" ("colspan" =: "3") $ do
-                      el "span" $ dynText (subs ( fromMaybe "Headline" <$> headlineLabelD))
+                      void $ elDynHtmlAttr' "span" def $ subs ( fromMaybe "Headline" <$> headlineLabelD)
                     elAttr "td" ("colspan" =: "2") $ do
-                      el "span" $ dynText (subs ( fromMaybe "National" <$> nationalLabelD))
+                      void $ elDynHtmlAttr' "span" def $ subs ( fromMaybe "National" <$> nationalLabelD)
 
                 sortOrderE'' <-
                   el "thead" $

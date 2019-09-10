@@ -113,12 +113,12 @@ toolBar isOpenD ToolBarState{..} = do
         chartTypeE <- divClass "filter-type charts" $ do
           elClass "span" "label" $ text "view by"
           divClass "header" $ do
-            (tm, _) <- elDynClass' "button" (("treemap" <>) . bool "" " active" . (==Just (ChartId "treemap")) <$> chartTypeD) $ el "i" $ return ()
+--            (tm, _) <- elDynClass' "button" (("treemap" <>) . bool "" " active" . (==Just (ChartId "treemap")) <$> chartTypeD) $ el "i" $ return ()
             (ts, _) <- elDynClass' "button" (("timeseries" <>) . bool "" " active" . (==Just (ChartId "timeseries")) <$> chartTypeD) $ el "i" $ return ()
             (bc, _) <- elDynClass' "button" (("barchart" <>) . bool "" " active" . (==Just (ChartId "barchart")) <$> chartTypeD) $ el "i" $ return ()
             return $ leftmost
-                [ SetChartType (ChartId "treemap")    <$ domEvent Click tm
-                , SetChartType (ChartId "timeseries") <$ domEvent Click ts
+                [ SetChartType (ChartId "timeseries") <$ domEvent Click ts
+               -- , SetChartType (ChartId "treemap")    <$ domEvent Click tm
                 , SetChartType (ChartId "barchart")   <$ domEvent Click bc
                 ]
         return $ leftmost [areaTypeE, yearE, transformE, chartTypeE]
