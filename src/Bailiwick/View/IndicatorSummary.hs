@@ -65,21 +65,31 @@ indicatorSummary IndicatorSummaryState{..} = do
           year <- myear
           OM.lookup (areaid, year, feature) ismap
 
+      compareNumsD = do
+        mareaid <- fmap areaId <$> compareAreaD
+        myear   <- yearD
+        feature <- featureD
+        IndicatorNumbers ismap <- indicatorNumbersD
+        return $ fromMaybe emptyNumbers $ do
+          areaid <- mareaid
+          year <- myear
+          OM.lookup (areaid, year, feature) ismap
+
   divClass "summary" $
     divClass "intersection" $ do
       divClass "intersection-number headline-number" $ do
         divClass "number" $ dynText (headlineDisp <$> summaryNumsD)
-        divClass "comparison-number" $ text "TODO"
+        divClass "comparison-number hidden" $ dynText (headlineDisp <$> compareNumsD)
         void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
           subs $ maybe "" indicatorHeadlineNumCaption <$> indicatorD
       divClass "intersection-number regional-value" $ do
         divClass "number" $ dynText (localDisp <$> summaryNumsD)
-        divClass "comparison-number" $ text "TODO"
+        divClass "comparison-number" $ dynText (localDisp <$> compareNumsD)
         void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
           subs $ maybe "" indicatorLocalNumCaption <$> indicatorD
       divClass "intersection-number national-value" $ do
         divClass "number" $ dynText (nationalDisp <$> summaryNumsD)
-        divClass "comparison-number" $ text "TODO"
+        divClass "comparison-number" $ dynText (nationalDisp <$> compareNumsD)
         void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
           subs $ maybe "" indicatorNationalNumCaption <$> indicatorD
   divClass "summary-links" $ do

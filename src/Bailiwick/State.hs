@@ -149,11 +149,11 @@ run messageE = do
       _                                   -> Nothing
 
   compareAreaIdD <-
-    holdDyn Nothing $ fmap Just $ fforMaybe messageE $ \case
-      Ready (Route _ _ ca _) -> ca
-      SetCompareArea ca     -> Just ca
-      UnsetCompareArea      -> Nothing
-      _                     -> Nothing
+    holdDyn Nothing $ fforMaybe messageE $ \case
+      Ready (Route _ _ ca _)              -> Just ca
+      SetCompareArea ca                   -> Just (Just ca)
+      UnsetCompareArea                    -> Just Nothing
+      _                                   -> Nothing
 
   indicatorIdD <-
     holdDyn Nothing $ fmap Just $ fforMaybe messageE $ \case
@@ -163,13 +163,13 @@ run messageE = do
 
   areaIdD <-
     holdDyn Nothing $ fmap Just $ fforMaybe messageE $ \case
-      Ready (Route _ area_id _ _) -> Just area_id
-      SetSubArea _ area_id          -> Just area_id
-      SetRegion area_id           -> Just area_id
-      SetYearArea _ area_id       -> Just area_id
-      ZoomOut (Just area_id)      -> Just area_id
-      GoToHomePage                -> Just "new-zealand"
-      _                           -> Nothing
+      Ready (Route _ area_id _ _)         -> Just area_id
+      SetSubArea _ area_id                -> Just area_id
+      SetRegion area_id                   -> Just area_id
+      SetYearArea _ area_id               -> Just area_id
+      ZoomOut (Just area_id)              -> Just area_id
+      GoToHomePage                        -> Just "new-zealand"
+      _                                   -> Nothing
 
   let indicatorD = do -- Dynamic t
         mIndicatorId <- indicatorIdD
@@ -357,10 +357,11 @@ makeIndicatorChartState State{selectedAreaD,
 makeIndicatorSummaryState
   :: Reflex t
   => State t -> IndicatorSummaryState t
-makeIndicatorSummaryState State{selectedAreaD,featureD,yearD,indicatorD,indicatorNumbersD} =
+makeIndicatorSummaryState State{selectedAreaD,featureD,yearD,indicatorD,
+                                compareAreaD,indicatorNumbersD} =
       IndicatorSummaryState
          selectedAreaD
-         (constDyn Nothing)  -- TODO compare area
+         compareAreaD
          featureD            -- feature
          yearD
          indicatorD          -- indicator

@@ -291,7 +291,11 @@ indicatorContent leftZoomD rightZoomD regionD
     chartE <- divClass "indicator-chart" $
       indicatorChart indicator_chart_state rightZoomD
     return $ leftmost [ mapE, chartE ]
-  summaryE <- divClass "indicator-summary hide-table no-compare" $ do
+  let caD = Bailiwick.View.IndicatorSummary.compareAreaD indicator_summary_state
+      indicatorSummaryCssD = ffor caD $ \case
+        Just _  -> "indicator-summary hide-table compare"
+        Nothing -> "indicator-summary hide-table no-compare"
+  summaryE <- elDynClass "div" indicatorSummaryCssD $ do
     indicatorSummary indicator_summary_state
     indicatorTable indicator_table_state
   return $ leftmost [contentE, summaryE]
