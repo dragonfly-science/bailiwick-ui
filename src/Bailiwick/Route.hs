@@ -153,7 +153,9 @@ decodeUri uri =
     ["summary", a] -> Route Summary (standardise a) ca adapters
     ("theme":i:rc:y:a:rest) ->
       let fd = case rest of
+                     [f, ""] -> Just (Just f, Nothing)
                      [f, d] -> Just (Just f, Just d)
+                     [""] -> Just (Nothing, Nothing)
                      [f] -> Just (Just f, Nothing)
                      [] -> Just (Nothing, Nothing)
                      _ -> Nothing

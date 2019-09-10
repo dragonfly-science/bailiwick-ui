@@ -8,6 +8,8 @@ module Bailiwick.View.IndicatorSummary (
   , IndicatorSummaryState(..)
 ) where
 
+import Debug.Trace
+
 import Control.Monad (void)
 import Control.Monad.Fix (MonadFix)
 import Data.Monoid ((<>))
@@ -55,6 +57,7 @@ indicatorSummary IndicatorSummaryState{..} = do
                 <*> (constDyn Nothing)
                 <*> yearD
                 <*>)
+
       summaryNumsD = do
         mareaid <- fmap areaId <$> areaD
         myear   <- yearD
@@ -63,7 +66,7 @@ indicatorSummary IndicatorSummaryState{..} = do
         return $ fromMaybe emptyNumbers $ do
           areaid <- mareaid
           year <- myear
-          OM.lookup (areaid, year, feature) ismap
+          OM.lookup (traceShowId (areaid, year, feature)) ismap
 
       compareNumsD = do
         mareaid <- fmap areaId <$> compareAreaD
