@@ -371,11 +371,11 @@ makeIndicatorSummaryState State{selectedAreaD,featureD,yearD,indicatorD,
 makeIndicatorTableState
   :: Reflex t
   => State t -> IndicatorTableState t
-makeIndicatorTableState State{selectedAreaD,featureD,yearD,indicatorD,indicatorNumbersD,adaptersD} =
+makeIndicatorTableState State{selectedAreaD,compareAreaD,featureD,yearD,indicatorD,indicatorNumbersD,adaptersD} =
      IndicatorTableState
          (hasAdapter ShowTable <$> adaptersD)
          selectedAreaD
-         (constDyn Nothing)  -- TODO compare area
+         compareAreaD        -- compare area
          featureD            -- feature
          yearD
          indicatorD          -- indicator
