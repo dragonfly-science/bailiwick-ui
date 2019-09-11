@@ -85,6 +85,7 @@ export default function (element, params) {
     var currentYear = svg.attr('data-year'),
         currentIndicator = svg.attr('data-indicator'),
         currentArea = svg.attr('data-area'),
+        currentCompareArea = svg.attr('data-comparearea'),
         currentTransform = svg.attr('data-transform'),
         currentLevel = svg.attr('data-level');
 
@@ -516,6 +517,7 @@ export default function (element, params) {
     svg
       .attr('data-year', year)
       .attr('data-area', area)
+      .attr('data-comparearea', compareArea)
       .attr('data-transform', transform)
       .attr('data-level', areaLevel)
       .attr('data-indicator', indicator);
@@ -525,7 +527,7 @@ export default function (element, params) {
     // ----
     // Only update the legend if the area has changed.
     // ----
-    if (currentArea === area) {
+    if (currentArea === area && currentCompareArea === compareArea) {
         base.classed('svg-loading', false);
         return false;
     }

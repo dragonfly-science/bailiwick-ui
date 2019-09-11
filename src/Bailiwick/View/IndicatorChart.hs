@@ -103,6 +103,7 @@ data ChartArgs
     , chartArgsAreas          :: Maybe [AreaId]
     , chartArgsCompareArea    :: Maybe AreaId
     }
+    deriving Show
 
 instance ToJSVal ChartArgs where
   toJSVal ChartArgs{..} = do
@@ -264,7 +265,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
 
 
   let jsargs = (,,) <$> shapedDataJSD <*> jsargsJSD <*> (getJSChartType <$> chartTypeD)
-  let initialUpdate = tagPromptlyDyn jsargs readyE
+  let initialUpdate = tag (current jsargs) readyE
   let updateValuesE = updated jsargs
   updateE :: Event t (Maybe JSVal, Maybe JSVal, JSString)
       <- switchHold initialUpdate (updateValuesE <$ readyE)
