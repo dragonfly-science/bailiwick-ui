@@ -16,6 +16,8 @@ import Control.Monad.Fix (MonadFix)
 import Data.Bool (bool)
 import Data.Maybe (catMaybes, fromMaybe)
 import Data.List (sortOn)
+import Text.Printf (printf)
+
 import qualified Data.Text as Text
 import Data.Text (Text)
 import Data.ByteString.Lazy (ByteString, toStrict)
@@ -50,22 +52,12 @@ data Column
   | OriginalCol
   | TransformCol
   | NationalCol
-  | OriginalAreaCol
-  | OriginalCompCol
-  | RatioCol
-  | NationalAreaCol
-  | NationalCompCol
   deriving Eq
 instance Show Column where
   show YearCol             = "year"
   show OriginalCol         = "original"
   show TransformCol        = "transform"
   show NationalCol         = "national"
-  show OriginalAreaCol     = "original-area"
-  show OriginalCompCol     = "original-compare"
-  show RatioCol            = "ratio"
-  show NationalAreaCol     = "national-area"
-  show NationalCompCol     = "national-compare"
 data Order = Asc | Desc deriving (Eq, Show)
 type SortOrder = (Column, Order)
 type IndicatorTable = [(Year, Numbers)]
@@ -87,18 +79,40 @@ shapeData marea sel_featureid (sortcol,sortdir) (IndicatorNumbers inmap) =
              OriginalCol  -> rawNum . snd
              TransformCol -> localNum . snd
              NationalCol  -> nationalNum . snd
-             _            -> Just . fromIntegral . fst
       sf = case sortdir of
              Asc -> sfc
              Desc -> fmap negate . sfc
   in  sortOn sf $ OMap.elems $ OMap.mapMaybeWithKey find inmap
 
-type CompareTable = [(Year, ((Numbers, Numbers), Maybe Double))]
+data CompareColumn
+  = CompYearCol
+  | OriginalAreaCol
+  | OriginalCompCol
+  | RatioCol
+  | NationalAreaCol
+  | NationalCompCol
+  deriving Eq
+instance Show CompareColumn where
+  show CompYearCol         = "year"
+  show OriginalAreaCol     = "original-area"
+  show OriginalCompCol     = "original-compare"
+  show RatioCol            = "ratio"
+  show NationalAreaCol     = "national-area"
+  show NationalCompCol     = "national-compare"
+type CompareSortOrder = (CompareColumn, Order)
+type CompareTable = [CompareTableRow]
+data CompareTableRow
+  = CompareTableRow
+    { ctYear :: Year
+    , ctArea :: Numbers
+    , ctComp :: Numbers
+    , ctRatio :: Maybe Double
+    }
 shapeCompareData
   :: Maybe Area
   -> Maybe Area
   -> Maybe FeatureId
-  -> SortOrder
+  -> CompareSortOrder
   -> IndicatorNumbers
   -> CompareTable
 shapeCompareData marea mcomp sel_featureid (sortcol,sortdir) (IndicatorNumbers inmap) =
@@ -110,19 +124,23 @@ shapeCompareData marea mcomp sel_featureid (sortcol,sortdir) (IndicatorNumbers i
             else Nothing
       areaData = OMap.fromList $ OMap.elems $ OMap.mapMaybeWithKey (find sel_areaid) inmap
       compData = OMap.fromList $ OMap.elems $ OMap.mapMaybeWithKey (find sel_compid) inmap
-      compareTable = [(y, ((ad, cd)
-                          , (/) <$> (rawNum ad) <*> (rawNum cd)))
+      compareTable = [ CompareTableRow
+                          { ctYear = y
+                          , ctArea = ad
+                          , ctComp = cd
+                          , ctRatio = (/) <$> (rawNum ad) <*> (rawNum cd)
+                          }
                      | y <- OMap.keys (OMap.union areaData compData)
                      , let ad = fromMaybe emptyNumbers $ OMap.lookup y areaData
                      , let cd = fromMaybe emptyNumbers $ OMap.lookup y compData
                      ]
       sfc = case sortcol of
-             YearCol          -> Just . fromIntegral . fst
-             OriginalAreaCol  -> rawNum . fst . fst . snd
-             OriginalCompCol  -> rawNum . snd . fst . snd
-             NationalAreaCol  -> nationalNum . fst . fst . snd
-             NationalCompCol  -> nationalNum . snd . fst . snd
-             _                -> Just . fromIntegral . fst
+             CompYearCol      -> Just . fromIntegral . ctYear
+             OriginalAreaCol  -> rawNum . ctArea
+             OriginalCompCol  -> rawNum . ctComp
+             NationalAreaCol  -> nationalNum . ctArea
+             NationalCompCol  -> nationalNum . ctComp
+             RatioCol         -> ctRatio
       sf = case sortdir of
              Asc -> sfc
              Desc -> fmap negate . sfc
@@ -344,8 +362,8 @@ compareTableView
   -> m (Event t ())
 compareTableView IndicatorTableState{..} = mdo
 
-  sortOrderD :: Dynamic t SortOrder
-    <- holdDyn (YearCol, Desc) sortOrderE
+  sortOrderD :: Dynamic t CompareSortOrder
+    <- holdDyn (CompYearCol, Desc) sortOrderE
 
   let tableD = shapeCompareData <$> areaD <*> compareAreaD <*> featureD <*> sortOrderD <*> indicatorNumbersD
 
@@ -359,25 +377,24 @@ compareTableView IndicatorTableState{..} = mdo
                     <*>)
 
       captionsD = fmap indicatorCaptions <$> indicatorD
-      transform = "annual-rate"
       headlineD = (OMap.lookup "original" =<<) <$> captionsD
-      localD    = (OMap.lookup transform  =<<) <$> captionsD
+      ratioD    = (OMap.lookup "ratio"    =<<) <$> captionsD
       nationalD = (OMap.lookup "ratio-nz" =<<) <$> captionsD
 
       yearEndMonthD = (indicatorYearEndMonth =<<) <$> indicatorD
 
       captionD = do
         headline     <- headlineD
-        local        <- localD
         national     <- nationalD
+        ratio        <- subs $ fromMaybe "" <$> ratioD
         yearEndMonth <- yearEndMonthD
-        let cols = Text.intercalate "; " $ catMaybes [headline, local, national]
+        let cols = Text.intercalate "; " $ catMaybes [headline, national]
+        let ratio' = if ratio == "" then "" else " " <> ratio <> "."
         let suffix = maybe "" (\m -> " Data are for the year to " <> m <> ".") yearEndMonth
-        return $ "The table shows " <> cols <> "." <> suffix
+        return $ "The table shows " <> cols <> "." <> ratio' <> suffix
 
       labelsD = fmap indicatorLabels <$> indicatorD
       headlineLabelD = (OMap.lookup "original" =<<) <$> labelsD
-      localLabelD    = (OMap.lookup transform  =<<) <$> labelsD
       nationalLabelD = (OMap.lookup "ratio-nz" =<<) <$> labelsD
 
   (clickCloseE, sortOrderE) <-
@@ -386,7 +403,7 @@ compareTableView IndicatorTableState{..} = mdo
         clickE <-
           el "header" $ do
             divClass "table-caption text" $
-              dynText $ subs $ captionD
+              void . elDynHtmlAttr' "span" mempty $ subs captionD
             fmap (domEvent Click . fst) $
               divClass "controls" $ do
                 elAttr' "button" ("class" =: "close") $
@@ -400,41 +417,46 @@ compareTableView IndicatorTableState{..} = mdo
                   el "tr" $ do
                     elAttr "td" ("class" =: "button") $ do
                       let csvD = do
+                            areaname <- maybe "" areaName <$> areaD
+                            compname <- maybe "" areaName <$> compareAreaD
                             headline <- subs (fromMaybe "Headline" <$> headlineLabelD)
-                            local    <- subs (fromMaybe "Local" <$> localLabelD)
                             national <- subs (fromMaybe "National" <$> nationalLabelD)
                             source   <- subs (maybe "" indicatorPublishers <$> indicatorD)
                             let header = ( "Year"::Text
-                                         , headline
-                                         , local
-                                         , national
+                                         , areaname <> " " <> headline
+                                         , compname <> " " <> headline
+                                         , "Ratio"::Text
+                                         , areaname <> " " <> national
+                                         , compname <> " " <> national
                                          , "Copyright"::Text
                                          , "Owner"::Text
                                          )
                             table <- tableD
                             let contents = [ ( Text.pack $ show year
-                                             , maybe "" (Text.pack . show) rawNum
-                                             , maybe "" (Text.pack . show) localNum
-                                             , maybe "" (Text.pack . show) nationalNum
+                                             , maybe "" (Text.pack . show) (rawNum area)
+                                             , maybe "" (Text.pack . show) (rawNum comp)
+                                             , maybe "" (Text.pack . printf "%0.2f") ratio
+                                             , maybe "" (Text.pack . show) (nationalNum area)
+                                             , maybe "" (Text.pack . show) (nationalNum comp)
                                              , "CC-BY-4" :: Text
                                              , source
                                              )
-                                           | (year, ((Numbers{..}, _),_)) <- table ]
+                                           | CompareTableRow year area comp ratio <- table ]
                             return $ Csv.encode (header:contents)
 
                       urlE <- exportCSVLink csvD
                       urlD <- holdDyn "" urlE
                       let exportAttrD = do
-                            filename <- subs (constDyn "$indid$-$yearEndMonth$-$areaid$.csv")
+                            filename <- subs (constDyn "$indid$-$areaid$-$compareAreaId$--difference.csv")
                             url <- urlD
                             return (  "class"    =: "export"
                                    <> "href"     =: url
                                    <> "download" =: filename )
                       elDynAttr "a" exportAttrD $ text "Export CSV"
                     elAttr "td" ("colspan" =: "3") $ do
-                      void $ elDynHtmlAttr' "span" def $ subs ( fromMaybe "Headline" <$> headlineLabelD)
+                      void . elDynHtmlAttr' "span" mempty $ subs ( fromMaybe "Headline" <$> headlineLabelD)
                     elAttr "td" ("colspan" =: "2") $ do
-                      void $ elDynHtmlAttr' "span" def $ subs ( fromMaybe "National" <$> nationalLabelD)
+                      void . elDynHtmlAttr' "span" mempty $ subs ( fromMaybe "National" <$> nationalLabelD)
 
                 sortOrderE'' <-
                   el "thead" $
@@ -448,7 +470,7 @@ compareTableView IndicatorTableState{..} = mdo
                             return ("class" =: ((Text.toLower $ Text.pack $ show col) <> tablesortcss))
 
                       yearClickE <- fmap (domEvent Click . fst)  $
-                        elDynAttr' "th" (tableSortAttrD "double" YearCol) $
+                        elDynAttr' "th" (tableSortAttrD "double" CompYearCol) $
                           text "Year"
                       originalAreaClickE <- fmap (domEvent Click . fst)  $
                         elDynAttr' "th" (tableSortAttrD "border-top" OriginalAreaCol) $
@@ -469,7 +491,7 @@ compareTableView IndicatorTableState{..} = mdo
                       let f (_, Desc) col = (col, Asc)
                           f (_, Asc) col = (col, Desc)
                       return $ attachWith f (current sortOrderD) $
-                                 leftmost [ YearCol          <$ yearClickE
+                                 leftmost [ CompYearCol      <$ yearClickE
                                           , OriginalAreaCol  <$ originalAreaClickE
                                           , OriginalCompCol  <$ originalCompareClickE
                                           , RatioCol         <$ ratioClickE
@@ -477,16 +499,16 @@ compareTableView IndicatorTableState{..} = mdo
                                           , NationalCompCol  <$ nationalCompareClickE
                                           ]
                 el "tbody" $ do
-                  dyn_ $ ffor tableD $ mapM $ \(year, ((area, comp), ratio)) -> do
+                  dyn_ $ ffor tableD $ mapM $ \CompareTableRow{..} -> do
                     let showRatio Nothing = "-"
-                        showRatio (Just r) = show ((fromIntegral $ round (100.0 * r)) / 100.0)
+                        showRatio (Just r) = printf "%0.2f" r
                     el "tr" $ do
-                      elAttr "td" ("class" =: "double") $  text (Text.pack $ show year)
-                      elAttr "td" ("class" =: "colour-green") $ text (headlineDisp area)
-                      elAttr "td" ("class" =: "colour-compare-green") $ text (headlineDisp comp)
-                      elAttr "td" ("class" =: "double") $ text (Text.pack $ showRatio ratio)
-                      elAttr "td" ("class" =: "colour-green") $ text (nationalDisp area)
-                      elAttr "td" ("class" =: "colour-compare-green") $ text (nationalDisp comp)
+                      elAttr "td" ("class" =: "double") $  text (Text.pack $ show ctYear)
+                      elAttr "td" ("class" =: "colour-green") $ text (headlineDisp ctArea)
+                      elAttr "td" ("class" =: "colour-compare-green") $ text (headlineDisp ctComp)
+                      elAttr "td" ("class" =: "double") $ text (Text.pack $ showRatio ctRatio)
+                      elAttr "td" ("class" =: "colour-green") $ text (nationalDisp ctArea)
+                      elAttr "td" ("class" =: "colour-compare-green") $ text (nationalDisp ctComp)
 
                 return sortOrderE''
 

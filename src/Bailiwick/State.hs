@@ -156,9 +156,12 @@ run messageE = do
       _                                   -> Nothing
 
   indicatorIdD <-
-    holdDyn Nothing $ fmap Just $ fforMaybe messageE $ \case
-      Ready (Route (ThemePage tba) _ _ _) -> Just $ themePageIndicatorId tba
-      GoTo (ThemePage tba)                -> Just $ themePageIndicatorId tba
+    holdDyn Nothing $ fforMaybe messageE $ \case
+      Ready (Route (ThemePage tba) _ _ _) -> Just $ Just $ themePageIndicatorId tba
+      GoTo (ThemePage tba)                -> Just $ Just $ themePageIndicatorId tba
+      Ready (Route Summary _ _ _)         -> Just Nothing
+      GoToHomePage                        -> Just Nothing
+      GoTo Summary                        -> Just Nothing
       _                                   -> Nothing
 
   areaIdD <-

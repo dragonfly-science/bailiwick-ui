@@ -62,6 +62,7 @@ textSubstitution area compareArea indicator feature detail year =
       . T.replace "$areaid$" aid
       . T.replace "$selectedArea$" sa
       . replace "$compareArea$" (areaName <$> compareArea)
+      . replace "$compareAreaId$" (areaId <$> compareArea)
       . replace "$prevYear$" (T.pack . show <$> p)
       . replace "$feature$" fl
       . replace "$featureType$" fp
