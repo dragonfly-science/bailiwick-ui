@@ -3,6 +3,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE LambdaCase #-}
 module Bailiwick.View.IndicatorSummary (
     indicatorSummary
   , IndicatorSummaryState(..)
@@ -11,8 +12,8 @@ module Bailiwick.View.IndicatorSummary (
 import Control.Monad (void)
 import Control.Monad.Fix (MonadFix)
 import Data.Monoid ((<>))
-import Data.Maybe (fromMaybe)
 import qualified Data.HashMap.Strict.InsOrd as OM (lookup)
+import Data.Text (Text)
 
 import Reflex.Dom.Core hiding (elDynHtmlAttr')
 import Language.Javascript.JSaddle (MonadJSM)
@@ -23,11 +24,11 @@ import Bailiwick.Types
 
 data IndicatorSummaryState t
   = IndicatorSummaryState
-  { areaD              :: Dynamic t (Maybe Area)
-  , compareAreaD       :: Dynamic t (Maybe Area)
+  { areaD              :: Dynamic t (Loadable Area)
+  , compareAreaD       :: Dynamic t (Loadable Area)
   , featureD           :: Dynamic t (Maybe FeatureId)
   , yearD              :: Dynamic t (Maybe Year)
-  , indicatorD         :: Dynamic t (Maybe Indicator)
+  , indicatorD         :: Dynamic t (Loadable Indicator)
   , indicatorNumbersD  :: Dynamic t IndicatorNumbers
   }
 
@@ -57,50 +58,69 @@ indicatorSummary IndicatorSummaryState{..} = do
                 <*>)
 
       summaryNumsD = do
-        mareaid <- fmap areaId <$> areaD
-        myear   <- yearD
+        lareaid <- fmap areaId <$> areaD
+        lyear   <- toLoadable <$> yearD
         feature <- featureD
         IndicatorNumbers ismap <- indicatorNumbersD
-        return $ fromMaybe emptyNumbers $ do
-          areaid <- mareaid
-          year <- myear
-          OM.lookup (areaid, year, feature) ismap
+        return $ do  -- Loadable
+          areaid <- lareaid
+          year <- lyear
+          toLoadable $ OM.lookup (areaid, year, feature) ismap
 
       compareNumsD = do
-        mareaid <- fmap areaId <$> compareAreaD
-        myear   <- yearD
+        lareaid <- fmap areaId <$> compareAreaD
+        lyear   <- toLoadable <$> yearD
         feature <- featureD
         IndicatorNumbers ismap <- indicatorNumbersD
-        return $ fromMaybe emptyNumbers $ do
-          areaid <- mareaid
-          year <- myear
-          OM.lookup (areaid, year, feature) ismap
+        return $ do
+          areaid <- lareaid
+          year <- lyear
+          toLoadable $ OM.lookup (areaid, year, feature) ismap
+
+      notesD = do
+        lindicator <- indicatorD
+        case indicatorNotes <$> lindicator of
+           Loaded (Just notes) -> return notes
+           _                   -> return []
+
+      showNumber :: Loadable Text -> Text
+      showNumber = \case
+        Loaded x -> x
+        Loading  -> "..."
+        Missing  -> "No data"
+
 
   divClass "summary" $
     divClass "intersection" $ do
       divClass "intersection-number headline-number" $ do
-        divClass "number" $ dynText (headlineDisp <$> summaryNumsD)
-        divClass "comparison-number hidden" $ dynText (headlineDisp <$> compareNumsD)
+        divClass "number" $
+          dynText (showNumber . fmap headlineDisp <$> summaryNumsD)
+        divClass "comparison-number hidden" $
+          dynText (showNumber . fmap headlineDisp <$> compareNumsD)
         void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
-          subs $ maybe "" indicatorHeadlineNumCaption <$> indicatorD
+          subs $ load "" indicatorHeadlineNumCaption <$> indicatorD
       divClass "intersection-number regional-value" $ do
-        divClass "number" $ dynText (localDisp <$> summaryNumsD)
-        divClass "comparison-number" $ dynText (localDisp <$> compareNumsD)
+        divClass "number" $
+          dynText (showNumber . fmap localDisp <$> summaryNumsD)
+        divClass "comparison-number" $
+          dynText (showNumber . fmap localDisp <$> compareNumsD)
         void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
-          subs $ maybe "" indicatorLocalNumCaption <$> indicatorD
+          subs $ load "" indicatorLocalNumCaption <$> indicatorD
       divClass "intersection-number national-value" $ do
-        divClass "number" $ dynText (nationalDisp <$> summaryNumsD)
-        divClass "comparison-number" $ dynText (nationalDisp <$> compareNumsD)
+        divClass "number" $
+          dynText (showNumber . fmap nationalDisp <$> summaryNumsD)
+        divClass "comparison-number" $
+          dynText (showNumber . fmap nationalDisp <$> compareNumsD)
         void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
-          subs $ maybe "" indicatorNationalNumCaption <$> indicatorD
+          subs $ load "" indicatorNationalNumCaption <$> indicatorD
   divClass "summary-links" $ do
     void . elDynHtmlAttr' "div" (constDyn $ "class" =: "source") $
-           ("Source: " <>) <$> subs (maybe "" indicatorPublishers <$> indicatorD)
+           ("Source: " <>) <$> subs (load "" indicatorPublishers <$> indicatorD)
     divClass "notes" $
       el "div" $ do
         text "Notes:"
-        void . dyn $ ffor (fromMaybe [] . (indicatorNotes =<<) <$> indicatorD)
-                       (mapM_ $ elDynHtmlAttr' "p" (constDyn mempty) . subs . constDyn)
+        void . dyn $ ffor notesD
+                   (mapM_ $ elDynHtmlAttr' "p" (constDyn mempty) . subs . constDyn)
 
 
 

@@ -31,18 +31,18 @@ import Bailiwick.AreaTrees
 
 data Store t
   = Store
-    { storeAreasD          :: Dynamic t (Maybe Areas)
-    , storeThemesD         :: Dynamic t (Maybe [Theme])
-    , storeSummariesD      :: Dynamic t (Maybe AreaSummaries)
+    { storeAreasD          :: Dynamic t (Loadable Areas)
+    , storeThemesD         :: Dynamic t (Loadable [Theme])
+    , storeSummariesD      :: Dynamic t (Loadable AreaSummaries)
     , storeIndicatorsDataD :: Dynamic t (OM.InsOrdHashMap IndicatorId IndicatorData)
     }
 
 empty :: Reflex t => Store t
 empty
   = Store
-    { storeAreasD          = constDyn Nothing
-    , storeThemesD         = constDyn Nothing
-    , storeSummariesD      = constDyn Nothing
+    { storeAreasD          = constDyn Loading
+    , storeThemesD         = constDyn Loading
+    , storeSummariesD      = constDyn Loading
     , storeIndicatorsDataD = constDyn OM.empty
     }
 
@@ -83,9 +83,9 @@ initialData messagesE store = do
   themesE    <- apiGetThemes triggerE
   summariesE <- apiGetAreaSummaries triggerE
 
-  areasD     <- holdDyn Nothing $ catchApi "getAreas" areasE
-  themesD    <- holdDyn Nothing $ catchApi "getThemes" themesE
-  summariesD <- holdDyn Nothing $ catchApi "getAreaSummaries" summariesE
+  areasD     <- holdDyn Loading $ catchApi "getAreas" areasE
+  themesD    <- holdDyn Loading $ catchApi "getThemes" themesE
+  summariesD <- holdDyn Loading $ catchApi "getAreaSummaries" summariesE
 
   return $
     store
@@ -128,7 +128,7 @@ summaryNumbers messageE store@Store{..} = do
   numbersD <-
     foldDyn (uncurry OM.insert) OM.empty
                  $ attachWithMaybe (\mind i -> (,i) <$> mind) (current indicatorD)
-                 $ fmapMaybe id
+                 $ fmapMaybe toMaybe
                  $ catchApi "getIndicatorData" numbersE
 
   return $ store { storeIndicatorsDataD = numbersD }
@@ -157,10 +157,13 @@ catchApi
   :: Reflex t
   => String
   -> Event t (ReqResult () a)
-  -> Event t (Maybe a)
+  -> Event t (Loadable a)
 catchApi msg eveE =
   let tracedEventE = traceEventWith (showReqResult msg) eveE
-  in  fmap reqSuccess tracedEventE
+      success = \case
+        ResponseSuccess _ x _ -> Loaded x
+        _                     -> Missing
+  in  fmap success tracedEventE
 
 showReqResult :: String -> ReqResult t a -> String
 showReqResult apiPrefix rr = (apiPrefix ++) . unpack $

@@ -7,6 +7,7 @@ where
 
 
 import Control.Applicative ((<|>))
+import Control.Monad (join)
 import Data.Maybe (isJust)
 import Data.Char (isSpace, toUpper)
 
@@ -24,45 +25,45 @@ capitalize inp =
 
 
 textSubstitution
-  :: Maybe Area
-  -> Maybe Area
-  -> Maybe Indicator
+  :: Loadable Area
+  -> Loadable Area
+  -> Loadable Indicator
   -> Maybe FeatureId
   -> Maybe DetailId
   -> Maybe Year
   -> Text
   -> Text
 textSubstitution area compareArea indicator feature detail year =
-    let fy = indicatorFirstYear <$> indicator
-        yem = indicatorYearEndMonth =<< indicator
+    let fy = toMaybe $ indicatorFirstYear <$> indicator
+        yem = join $ toMaybe $ indicatorYearEndMonth <$> indicator
         indid = unIndicatorId . indicatorId <$> indicator
-        sa = maybe "New Zealand" areaName area
-        aid = maybe "new-zealand" areaId area
+        sa = load "New Zealand" areaName area
+        aid = load "new-zealand" areaId area
         f = featureIdText <$> feature
         fp = Nothing -- TODO feature types (Tourism spend)
         dl = Nothing -- TODO d <|> (indicatorTopDetailLabel =<< indicator)
-        ip = indicatorPeriod =<< indicator
+        ip = join $ toMaybe $ indicatorPeriod <$> indicator
         p = (-) <$> year <*> ip
         a = case (areaName <$> compareArea) of
-              Just ca' ->
+              Loaded ca' ->
                      "<span class='active'>" <> sa <>
                      "</span><span class='compare'> (and " <> ca' <> ")</span>"
               _ -> sa
-        fl = case indicatorFeatureText =<< indicator of
-              Just ft -> (`M.lookup` ft) =<< feature
-              _ -> f <|> (indicatorDefaultFeature =<< indicator)
+        fl = case indicatorFeatureText <$> indicator of
+              Loaded (Just ft) -> (`M.lookup` ft) =<< feature
+              _                -> f <|> (join $ toMaybe (indicatorDefaultFeature <$> indicator))
         replace findStr (Just replaceStr) = T.replace findStr replaceStr
         replace _ _ = id
     in T.strip
-      . replace "$indid$" indid
+      . replace "$indid$" (toMaybe indid)
       . replace "$year$" (T.pack . show <$> year)
       . replace "$firstYear$" fy
       . replace "$yearEndMonth$" yem
       . T.replace "$area$" a
       . T.replace "$areaid$" aid
       . T.replace "$selectedArea$" sa
-      . replace "$compareArea$" (areaName <$> compareArea)
-      . replace "$compareAreaId$" (areaId <$> compareArea)
+      . replace "$compareArea$" (toMaybe $ areaName <$> compareArea)
+      . replace "$compareAreaId$" (toMaybe $ areaId <$> compareArea)
       . replace "$prevYear$" (T.pack . show <$> p)
       . replace "$feature$" fl
       . replace "$featureType$" fp

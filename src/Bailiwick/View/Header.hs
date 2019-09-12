@@ -160,9 +160,9 @@ backToSummary HeaderState{..} = do
       notSummaryD = not <$> isSummaryD
 
   let subs = (textSubstitution
-                <$> ((<|>) <$> subareaD <*> areaD)
-                <*> (constDyn Nothing)
-                <*> indicatorD
+                <$> (toLoadable <$> ((<|>) <$> subareaD <*> areaD))
+                <*> (constDyn Missing)
+                <*> (toLoadable <$> indicatorD)
                 <*> (constDyn Nothing)
                 <*> (constDyn Nothing)
                 <*> yearD

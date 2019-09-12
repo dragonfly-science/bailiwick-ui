@@ -215,8 +215,10 @@ mainContent st@State{..} = do
       indicatorChartState = makeIndicatorChartState st
   switchDynM $
      ffor isSummaryD $ \case
-        True  -> summaryContent adaptersD regionD areaD mapState areaSummaryState
-        False -> indicatorContent leftZoomD rightZoomD regionD
+        True  -> summaryContent adaptersD
+                                (toMaybe <$> regionD)
+                                (toMaybe <$> areaD) mapState areaSummaryState
+        False -> indicatorContent leftZoomD rightZoomD (toMaybe <$> regionD)
                                   mapState mapLegendState
                                   indicatorChartState
                                   indicatorSummaryState
@@ -293,8 +295,9 @@ indicatorContent leftZoomD rightZoomD regionD
     return $ leftmost [ mapE, chartE ]
   let caD = Bailiwick.View.IndicatorSummary.compareAreaD indicator_summary_state
       indicatorSummaryCssD = ffor caD $ \case
-        Just _  -> "indicator-summary hide-table compare"
-        Nothing -> "indicator-summary hide-table no-compare"
+        Loading   -> "indicator-summary hide-table no-compare"
+        Loaded _  -> "indicator-summary hide-table compare"
+        Missing   -> "indicator-summary hide-table no-compare"
   summaryE <- elDynClass "div" indicatorSummaryCssD $ do
     indicatorSummary indicator_summary_state
     indicatorTable indicator_table_state

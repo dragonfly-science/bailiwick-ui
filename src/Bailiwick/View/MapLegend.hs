@@ -109,9 +109,9 @@ mapLegendLabel
   -> Text
 mapLegendLabel indicator featureId transform year = do
     let chartLabel = textSubstitution
-                        Nothing
-                        Nothing
-                        indicator
+                        Missing
+                        Missing
+                        (toLoadable indicator)
                         featureId
                         Nothing
                         year

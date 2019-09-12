@@ -11,7 +11,7 @@ module Bailiwick.View.IndicatorTable
   )
 where
 
-import Control.Monad (void)
+import Control.Monad (void, join)
 import Control.Monad.Fix (MonadFix)
 import Data.Bool (bool)
 import Data.Maybe (catMaybes, fromMaybe)
@@ -39,11 +39,11 @@ import Bailiwick.Types
 data IndicatorTableState t
   = IndicatorTableState
   { showTableD         :: Dynamic t Bool
-  , areaD              :: Dynamic t (Maybe Area)
-  , compareAreaD       :: Dynamic t (Maybe Area)
+  , areaD              :: Dynamic t (Loadable Area)
+  , compareAreaD       :: Dynamic t (Loadable Area)
   , featureD           :: Dynamic t (Maybe FeatureId)
   , yearD              :: Dynamic t (Maybe Year)
-  , indicatorD         :: Dynamic t (Maybe Indicator)
+  , indicatorD         :: Dynamic t (Loadable Indicator)
   , indicatorNumbersD  :: Dynamic t IndicatorNumbers
   }
 
@@ -131,8 +131,8 @@ shapeCompareData marea mcomp sel_featureid (sortcol,sortdir) (IndicatorNumbers i
                           , ctRatio = (/) <$> (rawNum ad) <*> (rawNum cd)
                           }
                      | y <- OMap.keys (OMap.union areaData compData)
-                     , let ad = fromMaybe emptyNumbers $ OMap.lookup y areaData
-                     , let cd = fromMaybe emptyNumbers $ OMap.lookup y compData
+                     , let ad = fromMaybe loadingNumbers $ OMap.lookup y areaData
+                     , let cd = fromMaybe loadingNumbers $ OMap.lookup y compData
                      ]
       sfc = case sortcol of
              CompYearCol      -> Just . fromIntegral . ctYear
@@ -182,8 +182,9 @@ indicatorTable
 indicatorTable its@IndicatorTableState{..} = do
 
   clickCloseE <- switchDynM $ ffor (zipDyn showTableD compareAreaD) $ \case
-    (True, Nothing)  -> tableView its
-    (True, Just _)   -> compareTableView its
+    (True, Loading)  -> tableView its
+    (True, Missing)  -> tableView its
+    (True, Loaded _) -> compareTableView its
     (False, _)       -> return never
 
   showTableE <- fmap (domEvent Click . fst) $
@@ -216,7 +217,7 @@ tableView IndicatorTableState{..} = mdo
   sortOrderD :: Dynamic t SortOrder
     <- holdDyn (YearCol, Desc) sortOrderE
 
-  let tableD = shapeData <$> areaD <*> featureD <*> sortOrderD <*> indicatorNumbersD
+  let tableD = shapeData <$> (toMaybe <$> areaD) <*> featureD <*> sortOrderD <*> indicatorNumbersD
 
       subs = (textSubstitution
                     <$> areaD
@@ -227,13 +228,13 @@ tableView IndicatorTableState{..} = mdo
                     <*> yearD
                     <*>)
 
-      captionsD = fmap indicatorCaptions <$> indicatorD
+      captionsD = toMaybe . fmap indicatorCaptions <$> indicatorD
       transform = "annual-rate"
       headlineD = (OMap.lookup "original" =<<) <$> captionsD
       localD    = (OMap.lookup transform  =<<) <$> captionsD
       nationalD = (OMap.lookup "ratio-nz" =<<) <$> captionsD
 
-      yearEndMonthD = (indicatorYearEndMonth =<<) <$> indicatorD
+      yearEndMonthD = join . toMaybe <$> fmap indicatorYearEndMonth <$> indicatorD
 
       captionD = do
         headline     <- headlineD
@@ -244,7 +245,7 @@ tableView IndicatorTableState{..} = mdo
         let suffix = maybe "" (\m -> " Data are for the year to " <> m <> ".") yearEndMonth
         return $ "The table shows " <> cols <> "." <> suffix
 
-      labelsD = fmap indicatorLabels <$> indicatorD
+      labelsD = toMaybe . fmap indicatorLabels <$> indicatorD
       headlineLabelD = (OMap.lookup "original" =<<) <$> labelsD
       localLabelD    = (OMap.lookup transform  =<<) <$> labelsD
       nationalLabelD = (OMap.lookup "ratio-nz" =<<) <$> labelsD
@@ -274,7 +275,7 @@ tableView IndicatorTableState{..} = mdo
                             headline <- subs (fromMaybe "Headline" <$> headlineLabelD)
                             local    <- subs (fromMaybe "Local" <$> localLabelD)
                             national <- subs (fromMaybe "National" <$> nationalLabelD)
-                            source   <- subs (maybe "" indicatorPublishers <$> indicatorD)
+                            source   <- subs (load "" indicatorPublishers <$> indicatorD)
                             let header = ( "Year"::Text
                                          , headline
                                          , local
@@ -365,7 +366,11 @@ compareTableView IndicatorTableState{..} = mdo
   sortOrderD :: Dynamic t CompareSortOrder
     <- holdDyn (CompYearCol, Desc) sortOrderE
 
-  let tableD = shapeCompareData <$> areaD <*> compareAreaD <*> featureD <*> sortOrderD <*> indicatorNumbersD
+  let tableD = shapeCompareData <$> (toMaybe <$> areaD)
+                                <*> (toMaybe <$> compareAreaD)
+                                <*> featureD
+                                <*> sortOrderD
+                                <*> indicatorNumbersD
 
       subs = (textSubstitution
                     <$> areaD
@@ -376,12 +381,12 @@ compareTableView IndicatorTableState{..} = mdo
                     <*> yearD
                     <*>)
 
-      captionsD = fmap indicatorCaptions <$> indicatorD
+      captionsD = toMaybe . fmap indicatorCaptions <$> indicatorD
       headlineD = (OMap.lookup "original" =<<) <$> captionsD
       ratioD    = (OMap.lookup "ratio"    =<<) <$> captionsD
       nationalD = (OMap.lookup "ratio-nz" =<<) <$> captionsD
 
-      yearEndMonthD = (indicatorYearEndMonth =<<) <$> indicatorD
+      yearEndMonthD = join . toMaybe <$> fmap indicatorYearEndMonth <$> indicatorD
 
       captionD = do
         headline     <- headlineD
@@ -393,7 +398,7 @@ compareTableView IndicatorTableState{..} = mdo
         let suffix = maybe "" (\m -> " Data are for the year to " <> m <> ".") yearEndMonth
         return $ "The table shows " <> cols <> "." <> ratio' <> suffix
 
-      labelsD = fmap indicatorLabels <$> indicatorD
+      labelsD = toMaybe . fmap indicatorLabels <$> indicatorD
       headlineLabelD = (OMap.lookup "original" =<<) <$> labelsD
       nationalLabelD = (OMap.lookup "ratio-nz" =<<) <$> labelsD
 
@@ -417,11 +422,11 @@ compareTableView IndicatorTableState{..} = mdo
                   el "tr" $ do
                     elAttr "td" ("class" =: "button") $ do
                       let csvD = do
-                            areaname <- maybe "" areaName <$> areaD
-                            compname <- maybe "" areaName <$> compareAreaD
+                            areaname <- load "" areaName <$> areaD
+                            compname <- load "" areaName <$> compareAreaD
                             headline <- subs (fromMaybe "Headline" <$> headlineLabelD)
                             national <- subs (fromMaybe "National" <$> nationalLabelD)
-                            source   <- subs (maybe "" indicatorPublishers <$> indicatorD)
+                            source   <- subs (load "" indicatorPublishers <$> indicatorD)
                             let header = ( "Year"::Text
                                          , areaname <> " " <> headline
                                          , compname <> " " <> headline
@@ -474,19 +479,19 @@ compareTableView IndicatorTableState{..} = mdo
                           text "Year"
                       originalAreaClickE <- fmap (domEvent Click . fst)  $
                         elDynAttr' "th" (tableSortAttrD "border-top" OriginalAreaCol) $
-                          dynText $ subs (maybe "" areaName <$> areaD)
+                          dynText $ subs (load "" areaName <$> areaD)
                       originalCompareClickE <- fmap (domEvent Click . fst)  $
                         elDynAttr' "th" (tableSortAttrD "border-top" OriginalCompCol) $
-                          dynText $ subs (maybe "" areaName <$> compareAreaD)
+                          dynText $ subs (load "" areaName <$> compareAreaD)
                       ratioClickE <- fmap (domEvent Click . fst)  $
                         elDynAttr' "th" (tableSortAttrD "border-top double" RatioCol) $
                           text "Ratio"
                       nationalAreaClickE <- fmap (domEvent Click . fst)  $
                         elDynAttr' "th" (tableSortAttrD "border-top" NationalAreaCol) $
-                          dynText $ subs (maybe "" areaName <$> areaD)
+                          dynText $ subs (load "" areaName <$> areaD)
                       nationalCompareClickE <- fmap (domEvent Click . fst)  $
                         elDynAttr' "th" (tableSortAttrD "border-top" NationalCompCol) $
-                          dynText $ subs (maybe "" areaName <$> compareAreaD)
+                          dynText $ subs (load "" areaName <$> compareAreaD)
 
                       let f (_, Desc) col = (col, Asc)
                           f (_, Asc) col = (col, Desc)

@@ -8,6 +8,7 @@
 
 module Bailiwick.Types where
 
+import Control.Applicative
 import Data.Aeson
 import Data.Char as Char
 import Data.String (IsString)
@@ -25,6 +26,53 @@ import GHCJS.DOM.Types (FromJSString)
 #endif
 
 import GHC.Generics
+
+-- Replacement for Maybe type
+data Loadable a
+  = Loading
+  | Loaded a
+  | Missing
+  deriving (Eq, Show)
+
+load :: a -> (b -> a) -> Loadable b -> a
+load _ f (Loaded x) = f x
+load x _ _ = x
+
+fromLoadable :: a -> Loadable a -> a
+fromLoadable _ (Loaded x) = x
+fromLoadable x _ =x
+
+toMaybe :: Loadable a -> Maybe a
+toMaybe (Loaded x) = Just x
+toMaybe _ = Nothing
+
+toLoadable :: Maybe a -> Loadable a
+toLoadable (Just x) = Loaded x
+toLoadable Nothing = Missing
+
+instance Functor Loadable where
+  fmap f = \case
+    Loaded x -> Loaded (f x)
+    Loading  -> Loading
+    Missing  -> Missing
+
+instance Applicative Loadable where
+  pure = Loaded
+  Loaded f <*> lx = fmap f lx
+  Missing <*> _ = Missing
+  Loading <*> _ = Loading
+
+instance Monad Loadable where
+  (Loaded x) >>= k      = k x
+  Loading  >>= _      = Loading
+  Missing  >>= _      = Missing
+  (>>) = (*>)
+  fail _              = Missing
+
+instance Alternative Loadable where
+  empty = Missing
+  Missing <|> r = r
+  l       <|> _ = l   -- Loading gets passed through
 
 type AreaId = Text
 type AreaType = Text
@@ -484,6 +532,9 @@ data Numbers
     }
   deriving (Eq, Show, Generic)
 
+loadingNumbers :: Numbers
+loadingNumbers = Numbers "..." "..." "..." "..."
+                       Nothing Nothing Nothing Nothing
 emptyNumbers :: Numbers
 emptyNumbers = Numbers "No data" "No data" "No data" "No data"
                        Nothing Nothing Nothing Nothing

@@ -214,7 +214,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
         area <- areaD
         feature <- featureD
         year <- yearD
-        let chartLabel = textSubstitution area Nothing indicator feature Nothing year
+        let chartLabel = textSubstitution (toLoadable area) Missing (toLoadable indicator) feature Nothing year
         mtransform <- transformD
         return $ do
           transform <- mtransform
