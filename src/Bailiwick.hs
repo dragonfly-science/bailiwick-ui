@@ -30,7 +30,8 @@ ui = do
     initialUriD <- holdDyn Nothing (Just <$> uriE)
 
     state <- State.run $ leftmost [ Route.Ready . Route.decodeUri <$> uriE
-                                  , traceEvent "messageE" messageE
+                                  , messageE
+                               -- , traceEvent "messageE" messageE
                                   ]
 
     messageE <- View.view state
