@@ -127,7 +127,7 @@ for (indid in names(indicators)) {
   colourscale <- values[, .(minval = min(Value), maxval = max(Value)),
                           .(year=Year, feature=slugify(Dimension1), detail=slugify(Dimension2))]
 
-  cat(as.character(toJSON(list(scale=colourscale, numbers=summarynumbers),
+  cat(as.character(toJSON(list(scale=colourscale, ident=indid, numbers=summarynumbers),
                           null='null', auto_unbox=TRUE)), file=outputfile)
   cat(" Done\n")
 

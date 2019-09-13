@@ -464,7 +464,8 @@ type Colour = Text
 type Display = Text
 data IndicatorData
   = IndicatorData
-    { indicatorNumbers  :: IndicatorNumbers
+    { indicatorIdent    :: IndicatorId
+    , indicatorNumbers  :: IndicatorNumbers
     , indicatorScale    :: IndicatorScale
     } deriving (Eq, Show, Generic)
 instance FromJSON IndicatorData where

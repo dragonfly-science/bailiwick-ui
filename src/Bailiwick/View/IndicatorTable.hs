@@ -44,7 +44,7 @@ data IndicatorTableState t
   , featureD           :: Dynamic t (Maybe FeatureId)
   , yearD              :: Dynamic t (Maybe Year)
   , indicatorD         :: Dynamic t (Loadable Indicator)
-  , indicatorNumbersD  :: Dynamic t IndicatorNumbers
+  , indicatorNumbersD  :: Dynamic t (Loadable IndicatorNumbers)
   }
 
 data Column
@@ -66,9 +66,11 @@ shapeData
   :: Maybe Area
   -> Maybe FeatureId
   -> SortOrder
-  -> IndicatorNumbers
+  -> Loadable IndicatorNumbers
   -> IndicatorTable
-shapeData marea sel_featureid (sortcol,sortdir) (IndicatorNumbers inmap) =
+shapeData _ _ _ Missing = []
+shapeData _ _ _ Loading = []
+shapeData marea sel_featureid (sortcol,sortdir) (Loaded (IndicatorNumbers inmap)) =
   let sel_areaid = maybe "none" areaId marea
       find (areaid, year, featureid) numbers =
         if (sel_areaid == areaid && sel_featureid == featureid)
@@ -113,9 +115,11 @@ shapeCompareData
   -> Maybe Area
   -> Maybe FeatureId
   -> CompareSortOrder
-  -> IndicatorNumbers
+  -> Loadable IndicatorNumbers
   -> CompareTable
-shapeCompareData marea mcomp sel_featureid (sortcol,sortdir) (IndicatorNumbers inmap) =
+shapeCompareData _ _ _ _ Missing = []
+shapeCompareData _ _ _ _ Loading = []
+shapeCompareData marea mcomp sel_featureid (sortcol,sortdir) (Loaded (IndicatorNumbers inmap)) =
   let sel_areaid = maybe "none" areaId marea
       sel_compid = maybe "none" areaId mcomp
       find aid (areaid, year, featureid) numbers =

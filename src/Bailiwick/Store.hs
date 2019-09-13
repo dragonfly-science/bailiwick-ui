@@ -8,16 +8,19 @@
 {-# LANGUAGE LambdaCase              #-}
 {-# LANGUAGE TupleSections           #-}
 module Bailiwick.Store
-  ( Store(..)
-  , run
-  , empty
-  )
+--  ( Store(..)
+--  , run
+--  , empty
+--  )
 where
 
-import Control.Monad ((>=>))
+import Control.Monad ((>=>), join)
+import Control.Applicative (liftA)
 import Control.Monad.Fix (MonadFix)
 import Data.Proxy
-import Data.Text hiding (empty, foldr1)
+import Data.Maybe (listToMaybe)
+import qualified Data.Text as Text
+import Data.Text (Text)
 
 import Servant.API
 import Servant.Reflex
@@ -27,14 +30,13 @@ import qualified Data.HashMap.Strict.InsOrd as OM
 
 import Bailiwick.Types
 import Bailiwick.Route
-import Bailiwick.AreaTrees
 
 data Store t
   = Store
     { storeAreasD          :: Dynamic t (Loadable Areas)
     , storeThemesD         :: Dynamic t (Loadable [Theme])
     , storeSummariesD      :: Dynamic t (Loadable AreaSummaries)
-    , storeIndicatorsDataD :: Dynamic t (OM.InsOrdHashMap IndicatorId IndicatorData)
+    , storeIndicatorsDataD :: Dynamic t (OM.InsOrdHashMap IndicatorId (Loadable IndicatorData))
     }
 
 empty :: Reflex t => Store t
@@ -58,7 +60,8 @@ run
   -> m (Store t)
 run messagesE =
   let watchers
-       = [ initialData messagesE
+       = concat
+         [ [ initialData messagesE ]
          , summaryNumbers messagesE
          ]
 
@@ -103,54 +106,53 @@ summaryNumbers
      , MonadJSM (Performable m)
      )
   => Event t Message
-  -> Store t
-  -> m (Store t)
-summaryNumbers messageE store@Store{..} = do
+  -> [ Store t -> m (Store t) ]
+summaryNumbers messageE =
 
-  let test numbers message =
-        case getIndicatorId message of
-          Nothing -> Nothing
-          Just indid ->
-            case OM.lookup indid numbers of
-              Just _ -> Nothing
-              Nothing -> Just indid
-  let indicatorE = attachWithMaybe test (current storeIndicatorsDataD) messageE
+  let updateNumbers numsD eventE =
+         join <$> foldDyn (liftA . (uncurry OM.insert)) numsD eventE
 
-  indicatorD <- holdDyn Nothing (Just <$> indicatorE)
+      markLoading store = do
+        let oldNumbersD = storeIndicatorsDataD store
+            test numbers message =
+              case getIndicatorId message of
+                Nothing -> Nothing
+                Just indid ->
+                  case OM.lookup indid numbers of
+                    Just _ -> Nothing
+                    Nothing -> Just indid
+            indicatorE = attachWithMaybe test (current oldNumbersD) messageE
 
-  numbersE <- do
-    let jsonfileD
-          = ffor indicatorD $ \case
-                Nothing -> Left "indicator-not-defined"
-                Just (IndicatorId ind) -> Right (ind <> ".json")
-    apiGetIndicatorData jsonfileD (() <$ indicatorE)
+        newNumbersD <-
+             updateNumbers
+                 oldNumbersD
+                 ((, Loading) <$> indicatorE)
+        return $ store { storeIndicatorsDataD = newNumbersD }
 
-  numbersD <-
-    foldDyn (uncurry OM.insert) OM.empty
-                 $ attachWithMaybe (\mind i -> (,i) <$> mind) (current indicatorD)
-                 $ fmapMaybe toMaybe
+      doCall store = do
+        let oldNumbersD = storeIndicatorsDataD store
+            findLoading = listToMaybe . OM.keys . OM.filter (== Loading)
+            mkPath (Just (IndicatorId ind)) = Right (ind <> ".json")
+            mkPath Nothing = Left "nothing-to-do"
+            loadingD = findLoading <$> storeIndicatorsDataD store
+
+        numbersE <- apiGetIndicatorData
+                        (mkPath <$> loadingD)
+                        (() <$ fmapMaybe id (updated loadingD))
+
+        let unpack :: Loadable IndicatorData -> Maybe (IndicatorId, Loadable IndicatorData)
+            unpack (Loaded indata) = Just (indicatorIdent indata, Loaded indata)
+            unpack _ = Nothing
+
+        newNumbersD <-
+            updateNumbers
+                 oldNumbersD
+                 $ fmapMaybe unpack
                  $ catchApi "getIndicatorData" numbersE
 
-  return $ store { storeIndicatorsDataD = numbersD }
+        return $ store { storeIndicatorsDataD = newNumbersD }
 
--- getChartData
---   :: ( MonadHold t m
---      , Reflex t
---      , SupportsServantReflex t m
---      , HasJSContext (Performable m)
---      )
---   =>  Dynamic t Text -> m (Dynamic t (Maybe ChartData))
--- getChartData filenameD = do
---
--- --   updated filenameD ...
--- --       lookInMemory ... <|>
--- --       lookInLocalStorate ... <|>
--- --       lookOnDisk ... <|>
--- --       fetchUsing servant <|>
---
---   chartDataE <- apiGetChartData (Right <$> filenameD) (() <$ updated filenameD)
---
---   holdDyn Nothing $ fmap reqSuccess chartDataE
+  in [ markLoading, doCall ]
 
 
 catchApi
@@ -166,7 +168,7 @@ catchApi msg eveE =
   in  fmap success tracedEventE
 
 showReqResult :: String -> ReqResult t a -> String
-showReqResult apiPrefix rr = (apiPrefix ++) . unpack $
+showReqResult apiPrefix rr = (apiPrefix ++) . Text.unpack $
     case rr of
         ResponseSuccess _ _ _   -> "Success"
         ResponseFailure _ msg _ -> "Response failure: " <> msg
@@ -176,11 +178,6 @@ showReqResult apiPrefix rr = (apiPrefix ++) . unpack $
 type GetAreas = "db" :> "dev" :> "areas.json" :> Get '[JSON] Areas
 type GetThemes = "db" :> "dev" :> "themes.json" :> Get '[JSON] [Theme]
 type GetAreaSummaries = "db" :> "dev" :> "area-summaries.json" :> Get '[JSON] AreaSummaries
-type GetAreaTrees = "data" :> "areaTrees-11d88bc13.json" :> Get '[JSON] [AreaTree]
-type GetFeatures = "data" :> "features-11d88bc13.json" :> Get '[JSON] [Feature]
-
-type GetMapSummaries = "data" :> Capture "filename" Text :> Get '[JSON] MapSummary
-type GetChartData = "chartdata" :> Capture "filename" Text :> Get '[JSON] ChartData
 type GetIndicatorData = "db" :> "dev" :> Capture "<indicator>.json" Text :> Get '[JSON] IndicatorData
 
 apiGetAreas
@@ -195,36 +192,11 @@ apiGetAreaSummaries
     = client (Proxy :: Proxy GetAreaSummaries) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
 
-_apiGetMapSummaries
-    :: forall t m . SupportsServantReflex t m => Client t m GetMapSummaries ()
-_apiGetMapSummaries
-    = client (Proxy :: Proxy GetMapSummaries) (Proxy :: Proxy m)
-        (Proxy :: Proxy ()) (constDyn (BasePath "/"))
-
 apiGetThemes
     :: forall t m . SupportsServantReflex t m => Client t m GetThemes ()
 apiGetThemes
     = client (Proxy :: Proxy GetThemes) (Proxy :: Proxy m)
         (Proxy :: Proxy ()) (constDyn (BasePath "/"))
-
-_apiGetAreaTrees
-    :: forall t m . SupportsServantReflex t m => Client t m GetAreaTrees ()
-_apiGetAreaTrees
-    = client (Proxy :: Proxy GetAreaTrees) (Proxy :: Proxy m)
-        (Proxy :: Proxy ()) (constDyn (BasePath "/"))
-
-_apiGetFeatures
-    :: forall t m . SupportsServantReflex t m => Client t m GetFeatures ()
-_apiGetFeatures
-    = client (Proxy :: Proxy GetFeatures) (Proxy :: Proxy m)
-        (Proxy :: Proxy ()) (constDyn (BasePath "/"))
-
-_apiGetChartData
-    :: forall t m . SupportsServantReflex t m => Client t m GetChartData ()
-_apiGetChartData
-    = client (Proxy :: Proxy GetChartData) (Proxy :: Proxy m)
-        (Proxy :: Proxy ()) (constDyn (BasePath "/data"))
-
 
 apiGetIndicatorData
     :: forall t m . SupportsServantReflex t m => Client t m GetIndicatorData ()

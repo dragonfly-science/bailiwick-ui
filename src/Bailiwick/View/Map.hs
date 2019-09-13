@@ -79,7 +79,7 @@ data MapState t
     , areaTypeD          :: Dynamic t (Maybe AreaType)
     , featureD           :: Dynamic t (Maybe FeatureId)
     , yearD              :: Dynamic t (Maybe Year)
-    , indicatorNumbersD  :: Dynamic t IndicatorNumbers
+    , indicatorNumbersD  :: Dynamic t (Loadable IndicatorNumbers)
     }
 
 switchDynM
@@ -336,7 +336,7 @@ data Map
     , _areaType       :: Maybe Text
     , _feature        :: Maybe FeatureId
     , _year           :: Maybe Year
-    , _numbers        :: IndicatorNumbers
+    , _numbers        :: Loadable IndicatorNumbers
     }
    deriving (Show, Eq)
 
@@ -530,10 +530,11 @@ nzmap isSummary MapState{..} scaleFunctionE = mdo
         mtooltiparea <- area
         myear <- mapyearD
         feature <- mapfeatureD
-        IndicatorNumbers ismap <- indicatorNumbersD
+        mindnumbers <- toMaybe <$> indicatorNumbersD
         return $ do
           (_, Area{..}) <- mtooltiparea
           year <- myear
+          IndicatorNumbers ismap <- mindnumbers
           nums <- OM.lookup (areaId, year, feature) ismap
           return $ headlineDisp nums
 
@@ -886,7 +887,7 @@ updateMapIndicator svgBody mapD (ScaleFunction scale)= do
                      $ removetype "-ward"
                      $ areain
             year <- _year new
-            let IndicatorNumbers ismap = _numbers new
+            IndicatorNumbers ismap <- toMaybe $ _numbers new
             nums <- OM.lookup (area, year, _feature new) ismap
             rawNum nums
         getColour :: Text -> JSM Text

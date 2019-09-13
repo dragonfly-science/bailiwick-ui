@@ -29,7 +29,7 @@ data IndicatorSummaryState t
   , featureD           :: Dynamic t (Maybe FeatureId)
   , yearD              :: Dynamic t (Maybe Year)
   , indicatorD         :: Dynamic t (Loadable Indicator)
-  , indicatorNumbersD  :: Dynamic t IndicatorNumbers
+  , indicatorNumbersD  :: Dynamic t (Loadable IndicatorNumbers)
   }
 
 indicatorSummary
@@ -61,20 +61,22 @@ indicatorSummary IndicatorSummaryState{..} = do
         lareaid <- fmap areaId <$> areaD
         lyear   <- toLoadable <$> yearD
         feature <- featureD
-        IndicatorNumbers ismap <- indicatorNumbersD
+        lindnumbers <- indicatorNumbersD
         return $ do  -- Loadable
           areaid <- lareaid
           year <- lyear
+          IndicatorNumbers ismap <- lindnumbers
           toLoadable $ OM.lookup (areaid, year, feature) ismap
 
       compareNumsD = do
         lareaid <- fmap areaId <$> compareAreaD
         lyear   <- toLoadable <$> yearD
         feature <- featureD
-        IndicatorNumbers ismap <- indicatorNumbersD
-        return $ do
+        lindnumbers <- indicatorNumbersD
+        return $ do -- Loadable
           areaid <- lareaid
           year <- lyear
+          IndicatorNumbers ismap <- lindnumbers
           toLoadable $ OM.lookup (areaid, year, feature) ismap
 
       notesD = do

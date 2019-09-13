@@ -40,7 +40,7 @@ data State t
     , featureD           :: Dynamic t (Maybe FeatureId)
     , yearD              :: Dynamic t (Maybe Year)
     , indicatorD         :: Dynamic t (Loadable Indicator)
-    , indicatorNumbersD  :: Dynamic t IndicatorNumbers
+    , indicatorNumbersD  :: Dynamic t (Loadable IndicatorNumbers)
     , chartTypeD         :: Dynamic t (Maybe ChartId)
     , transformD         :: Dynamic t (Maybe TransformId)
     , areaTypeD          :: Dynamic t (Maybe AreaType)
@@ -186,9 +186,10 @@ run messageE = do
       indicatorNumbersD = do
         lindicator <- indicatorD
         indicatorsData <- storeIndicatorsDataD store
-        return $ fromLoadable (IndicatorNumbers OMap.empty) $ do
+        return $ do
           indid <- indicatorId <$> lindicator
-          IndicatorData{indicatorNumbers} <- toLoadable $ OMap.lookup indid indicatorsData
+          let indicatorData = fromMaybe Missing $ OMap.lookup indid indicatorsData
+          IndicatorData{indicatorNumbers} <- indicatorData
           return indicatorNumbers
 
       regtaD = do
@@ -324,7 +325,8 @@ makeMapLegendState State{indicatorD,store,yearD,featureD,transformD,chartTypeD} 
         return $ do
           year <- myear
           indid <- indicatorId <$> mindicator
-          IndicatorData{indicatorScale} <- OMap.lookup indid indicatorsData
+          inddata <- OMap.lookup indid indicatorsData
+          IndicatorData{indicatorScale} <- toMaybe inddata
           let IndicatorScale scale = indicatorScale
           OMap.lookup (year, feature) scale
 

@@ -39,12 +39,14 @@ data IndicatorChartState t
     , areasD             :: Dynamic t (Maybe Areas)
     , compareAreaD       :: Dynamic t (Maybe Area)
     , indicatorD         :: Dynamic t (Maybe Indicator)
-    , indicatorNumbersD  :: Dynamic t IndicatorNumbers
+    , indicatorNumbersD  :: Dynamic t (Loadable IndicatorNumbers)
     }
 
 type ShapedData = [((AreaId, Text, Text, [Text], Maybe FeatureId), [(Year, Maybe Double, Maybe Double, Text, Text)])]
-shapeData :: Maybe Areas -> IndicatorNumbers -> ShapedData
-shapeData mareas (IndicatorNumbers inmap) =
+shapeData :: Maybe Areas -> Loadable IndicatorNumbers -> ShapedData
+shapeData _ Loading = []
+shapeData _ Missing = []
+shapeData mareas (Loaded (IndicatorNumbers inmap)) =
   let lookupAreaName areaid
         = fromMaybe "" $ do
             Areas areas <- mareas
