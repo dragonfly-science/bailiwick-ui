@@ -96,15 +96,14 @@ summaryNumbers messageE = mdo
       mkPath Nothing = Left "nothing-to-do"
       loadingD = findLoading <$> dataD
 
-  let unpack (Loaded indata) = Just (indicatorIdent indata, Loaded indata)
-      unpack _ = Nothing
-
-      numbersLoadedE = fmapMaybe unpack $ catchApi "getIndicatorData" numbersE
-
   numbersE <- apiGetIndicatorData
                   (mkPath <$> loadingD)
                   (() <$ fmapMaybe id (updated loadingD))
 
+  let unpack (Loaded indata) = Just (indicatorIdent indata, Loaded indata)
+      unpack _ = Nothing
+
+      numbersLoadedE = fmapMaybe unpack $ catchApi "getIndicatorData" numbersE
 
   dataD <- foldDyn (uncurry OM.insert) OM.empty $
                  leftmost [ newIndicatorE , numbersLoadedE ]
