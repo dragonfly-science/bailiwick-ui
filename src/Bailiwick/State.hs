@@ -178,14 +178,21 @@ run messageE = do
   let indicatorD = do -- Dynamic t
         lIndicatorId <- indicatorIdD
         lthemes <- storeThemesD store
-        return $ do -- loadable
+        return $ do -- Loadable
           themes <- lthemes
           indicatorId <- lIndicatorId
           findIndicator themes indicatorId
 
+      showIndicatorData =
+        let loadable = \case
+              Loaded _ -> "Loaded" :: String
+              Missing  -> "Missing"
+              Loading  -> "Loading"
+        in  show . OMap.toList . OMap.map loadable
+
       indicatorNumbersD = do
         lindicator <- indicatorD
-        indicatorsData <- storeIndicatorsDataD store
+        indicatorsData <- traceDynWith showIndicatorData $ storeIndicatorsDataD store
         return $ do
           indid <- indicatorId <$> lindicator
           let indicatorData = fromMaybe Missing $ OMap.lookup indid indicatorsData

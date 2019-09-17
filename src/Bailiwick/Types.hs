@@ -16,6 +16,7 @@ import Data.String (IsString)
 import Data.Hashable (Hashable)
 import Data.Map (Map)
 import Data.Text (Text)
+import qualified Data.Text as Text
 import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import qualified Data.Vector as V
@@ -251,8 +252,10 @@ instance FromJSON Language where
     parseJSON = genericParseJSON langOptions
 
 newtype IndicatorId = IndicatorId { unIndicatorId :: Text }
-   deriving (Eq, Ord, Show, Generic, Hashable,
+   deriving (Eq, Ord, Generic, Hashable,
              FromJSONKey, FromJSON, IsString, JS.ToJSVal)
+instance Show IndicatorId where
+   show (IndicatorId indid) = Text.unpack indid
 newtype ChartId = ChartId { unChartId :: Text }
     deriving (Eq, Ord, Show, Generic, JS.ToJSVal, Hashable, FromJSONKey, IsString)
 instance FromJSON ChartId where

@@ -1,21 +1,17 @@
-{-# LANGUAGE OverloadedStrings       #-}
-{-# LANGUAGE RankNTypes              #-}
-{-# LANGUAGE DataKinds               #-}
-{-# LANGUAGE TypeOperators           #-}
-{-# LANGUAGE FlexibleContexts        #-}
-{-# LANGUAGE ScopedTypeVariables     #-}
-{-# LANGUAGE RecordWildCards         #-}
-{-# LANGUAGE LambdaCase              #-}
-{-# LANGUAGE TupleSections           #-}
+{-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TupleSections #-}
 module Bailiwick.Store
---  ( Store(..)
---  , run
---  , empty
---  )
+  ( Store(..)
+  , run
+  )
 where
 
-import Control.Monad ((>=>), join)
-import Control.Applicative (liftA)
 import Control.Monad.Fix (MonadFix)
 import Data.Proxy
 import Data.Maybe (listToMaybe)
@@ -39,15 +35,6 @@ data Store t
     , storeIndicatorsDataD :: Dynamic t (OM.InsOrdHashMap IndicatorId (Loadable IndicatorData))
     }
 
-empty :: Reflex t => Store t
-empty
-  = Store
-    { storeAreasD          = constDyn Loading
-    , storeThemesD         = constDyn Loading
-    , storeSummariesD      = constDyn Loading
-    , storeIndicatorsDataD = constDyn OM.empty
-    }
-
 run
   :: ( TriggerEvent t m
      , PerformEvent t m
@@ -58,44 +45,29 @@ run
      )
   => Event t Message
   -> m (Store t)
-run messagesE =
-  let watchers
-       = concat
-         [ [ initialData messagesE ]
-         , summaryNumbers messagesE
-         ]
+run messageE = do
 
-  in foldr1 (>=>) watchers empty
-
-initialData
-  :: ( TriggerEvent t m
-     , PerformEvent t m
-     , MonadHold t m
-     , HasJSContext (Performable m)
-     , MonadJSM (Performable m)
-     )
-  => Event t Message
-  -> Store t
-  -> m (Store t)
-initialData messagesE store = do
   let isReady (Ready _) = True
       isReady _ = False
-  let triggerE = () <$ ffilter isReady messagesE
+      triggerE = () <$ ffilter isReady messageE
 
   areasE     <- apiGetAreas triggerE
-  themesE    <- apiGetThemes triggerE
-  summariesE <- apiGetAreaSummaries triggerE
-
   areasD     <- holdDyn Loading $ catchApi "getAreas" areasE
+  themesE    <- apiGetThemes triggerE
   themesD    <- holdDyn Loading $ catchApi "getThemes" themesE
+  summariesE <- apiGetAreaSummaries triggerE
   summariesD <- holdDyn Loading $ catchApi "getAreaSummaries" summariesE
 
+  indicatorsDataD <- summaryNumbers messageE
+
   return $
-    store
-      { storeAreasD     = areasD
-      , storeThemesD    = themesD
-      , storeSummariesD = summariesD
+    Store
+      { storeAreasD          = areasD
+      , storeThemesD         = themesD
+      , storeSummariesD      = summariesD
+      , storeIndicatorsDataD = indicatorsDataD
       }
+
 
 summaryNumbers
   :: ( TriggerEvent t m
@@ -106,54 +78,37 @@ summaryNumbers
      , MonadJSM (Performable m)
      )
   => Event t Message
-  -> [ Store t -> m (Store t) ]
-summaryNumbers messageE =
+  -> m (Dynamic t (OM.InsOrdHashMap IndicatorId (Loadable IndicatorData)))
+summaryNumbers messageE = mdo
 
-  let updateNumbers numsD eventE =
-         join <$> foldDyn (liftA . (uncurry OM.insert)) numsD eventE
+  let test numbers message =
+        case getIndicatorId message of
+          Nothing -> Nothing
+          Just indid ->
+            case OM.lookup indid numbers of
+              Just _ -> Nothing
+              Nothing -> Just indid
 
-      markLoading store = do
-        let oldNumbersD = storeIndicatorsDataD store
-            test numbers message =
-              case getIndicatorId message of
-                Nothing -> Nothing
-                Just indid ->
-                  case OM.lookup indid numbers of
-                    Just _ -> Nothing
-                    Nothing -> Just indid
-            indicatorE = attachWithMaybe test (current oldNumbersD) messageE
+      newIndicatorE = (,Loading) <$> attachWithMaybe test (current dataD) messageE
 
-        newNumbersD <-
-             updateNumbers
-                 oldNumbersD
-                 ((, Loading) <$> indicatorE)
-        return $ store { storeIndicatorsDataD = newNumbersD }
+      findLoading = listToMaybe . OM.keys . OM.filter (== Loading)
+      mkPath (Just (IndicatorId ind)) = Right (ind <> ".json")
+      mkPath Nothing = Left "nothing-to-do"
+      loadingD = findLoading <$> dataD
 
-      doCall store = do
-        let oldNumbersD = storeIndicatorsDataD store
-            findLoading = listToMaybe . OM.keys . OM.filter (== Loading)
-            mkPath (Just (IndicatorId ind)) = Right (ind <> ".json")
-            mkPath Nothing = Left "nothing-to-do"
-            loadingD = findLoading <$> storeIndicatorsDataD store
+  let unpack (Loaded indata) = Just (indicatorIdent indata, Loaded indata)
+      unpack _ = Nothing
 
-        numbersE <- apiGetIndicatorData
-                        (mkPath <$> loadingD)
-                        (() <$ fmapMaybe id (updated loadingD))
+      numbersLoadedE = fmapMaybe unpack $ catchApi "getIndicatorData" numbersE
 
-        let unpack :: Loadable IndicatorData -> Maybe (IndicatorId, Loadable IndicatorData)
-            unpack (Loaded indata) = Just (indicatorIdent indata, Loaded indata)
-            unpack _ = Nothing
+  numbersE <- apiGetIndicatorData
+                  (mkPath <$> loadingD)
+                  (() <$ fmapMaybe id (updated loadingD))
 
-        newNumbersD <-
-            updateNumbers
-                 oldNumbersD
-                 $ fmapMaybe unpack
-                 $ catchApi "getIndicatorData" numbersE
 
-        return $ store { storeIndicatorsDataD = newNumbersD }
-
-  in [ markLoading, doCall ]
-
+  dataD <- foldDyn (uncurry OM.insert) OM.empty $
+                 leftmost [ newIndicatorE , numbersLoadedE ]
+  return dataD
 
 catchApi
   :: Reflex t
@@ -170,9 +125,9 @@ catchApi msg eveE =
 showReqResult :: String -> ReqResult t a -> String
 showReqResult apiPrefix rr = (apiPrefix ++) . Text.unpack $
     case rr of
-        ResponseSuccess _ _ _   -> "Success"
-        ResponseFailure _ msg _ -> "Response failure: " <> msg
-        RequestFailure _ msg    -> "Request failure: " <> msg
+        ResponseSuccess _ _ _   -> ": Success"
+        ResponseFailure _ msg _ -> ": Response failure: " <> msg
+        RequestFailure _ msg    -> ": Request failure: " <> msg
 
 
 type GetAreas = "db" :> "dev" :> "areas.json" :> Get '[JSON] Areas
