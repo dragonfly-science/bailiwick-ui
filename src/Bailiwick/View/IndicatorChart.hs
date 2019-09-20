@@ -21,7 +21,7 @@ import Data.Text (Text, isPrefixOf)
 
 import qualified GHCJS.DOM.Element as DOM
 import Language.Javascript.JSaddle
-   (jsg2, obj, setProp, MonadJSM, JSM, liftJSM, ToJSVal, toJSVal, JSVal, JSString)
+   (jsg2, obj, setProp, MonadJSM, JSM, liftJSM, ToJSVal, toJSVal, JSString)
 import Reflex.Dom.Core
 
 import Bailiwick.Javascript
@@ -233,7 +233,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
           <*> Compose areanamesD
           <*> Compose (fmap (fmap areaName) <$> compareAreaD)
 
-  jsargsJSD <- toJSValDynHold jsargsD
+  jsargsJSD <- toJSValDyn jsargsD
 
   let getJSChartType :: Loadable ChartId -> JSString
       getJSChartType chart = case chart of
@@ -249,10 +249,17 @@ indicatorChart IndicatorChartState{..} zoomD = do
   let jsargs = (,,) <$> shapedDataJSD <*> jsargsJSD <*> (getJSChartType <$> chartTypeD)
   let initialUpdate = tag (current jsargs) readyE
   let updateValuesE = updated jsargs
-  updateE :: Event t (Loadable JSVal, Loadable JSVal, JSString)
-      <- switchHold initialUpdate (updateValuesE <$ readyE)
+--  updateE :: Event t (Loadable JSVal, Loadable JSVal, JSString)
+--      <- switchHold initialUpdate (updateValuesE <$ readyE)
+  let updateE = leftmost [ initialUpdate, updateValuesE ]
 
-  performEvent_ $ ffor updateE $ \case
+  let showUpdateE (sd, jsa, js) =
+        let showLoadable (Loaded _) = "Loaded _"
+            showLoadable Missing    = "Missing"
+            showLoadable Loading    = "Loading"
+        in  "(" ++ showLoadable sd ++ ", " ++ showLoadable jsa ++ ", " ++ show js ++ ")"
+
+  performEvent_ $ ffor (traceEventWith (showUpdateE) updateE) $ \case
     (Loaded shapedData, Loaded args, jscharttype)
       -> do liftJSM $ void $ jsg2 jscharttype (_element_raw e) (shapedData, args)
     _ -> do return ()

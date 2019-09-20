@@ -6,6 +6,7 @@ module Bailiwick.Javascript
   , makeJSObject
   , elDynHtmlAttr'
   , switchDynM
+  , toJSValDyn
   , toJSValDynHold
   )
 where
@@ -59,6 +60,29 @@ toJSValDynHold
 toJSValDynHold valD = do
   valDU <- holdUniqDyn valD
   valE <- performEvent $ ffor (updated valDU) $ \case
+              Loading -> return Loading
+              Missing -> return Missing
+              Loaded x -> do
+                val <- liftJSM $ toJSVal x
+                return (Loaded val)
+  holdDyn Loading valE
+
+toJSValDyn
+  :: ( Eq val
+     , Show val
+     , ToJSVal val
+     , PostBuild t m
+     , DomBuilder t m
+     , PerformEvent t m
+     , MonadJSM (Performable m)
+     , MonadJSM m
+     , MonadHold t m
+     , MonadFix m
+     )
+  => Dynamic t (Loadable val)
+  -> m (Dynamic t (Loadable JSVal))
+toJSValDyn valD = do
+  valE <- performEvent $ ffor (updated valD) $ \case
               Loading -> return Loading
               Missing -> return Missing
               Loaded x -> do
