@@ -25,7 +25,7 @@ import Bailiwick.Types
 data IndicatorSummaryState t
   = IndicatorSummaryState
   { areaD              :: Dynamic t (Loadable Area)
-  , compareAreaD       :: Dynamic t (Loadable Area)
+  , compareAreaD       :: Dynamic t (Loadable (Maybe Area))
   , featureD           :: Dynamic t (Maybe FeatureId)
   , yearD              :: Dynamic t (Maybe Year)
   , indicatorD         :: Dynamic t (Loadable Indicator)
@@ -49,9 +49,9 @@ indicatorSummary
 indicatorSummary IndicatorSummaryState{..} = do
 
   let subs = (textSubstitution
-                <$> areaD
-                <*> compareAreaD
-                <*> indicatorD
+                <$> (toMaybe <$> areaD)
+                <*> (load Nothing id <$> compareAreaD)
+                <*> (toMaybe <$> indicatorD)
                 <*> featureD
                 <*> (constDyn Nothing)
                 <*> yearD
@@ -68,16 +68,18 @@ indicatorSummary IndicatorSummaryState{..} = do
           IndicatorNumbers ismap <- lindnumbers
           toLoadable $ OM.lookup (areaid, year, feature) ismap
 
-      compareNumsD = do
-        lareaid <- fmap areaId <$> compareAreaD
+      compareNumsD = do -- Dynamic t
+        lmareaid <- fmap (fmap areaId) <$> compareAreaD
         lyear   <- toLoadable <$> yearD
         feature <- featureD
         lindnumbers <- indicatorNumbersD
         return $ do -- Loadable
-          areaid <- lareaid
+          mareaid <- lmareaid
           year <- lyear
           IndicatorNumbers ismap <- lindnumbers
-          toLoadable $ OM.lookup (areaid, year, feature) ismap
+          return $ do -- Maybe
+            areaid <- mareaid
+            OM.lookup (areaid, year, feature) ismap
 
       notesD = do
         lindicator <- indicatorD
@@ -91,28 +93,35 @@ indicatorSummary IndicatorSummaryState{..} = do
         Loading  -> "..."
         Missing  -> "No data"
 
+      showNumberComp :: Loadable (Maybe Text) -> Text
+      showNumberComp = \case
+        Loaded (Just x) -> x
+        Loaded Nothing -> ""
+        Loading  -> "..."
+        Missing  -> "No data"
+
 
   divClass "summary" $
     divClass "intersection" $ do
       divClass "intersection-number headline-number" $ do
         divClass "number" $
           dynText (showNumber . fmap headlineDisp <$> summaryNumsD)
-        divClass "comparison-number hidden" $
-          dynText (showNumber . fmap headlineDisp <$> compareNumsD)
+        divClass "comparison-number" $
+          dynText (showNumberComp . fmap (fmap headlineDisp) <$> compareNumsD)
         void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
           subs $ load "" indicatorHeadlineNumCaption <$> indicatorD
       divClass "intersection-number regional-value" $ do
         divClass "number" $
           dynText (showNumber . fmap localDisp <$> summaryNumsD)
         divClass "comparison-number" $
-          dynText (showNumber . fmap localDisp <$> compareNumsD)
+          dynText (showNumberComp . fmap (fmap localDisp) <$> compareNumsD)
         void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
           subs $ load "" indicatorLocalNumCaption <$> indicatorD
       divClass "intersection-number national-value" $ do
         divClass "number" $
           dynText (showNumber . fmap nationalDisp <$> summaryNumsD)
         divClass "comparison-number" $
-          dynText (showNumber . fmap nationalDisp <$> compareNumsD)
+          dynText (showNumberComp . fmap (fmap nationalDisp) <$> compareNumsD)
         void . elDynHtmlAttr' "p" (constDyn $ "class" =: "caption") $
           subs $ load "" indicatorNationalNumCaption <$> indicatorD
   divClass "summary-links" $ do

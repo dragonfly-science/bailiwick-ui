@@ -14,13 +14,14 @@ module Bailiwick.View.IndicatorChart
 import Control.Monad (void)
 import Control.Monad.Fix
 import Data.Maybe (fromMaybe, isJust)
+import Data.Functor.Compose (Compose(..))
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import qualified Data.Map as Map
 import Data.Text (Text, isPrefixOf)
 
 import qualified GHCJS.DOM.Element as DOM
 import Language.Javascript.JSaddle
-   (jsg2, obj, setProp, MonadJSM, JSM, liftJSM, ToJSVal, toJSVal, JSVal, valNull, JSString)
+   (jsg2, obj, setProp, MonadJSM, JSM, liftJSM, ToJSVal, toJSVal, JSVal, JSString)
 import Reflex.Dom.Core
 
 import Bailiwick.Javascript
@@ -30,36 +31,33 @@ import Bailiwick.View.Text (textSubstitution)
 
 data IndicatorChartState t
   = IndicatorChartState
-    { areaD              :: Dynamic t (Maybe Area)
-    , chartTypeD         :: Dynamic t (Maybe ChartId)
-    , featureD           :: Dynamic t (Maybe FeatureId)
-    , transformD         :: Dynamic t (Maybe TransformId)
-    , yearD              :: Dynamic t (Maybe Year)
-    , areaTypeD          :: Dynamic t (Maybe AreaType)
-    , areasD             :: Dynamic t (Maybe Areas)
-    , compareAreaD       :: Dynamic t (Maybe Area)
-    , indicatorD         :: Dynamic t (Maybe Indicator)
+    { areaD              :: Dynamic t (Loadable Area)
+    , chartTypeD         :: Dynamic t (Loadable ChartId)
+    , featureD           :: Dynamic t (Loadable (Maybe FeatureId))
+    , transformD         :: Dynamic t (Loadable TransformId)
+    , yearD              :: Dynamic t (Loadable Year)
+    , areaTypeD          :: Dynamic t (Loadable AreaType)
+    , areasD             :: Dynamic t (Loadable Areas)
+    , compareAreaD       :: Dynamic t (Loadable (Maybe Area))
+    , indicatorD         :: Dynamic t (Loadable Indicator)
     , indicatorNumbersD  :: Dynamic t (Loadable IndicatorNumbers)
     }
 
-type ShapedData = [((AreaId, Text, Text, [Text], Maybe FeatureId), [(Year, Maybe Double, Maybe Double, Text, Text)])]
-shapeData :: Maybe Areas -> Loadable IndicatorNumbers -> ShapedData
-shapeData _ Loading = []
-shapeData _ Missing = []
-shapeData mareas (Loaded (IndicatorNumbers inmap)) =
+type ShapedData = [( (AreaId, Text, Text, [Text], Maybe FeatureId)
+                   , [(Year, Maybe Double, Maybe Double, Text, Text)]
+                   )]
+shapeData :: Areas -> IndicatorNumbers -> ShapedData
+shapeData (Areas areas) (IndicatorNumbers inmap) =
   let lookupAreaName areaid
         = fromMaybe "" $ do
-            Areas areas <- mareas
             area <- OMap.lookup areaid areas
             return (areaName area)
       lookupAreaLevel areaid
         = fromMaybe "" $ do
-            Areas areas <- mareas
             area <- OMap.lookup areaid areas
             return (areaLevel area)
       lookupAreaParents areaid
         = fromMaybe [] $ do
-            Areas areas <- mareas
             area <- OMap.lookup areaid areas
             return (areaParents area)
 
@@ -74,10 +72,10 @@ shapeData mareas (Loaded (IndicatorNumbers inmap)) =
       malter yns (Just this) = Just (yns:this)
   in  OMap.toList $ OMap.foldrWithKey step OMap.empty inmap
 
-textLabel :: Maybe Indicator -> Text -> Text
+textLabel :: Loadable Indicator -> Text -> Text
 textLabel ind transform =
   case ind of
-    Just i -> do
+    Loaded i -> do
         let config = indicatorLanguageConfig i
             captions = langLabels config
 
@@ -88,32 +86,33 @@ textLabel ind transform =
               Nothing -> ""
           Nothing -> ""
 
-    Nothing -> ""
+    Loading -> "loading ... "
+    Missing -> ""
 
 data ChartArgs
   = ChartArgs
-    { chartArgsYear           :: Maybe Year
-    , chartArgsIndictorId     :: Maybe Text
-    , chartArgsTransform      :: Maybe Text
-    , chartArgsAreaname       :: Maybe AreaId
-    , chartArgsAreatype       :: Maybe AreaType
+    { chartArgsYear           :: Year
+    , chartArgsIndictorId     :: Text
+    , chartArgsTransform      :: Text
+    , chartArgsAreaname       :: AreaId
+    , chartArgsAreatype       :: AreaType
     , chartArgsFeatureId      :: Maybe Text
-    , chartArgsZoom           :: Maybe Bool
-    , chartArgsChartData      :: Maybe Chart
-    , chartArgsChartCaption   :: Maybe Text
-    , chartArgsFeatures       :: Maybe [(FeatureId, Text)]
-    , chartArgsAreas          :: Maybe [AreaId]
+    , chartArgsZoom           :: Bool
+    , chartArgsChartData      :: Chart
+    , chartArgsChartCaption   :: Text
+    , chartArgsFeatures       :: [(FeatureId, Text)]
+    , chartArgsAreas          :: [AreaId]
     , chartArgsCompareArea    :: Maybe AreaId
     }
-    deriving Show
+    deriving (Show, Eq)
 
 instance ToJSVal ChartArgs where
   toJSVal ChartArgs{..} = do
     res <- obj
-    let set :: ToJSVal v => JSString -> Maybe v -> JSM ()
+    let set :: ToJSVal v => JSString -> v -> JSM ()
         set key val = do
-            jsval <- mapM toJSVal val
-            setProp key (fromMaybe valNull jsval) res
+            jsval <- toJSVal val
+            setProp key jsval res
     set "year"          chartArgsYear
     set "indictorId"    chartArgsIndictorId
     set "transform"     chartArgsTransform
@@ -127,24 +126,6 @@ instance ToJSVal ChartArgs where
     set "areas"         chartArgsAreas
     set "compareArea"   chartArgsCompareArea
     toJSVal res
-
-toJSValDynHold
-  :: ( Eq val
-     , Show val
-     , ToJSVal val
-     , PostBuild t m
-     , DomBuilder t m
-     , PerformEvent t m
-     , MonadJSM (Performable m)
-     , MonadJSM m
-     , MonadHold t m
-     , MonadFix m
-     )
-  => Dynamic t (Maybe val)
-  -> m (Dynamic t (Maybe JSVal))
-toJSValDynHold valD = do
-  valDU <- holdUniqDyn valD
-  toJSValDyn valDU
 
 indicatorChart
   :: ( Monad m
@@ -192,88 +173,87 @@ indicatorChart IndicatorChartState{..} zoomD = do
 
   readyE <- getPostBuild
 
-  let shapedDataD = shapeData <$> areasD <*> indicatorNumbersD
-  let emptyToNothing [] = Nothing
-      emptyToNothing as = Just as
-  shapedDataJSD <- toJSValDynHold $ (emptyToNothing <$> shapedDataD)
+  let shapedDataD = do
+        areas <- areasD
+        lNumbers <- indicatorNumbersD
+        return (shapeData <$> areas <*> lNumbers)
+  shapedDataJSD <- toJSValDynHold shapedDataD
 
   let areanamesD = do
         areas <- areasD
-        let hash = maybe OMap.empty unAreas areas
-        return $ OMap.keys hash
+        return $ fmap (OMap.keys . unAreas) areas
 
   let chartD = do
-        mindicator <- indicatorD
-        mchartType <- chartTypeD
+        lindicator <- indicatorD
+        lchartType <- chartTypeD
         return $ do
-          Indicator{..} <- mindicator
-          charts <- indicatorCharts
-          chartid <- mchartType
-          OMap.lookup chartid charts
+          chartid <- lchartType
+          Indicator{..} <- lindicator
+          toLoadable $ do
+            charts <- indicatorCharts
+            OMap.lookup chartid charts
 
       labelD = do
         indicator <- indicatorD
         area <- areaD
         feature <- featureD
         year <- yearD
-        let chartLabel = textSubstitution (toLoadable area) Missing (toLoadable indicator) feature Nothing year
+        let chartLabel = textSubstitution
+                            (toMaybe area)
+                            Nothing
+                            (toMaybe indicator)
+                            (fromLoadable Nothing feature)
+                            Nothing
+                            (toMaybe year)
         mtransform <- transformD
         return $ do
           transform <- mtransform
           let l = textLabel indicator transform
           return $ chartLabel l
 
+      featuresD = do
+        lindicator <- indicatorD
+        return $ do
+          Indicator{..} <- lindicator
+          toLoadable $ OMap.toList <$> indicatorFeatureText
 
-  let jsargsD = Just <$> (ChartArgs
-                           <$> yearD
-                           <*> (fmap (unIndicatorId . indicatorId) <$> indicatorD)
-                           <*> transformD
-                           <*> (fmap areaName <$> areaD)
-                           <*> areaTypeD
-                           <*> (fmap featureIdText <$> featureD)
-                           <*> (Just <$> zoomD)
-                           <*> chartD
-                           <*> labelD
-                           <*> (fmap OMap.toList . (indicatorFeatureText =<<) <$> indicatorD)
-                           <*> (Just <$> areanamesD)
-                           <*> (fmap areaName <$> compareAreaD)
-                          )
+  -- Using Compose to combine applicative instance for Dynamic t . Loadable
+  let Compose jsargsD =
+        ChartArgs
+          <$> Compose yearD
+          <*> Compose (fmap (unIndicatorId . indicatorId) <$> indicatorD)
+          <*> Compose transformD
+          <*> Compose (fmap areaName <$> areaD)
+          <*> Compose areaTypeD
+          <*> Compose (fmap (fmap featureIdText) <$> featureD)
+          <*> Compose (Loaded <$> zoomD)
+          <*> Compose chartD
+          <*> Compose labelD
+          <*> Compose featuresD
+          <*> Compose areanamesD
+          <*> Compose (fmap (fmap areaName) <$> compareAreaD)
 
-  let chartArgsComplete Nothing = False
-      chartArgsComplete (Just ChartArgs{..})
-        = let test = [ isJust chartArgsYear
-                     , isJust chartArgsIndictorId
-                     , isJust chartArgsTransform
-                     , isJust chartArgsAreaname
-                     , isJust chartArgsAreatype
-                     , isJust chartArgsZoom
-                     , isJust chartArgsChartData
-                     , isJust chartArgsChartCaption
-                     , isJust chartArgsAreas
-                     ]
-          in all id test
+  jsargsJSD <- toJSValDynHold jsargsD
 
-  jsargsJSD <- toJSValFilterDyn chartArgsComplete jsargsD
-
-  let getJSChartType :: Maybe ChartId -> JSString
+  let getJSChartType :: Loadable ChartId -> JSString
       getJSChartType chart = case chart of
-        Just a -> case a of
+        Loaded a -> case a of
                     "barchart"            -> "updateAreaBarchart"
                     "over-under-barchart" -> "overUnderBarchart"
                     "treemap"             -> "areaTreeMap"
                     _                     -> "updateIndicatorTimeSeries"
-        Nothing ->                           "updateIndicatorTimeSeries"
+        _        ->                          "updateIndicatorTimeSeries"
 
 
 
   let jsargs = (,,) <$> shapedDataJSD <*> jsargsJSD <*> (getJSChartType <$> chartTypeD)
   let initialUpdate = tag (current jsargs) readyE
   let updateValuesE = updated jsargs
-  updateE :: Event t (Maybe JSVal, Maybe JSVal, JSString)
+  updateE :: Event t (Loadable JSVal, Loadable JSVal, JSString)
       <- switchHold initialUpdate (updateValuesE <$ readyE)
 
   performEvent_ $ ffor updateE $ \case
-    (Just shapedData, Just args, jscharttype)
+    (Loaded shapedData, Loaded args, jscharttype)
       -> do liftJSM $ void $ jsg2 jscharttype (_element_raw e) (shapedData, args)
     _ -> do return ()
 
@@ -289,7 +269,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
            "rect" -> do
               area <- DOM.getAttribute svg ("data-bailiwick-area"::Text)
               feature <- DOM.getAttribute svg ("data-bailiwick-feature"::Text)
-              if isJust feature
+              if isJust feature && feature /= Just ""
                 then return (SetFeature <$> feature)
                 else if Just True == (isPrefixOf "auckland"  <$> area)
                   then return (SetSubArea "ward" <$> area)

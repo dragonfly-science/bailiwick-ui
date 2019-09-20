@@ -44,7 +44,7 @@ data State t
     , chartTypeD         :: Dynamic t (Maybe ChartId)
     , transformD         :: Dynamic t (Maybe TransformId)
     , areaTypeD          :: Dynamic t (Maybe AreaType)
-    , compareAreaD       :: Dynamic t (Loadable Area)
+    , compareAreaD       :: Dynamic t (Loadable (Maybe Area))
     }
 
 route
@@ -71,7 +71,7 @@ route state =
         let page = if isSummary
                      then Summary
                      else ThemePage args
-        return (Route page area (toMaybe $ areaId <$> compareArea) adapters)
+        return (Route page area (load Nothing (fmap areaId) compareArea) adapters)
 
   in updated routeD
 
@@ -150,10 +150,9 @@ run messageE = do
 
   compareAreaIdD <-
     holdDyn Loading $ fforMaybe messageE $ \case
-      Ready (Route _ _ (Just ca) _)       -> Just (Loaded ca)
-      Ready (Route _ _ Nothing _)         -> Just Missing
-      SetCompareArea ca                   -> Just (Loaded ca)
-      UnsetCompareArea                    -> Just Missing
+      Ready (Route _ _ mca _)             -> Just (Loaded mca)
+      SetCompareArea ca                   -> Just (Loaded (Just ca))
+      UnsetCompareArea                    -> Just (Loaded Nothing)
       _                                   -> Nothing
 
   indicatorIdD <-
@@ -211,11 +210,13 @@ run messageE = do
 
       compareAreaD = do
           lareas <- storeAreasD store
-          larea_id <- compareAreaIdD
+          lmarea_id <- compareAreaIdD
           return $ do
             Areas areas <- lareas
-            area_id <- larea_id
-            toLoadable $ OMap.lookup area_id areas
+            marea_id <- lmarea_id
+            return $ do
+              area_id <- marea_id
+              OMap.lookup area_id areas
 
   return $ State
               { isSummaryD         = isSummaryD
@@ -245,7 +246,7 @@ makeHeaderState State{isSummaryD,areaD,regionD,yearD,featureD,indicatorD,compare
         isSummaryD
         (toMaybe <$> regionD)
         (toMaybe <$> areaD)
-        (toMaybe <$> compareAreaD)
+        (load Nothing id <$> compareAreaD)
         yearD
         featureD
         (toMaybe <$> areasD)
@@ -336,7 +337,7 @@ makeMapLegendState State{indicatorD,store,yearD,featureD,transformD,chartTypeD} 
         featureD
         transformD
         chartTypeD
-        (toMaybe <$> indicatorD)
+        indicatorD
 
 
 -- IndicatorChart state
@@ -348,15 +349,15 @@ makeIndicatorChartState State{selectedAreaD,
                               areaTypeD,indicatorD,indicatorNumbersD,
                               store, compareAreaD} =
       IndicatorChartState
-         (toMaybe <$> selectedAreaD)
-         chartTypeD
-         featureD
-         transformD
-         yearD
-         areaTypeD
-         (toMaybe <$> (storeAreasD store))
-         (toMaybe <$> compareAreaD)
-         (toMaybe <$> indicatorD)
+         selectedAreaD
+         (toLoadable <$> chartTypeD)
+         (Loaded <$> featureD)
+         (toLoadable <$> transformD)
+         (toLoadable <$> yearD)
+         (toLoadable <$> areaTypeD)
+         (storeAreasD store)
+         compareAreaD
+         indicatorD
          indicatorNumbersD
 
 -- make IndicatorSummaryState

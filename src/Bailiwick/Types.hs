@@ -35,6 +35,10 @@ data Loadable a
   | Missing
   deriving (Eq, Show)
 
+isLoaded :: Loadable a -> Bool
+isLoaded (Loaded _) = True
+isLoaded _ = False
+
 load :: a -> (b -> a) -> Loadable b -> a
 load _ f (Loaded x) = f x
 load x _ _ = x
@@ -74,6 +78,11 @@ instance Alternative Loadable where
   empty = Missing
   Missing <|> r = r
   l       <|> _ = l   -- Loading gets passed through
+
+instance JS.ToJSVal a => JS.ToJSVal (Loadable a) where
+  toJSVal (Loaded x) = JS.toJSVal x
+  toJSVal Missing = return JS.jsNull
+  toJSVal Loading = return JS.jsNull
 
 type AreaId = Text
 type AreaType = Text

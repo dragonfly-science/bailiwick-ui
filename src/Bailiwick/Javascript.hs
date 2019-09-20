@@ -1,15 +1,16 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 module Bailiwick.Javascript
   ( clickEvents
   , makeJSObject
   , elDynHtmlAttr'
   , switchDynM
-  , toJSValDyn
-  , toJSValFilterDyn
+  , toJSValDynHold
   )
 where
 
+import Control.Monad.Fix (MonadFix)
 import Control.Monad (forM_)
 import Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
 import Data.Text (Text)
@@ -20,8 +21,10 @@ import qualified GHCJS.DOM.EventM as DOM
 import qualified GHCJS.DOM.GlobalEventHandlers as DOM
 import qualified GHCJS.DOM.Types as DOM
 
-import Language.Javascript.JSaddle (MonadJSM, liftJSM, obj, setProp, ToJSVal, JSVal, toJSVal, JSM, JSString, Object)
+import Language.Javascript.JSaddle hiding (val)
 import Reflex.Dom.Core hiding (elDynHtmlAttr')
+
+import Bailiwick.Types (Loadable(..))
 
 clickEvents
   :: ( TriggerEvent t m
@@ -39,38 +42,29 @@ clickEvents e handler =
   in  wrapDomEvent htmlelement (`DOM.on` DOM.click) doHandler
 
 
-toJSValDyn
-  :: ( MonadHold t m
-     , ToJSVal val
+toJSValDynHold
+  :: ( Eq val
      , Show val
-     , DomBuilder t m
-     , PostBuild t m
-     , PerformEvent t m
-     , MonadJSM m
-     , MonadJSM (Performable m)
-     )
-  => Dynamic t (Maybe val)
-  -> m (Dynamic t (Maybe JSVal))
-toJSValDyn valD = do
-  let conv a = liftJSM $ toJSVal a
-  valE <- performEvent $ fmapMaybeCheap (fmap conv) (updated valD)
-  holdDyn Nothing (Just <$> valE)
-
-toJSValFilterDyn
-  :: ( MonadHold t m
      , ToJSVal val
-     , DomBuilder t m
      , PostBuild t m
+     , DomBuilder t m
      , PerformEvent t m
-     , MonadJSM m
      , MonadJSM (Performable m)
+     , MonadJSM m
+     , MonadHold t m
+     , MonadFix m
      )
-  => (Maybe val -> Bool)
-  -> Dynamic t (Maybe val)
-  -> m (Dynamic t (Maybe JSVal))
-toJSValFilterDyn fil valD = do
-  valE <- performEvent $ fmapMaybeCheap (fmap (liftJSM . toJSVal)) (ffilter fil $ updated valD)
-  holdDyn Nothing (Just <$> valE)
+  => Dynamic t (Loadable val)
+  -> m (Dynamic t (Loadable JSVal))
+toJSValDynHold valD = do
+  valDU <- holdUniqDyn valD
+  valE <- performEvent $ ffor (updated valDU) $ \case
+              Loading -> return Loading
+              Missing -> return Missing
+              Loaded x -> do
+                val <- liftJSM $ toJSVal x
+                return (Loaded val)
+  holdDyn Loading valE
 
 
 makeJSObject :: [(JSString, Maybe Text)] -> JSM Object

@@ -30,7 +30,7 @@ data MapLegendState t
     , featureD         :: Dynamic t (Maybe FeatureId)
     , transformD       :: Dynamic t (Maybe TransformId)
     , chartTypeD       :: Dynamic t (Maybe ChartId)
-    , indicatorD       :: Dynamic t (Maybe Indicator)
+    , indicatorD       :: Dynamic t (Loadable Indicator)
     }
 
 mapLegend
@@ -72,7 +72,7 @@ mapLegend MapLegendState{..} = do
       height = 120 :: Int
 
   let updateValuesE = updated ujsargs
-  updateE :: Event t (Maybe (Double, Double), Text, Maybe Indicator, Maybe ChartId, Maybe Text)
+  updateE :: Event t (Maybe (Double, Double), Text, Loadable Indicator, Maybe ChartId, Maybe Text)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
   performEvent $ ffor updateE $ \case
@@ -83,7 +83,7 @@ mapLegend MapLegendState{..} = do
                 Nothing -> (0.0, 0.0)
 
         let chart = do
-                Indicator{..} <- indicator
+                Indicator{..} <- toMaybe indicator
                 charts <- indicatorCharts
                 chartid <- chartType
                 OMap.lookup chartid charts
@@ -102,16 +102,16 @@ mapLegend MapLegendState{..} = do
         return (ScaleFunction scale)
 
 mapLegendLabel
-  :: Maybe Indicator
+  :: Loadable Indicator
   -> Maybe FeatureId
   -> Maybe Text
   -> Maybe Year
   -> Text
 mapLegendLabel indicator featureId transform year = do
     let chartLabel = textSubstitution
-                        Missing
-                        Missing
-                        (toLoadable indicator)
+                        Nothing
+                        Nothing
+                        (toMaybe indicator)
                         featureId
                         Nothing
                         year
