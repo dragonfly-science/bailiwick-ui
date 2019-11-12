@@ -65,9 +65,7 @@
             }
 
             .compare-menu {
-                position: relative;
                 margin-left: auto;
-                bottom: 0;
             }
 
             .content {
@@ -145,8 +143,8 @@
       }
     }
   }
-  
-  
+
+
 }
 
 @media #{$breakpoint_medium} {
@@ -198,7 +196,7 @@
                     }
                 }
 
-                
+
             }
         }
     }

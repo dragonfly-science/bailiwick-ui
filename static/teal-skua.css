@@ -2959,7 +2959,7 @@ footer .bottombar .statement p:last-child { margin-top: 20px; }
 .whole-body.fixed header .title .left { margin-left: 1.5rem; flex-grow: 0; }
 .whole-body.fixed header .title .left .indicator-page-header { white-space: nowrap; padding-right: 20px; max-width: 640px; text-overflow: ellipsis; overflow: hidden; }
 .whole-body.fixed header .title .right, .whole-body.fixed header .title .back-to-summary, .whole-body.fixed header .title .block-label { display: none; }
-.whole-body.fixed header .title .compare-menu { position: relative; margin-left: auto; bottom: 0; }
+.whole-body.fixed header .title .compare-menu { margin-left: auto; }
 .whole-body.fixed header .title .content { -webkit-box-orient: horizontal; -moz-box-orient: horizontal; box-orient: horizontal; -webkit-flex-direction: row; -moz-flex-direction: row; flex-direction: row; -ms-flex-direction: row; padding: 1.25rem 0; cursor: default; }
 .whole-body.fixed header .title .content .context-text { padding-bottom: 0; }
 .whole-body.fixed header .title .content .page-header, .whole-body.fixed header .title .content .page-header.indicator-page-header { display: block; width: 100%; margin-bottom: 0; font-size: 1.125rem; line-height: 1em; }
