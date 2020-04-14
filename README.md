@@ -14,6 +14,7 @@ In the first shell, the ghc one:
 
 ```bash
 $ nix-shell -A shells.ghc
+$ cabal update
 $ cabal new-repl
 .... # Lots of stuff...
 *Bailiwick> :reload
@@ -33,16 +34,26 @@ That will compile the javascript code ready to be served by the first process.
 
 Now you open your browser at http://localhost:3701
 
-Note, you also need to add a `127.0.0.1 jsaddle.locahost` to your `/etc/hosts` file
+Note, you also need to add a `127.0.0.1 jsaddle.localhost` to your `/etc/hosts` file
 
 ## Setting up the d3 based javascript in development mode
 
+Passing `nixpkgs` via command line here to avoid missing attribute
+error for nodejs-8_x. TODO somehow pin the dev environment's nixpkgs,
+and make sure it matches the docker base image's nixpkgs?
+
 ```bash
-$ nix-shell javascript.nix -A shell
+$ nix-shell -I nixpkgs=https://github.com/NixOS/nixpkgs-channels/archive/nixos-19.03.tar.gz javascript.nix -A shell
 [nix-shell:bailiwick-ui]$ ln -sf $NODE_PATH
 [nix-shell:bailiwick-ui]$ npm run develop
 ```
 
+## Generate local json files
+
+```
+$ nix-env -f db/default.nix -I nixpkgs=https://github.com/NixOS/nixpkgs-channels/archive/nixos-19.03.tar.gz -iA bailiwick-data
+$ nix-shell db/default.nix -I nixpkgs=https://github.com/NixOS/nixpkgs-channels/archive/nixos-19.03.tar.gz --run 'make -BC db'
+```
 
 ## Building docker image for gorbachev
 
