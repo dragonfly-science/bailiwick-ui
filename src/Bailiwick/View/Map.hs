@@ -593,7 +593,7 @@ nzmap isSummary MapState{..} scaleFunctionE = mdo
                 -> Just ZoomIn
             | currentRegion /= region &&
               isJust region &&
-              (areatype == Just "reg" || isSummary)
+              (areatype == Just "reg" || areatype == Just "nz" || isSummary)
                 -> Just (SetRegion (fromJust region))
             | currentSubarea /= subarea &&
               (iszoomed || not isSummary) &&
