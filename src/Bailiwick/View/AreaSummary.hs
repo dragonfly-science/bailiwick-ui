@@ -93,7 +93,7 @@ areaSummary AreaSummaryState{..} = do
       GoTo (ThemePage $ ThemePageArgs
         indicatorId
         indicatorDefaultChartRight
-        2017 Nothing Nothing areatype "indexed")
+        (maximum indicatorYears) Nothing Nothing areatype "indexed")
         ) <$> (attach (current areaTypeD) gotoIndicatorE)
 
 switchDynM
