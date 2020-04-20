@@ -21,6 +21,8 @@ areatypes <- c('Regional Council', 'Territorial Authority', 'Ward', 'Total')
 REARdb_Areas <- REARdb_Areas[AreaType %in% areatypes]
 REARdb_Areas[, areaname := slugify(standardise.areaname(Area))]
 REARdb_Areas[AreaType == 'Ward', areaname := paste0("auckland--", areaname)]
+areatypeid <- data.table(AreaType=areatypes, AreaTypeId=c('reg', 'ta', 'ward', 'nz'))
+REARdb_Areas[areatypeid, AreaTypeId := AreaTypeId, on=.(AreaType)]
 setkey(REARdb_Areas, areaname)
 
 setDT(REARdb_Source)
@@ -125,7 +127,7 @@ for (indid in names(indicators)) {
           )]
 
   colourscale <- values[, .(minval = min(Value), maxval = max(Value)),
-                          .(year=Year, feature=slugify(Dimension1), detail=slugify(Dimension2))]
+                          .(year=Year, areatype=AreaTypeId, feature=slugify(Dimension1), detail=slugify(Dimension2))]
 
   cat(as.character(toJSON(list(scale=colourscale, ident=indid, numbers=summarynumbers),
                           null='null', auto_unbox=TRUE)), file=outputfile)

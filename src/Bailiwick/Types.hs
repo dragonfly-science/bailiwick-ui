@@ -517,7 +517,7 @@ instance FromJSON IndicatorNumbers where
                           })))
 
 newtype IndicatorScale =
-  IndicatorScale (InsOrdHashMap (Year, Maybe FeatureId) (Double, Double))
+  IndicatorScale (InsOrdHashMap (Year, AreaType, Maybe FeatureId) (Double, Double))
   deriving (Eq, Show, Generic)
 instance FromJSON IndicatorScale where
   parseJSON
@@ -525,11 +525,12 @@ instance FromJSON IndicatorScale where
         (withArray "indicatorscale" $ mapM $
             (withObject "indicatorscale" $ \value -> do
               year     <- value .:  "year"
+              areatype <- value .:  "areatype"
               feature  <- value .:? "feature"
          --   detail   <- value .:? "detail"
               minval   <- value .:  "minval"
               maxval   <- value .:  "maxval"
-              return ( ( year, feature)
+              return ( ( year, areatype, feature)
                      , (minval, maxval))))
 
 data Numbers
