@@ -2,7 +2,7 @@ import _ from 'lodash';
 import d3 from 'd3';
 
 import chartSetup from '../utils/chart-setup';
-import format from '../utils/formatting';
+import { format } from '../utils/formatting';
 import { none, isEmpty, present } from '../utils/utils';
 
 const margin = { top: 25, right: 15, bottom: 40, left: 100 };

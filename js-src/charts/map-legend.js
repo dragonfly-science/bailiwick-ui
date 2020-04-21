@@ -3,7 +3,7 @@ import chroma from 'chroma-js';
 import d3 from 'd3';
 import rgbHex from 'rgb-hex';
 
-import format from '../utils/formatting'
+import { format, getFormatter } from '../utils/formatting'
 import { computeTicks, getColours } from '../utils/utils'
 
 function positiveScale(colours, min, max) {
@@ -61,23 +61,21 @@ export default function(args, chart, steps = 100) {
     var xaxisscale = d3.scale.linear()
         .domain([_.first(thresholdBase), _.last(thresholdBase)])
         .range([0,widthRange]);
+
+    // Let d3 choose precision of formatted ticks first
+    var d3_xticks = xaxisscale.ticks(7).map(xaxisscale.tickFormat(7, "s"));
+    var formatter = getFormatter(chart, transform);
+
     var xAxis = d3.svg.axis()
         .scale(xaxisscale)
         .ticks(7)
         .orient("bottom")
         .tickSize(13)
-        .tickFormat(function(d) {
-            var trans = _.filter(chart.chartTransforms, function(i) {
-                return i.transformName === transform;
-            });
-
-            var formatter = null; 
-
-            if (trans.length > 0) {
-                formatter = trans[0].transformFormatter;
-            }
-            
+        .tickFormat(function(d, i) {
+          if (formatter) {
             return format(formatter, d);
+          }
+          return format("reformat", d3_xticks[i]);
         });
 
     svg.empty();

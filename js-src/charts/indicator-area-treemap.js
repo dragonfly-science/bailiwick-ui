@@ -4,7 +4,7 @@ import d3 from 'd3';
 import rgbHex from 'rgb-hex';
 
 import chartSetup from '../utils/chart-setup';
-import format from '../utils/formatting';
+import { format } from '../utils/formatting';
 import { isEmpty, getColours, none, present } from '../utils/utils';
 
 

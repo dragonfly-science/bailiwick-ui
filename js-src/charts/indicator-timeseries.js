@@ -7,7 +7,7 @@ import _ from 'lodash'
 
 import { none, isEmpty, present } from '../utils/utils';
 import chartSetup from '../utils/chart-setup';
-import format from '../utils/formatting';
+import { format, getFormatter } from '../utils/formatting';
 
 let yearFormat = d3.time.format('%Y').parse;
 let transforms = ["absolute", "indexed", "percapita"];
@@ -324,31 +324,25 @@ export default function (element, params) {
             .attr("x", width + 10)
             .text("Year");
 
+    // Let d3 choose precision of formatted ticks first
+    var d3_yticks = y.ticks(10).map(y.tickFormat(10, "s"));
+    var formatter = getFormatter(chartData, transform);
+
+    var yAxis = d3.svg.axis()
+      .scale(y)
+      .orient("left")
+      .ticks(10)
+      .tickFormat(function (d, i) {
+          if (formatter) {
+            return format(formatter, d);
+          }
+          return format("reformat", d3_yticks[i]);
+      });
+
     // TODO: formatting
     gEnter.append("g")
         .attr("class", "axis axis--y")
-        .call(d3.svg.axis()
-            .scale(y)
-            .orient("left")
-            .ticks(10)
-            .tickFormat(function (d) {
-                if (chartData === null || chartData.length === 0) {
-                    return d;
-                }
-
-                var trans = _.filter(chartData.chartTransforms, function(i) {
-                    return i.transformName === transform;
-                });
-
-                var formatter = null;
-
-                if (trans.length > 0) {
-                    formatter = trans[0].transformFormatter;
-                }
-
-                return format(formatter, d);
-            })
-        )
+        .call(yAxis)
         .append("text")
         .attr("class", "caption title")
         .attr("y", -30)

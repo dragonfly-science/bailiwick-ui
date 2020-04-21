@@ -1,5 +1,23 @@
 import d3 from 'd3';
 
+let getFormatter = function(chart, transform) {
+    if (chart === null || chart.length === 0) {
+        return "none";
+    }
+
+    var trans = _.filter(chart.chartTransforms, function(i) {
+        return i.transformName === transform;
+    });
+
+    var formatter = null;
+
+    if (trans.length > 0) {
+        formatter = trans[0].transformFormatter;
+    }
+
+    return formatter;
+};
+
 var commasFormatter = function(value) {
     var f = "" + value;
 
@@ -27,14 +45,21 @@ var percentageFormatter = function(value) {
     return d3.format('.2r')(value);
 }
 
-export default function formatting(units, value) {
-  switch (units) {
+let format = function (formatter, value) {
+  switch (formatter) {
     case "million dollars":
         return moneyFormatter(value) + " M";
     case "dollars":
         return moneyFormatter(value);
     case "percentage":
         return percentageFormatter(value) + " %";
+    case "none":
+        return value;
+    case "reformat":
+        return value.replace(/\.0+([kM])$/, "$1")
+          .replace(/^0[kM]$/, "0");
   }
     return commasFormatter(value);
 }
+
+export { format, getFormatter }
