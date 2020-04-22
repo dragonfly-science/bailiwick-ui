@@ -163,7 +163,7 @@ backToSummary HeaderState{..} = do
                 <$> ((<|>) <$> subareaD <*> areaD)
                 <*> (constDyn Nothing)
                 <*> (indicatorD)
-                <*> (constDyn Nothing)
+                <*> featureD
                 <*> (constDyn Nothing)
                 <*> yearD
                 <*>)
