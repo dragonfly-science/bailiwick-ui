@@ -27,15 +27,15 @@ import Bailiwick.Types
 
 data HeaderState t
   = HeaderState
-  { isSummaryD              :: Dynamic t Bool
-  , areaD                   :: Dynamic t (Maybe Area)
-  , subareaD                :: Dynamic t (Maybe Area)
-  , compareAreaD            :: Dynamic t (Maybe Area)
-  , yearD                   :: Dynamic t (Maybe Year)
-  , featureD                :: Dynamic t (Maybe FeatureId)
-  , areasD                  :: Dynamic t (Maybe Areas)
-  , indicatorD              :: Dynamic t (Maybe Indicator)
-  , indicatorDataAreaTypesD :: Dynamic t (Maybe (Set AreaType))
+  { isSummaryD          :: Dynamic t Bool
+  , areaD               :: Dynamic t (Maybe Area)
+  , subareaD            :: Dynamic t (Maybe Area)
+  , compareAreaD        :: Dynamic t (Maybe Area)
+  , yearD               :: Dynamic t (Maybe Year)
+  , featureD            :: Dynamic t (Maybe FeatureId)
+  , areasD              :: Dynamic t (Maybe Areas)
+  , indicatorD          :: Dynamic t (Maybe Indicator)
+  , indicatorDataAreasD :: Dynamic t (Maybe (Set AreaId))
   }
 
 header
@@ -85,16 +85,16 @@ header hs@HeaderState{..} = mdo
       subareasD = do
         area <- areaD
         mareas <- areasD
-        mdataareatypes <- indicatorDataAreaTypesD
+        mdataareas <- indicatorDataAreasD
         return $
           fromMaybe OMap.empty $ do
             Areas areas <- mareas
             aid <- areaId <$> area
-            dataareatypes <- mdataareatypes
+            dataareas <- mdataareas
             thisArea <- OMap.lookup aid areas
             return $ OMap.filter
                      (\a -> areaId a `elem` areaChildren thisArea
-                            && areaLevel a `elem` dataareatypes)
+                            && areaId a `elem` dataareas)
                      areas
 
       featuresD = do

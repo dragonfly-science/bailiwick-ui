@@ -240,18 +240,15 @@ run messageE = do
 makeHeaderState
   :: Reflex t
   => State t -> HeaderState t
-makeHeaderState State{isSummaryD,areaD,regionD,yearD,featureD,indicatorD,compareAreaD,store} =
+makeHeaderState State{isSummaryD,areaD,regionD,yearD,featureD,indicatorD,indicatorNumbersD,compareAreaD,store} =
   let areasD = storeAreasD store
-      indicatorDataAreaTypesD = do
-        mindicator <- (toMaybe <$> indicatorD)
-        indicatorsData <- storeIndicatorsDataD store
+      indicatorDataAreasD = do
+        mnumbers <- indicatorNumbersD
         return $ do
-          indid <- indicatorId <$> mindicator
-          inddata <- OMap.lookup indid indicatorsData
-          IndicatorData{indicatorScale} <- toMaybe inddata
-          let IndicatorScale scale = indicatorScale
-              getAreaType (_, t, _) = t
-          return $ Set.fromList $ fmap getAreaType $ OMap.keys scale
+          numbers <- mnumbers
+          let getAreaId (a, _, _) = a
+          let IndicatorNumbers ns = numbers
+          return $ Set.fromList $ fmap getAreaId $ OMap.keys ns
   in  HeaderState
         isSummaryD
         (toMaybe <$> regionD)
@@ -261,7 +258,7 @@ makeHeaderState State{isSummaryD,areaD,regionD,yearD,featureD,indicatorD,compare
         featureD
         (toMaybe <$> areasD)
         (toMaybe <$> indicatorD)
-        indicatorDataAreaTypesD
+        (toMaybe <$> indicatorDataAreasD)
 
 -- Indicator state
 makeIndicatorState
