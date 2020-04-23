@@ -42,7 +42,7 @@ export default function(element, params, margin, chartType) {
     // svg.attr("viewBox", "0 0 481 474");
 
     var year = params[1].year;
-    var indicator = params[1].indicatorId;
+    var indicator = null; // params[1].indicatorId;
     var transform = params[1].transform;
     var area = params[1].areaname;
     var areaLevel = params[1].areatype;
