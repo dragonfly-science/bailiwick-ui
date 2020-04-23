@@ -14,6 +14,7 @@ import Data.Maybe (fromMaybe, listToMaybe)
 
 import Data.Text (Text, isPrefixOf)
 import Data.Map (Map)
+import Data.Set (Set)
 import qualified Data.Map as Map
 import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as OMap
@@ -26,14 +27,15 @@ import Bailiwick.Types
 
 data HeaderState t
   = HeaderState
-  { isSummaryD   :: Dynamic t Bool
-  , areaD        :: Dynamic t (Maybe Area)
-  , subareaD     :: Dynamic t (Maybe Area)
-  , compareAreaD :: Dynamic t (Maybe Area)
-  , yearD        :: Dynamic t (Maybe Year)
-  , featureD     :: Dynamic t (Maybe FeatureId)
-  , areasD       :: Dynamic t (Maybe Areas)
-  , indicatorD   :: Dynamic t (Maybe Indicator)
+  { isSummaryD              :: Dynamic t Bool
+  , areaD                   :: Dynamic t (Maybe Area)
+  , subareaD                :: Dynamic t (Maybe Area)
+  , compareAreaD            :: Dynamic t (Maybe Area)
+  , yearD                   :: Dynamic t (Maybe Year)
+  , featureD                :: Dynamic t (Maybe FeatureId)
+  , areasD                  :: Dynamic t (Maybe Areas)
+  , indicatorD              :: Dynamic t (Maybe Indicator)
+  , indicatorDataAreaTypesD :: Dynamic t (Maybe (Set AreaType))
   }
 
 header
@@ -83,12 +85,17 @@ header hs@HeaderState{..} = mdo
       subareasD = do
         area <- areaD
         mareas <- areasD
+        mdataareatypes <- indicatorDataAreaTypesD
         return $
           fromMaybe OMap.empty $ do
             Areas areas <- mareas
             aid <- areaId <$> area
+            dataareatypes <- mdataareatypes
             thisArea <- OMap.lookup aid areas
-            return $ OMap.filter (\a -> areaId a `elem` areaChildren thisArea) areas
+            return $ OMap.filter
+                     (\a -> areaId a `elem` areaChildren thisArea
+                            && areaLevel a `elem` dataareatypes)
+                     areas
 
       featuresD = do
         mind <- indicatorD

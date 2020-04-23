@@ -9,7 +9,7 @@ import Control.Monad.Fix
 import Control.Applicative ((<|>))
 import Data.Maybe (listToMaybe, mapMaybe, fromMaybe)
 import Data.Set (Set)
-import qualified Data.Set as Set
+import qualified Data.Set as Set (empty, insert, delete, fromList)
 
 import Data.Text (Text)
 import qualified Data.HashMap.Strict.InsOrd as OMap
@@ -242,6 +242,16 @@ makeHeaderState
   => State t -> HeaderState t
 makeHeaderState State{isSummaryD,areaD,regionD,yearD,featureD,indicatorD,compareAreaD,store} =
   let areasD = storeAreasD store
+      indicatorDataAreaTypesD = do
+        mindicator <- (toMaybe <$> indicatorD)
+        indicatorsData <- storeIndicatorsDataD store
+        return $ do
+          indid <- indicatorId <$> mindicator
+          inddata <- OMap.lookup indid indicatorsData
+          IndicatorData{indicatorScale} <- toMaybe inddata
+          let IndicatorScale scale = indicatorScale
+              getAreaType (_, t, _) = t
+          return $ Set.fromList $ fmap getAreaType $ OMap.keys scale
   in  HeaderState
         isSummaryD
         (toMaybe <$> regionD)
@@ -251,6 +261,7 @@ makeHeaderState State{isSummaryD,areaD,regionD,yearD,featureD,indicatorD,compare
         featureD
         (toMaybe <$> areasD)
         (toMaybe <$> indicatorD)
+        indicatorDataAreaTypesD
 
 -- Indicator state
 makeIndicatorState
