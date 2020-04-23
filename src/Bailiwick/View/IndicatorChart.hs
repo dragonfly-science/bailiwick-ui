@@ -246,20 +246,20 @@ indicatorChart IndicatorChartState{..} zoomD = do
 
 
 
-  let jsargs = (,,) <$> shapedDataJSD <*> jsargsJSD <*> (getJSChartType <$> chartTypeD)
+  -- let jsargs = (,,) <$> shapedDataJSD <*> jsargsJSD <*> (getJSChartType <$> chartTypeD)
+  let jsargs = (,,) <$> shapedDataD <*> jsargsD <*> (getJSChartType <$> chartTypeD)
   let initialUpdate = tag (current jsargs) readyE
   let updateValuesE = updated jsargs
 --  updateE :: Event t (Loadable JSVal, Loadable JSVal, JSString)
 --      <- switchHold initialUpdate (updateValuesE <$ readyE)
   let updateE = leftmost [ initialUpdate, updateValuesE ]
 
-  let showUpdateE (sd, jsa, js) =
-        let showLoadable (Loaded _) = "Loaded _"
-            showLoadable Missing    = "Missing"
-            showLoadable Loading    = "Loading"
-        in  "(" ++ showLoadable sd ++ ", " ++ showLoadable jsa ++ ", " ++ show js ++ ")"
-
-  performEvent_ $ ffor (traceEventWith (showUpdateE) updateE) $ \case
+  -- let showUpdateE (sd, jsa, js) =
+  --       let showLoadable (Loaded _) = "Loaded _"
+  --           showLoadable Missing    = "Missing"
+  --           showLoadable Loading    = "Loading"
+  --       in  "(" ++ showLoadable sd ++ ", " ++ showLoadable jsa ++ ", " ++ show js ++ ")"
+  performEvent_ $ ffor updateE $ \case
     (Loaded shapedData, Loaded args, jscharttype)
       -> do liftJSM $ void $ jsg2 jscharttype (_element_raw e) (shapedData, args)
     _ -> do return ()
