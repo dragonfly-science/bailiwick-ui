@@ -92,7 +92,7 @@ textLabel ind transform =
 data ChartArgs
   = ChartArgs
     { chartArgsYear           :: Year
-    , chartArgsIndictorId     :: Text
+    , chartArgsIndicatorId    :: Text
     , chartArgsTransform      :: Text
     , chartArgsAreaname       :: AreaId
     , chartArgsAreatype       :: AreaType
@@ -114,7 +114,7 @@ instance ToJSVal ChartArgs where
             jsval <- toJSVal val
             setProp key jsval res
     set "year"          chartArgsYear
-    set "indictorId"    chartArgsIndictorId
+    set "indicatorId"   chartArgsIndicatorId
     set "transform"     chartArgsTransform
     set "areaname"      chartArgsAreaname
     set "areatype"      chartArgsAreatype
