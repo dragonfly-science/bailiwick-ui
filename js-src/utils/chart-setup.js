@@ -4,8 +4,14 @@ import _ from 'lodash'
 import { isEmpty } from '../utils/utils';
 
 export default function(element, params, margin, chartType) {
+    var chart = d3.select(".indicator-chart");
+
+    if (!Array.isArray(chart) || !Array.isArray(chart[0]) || !chart[0][0]) {
+        return null;
+    }
+
     let base = d3.select(element),
-        chartRect = d3.select(".indicator-chart")[0][0].getBoundingClientRect(),
+        chartRect = chart[0][0].getBoundingClientRect(),
         svg = null,
         width = parseInt(chartRect.width) - margin.left - margin.right,
         height = parseInt(base.style('height')) - margin.top - margin.bottom,
