@@ -5,8 +5,9 @@ import { isEmpty } from '../utils/utils';
 
 export default function(element, params, margin, chartType) {
     var chart = d3.select(".indicator-chart");
+    var chart_inner = d3.select(".chart-inner");
 
-    if (!Array.isArray(chart) || !Array.isArray(chart[0]) || !chart[0][0]) {
+    if (chart.empty() || chart_inner.empty()) {
         return null;
     }
 
@@ -31,14 +32,14 @@ export default function(element, params, margin, chartType) {
     svg = base.select('svg');
     base.classed('svg-loading', true);
 
-    if (
-        d3.select('.chart-inner').empty() ||
-        (!d3.select('.chart-inner').empty() &&
-        !d3.select('.chart-inner').classed(chartType))
-        )
-    {
+    if (!d3.select('.chart-inner').classed(chartType)) {
         base.select('svg').remove();
         svg = base.append('svg');
+    }
+
+    if (svg.empty()) {
+        console.log("svg element missing");
+        return null;
     }
 
     // set chart specific classes.
@@ -48,7 +49,7 @@ export default function(element, params, margin, chartType) {
     // svg.attr("viewBox", "0 0 481 474");
 
     var year = params[1].year;
-    var indicator = null; // params[1].indicatorId;
+    var indicator = params[1].indicatorId;
     var transform = params[1].transform;
     var area = params[1].areaname;
     var areaLevel = params[1].areatype;

@@ -80,15 +80,6 @@ export default function (element, params) {
         height = setup.height,
         zoom = setup.zoom;
 
-
-    // current data...
-    var currentYear = svg.attr('data-year'),
-        currentIndicator = svg.attr('data-indicator'),
-        currentArea = svg.attr('data-area'),
-        currentCompareArea = svg.attr('data-comparearea'),
-        currentTransform = svg.attr('data-transform'),
-        currentLevel = svg.attr('data-level');
-
     var legendDiv = d3.select(element.parentNode).select('.legend');
     var legendWidth = window.innerWidth < 350 ? 320 : 420;
     var legendHeight = 50;
@@ -521,6 +512,10 @@ export default function (element, params) {
     // ----
     // Only update the legend if the area has changed.
     // ----
+
+    var currentArea = svg.attr('data-area'),
+        currentCompareArea = svg.attr('data-comparearea');
+
     if (currentArea === area && currentCompareArea === compareArea) {
         base.classed('svg-loading', false);
         return false;
