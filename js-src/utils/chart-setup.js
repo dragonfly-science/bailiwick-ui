@@ -3,19 +3,27 @@ import _ from 'lodash'
 
 import { isEmpty } from '../utils/utils';
 
-export default function(element, params, margin, chartType) {
-    var chart = d3.select(".indicator-chart");
-    var chart_inner = d3.select(".chart-inner");
-
-    if (chart.empty() || chart_inner.empty()) {
-        return null;
+function chartWidth(margin) {
+    var width = parseInt(d3.select(".indicator-chart")[0][0].getBoundingClientRect().width);
+    if (!width) {
+        throw "No chart width";
     }
+    return width - margin.left - margin.right;
+}
 
+function baseHeight(margin) {
+    var height = parseInt(d3.select(".d3-attach").style("height"));
+    if (!height) {
+        throw "No base height";
+    }
+    return height - margin.top - margin.bottom;
+}
+
+export default function(element, params, margin, chartType) {
     let base = d3.select(element),
-        chartRect = chart[0][0].getBoundingClientRect(),
         svg = null,
-        width = parseInt(chartRect.width) - margin.left - margin.right,
-        height = parseInt(base.style('height')) - margin.top - margin.bottom,
+        width = chartWidth(margin),
+        height = baseHeight(margin),
         data = params[0],
         chartInnerClasses = {
             'default-timeseries': false,
@@ -29,21 +37,20 @@ export default function(element, params, margin, chartType) {
         chartInnerClasses[key] = key === chartType;
     });
 
-    svg = base.select('svg');
     base.classed('svg-loading', true);
 
-    if (!d3.select('.chart-inner').classed(chartType)) {
+    if (!d3.select(element.parentNode).classed(chartType)) {
         base.select('svg').remove();
+    }
+
+    svg = base.select('svg');
+
+    if (svg.empty()) {
         svg = base.append('svg');
     }
 
-    if (svg.empty()) {
-        console.log("svg element missing");
-        return null;
-    }
-
     // set chart specific classes.
-    d3.select('.chart-inner').classed(chartInnerClasses);
+    d3.select(element.parentNode).classed(chartInnerClasses);
 
     svg.attr("preserveAspectRatio", "xMinYMin meet");
     // svg.attr("viewBox", "0 0 481 474");
