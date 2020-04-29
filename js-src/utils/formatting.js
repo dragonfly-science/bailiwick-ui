@@ -1,6 +1,10 @@
 import d3 from 'd3';
 
 let getFormatter = function(chart, transform) {
+    if (["indexed", "absolute"].includes(transform)) {
+        return null;
+    }
+
     if (chart === null || chart.length === 0) {
         return "none";
     }
