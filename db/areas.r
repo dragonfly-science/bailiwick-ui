@@ -3,15 +3,18 @@ library(jsonlite)
 source('functions.r')
 
 inputfile <- 'data/REARdb.rda'
+indicatorareasfile <- 'dev/indicatorAreas.rda'
 outputfile <- 'dev/areas.json'
 
 args = commandArgs(trailingOnly=TRUE)
 if (length(args) >= 2) {
     inputfile <- args[1]
+    areaindicatorsfile <- args[2]
     outputfile <- args[length(args)]
 }
 
 load(inputfile)
+load(indicatorareasfile)
 setDT(REARdb_Areas_Hierarchy)
 
 areas <- unique(REARdb_Areas_Hierarchy[
@@ -69,7 +72,8 @@ output <-
                                  paste0('auckland--',slugify(unique(ward)))])
                      } else {
                          list()
-                     }
+                     },
+          nodata = as.list(indicator_areas[areaid==a$id & rows==0, indid])
           )
     })
 

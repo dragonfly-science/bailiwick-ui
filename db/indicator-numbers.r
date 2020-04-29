@@ -40,6 +40,8 @@ themes <- read_json(themesjson)
 indicators <- do.call(c, lapply(themes[['themes']], function(theme) theme$indicators))
 names(indicators) <- sapply(indicators, function (ind) ind$id)
 
+indicator_areas <- data.table(indid=character(), areaid=character(), rows=integer())
+
 ## Types
 ## type SummaryNumbers = InsOrdHashMap IndicatorId IndicatorSummary
 ## type IndicatorSummary = InsOrdHashMap (AreaId, Year, Maybe Feature) SummaryNums
@@ -133,4 +135,10 @@ for (indid in names(indicators)) {
                           null='null', auto_unbox=TRUE)), file=outputfile)
   cat(" Done\n")
 
+  area_counts <- data.table(areaid=unique(REARdb_Areas$areaname), rows=as.integer(0))
+  area_counts[summarynumbers[, .N, by=.(areaid)], rows := N, on=.(areaid)]
+  indicator_areas <- rbind(indicator_areas, data.table(area_counts, indid=indid))
 }
+
+indicator_areas_file = paste0(prefix, '/indicatorAreas.rda')
+save(indicator_areas, file=indicator_areas_file)
