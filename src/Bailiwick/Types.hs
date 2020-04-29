@@ -93,6 +93,7 @@ data Area
     , areaLevel    :: Text
     , areaChildren :: [ Text ]
     , areaParents  :: [ Text ]
+    , areaNoData   :: [ IndicatorId ]
     } deriving (Eq, Show, Generic)
 
 areaOptions :: Options

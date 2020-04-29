@@ -64,9 +64,12 @@ indicators is@IndicatorState{..} = do
                     fmap leftmost . forM themeIndicators $ \ind -> do
                       let ilcss = do
                             indid <- fmap indicatorId <$> indicatorD
+                            noDataIndicators <- fmap areaNoData <$> selectedAreaD
                             return $
                               if indid == Just (indicatorId ind)
                                 then "class" =: "indicator-list selected"
+                              else if (indicatorId ind) `elem` (fromMaybe [] noDataIndicators)
+                                then "class" =: "indicator-list nodata"
                                 else "class" =: "indicator-list"
                       click <- fmap (domEvent Click . fst) . elDynAttr' "li" ilcss $
                         text $ capitalize (indicatorName ind)
