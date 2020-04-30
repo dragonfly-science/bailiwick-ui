@@ -43,10 +43,14 @@ export default function(args, chart, steps = 100) {
     }
 
     var base = d3.select(".indicator-map-legend"),
-        svg = base.select('svg').empty() ? base.append('svg') : base.select('svg'),
         colours = getColours(),
         positive = positiveScale(colours, minimum, maximum);
 
+    if (base.empty()) {
+        return positive;
+    }
+
+    var svg = base.select('svg').empty() ? base.append('svg') : base.select('svg');
     var vals = d3.values([minimum, maximum]);
     var extent = d3.extent(vals);
 
