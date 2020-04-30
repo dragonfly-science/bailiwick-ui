@@ -3,18 +3,27 @@ import _ from 'lodash'
 
 import { isEmpty } from '../utils/utils';
 
+var defaultWidth = 485,
+    defaultHeight = 474;
+
 function chartWidth(margin) {
-    var width = parseInt(d3.select(".indicator-chart")[0][0].getBoundingClientRect().width);
-    if (!width) {
-        throw "No chart width";
+    var sel = d3.select(".indicator-chart");
+    var width = sel.empty() ? defaultWidth : parseInt(sel[0][0].getBoundingClientRect().width);
+    if (width) {
+        defaultWidth = width;
+    } else {
+        width = defaultWidth;
     }
     return width - margin.left - margin.right;
 }
 
 function baseHeight(margin) {
-    var height = parseInt(d3.select(".d3-attach").style("height"));
-    if (!height) {
-        throw "No base height";
+    var sel = d3.select(".indicator-chart .d3-attach");
+    var height = sel.empty() ? defaultHeight : parseInt(sel.style("height"));
+    if (height) {
+        defaultHeight = height;
+    } else {
+        height = defaultHeight;
     }
     return height - margin.top - margin.bottom;
 }
