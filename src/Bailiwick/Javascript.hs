@@ -43,6 +43,19 @@ clickEvents e handler =
   in  wrapDomEvent htmlelement (`DOM.on` DOM.click) doHandler
 
 
+loadableToJSVal
+  :: ( Eq val
+     , Show val
+     , ToJSVal val
+     , MonadJSM m )
+  => Loadable val -> m (Loadable JSVal)
+loadableToJSVal lval = case lval of
+    Loading -> return Loading
+    Missing -> return Missing
+    Loaded x -> do
+      val <- liftJSM $ toJSVal x
+      return (Loaded val)
+
 toJSValDynHold
   :: ( Eq val
      , Show val
@@ -59,12 +72,7 @@ toJSValDynHold
   -> m (Dynamic t (Loadable JSVal))
 toJSValDynHold valD = do
   valDU <- holdUniqDyn valD
-  valE <- performEvent $ ffor (updated valDU) $ \case
-              Loading -> return Loading
-              Missing -> return Missing
-              Loaded x -> do
-                val <- liftJSM $ toJSVal x
-                return (Loaded val)
+  valE <- performEvent $ ffor (updated valDU) loadableToJSVal
   holdDyn Loading valE
 
 toJSValDyn
@@ -82,12 +90,7 @@ toJSValDyn
   => Dynamic t (Loadable val)
   -> m (Dynamic t (Loadable JSVal))
 toJSValDyn valD = do
-  valE <- performEvent $ ffor (updated valD) $ \case
-              Loading -> return Loading
-              Missing -> return Missing
-              Loaded x -> do
-                val <- liftJSM $ toJSVal x
-                return (Loaded val)
+  valE <- performEvent $ ffor (updated valD) loadableToJSVal
   holdDyn Loading valE
 
 
