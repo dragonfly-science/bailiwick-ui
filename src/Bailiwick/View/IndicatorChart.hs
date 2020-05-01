@@ -261,7 +261,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
   --       in  "(" ++ showLoadable sd ++ ", " ++ showLoadable jsa ++ ", " ++ show js ++ ")"
   performEvent_ $ ffor updateE $ \case
     (Loaded shapedData, Loaded args, jscharttype)
-      -> do liftJSM $ void $ jsg2 jscharttype (_element_raw e) (shapedData, args)
+      -> do liftJSM $ void $ jsg2 jscharttype (_element_raw e) (toJSVal shapedData, toJSVal args)
     _ -> do return ()
 
   clickE :: Event t (Maybe Message)
