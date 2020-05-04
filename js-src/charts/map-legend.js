@@ -46,6 +46,10 @@ export default function(args, chart, steps = 100) {
         colours = getColours(),
         positive = positiveScale(colours, minimum, maximum);
 
+    if (minimum === 0 && maximum === 0) {
+        return positive; // Data not loaded
+    }
+
     if (base.empty()) {
         return positive;
     }
