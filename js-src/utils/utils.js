@@ -72,29 +72,46 @@ let none = function (obj) {
         return isEmpty(obj) || (typeof obj === 'string' && /\S/.test(obj) === false);
     };
 
-let whenLoaded = function(svg, target_selector, ancestor_selector, callback) {
-    // Jumping through hoops here so we can wait until an svg has been
-    // inserted before attempting to use its dimensions.
-    if (svg.node().getRootNode().constructor.name === "DocumentFragment") {
-        var target = document.querySelector(target_selector);
-        var ancestor = svg.node().getRootNode().querySelector(ancestor_selector);
-        var observer = new MutationObserver(function(rs) {
-            for (let i = 0; i < rs.length; i++) {
-                if (rs[i].target !== target) {
-                    return;
-                }
-                for (let j = 0; j < rs[i].addedNodes.length; j++) {
-                    if (rs[i].addedNodes[j] === ancestor) {
-                        callback();
-                        return;
-                    }
-                }
+// http://ryanmorr.com/using-mutation-observers-to-watch-for-element-availability/
+
+var listeners = [],
+    observer;
+
+function ready_check() {
+    // Check the DOM for elements matching a stored selector
+    for (var i = 0, len = listeners.length, listener, elements; i < len; i++) {
+        listener = listeners[i];
+        // Query for elements matching the specified selector
+        elements = document.querySelectorAll(listener.selector);
+        for (var j = 0, jLen = elements.length, element; j < jLen; j++) {
+            element = elements[j];
+            // Make sure the callback isn't invoked with the
+            // same element more than once
+            if (!element.ready) {
+                element.ready = true;
+                // Invoke the callback with the element
+                listener.fn.call(element, element);
             }
-        });
-        observer.observe(target, {childList: true});
-    } else {
-        callback();
+        }
     }
 }
 
-export { computeTicks, none, isEmpty, present, getColours, whenLoaded }
+let ready = function(selector, fn) {
+    // Store the selector and callback to be monitored
+    listeners.push({
+        selector: selector,
+        fn: fn
+    });
+    if (!observer) {
+        // Watch for changes in the document
+        observer = new MutationObserver(ready_check);
+        observer.observe(document.documentElement, {
+            childList: true,
+            subtree: true
+        });
+    }
+    // Check if the element is currently in the DOM
+    ready_check();
+}
+
+export { computeTicks, none, isEmpty, present, getColours, ready }

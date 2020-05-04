@@ -1,21 +1,18 @@
 import _ from 'lodash';
 import d3 from 'd3';
 
-import { isEmpty, whenLoaded } from '../utils/utils';
+import { isEmpty, ready } from '../utils/utils';
 import chartSetup from '../utils/chart-setup';
 import { format } from '../utils/formatting';
 
-function setCaptionSize(base, svg, margin) {
+function setCaptionSize(element, margin) {
+    var base = d3.select(".basic-barchart .d3-attach");
+    var svg = d3.select(element);
     var xSelCaption = svg.selectAll("text.caption");
     xSelCaption.attr(
         "x",
         base.node().getBoundingClientRect().width -
             xSelCaption.node().getBBox().width - margin.right);
-}
-
-function whenIndicatorLoaded(svg, callback) {
-    return whenLoaded(
-        svg, ".content.main-content", ".central-content.indicator", callback);
 }
 
 export default function (element, params) {
@@ -287,7 +284,9 @@ export default function (element, params) {
         .attr("transform", "translate(0," + (dataHeight + 50) + ")")
         .text(chartCaption);
 
-    whenIndicatorLoaded(svg, function() { setCaptionSize(base, svg, margin); });
+    ready(
+        ".main-content .indicator .basic-barchart .d3-attach svg",
+        function(element) { setCaptionSize(element, margin); });
 
     var bar = g.selectAll(".bar").data(data),
         barEnter = bar.enter().append("rect")
