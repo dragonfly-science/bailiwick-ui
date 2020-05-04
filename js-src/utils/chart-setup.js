@@ -8,7 +8,7 @@ var defaultWidth = 485,
 
 function chartWidth(margin) {
     var sel = d3.select(".indicator-chart");
-    var width = sel.empty() ? defaultWidth : parseInt(sel[0][0].getBoundingClientRect().width);
+    var width = sel.empty() ? defaultWidth : parseInt(sel.node().getBoundingClientRect().width);
     if (width) {
         defaultWidth = width;
     } else {
