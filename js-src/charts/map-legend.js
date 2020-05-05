@@ -31,27 +31,28 @@ export default function(args, chart, steps = 100) {
         return;
     }
 
+    let maximum = Number(args.max),
+        minimum = Number(args.min);
+
+    if (minimum === 0 && maximum === 0) {
+        return; // Data not loaded
+    }
+
+    let colours = getColours(),
+        positive = positiveScale(colours, minimum, maximum),
+        base = d3.select(".indicator-map-legend");
+
+    if (base.empty()) {
+        return positive;
+    }
+
     let height = Number(args.height),
         width = Number(args.width),
-        maximum = Number(args.max),
-        minimum = Number(args.min),
         caption = args.label,
         transform = args.transform;
 
     if (!_.isEmpty(caption)) {
         caption = caption[0].toUpperCase() + caption.slice(1);
-    }
-
-    var base = d3.select(".indicator-map-legend"),
-        colours = getColours(),
-        positive = positiveScale(colours, minimum, maximum);
-
-    if (minimum === 0 && maximum === 0) {
-        return positive; // Data not loaded
-    }
-
-    if (base.empty()) {
-        return positive;
     }
 
     var svg = base.select('svg').empty() ? base.append('svg') : base.select('svg');
@@ -86,7 +87,6 @@ export default function(args, chart, steps = 100) {
           return format("reformat", d3_xticks[i]);
         });
 
-    svg.empty();
     svg.data([1])
         .attr("width", width)
         .attr("height", height);
