@@ -74,15 +74,14 @@ let none = function (obj) {
 
 // http://ryanmorr.com/using-mutation-observers-to-watch-for-element-availability/
 
-var listeners = [],
+var listeners = {},
     observer;
 
 function ready_check() {
     // Check the DOM for elements matching a stored selector
-    for (var i = 0, len = listeners.length, listener, elements; i < len; i++) {
-        listener = listeners[i];
+    for (var selector in listeners) {
         // Query for elements matching the specified selector
-        elements = document.querySelectorAll(listener.selector);
+        var elements = document.querySelectorAll(selector);
         for (var j = 0, jLen = elements.length, element; j < jLen; j++) {
             element = elements[j];
             // Make sure the callback isn't invoked with the
@@ -90,7 +89,7 @@ function ready_check() {
             if (!element.ready) {
                 element.ready = true;
                 // Invoke the callback with the element
-                listener.fn.call(element, element);
+                listeners[selector].fn.call(element, element);
             }
         }
     }
@@ -98,10 +97,10 @@ function ready_check() {
 
 let ready = function(selector, fn) {
     // Store the selector and callback to be monitored
-    listeners.push({
+    listeners[selector] = {
         selector: selector,
         fn: fn
-    });
+    };
     if (!observer) {
         // Watch for changes in the document
         observer = new MutationObserver(ready_check);
