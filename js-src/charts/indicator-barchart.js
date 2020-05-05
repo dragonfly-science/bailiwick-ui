@@ -286,6 +286,7 @@ export default function (element, params) {
 
     ready(
         ".main-content .indicator .basic-barchart .d3-attach svg",
+        ".main-content",
         function(element) { setCaptionSize(element, margin); });
 
     var bar = g.selectAll(".bar").data(data),

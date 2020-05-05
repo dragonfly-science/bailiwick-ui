@@ -75,7 +75,7 @@ let none = function (obj) {
 // http://ryanmorr.com/using-mutation-observers-to-watch-for-element-availability/
 
 var listeners = {},
-    observer;
+    observers = {};
 
 function ready_check() {
     // Check the DOM for elements matching a stored selector
@@ -95,19 +95,14 @@ function ready_check() {
     }
 }
 
-let ready = function(selector, fn) {
+let ready = function(selector, parentselector, fn) {
     // Store the selector and callback to be monitored
-    listeners[selector] = {
-        selector: selector,
-        fn: fn
-    };
-    if (!observer) {
-        // Watch for changes in the document
-        observer = new MutationObserver(ready_check);
-        observer.observe(document.documentElement, {
-            childList: true,
-            subtree: true
-        });
+    listeners[selector] = {selector: selector, fn: fn};
+    if (!observers[parentselector]) {
+        // Watch for changes to children of parentselector
+        var parent = document.querySelector(parentselector);
+        observers[parentselector] = new MutationObserver(ready_check);
+        observers[parentselector].observe(parent, {childList: true});
     }
     // Check if the element is currently in the DOM
     ready_check();
