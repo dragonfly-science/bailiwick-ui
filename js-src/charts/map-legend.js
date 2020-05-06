@@ -32,7 +32,7 @@ let positiveScale = function(min, max) {
 /*
  * Generates Map legend based on supplied width, height & scale data
  * */
-let updateMapLegend = function(args, chart, steps = 100) {
+let updateMapLegend = function(element, args, chart, steps = 100) {
     if (_.isEmpty(chart)) {
         return;
     }
@@ -45,13 +45,8 @@ let updateMapLegend = function(args, chart, steps = 100) {
     }
 
     let positive = positiveScale(minimum, maximum),
-        base = d3.select(".indicator-map-legend");
-
-    if (base.empty()) {
-        return;
-    }
-
-    let height = Number(args.height),
+        base = d3.select(element),
+        height = Number(args.height),
         width = Number(args.width),
         caption = args.label,
         transform = args.transform;

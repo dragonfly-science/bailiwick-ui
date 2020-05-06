@@ -14,7 +14,7 @@ import Control.Monad.Fix
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Data.Text (Text, pack)
 
-import Language.Javascript.JSaddle (jsg2, MonadJSM, liftJSM, valToObject)
+import Language.Javascript.JSaddle (jsg3, MonadJSM, liftJSM, valToObject)
 import Reflex
 import Reflex.Dom.Core
 
@@ -48,6 +48,8 @@ mapLegend
   => MapLegendState t
   -> m ()
 mapLegend MapLegendState{..} = do
+  (e, _) <- elAttr' "div" ("class" =: "legend indicator-map-legend") $ return ()
+
   readyE <- getPostBuild
 
   let jsargs = do
@@ -97,7 +99,7 @@ mapLegend MapLegendState{..} = do
                     , ("transform", transform)
                     ]
 
-        jsg2 ("updateMapLegend" :: Text) args chart
+        _ <- jsg3 ("updateMapLegend" :: Text) (_element_raw e) args chart
         return ()
 
 mapLegendLabel
