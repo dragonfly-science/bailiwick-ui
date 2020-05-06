@@ -62,7 +62,7 @@ import GHCJS.DOM.MediaQueryListListener (newMediaQueryListListenerAsync)
 
 import Language.Javascript.JSaddle.Types (MonadJSM, JSM)
 import Language.Javascript.JSaddle
-       (call, eval, ToJSString, runJSM, askJSM, liftJSM, valToText, global)
+       (call, eval, ToJSString, runJSM, askJSM, liftJSM, valToText, global, jsg2)
 import Reflex.Dom.Core
 import Reflex.Dom.Builder.Immediate (wrapDomEvent)
 
@@ -80,6 +80,7 @@ data MapState t
     , featureD           :: Dynamic t (Maybe FeatureId)
     , yearD              :: Dynamic t (Maybe Year)
     , indicatorNumbersD  :: Dynamic t (Loadable IndicatorNumbers)
+    , inputValuesD       :: Dynamic t (Maybe (Double, Double))
     }
 
 switchDynM
@@ -337,6 +338,7 @@ data Map
     , _feature        :: Maybe FeatureId
     , _year           :: Maybe Year
     , _numbers        :: Loadable IndicatorNumbers
+    , _inputValues    :: Maybe (Double, Double)
     }
    deriving (Show, Eq)
 
@@ -434,9 +436,8 @@ nzmap
        )
     => Bool
     -> MapState t
-    -> Event t ScaleFunction
     -> m (Event t Message)
-nzmap isSummary MapState{..} scaleFunctionE = mdo
+nzmap isSummary MapState{..} = mdo
   zoomD <- holdUniqDyn ( hasAdapter Mapzoom <$> adaptersD)
   let areaD = zipDynWith (<|>) subareaD regionD
 
@@ -476,11 +477,12 @@ nzmap isSummary MapState{..} scaleFunctionE = mdo
       areaAreaTypes (Areas as) = [ level2type areaId areaLevel
                                  | Area{..} <- OM.elems as ]
   -- Unique dyns
-  mapregionidD  <- holdUniqDyn $ fmap areaId <$> regionD
-  mapsubareaidD <- holdUniqDyn $ fmap areaId <$> subareaD
-  mapareatypeD  <- holdUniqDyn $ areaTypeD
-  mapfeatureD   <- holdUniqDyn $ featureD
-  mapyearD      <- holdUniqDyn $ yearD
+  mapregionidD    <- holdUniqDyn $ fmap areaId <$> regionD
+  mapsubareaidD   <- holdUniqDyn $ fmap areaId <$> subareaD
+  mapareatypeD    <- holdUniqDyn $ areaTypeD
+  mapfeatureD     <- holdUniqDyn $ featureD
+  mapyearD        <- holdUniqDyn $ yearD
+  mapinputValuesD <- holdUniqDyn $ traceDyn "M inputValuesD" inputValuesD
   let mapD
         = Map <$> zoomD
               <*> zoomStateT
@@ -493,18 +495,17 @@ nzmap isSummary MapState{..} scaleFunctionE = mdo
               <*> mapfeatureD
               <*> mapyearD
               <*> indicatorNumbersD
+              <*> mapinputValuesD
 
   svgBodyD <- holdDyn Nothing (Just <$> svgBodyE)
-  scaleFunctionD <- holdDyn Nothing (Just <$> scaleFunctionE)
 
   --- Main map drawing code here
-  loadedSvg <- switchDynM $ ffor ((isSummary,,) <$> svgBodyD <*> scaleFunctionD) $ \case
-    (_, Nothing, _)          -> return never
-    (False, _, Nothing)      -> return never
-    (True, Just svgBody, _)  -> do
+  loadedSvg <- switchDynM $ ffor ((isSummary,) <$> svgBodyD) $ \case
+    (_, Nothing)          -> return never
+    (True, Just svgBody)  -> do
       updateMapSummary svgBody mapD
-    (False, Just svgBody, Just scaleFunction) -> do
-      updateMapIndicator svgBody mapD scaleFunction
+    (False, Just svgBody) -> do
+      updateMapIndicator svgBody mapD
 
 
   let tooltipArea
@@ -835,9 +836,8 @@ updateMapIndicator
      )
   => self
   -> Dynamic t Map
-  -> ScaleFunction
   -> m (Event t ())
-updateMapIndicator svgBody mapD (ScaleFunction scale)= do
+updateMapIndicator svgBody mapD = do
   let setAttr
          :: (MonadJSM m0)
          => Text -> Text -> Text -> m0 ()
@@ -873,6 +873,12 @@ updateMapIndicator svgBody mapD (ScaleFunction scale)= do
                                           (_scale $ _zoomState new)
       querySelector svgBody ("g" :: Text) >>= mapM_
         (set "transform" transform)
+
+    let range = case _inputValues new of
+                Just a -> a
+                Nothing -> (0.0, 0.0)
+
+    scale <- liftJSM $ jsg2 ("positiveScale" :: Text) (fst range) (snd range)
 
     let ol   = rgbString . _defaultOutline $ _zoomState new
         sw   = _strokeWidth $ _zoomState new

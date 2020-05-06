@@ -6,7 +6,13 @@ import rgbHex from 'rgb-hex';
 import { format, getFormatter } from '../utils/formatting'
 import { computeTicks, getColours } from '../utils/utils'
 
-function positiveScale(colours, min, max) {
+let positiveScale = function(min, max) {
+    if (min == 0 && max == 0) {
+        return null;
+    }
+
+    let colours = getColours();
+
     if (_.isEmpty(colours)) {
         return null;
     }
@@ -26,7 +32,7 @@ function positiveScale(colours, min, max) {
 /*
  * Generates Map legend based on supplied width, height & scale data
  * */
-export default function(args, chart, steps = 100) {
+let updateMapLegend = function(args, chart, steps = 100) {
     if (_.isEmpty(chart)) {
         return;
     }
@@ -38,12 +44,11 @@ export default function(args, chart, steps = 100) {
         return; // Data not loaded
     }
 
-    let colours = getColours(),
-        positive = positiveScale(colours, minimum, maximum),
+    let positive = positiveScale(minimum, maximum),
         base = d3.select(".indicator-map-legend");
 
     if (base.empty()) {
-        return positive;
+        return;
     }
 
     let height = Number(args.height),
@@ -121,5 +126,6 @@ export default function(args, chart, steps = 100) {
         .attr("y", -6)
         .text(caption);
 
-    return positive;
 }
+
+export { positiveScale, updateMapLegend }

@@ -303,12 +303,37 @@ makeSummaryState State{selectedAreaD,store} =
         summariesD
         indicatorsD
 
+getScaleExtentD
+  :: Reflex t
+  => Dynamic t (Loadable Indicator)
+  -> Store t
+  -> Dynamic t (Maybe Year)
+  -> Dynamic t (Maybe FeatureId)
+  -> Dynamic t (Maybe AreaType)
+  -> Dynamic t (Maybe (Double, Double))
+getScaleExtentD indicatorD store yearD featureD areaTypeD = do
+  feature <- featureD
+  myear <- yearD
+  mareatype <- areaTypeD
+  mindicator <- (toMaybe <$> indicatorD)
+  indicatorsData <- storeIndicatorsDataD store
+  return $ do
+    year <- myear
+    areatype <- mareatype
+    indid <- indicatorId <$> mindicator
+    inddata <- OMap.lookup indid indicatorsData
+    IndicatorData{indicatorScale} <- toMaybe inddata
+    let IndicatorScale scale = indicatorScale
+        scaleareatype = if areatype == "nz" then "reg" else areatype
+    OMap.lookup (year, scaleareatype, feature) scale
+
 -- Map state
 makeMapState
   :: Reflex t
   => State t -> MapState t
-makeMapState State{areaD,regionD,featureD,transformD,yearD,areaTypeD,indicatorNumbersD,adaptersD,store} =
+makeMapState State{areaD,regionD,featureD,transformD,yearD,areaTypeD,indicatorD,indicatorNumbersD,adaptersD,store} =
   let areasD = storeAreasD $ store
+      inputValuesD = getScaleExtentD indicatorD store yearD featureD areaTypeD
   in MapState
       adaptersD
       (toMaybe <$> regionD)
@@ -319,29 +344,14 @@ makeMapState State{areaD,regionD,featureD,transformD,yearD,areaTypeD,indicatorNu
       featureD
       yearD
       indicatorNumbersD
-
+      inputValuesD
 
 -- Map Legend state
 makeMapLegendState
   :: Reflex t
   => State t -> MapLegendState t
 makeMapLegendState State{indicatorD,store,yearD,featureD,transformD,chartTypeD,areaTypeD} =
-  let inputValuesD = do
-        feature <- featureD
-        myear <- yearD
-        mareatype <- areaTypeD
-        mindicator <- (toMaybe <$> indicatorD)
-        indicatorsData <- storeIndicatorsDataD store
-        return $ do
-          year <- myear
-          areatype <- mareatype
-          indid <- indicatorId <$> mindicator
-          inddata <- OMap.lookup indid indicatorsData
-          IndicatorData{indicatorScale} <- toMaybe inddata
-          let IndicatorScale scale = indicatorScale
-              scaleareatype = if areatype == "nz" then "reg" else areatype
-          OMap.lookup (year, scaleareatype, feature) scale
-
+  let inputValuesD = getScaleExtentD indicatorD store yearD featureD areaTypeD
   in MapLegendState
         inputValuesD
         yearD

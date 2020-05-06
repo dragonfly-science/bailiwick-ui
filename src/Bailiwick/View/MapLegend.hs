@@ -46,7 +46,7 @@ mapLegend
      , MonadFix m
      )
   => MapLegendState t
-  -> m (Event t ScaleFunction)
+  -> m ()
 mapLegend MapLegendState{..} = do
   readyE <- getPostBuild
 
@@ -75,7 +75,7 @@ mapLegend MapLegendState{..} = do
   updateE :: Event t (Maybe (Double, Double), Text, Loadable Indicator, Maybe ChartId, Maybe Text)
     <- switchHold initialUpdate (updateValuesE <$ readyE)
 
-  performEvent $ ffor updateE $ \case
+  performEvent_ $ ffor updateE $ \case
     (inputValues, label, indicator, chartType, transform)
       -> liftJSM $ do
         let range = case inputValues of
@@ -97,9 +97,8 @@ mapLegend MapLegendState{..} = do
                     , ("transform", transform)
                     ]
 
-        scaleVal <- jsg2 ("updateMapLegend" :: Text) args chart
-        scale <- valToObject scaleVal
-        return (ScaleFunction scale)
+        jsg2 ("updateMapLegend" :: Text) args chart
+        return ()
 
 mapLegendLabel
   :: Loadable Indicator

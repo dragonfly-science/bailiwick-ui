@@ -5,7 +5,7 @@ import CacheStorage from './cache/cache-store';
 global.MBIECacheStorage = CacheStorage.getInstance();
 
 import updateIndicatorTimeSeries from './charts/indicator-timeseries';
-import updateMapLegend from './charts/map-legend';
+import { updateMapLegend, positiveScale } from './charts/map-legend';
 import updateTimeSeries from './charts/summary-timeseries';
 import updateAreaBarchart from './charts/indicator-barchart';
 import overUnderBarchart from './charts/indicator-over-under-barchart';
@@ -18,6 +18,7 @@ import areaTreeMap from './charts/indicator-area-treemap';
  */
 global.updateIndicatorTimeSeries = updateIndicatorTimeSeries;
 global.updateMapLegend = updateMapLegend;
+global.positiveScale = positiveScale;
 global.updateTimeSeries = updateTimeSeries;
 global.updateAreaBarchart = updateAreaBarchart;
 global.overUnderBarchart = overUnderBarchart;

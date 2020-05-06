@@ -238,7 +238,7 @@ summaryContent adaptersD regionD areaD map_state area_summary_state=
      <-
        divClass "navigation-map base-map" $ do
          zoomClick <- summaryText adaptersD regionD areaD
-         mapClicks <- divClass "svg-wrapper" $ nzmap True map_state never
+         mapClicks <- divClass "svg-wrapper" $ nzmap True map_state
          return $ leftmost [zoomClick, mapClicks]
 
     summaryMessagesE <- divClass "area-summary" $
@@ -287,8 +287,8 @@ indicatorContent leftZoomD rightZoomD regionD
                               , ZoomIn <$ domEvent Click eZoomIn
                               ]
 
-        mapClicks <- divClass "svg-wrapper" $ nzmap False map_state setScaleE
-        setScaleE <- divClass "legend indicator-map-legend" $ mapLegend map_legend_state
+        mapClicks <- divClass "svg-wrapper" $ nzmap False map_state
+        divClass "legend indicator-map-legend" $ mapLegend map_legend_state
         return $ leftmost [zoomClick, mapClicks]
     chartE <- divClass "indicator-chart" $
       indicatorChart indicator_chart_state rightZoomD
