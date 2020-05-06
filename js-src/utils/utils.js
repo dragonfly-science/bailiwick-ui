@@ -88,8 +88,10 @@ function ready_check() {
             // same element more than once
             if (!element.ready) {
                 element.ready = true;
-                // Invoke the callback with the element
-                listeners[selector].fn.call(element, element);
+                // Invoke the callback with the element, once only
+                let fn = listeners[selector].fn;
+                delete listeners[selector];
+                fn.call(element, element);
             }
         }
     }
