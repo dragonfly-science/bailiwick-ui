@@ -96,4 +96,4 @@ makeGoto Indicator{..} IndicatorState{..} = do
                       (FeatureId <$> indicatorDefaultFeature)
                       Nothing
                       (fromMaybe "reg" areatype)
-                      "indexed")
+                      "absolute")
