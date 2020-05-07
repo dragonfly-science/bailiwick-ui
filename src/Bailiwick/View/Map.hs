@@ -510,19 +510,21 @@ nzmap isSummary MapState{..} = mdo
 
   let tooltipArea
          :: Maybe Areas
+         -> Maybe AreaType
          -> Set Adapter
          -> Maybe (AreaInfo, (Int, Int))
          -> Maybe ((AreaInfo, (Int, Int)), Area)
-      tooltipArea _ _ Nothing = Nothing
-      tooltipArea Nothing _ _ = Nothing
-      tooltipArea (Just areas) adapters (Just (ai, xy)) =
-        let maybeAreaId =
-              if hasAdapter Mapzoom adapters
-                then areaWard ai <|> areaTa ai
-                else areaRegion ai
+      tooltipArea _ _ _ Nothing = Nothing
+      tooltipArea Nothing _ _ _ = Nothing
+      tooltipArea (Just areas) mareatype adapters (Just (ai, xy)) =
+        let maybeAreaId = case (mareatype, hasAdapter Mapzoom adapters) of
+                (Just "nz", _)  -> areaRegion ai
+                (Just "reg", _) -> areaRegion ai
+                (_, True)       -> areaWard ai <|> areaTa ai
+                _               -> areaRegion ai
         in ((ai, xy),) <$> (((`OM.lookup` (unAreas areas)) . slugify) =<< maybeAreaId)
       tooltipAreaD :: Dynamic t (Maybe ((AreaInfo, (Int, Int)), Area))
-      tooltipAreaD = tooltipArea <$> areasD <*> adaptersD <*> mouseOverFullD
+      tooltipAreaD = tooltipArea <$> areasD <*> areaTypeD <*> adaptersD <*> mouseOverFullD
       showStyle Nothing = "visibility:hidden;"
       showStyle (Just ((_, (x,y)), _)) = Text.pack $
           "visibility:visible; left:" <> show (x + 8) <> "px; top:" <> show (y + 8) <> "px;"
