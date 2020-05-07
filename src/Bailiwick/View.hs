@@ -284,7 +284,7 @@ indicatorContent leftZoomD rightZoomD regionD
                    return ()
             return $ leftmost [ tag (current (ZoomOut . fmap areaId <$> regionD))
                                     (domEvent Click eZoomOut)
-                              , ZoomIn <$ domEvent Click eZoomIn
+                              , (ZoomIn Nothing) <$ domEvent Click eZoomIn
                               ]
 
         mapClicks <- divClass "svg-wrapper" $ nzmap False map_state
@@ -365,7 +365,7 @@ summaryText adaptersD regionD areaD = do
     return $ ffor (tag ((,) <$> (current adaptersD) <*> (current regionD))
                        (domEvent Click zoom)) $ \case
       (as,a) | hasAdapter Mapzoom as -> ZoomOut (areaId <$> a)
-      _ -> ZoomIn
+      _ -> ZoomIn Nothing
 
 footer :: (Monad m, DomBuilder t m) => m ()
 footer =

@@ -104,7 +104,7 @@ run messageE = do
       Ready (Route _ _ _ adapters) -> Just (const adapters)
       SetSubArea _ _               -> Just (Set.insert Mapzoom)
       GoToHomePage                 -> Just (Set.delete Mapzoom)
-      ZoomIn                       -> Just (Set.insert Mapzoom)
+      ZoomIn _                     -> Just (Set.insert Mapzoom)
       ZoomOut _                    -> Just (Set.delete Mapzoom)
       SetShowTable                 -> Just (Set.insert ShowTable)
       UnsetShowTable               -> Just (Set.delete ShowTable)
@@ -144,6 +144,7 @@ run messageE = do
       Ready (Route (ThemePage tba) _ _ _) -> Just $ themePageAreaType tba
       SetRegion _                         -> Just $ "reg"
       SetSubArea at _                     -> Just at
+      ZoomIn (Just at)                    -> Just at
       GoTo (ThemePage tba)                -> Just $ themePageAreaType tba
       SetAreaType at                      -> Just at
       _                                   -> Nothing

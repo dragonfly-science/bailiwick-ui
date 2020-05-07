@@ -44,7 +44,7 @@ data Message
   | SetYearArea Year Text
   | GoTo Page
   | GoToHomePage
-  | ZoomIn
+  | ZoomIn (Maybe AreaType)
   | ZoomOut (Maybe Text)
   | LeftZoomIn
   | LeftZoomOut (Maybe Text)

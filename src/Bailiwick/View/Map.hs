@@ -593,7 +593,7 @@ nzmap isSummary MapState{..} = mdo
         in  if
             | currentRegion == region &&
               not iszoomed
-                -> Just ZoomIn
+                -> Just (ZoomIn $ Just (if region == Just auckland then "ward" else "ta"))
             | currentRegion /= region &&
               isJust region &&
               (areatype == Just "reg" || areatype == Just "nz" || isSummary)
