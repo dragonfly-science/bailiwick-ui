@@ -51,6 +51,8 @@ areaSummary AreaSummaryState{..} = do
       lookupAreaSummary i   = OM.lookup (IndicatorId i) <$> summaries
       areaIdD = maybe "" areaId <$> area
       areaTypeD = maybe "reg" areaLevel <$> area
+      indicatorAreaType "nz" = "reg"
+      indicatorAreaType at = at
   gotoIndicatorE <- leftmost <$> sequence
     [ indicatorLatestYearSummary
         "population"
@@ -94,7 +96,7 @@ areaSummary AreaSummaryState{..} = do
         indicatorId
         indicatorDefaultChartRight
         (maximum indicatorYears) Nothing Nothing areatype "absolute")
-        ) <$> (attach (current areaTypeD) gotoIndicatorE)
+        ) <$> (attach (fmap indicatorAreaType $ current areaTypeD) gotoIndicatorE)
 
 switchDynM
  :: (MonadHold t m, DomBuilder t m, PostBuild t m)
