@@ -30,7 +30,7 @@ import Reflex.Dom.Core
         (=:), never, constDyn, elDynAttr, holdDyn, leftmost,
         tag, current, domEvent, EventName(Click, Focus, Blur), ffor,
         dynText, elDynClass, listViewWithKey, elDynAttr',
-        DomBuilderSpace)
+        DomBuilderSpace, constant)
 import Reflex.PerformEvent.Class (PerformEvent(..))
 import Reflex.FunctorMaybe (FunctorMaybe(..))
 
@@ -77,9 +77,19 @@ toolBar isOpenD ToolBarState{..} = do
 
       textYearD = fmap (T.pack . show) <$> yearD
 
+      chartsD = do
+        ind <- indicatorD
+        return $ M.fromList $ filter (\(k, _) -> unChartId k /= "map") $
+                 maybe [] OM.toList (ind >>= indicatorCharts)
+
+      chartButtonClass "over-under-barchart" = "barchart"
+      chartButtonClass c = c
+
       setAreaEvent           = fmap (fmap SetAreaType . fmapMaybe id)
       setTransformEvent      = fmap (fmap SetTransform . fmapMaybe id)
       setYearEvent           = fmap (fmap SetYear . fmapMaybe id . fmap (readMaybe . T.unpack =<<))
+      setChartTypeEvent      = fmap (fmap SetChartType)
+
   divClass "tool-bar" $ do
     dropdownsE <- divClass "summary content" $ do
       dropdownsE <- divClass "top" $ do
@@ -110,17 +120,16 @@ toolBar isOpenD ToolBarState{..} = do
         transformE <- setTransformEvent $ toolbarList "transform" (constDyn "") never (constDyn True) transformD
           transforms
         yearE <- setYearEvent $ toolbarList "year" (constDyn "") never (constDyn True) textYearD yearsD
-        chartTypeE <- divClass "filter-type charts" $ do
+        chartTypeE <- setChartTypeEvent $ divClass "filter-type charts" $ do
           elClass "span" "label" $ text "view by"
-          divClass "header" $ do
---            (tm, _) <- elDynClass' "button" (("treemap" <>) . bool "" " active" . (==Just (ChartId "treemap")) <$> chartTypeD) $ el "i" $ return ()
-            (ts, _) <- elDynClass' "button" (("timeseries" <>) . bool "" " active" . (==Just (ChartId "timeseries")) <$> chartTypeD) $ el "i" $ return ()
-            (bc, _) <- elDynClass' "button" (("barchart" <>) . bool "" " active" . (==Just (ChartId "barchart")) <$> chartTypeD) $ el "i" $ return ()
-            return $ leftmost
-                [ SetChartType (ChartId "timeseries") <$ domEvent Click ts
-               -- , SetChartType (ChartId "treemap")    <$ domEvent Click tm
-                , SetChartType (ChartId "barchart")   <$ domEvent Click bc
-                ]
+          selectedChart :: Event t (Map ChartId ChartId)
+            <- divClass "header" $ do
+               let selectionDemux = demux chartTypeD
+               listViewWithKey chartsD $ \k _ -> do
+                 let selected = demuxed selectionDemux (Just k)
+                 (b, _) <- elDynClass' "button" (((chartButtonClass (unChartId k)) <>) . bool "" " active" <$> selected) $ el "i" $ return ()
+                 return (tag (constant k) (domEvent Click b))
+          return $ fmap (head . (fmap fst) . M.toList) selectedChart
         return $ leftmost [areaTypeE, yearE, transformE, chartTypeE]
     return $ leftmost [dropdownsE, Right <$> filterE]
 
