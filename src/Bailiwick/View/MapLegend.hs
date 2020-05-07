@@ -14,7 +14,7 @@ import Control.Monad.Fix
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import Data.Text (Text, pack)
 
-import Language.Javascript.JSaddle (jsg3, MonadJSM, liftJSM, valToObject)
+import Language.Javascript.JSaddle (jsg3, MonadJSM, liftJSM)
 import Reflex
 import Reflex.Dom.Core
 

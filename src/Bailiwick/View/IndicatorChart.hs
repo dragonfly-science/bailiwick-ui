@@ -177,7 +177,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
         areas <- areasD
         lNumbers <- indicatorNumbersD
         return (shapeData <$> areas <*> lNumbers)
-  shapedDataJSD <- toJSValDynHold shapedDataD
+  -- shapedDataJSD <- toJSValDynHold shapedDataD
 
   let areanamesD = do
         areas <- areasD
@@ -233,7 +233,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
           <*> Compose areanamesD
           <*> Compose (fmap (fmap areaName) <$> compareAreaD)
 
-  jsargsJSD <- toJSValDyn jsargsD
+  -- jsargsJSD <- toJSValDyn jsargsD
 
   let getJSChartType :: Loadable ChartId -> JSString
       getJSChartType chart = case chart of
