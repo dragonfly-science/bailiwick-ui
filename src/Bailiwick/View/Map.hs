@@ -975,33 +975,39 @@ updateMapIndicator svgBody mapD = do
             forM_ oldarea $ \cssClass -> do
               let sel = "g." <> cssClass
               colour <- liftJSM $ getColour cssClass
-              setAttr (sel <> " > path") "fill" $
-                (if colour == "#FFFFFF" then "url(#lightstripe)" else colour)
-              when (Text.isSuffixOf "-ta" cssClass) $ do
-                  setAttr (sel <> "[same_ta=TRUE] > polyline") "stroke" $
-                    (if colour == "#FFFFFF" then "none" else colour)
-                  setAttr (sel <> "[same_ta=TRUE]") "show" "FALSE"
-              when (Text.isSuffixOf "-region" cssClass) $ do
-                  setAttr (sel <> "[same_reg=TRUE] > polyline") "stroke" $
-                    (if colour == "#FFFFFF" then "none" else colour)
-                  setAttr (sel <> "[same_reg=TRUE]") "show" "FALSE"
-              when (Text.isSuffixOf "-ward" cssClass) $ do
-                  setAttr (sel <> "[same_ward=TRUE] > polyline") "stroke" $
-                    (if colour == "#FFFFFF" then "none" else colour)
-                  setAttr (sel <> "[same_ward=TRUE]") "show" "FALSE"
+              when (colour /= "#FFFFFF") $ do
+                setAttr (sel <> " > path") "fill" $
+                  (if colour == "#FFFFFF" then "url(#lightstripe)" else colour)
+                when (Text.isSuffixOf "-ta" cssClass) $ do
+                    setAttr (sel <> "[same_ta=TRUE] > polyline") "stroke" $
+                      (if colour == "#FFFFFF" then "none" else colour)
+                    setAttr (sel <> "[same_ta=TRUE]") "show" "FALSE"
+                when (Text.isSuffixOf "-region" cssClass) $ do
+                    setAttr (sel <> "[same_reg=TRUE] > polyline") "stroke" $
+                      (if colour == "#FFFFFF" then "none" else colour)
+                    setAttr (sel <> "[same_reg=TRUE]") "show" "FALSE"
+                when (Text.isSuffixOf "-ward" cssClass) $ do
+                    setAttr (sel <> "[same_ward=TRUE] > polyline") "stroke" $
+                      (if colour == "#FFFFFF" then "none" else colour)
+                    setAttr (sel <> "[same_ward=TRUE]") "show" "FALSE"
             forM_ newarea $ \cssClass -> do
               let highlight = "rgb(0, 189, 233)"
                   sel = "g." <> cssClass
-              setAttr (sel <> " > path") "fill" highlight
-              when (Text.isSuffixOf "-region" cssClass) $ do
-                  setAttr (sel <> "[same_reg=TRUE] > polyline") "stroke" highlight
-                  setAttr (sel <> "[same_reg=TRUE]") "show" "TRUE"
-              when (Text.isSuffixOf "-ta" cssClass) $ do
-                  setAttr (sel <> "[same_ta=TRUE] > polyline") "stroke" highlight
-                  setAttr (sel <> "[same_ta=TRUE]") "show" "TRUE"
-              when (Text.isSuffixOf "-ward" cssClass) $ do
-                  setAttr (sel <> "[same_ward=TRUE] > polyline") "stroke" highlight
-                  setAttr (sel <> "[same_ward=TRUE]") "show" "TRUE"
+              colour <- liftJSM $ getColour cssClass
+              when (colour == "#FFFFFF") $ do
+                setAttr (sel <> " > path") "cursor" "default"
+              when (colour /= "#FFFFFF") $ do
+                setAttr (sel <> " > path") "cursor" "pointer"
+                setAttr (sel <> " > path") "fill" highlight
+                when (Text.isSuffixOf "-region" cssClass) $ do
+                    setAttr (sel <> "[same_reg=TRUE] > polyline") "stroke" highlight
+                    setAttr (sel <> "[same_reg=TRUE]") "show" "TRUE"
+                when (Text.isSuffixOf "-ta" cssClass) $ do
+                    setAttr (sel <> "[same_ta=TRUE] > polyline") "stroke" highlight
+                    setAttr (sel <> "[same_ta=TRUE]") "show" "TRUE"
+                when (Text.isSuffixOf "-ward" cssClass) $ do
+                    setAttr (sel <> "[same_ward=TRUE] > polyline") "stroke" highlight
+                    setAttr (sel <> "[same_ward=TRUE]") "show" "TRUE"
 
     when (_areaType new == Just "reg") $ do
       updateMouseOver mouseOverRegionClass
