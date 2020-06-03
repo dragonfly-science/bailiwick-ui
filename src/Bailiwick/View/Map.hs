@@ -482,7 +482,7 @@ nzmap isSummary MapState{..} = mdo
   mapareatypeD    <- holdUniqDyn $ areaTypeD
   mapfeatureD     <- holdUniqDyn $ featureD
   mapyearD        <- holdUniqDyn $ yearD
-  mapinputValuesD <- holdUniqDyn $ traceDyn "M inputValuesD" inputValuesD
+  mapinputValuesD <- holdUniqDyn $ inputValuesD
   let mapD
         = Map <$> zoomD
               <*> zoomStateT
