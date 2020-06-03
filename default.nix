@@ -2,8 +2,8 @@ let
   reflex-platform = import ((import <nixpkgs> {}).pkgs.fetchFromGitHub {
       owner = "reflex-frp";
       repo = "reflex-platform";
-      rev = "ca2dc8a7768abbcdf3edd3ede9c359144c84dd3f";
-      sha256 = "0zqg9fq7bnl1zr673ij73cd0z95w38qp9i1r7gjc1f5zi8gmpwhx";
+      rev = "c13cb19f49c8093de4718d2aced1930128476cfa";
+      sha256 = "0v87ilal9355xwz8y9m0zh14pm9c0f7pqch0854kkj92ybc5l62q";
     }) {};
   nixpkgs = reflex-platform.nixpkgs;
   cleanSource = nixpkgs.lib.cleanSourceWith {
@@ -34,20 +34,15 @@ in reflex-platform.project ({ pkgs, ... }: {
         reflex-dom-contrib = pkgs.fetchFromGitHub {
           owner = "reflex-frp";
           repo = "reflex-dom-contrib";
-          rev = "fbd2bc4279146a239342147dbe9f1b9264c63ceb";
-          sha256 = "04j06iaabk0ajdi19qv588ybd29wdm0scbnyyfnb9p010a4pwm3f";
+          rev = "b9e2965dff062a4e13140f66d487362a34fe58b3";
+          sha256 = "1aa045mr82hdzzd8qlqhfrycgyhd29lad8rf7vsqykly9axpl52a";
         };
-      };
-      overrides = self: super:
-        let dontCheckGhcjs = p: if self.ghc.isGhcjs or false
-                 then pkgs.haskell.lib.dontCheck p
-                 else p;
-        in {
-          servant = dontCheckGhcjs super.servant;
-          servant-reflex = pkgs.haskell.lib.dontCheck
-                 (pkgs.haskell.lib.doJailbreak super.servant-reflex);
-          reflex-dom = null;
-          reflex-dom-contrib = pkgs.haskell.lib.doJailbreak super.reflex-dom-contrib;
+        servant-reflex = pkgs.fetchFromGitHub {
+          owner = "imalsogreg";
+          repo = "servant-reflex";
+          rev = "37a3e8f2566627d910df140982bd49bf4dba171e";
+          sha256 = "1yqxf6f81n4y4527rl69hfqymrnmj7lskgns2qsh59ibisp3y9rg";
+        };
       };
 
       shells = {

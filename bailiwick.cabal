@@ -67,6 +67,7 @@ library
                      , unordered-containers
                      , uri-bytestring
                      , vector
+                     , witherable
   if !impl( ghcjs )
       build-depends:   wai
                      , wai-app-static

@@ -20,6 +20,7 @@ import Data.Map (Map)
 import qualified Data.Map as M (fromList, toList)
 import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as OM (toList, fromList, lookup)
+import Data.Witherable (mapMaybe)
 import Text.Read (readMaybe)
 
 import Language.Javascript.JSaddle (MonadJSM)
@@ -32,7 +33,6 @@ import Reflex.Dom.Core
         dynText, elDynClass, listViewWithKey, elDynAttr',
         DomBuilderSpace, constant)
 import Reflex.PerformEvent.Class (PerformEvent(..))
-import Reflex.FunctorMaybe (FunctorMaybe(..))
 
 import Bailiwick.Route
 import Bailiwick.Types
@@ -85,9 +85,9 @@ toolBar isOpenD ToolBarState{..} = do
       chartButtonClass "over-under-barchart" = "barchart"
       chartButtonClass c = c
 
-      setAreaEvent           = fmap (fmap SetAreaType . fmapMaybe id)
-      setTransformEvent      = fmap (fmap SetTransform . fmapMaybe id)
-      setYearEvent           = fmap (fmap SetYear . fmapMaybe id . fmap (readMaybe . T.unpack =<<))
+      setAreaEvent           = fmap (fmap SetAreaType . mapMaybe id)
+      setTransformEvent      = fmap (fmap SetTransform . mapMaybe id)
+      setYearEvent           = fmap (fmap SetYear . mapMaybe id . fmap (readMaybe . T.unpack =<<))
       setChartTypeEvent      = fmap (fmap SetChartType)
 
   divClass "tool-bar" $ do

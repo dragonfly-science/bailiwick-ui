@@ -15,7 +15,7 @@ import Data.Text (Text)
 import qualified Data.HashMap.Strict.InsOrd as OMap
 import qualified Data.Map as Map
 
-import Reflex.Dom.Core
+import Reflex.Dom.Core hiding (mapMaybe)
 
 import Bailiwick.Route
 import Bailiwick.Types

@@ -20,7 +20,8 @@ import Data.Text (Text)
 
 import Servant.API
 import Servant.Reflex
-import Reflex.Dom.Core
+       (BaseUrl(BasePath), client, Client, ReqResult(..), SupportsServantReflex)
+import Reflex.Dom.Core hiding (Client)
 import Language.Javascript.JSaddle.Types (MonadJSM)
 import qualified Data.HashMap.Strict.InsOrd as OM
 

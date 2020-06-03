@@ -13,7 +13,7 @@ import qualified Data.Set as Set (empty, insert, delete, fromList)
 
 import Data.Text (Text)
 import qualified Data.HashMap.Strict.InsOrd as OMap
-import Reflex.Dom.Core
+import Reflex.Dom.Core hiding (mapMaybe)
 import Language.Javascript.JSaddle.Types (MonadJSM)
 
 import Bailiwick.View.Header (HeaderState(HeaderState))
