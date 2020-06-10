@@ -274,17 +274,35 @@ makeIndicatorState State{selectedAreaD,areaTypeD,yearD,indicatorD,store} =
         areaTypeD
         (toMaybe <$> themesD)
 
+getAreaTypesD
+  :: Reflex t
+  => Dynamic t (Loadable Indicator)
+  -> Store t
+  -> Dynamic t (Maybe (Set AreaType))
+getAreaTypesD indicatorD store = do
+  mindicator <- (toMaybe <$> indicatorD)
+  indicatorsData <- storeIndicatorsDataD store
+  let getAreaType (_, a, _) = a
+  return $ do
+    indid <- indicatorId <$> mindicator
+    inddata <- OMap.lookup indid indicatorsData
+    IndicatorData{indicatorScale} <- toMaybe inddata
+    let IndicatorScale scale = indicatorScale
+        areaTypes = getAreaType <$> (OMap.keys scale)
+    return $ Set.fromList areaTypes
+
 -- ToolBar State
 makeToolBarState
   :: Reflex t
   => State t -> ToolBarState t
-makeToolBarState State{chartTypeD,transformD,yearD,areaTypeD,indicatorD} =
+makeToolBarState State{chartTypeD,transformD,yearD,areaTypeD,indicatorD,store} =
   ToolBarState
      (toMaybe <$> indicatorD)
      areaTypeD
      transformD
      chartTypeD
      yearD
+     (getAreaTypesD indicatorD store)
 
 -- Area Summary state
 makeSummaryState

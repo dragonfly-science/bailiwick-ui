@@ -16,10 +16,11 @@ import Data.Bool (bool)
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T (unpack, pack)
+import Data.Set (Set)
 import Data.Map (Map)
 import qualified Data.Map as M (fromList, toList)
 import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
-import qualified Data.HashMap.Strict.InsOrd as OM (toList, fromList, lookup)
+import qualified Data.HashMap.Strict.InsOrd as OM (toList, fromList, lookup, empty)
 import Data.Witherable (mapMaybe)
 import Text.Read (readMaybe)
 
@@ -39,11 +40,12 @@ import Bailiwick.Types
 
 data ToolBarState t
   = ToolBarState
-  { indicatorD  :: Dynamic t (Maybe Indicator)
-  , areaTypeD   :: Dynamic t (Maybe AreaType)
-  , transformD  :: Dynamic t (Maybe TransformId)
-  , chartTypeD  :: Dynamic t (Maybe ChartId)
-  , yearD       :: Dynamic t (Maybe Year)
+  { indicatorD          :: Dynamic t (Maybe Indicator)
+  , areaTypeD           :: Dynamic t (Maybe AreaType)
+  , transformD          :: Dynamic t (Maybe TransformId)
+  , chartTypeD          :: Dynamic t (Maybe ChartId)
+  , yearD               :: Dynamic t (Maybe Year)
+  , indicatorAreaTypesD :: Dynamic t (Maybe (Set AreaType))
   }
 
 toolBar
@@ -60,10 +62,19 @@ toolBar
     -> ToolBarState t
     -> m (Event t (Either () Message))
 toolBar isOpenD ToolBarState{..} = do
-  let areaTypes = OM.fromList [ ("nz", "New Zealand")
-                              , ("reg", "Regional Council")
-                              , ("ta", "Territorial Authority")
-                              , ("ward", "Auckland wards")]
+  let allAreaTypes = [ ("nz", "New Zealand")
+                     , ("reg", "Regional Council")
+                     , ("ta", "Territorial Authority")
+                     , ("ward", "Auckland wards")]
+
+      getAreaTypes :: Maybe (Set AreaType) -> InsOrdHashMap AreaType Text
+      getAreaTypes (Just ts) = OM.fromList $ filter (\(k, _) -> k `elem` ts) allAreaTypes
+      getAreaTypes Nothing = OM.empty
+
+      areaTypes = do
+        indAreaTypes <- indicatorAreaTypesD
+        return $ getAreaTypes indAreaTypes
+
       absoluteLabel = do
         ind <- indicatorD
         return (join $ fmap indicatorAbsoluteLabel ind)
@@ -97,7 +108,7 @@ toolBar isOpenD ToolBarState{..} = do
         divClass "elements" $ do
           areaTypeE <- setAreaEvent $ divClass "element" $
             el "div" $
-              toolbarDropdown "area" (constDyn "") never (constDyn True) areaTypeD (constDyn areaTypes)
+              toolbarDropdown "area" (constDyn "") never (constDyn True) areaTypeD areaTypes
           transformE <- setTransformEvent $ divClass "element" $
             divClass "toolbar-transform" $
               toolbarDropdown "transform" (constDyn "") never (constDyn True) transformD
@@ -115,8 +126,7 @@ toolBar isOpenD ToolBarState{..} = do
       divClass "filters" $ do
         divClass "filter-type view-by" $
           elClass "span" "label" $ text "view by:"
-        areaTypeE <- setAreaEvent $ toolbarList "area" (constDyn "") never (constDyn True) areaTypeD
-          (constDyn areaTypes)
+        areaTypeE <- setAreaEvent $ toolbarList "area" (constDyn "") never (constDyn True) areaTypeD areaTypes
         transformE <- setTransformEvent $ toolbarList "transform" (constDyn "") never (constDyn True) transformD
           transforms
         yearE <- setYearEvent $ toolbarList "year" (constDyn "") never (constDyn True) textYearD yearsD
