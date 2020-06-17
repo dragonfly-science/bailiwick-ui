@@ -5,9 +5,9 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecursiveDo         #-}
+{-# LANGUAGE NamedFieldPuns #-}
 module Bailiwick.View.IndicatorChart
   ( indicatorChart
-  , IndicatorChartState(..)
   , textLabel
 ) where
 
@@ -26,22 +26,12 @@ import Reflex.Dom.Core
 
 import Bailiwick.Javascript
 import Bailiwick.Route
+import Bailiwick.State
+       (State(State, selectedAreaD, featureD, chartTypeD, transformD, yearD, areaTypeD,
+              indicatorD, indicatorNumbersD, store, compareAreaD))
+import Bailiwick.Store (Store(storeAreasD))
 import Bailiwick.Types
 import Bailiwick.View.Text (textSubstitution)
-
-data IndicatorChartState t
-  = IndicatorChartState
-    { areaD              :: Dynamic t (Loadable Area)
-    , chartTypeD         :: Dynamic t (Loadable ChartId)
-    , featureD           :: Dynamic t (Loadable (Maybe FeatureId))
-    , transformD         :: Dynamic t (Loadable TransformId)
-    , yearD              :: Dynamic t (Loadable Year)
-    , areaTypeD          :: Dynamic t (Loadable AreaType)
-    , areasD             :: Dynamic t (Loadable Areas)
-    , compareAreaD       :: Dynamic t (Loadable (Maybe Area))
-    , indicatorD         :: Dynamic t (Loadable Indicator)
-    , indicatorNumbersD  :: Dynamic t (Loadable IndicatorNumbers)
-    }
 
 type ShapedData = [( (AreaId, Text, Text, [Text], Maybe FeatureId)
                    , [(Year, Maybe Double, Maybe Double, Text, Text)]
@@ -140,10 +130,13 @@ indicatorChart
      , MonadFix m
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
-  => IndicatorChartState t
+  => State t
   -> Dynamic t Bool
   -> m (Event t Message)
-indicatorChart IndicatorChartState{..} zoomD = do
+indicatorChart
+  State{selectedAreaD,featureD,chartTypeD,transformD,yearD,areaTypeD,indicatorD,
+        indicatorNumbersD,store,compareAreaD}
+  zoomD = do
 
   (e, rightZoomE) <- divClass "chart-wrapper" $ do
     elAttr "div" ("class" =: "chart-inner") $ do
@@ -173,6 +166,8 @@ indicatorChart IndicatorChartState{..} zoomD = do
 
   readyE <- getPostBuild
 
+  let areasD = storeAreasD store
+
   let shapedDataD = do
         areas <- areasD
         lNumbers <- indicatorNumbersD
@@ -183,9 +178,15 @@ indicatorChart IndicatorChartState{..} zoomD = do
         areas <- areasD
         return $ fmap (OMap.keys . unAreas) areas
 
+  let lchartTypeD = toLoadable <$> chartTypeD
+      lfeatureD   = Loaded <$> featureD
+      ltransformD = toLoadable <$> transformD
+      lyearD      = toLoadable <$> yearD
+      lareaTypeD  = toLoadable <$> areaTypeD
+
   let chartD = do
         lindicator <- indicatorD
-        lchartType <- chartTypeD
+        lchartType <- lchartTypeD
         return $ do
           chartid <- lchartType
           Indicator{..} <- lindicator
@@ -195,9 +196,9 @@ indicatorChart IndicatorChartState{..} zoomD = do
 
       labelD = do
         indicator <- indicatorD
-        area <- areaD
-        feature <- featureD
-        year <- yearD
+        area <- selectedAreaD
+        feature <- lfeatureD
+        year <- lyearD
         let chartLabel = textSubstitution
                             (toMaybe area)
                             Nothing
@@ -205,7 +206,7 @@ indicatorChart IndicatorChartState{..} zoomD = do
                             (fromLoadable Nothing feature)
                             Nothing
                             (toMaybe year)
-        mtransform <- transformD
+        mtransform <- ltransformD
         return $ do
           transform <- mtransform
           let l = textLabel indicator transform
@@ -220,12 +221,12 @@ indicatorChart IndicatorChartState{..} zoomD = do
   -- Using Compose to combine applicative instance for Dynamic t . Loadable
   let Compose jsargsD =
         ChartArgs
-          <$> Compose yearD
+          <$> Compose lyearD
           <*> Compose (fmap (unIndicatorId . indicatorId) <$> indicatorD)
-          <*> Compose transformD
-          <*> Compose (fmap areaName <$> areaD)
-          <*> Compose areaTypeD
-          <*> Compose (fmap (fmap featureIdText) <$> featureD)
+          <*> Compose ltransformD
+          <*> Compose (fmap areaName <$> selectedAreaD)
+          <*> Compose lareaTypeD
+          <*> Compose (fmap (fmap featureIdText) <$> lfeatureD)
           <*> Compose (Loaded <$> zoomD)
           <*> Compose chartD
           <*> Compose labelD
@@ -246,8 +247,8 @@ indicatorChart IndicatorChartState{..} zoomD = do
 
 
 
-  -- let jsargs = (,,) <$> shapedDataJSD <*> jsargsJSD <*> (getJSChartType <$> chartTypeD)
-  let jsargs = (,,) <$> shapedDataD <*> jsargsD <*> (getJSChartType <$> chartTypeD)
+  -- let jsargs = (,,) <$> shapedDataJSD <*> jsargsJSD <*> (getJSChartType <$> lchartTypeD)
+  let jsargs = (,,) <$> shapedDataD <*> jsargsD <*> (getJSChartType <$> lchartTypeD)
   let initialUpdate = tag (current jsargs) readyE
   let updateValuesE = updated jsargs
 --  updateE :: Event t (Loadable JSVal, Loadable JSVal, JSString)

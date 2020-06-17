@@ -4,10 +4,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE LambdaCase #-}
-module Bailiwick.View.IndicatorSummary (
-    indicatorSummary
-  , IndicatorSummaryState(..)
-) where
+{-# LANGUAGE NamedFieldPuns #-}
+module Bailiwick.View.IndicatorSummary (indicatorSummary) where
 
 import Control.Monad (void)
 import Control.Monad.Fix (MonadFix)
@@ -20,17 +18,10 @@ import Language.Javascript.JSaddle (MonadJSM)
 
 import Bailiwick.View.Text
 import Bailiwick.Javascript (elDynHtmlAttr')
+import Bailiwick.State
+       (State(State, selectedAreaD, compareAreaD, featureD, yearD,
+              indicatorD, indicatorNumbersD))
 import Bailiwick.Types
-
-data IndicatorSummaryState t
-  = IndicatorSummaryState
-  { areaD              :: Dynamic t (Loadable Area)
-  , compareAreaD       :: Dynamic t (Loadable (Maybe Area))
-  , featureD           :: Dynamic t (Maybe FeatureId)
-  , yearD              :: Dynamic t (Maybe Year)
-  , indicatorD         :: Dynamic t (Loadable Indicator)
-  , indicatorNumbersD  :: Dynamic t (Loadable IndicatorNumbers)
-  }
 
 indicatorSummary
   :: forall m t.
@@ -44,12 +35,13 @@ indicatorSummary
      , MonadJSM (Performable m)
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
-  => IndicatorSummaryState t
+  => State t
   -> m ()
-indicatorSummary IndicatorSummaryState{..} = do
+indicatorSummary
+  State{selectedAreaD,compareAreaD,featureD,yearD,indicatorD,indicatorNumbersD} = do
 
   let subs = (textSubstitution
-                <$> (toMaybe <$> areaD)
+                <$> (toMaybe <$> selectedAreaD)
                 <*> (load Nothing id <$> compareAreaD)
                 <*> (toMaybe <$> indicatorD)
                 <*> featureD
@@ -58,7 +50,7 @@ indicatorSummary IndicatorSummaryState{..} = do
                 <*>)
 
       summaryNumsD = do
-        lareaid <- fmap areaId <$> areaD
+        lareaid <- fmap areaId <$> selectedAreaD
         lyear   <- toLoadable <$> yearD
         feature <- featureD
         lindnumbers <- indicatorNumbersD

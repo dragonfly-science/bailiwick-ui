@@ -20,9 +20,6 @@ import Bailiwick.View.Header (HeaderState(HeaderState))
 import Bailiwick.View.Indicators (IndicatorState(IndicatorState))
 import Bailiwick.View.ToolBar (ToolBarState(ToolBarState))
 import Bailiwick.View.AreaSummary (AreaSummaryState(AreaSummaryState))
-import Bailiwick.View.IndicatorChart (IndicatorChartState(IndicatorChartState))
-import Bailiwick.View.IndicatorSummary (IndicatorSummaryState(IndicatorSummaryState))
-import Bailiwick.View.IndicatorTable (IndicatorTableState(IndicatorTableState))
 import Bailiwick.Route
 import Bailiwick.Store as Store
 import Bailiwick.Types
@@ -339,54 +336,6 @@ getScaleExtentD State{featureD,yearD,areaTypeD,indicatorD,store} = do
     let IndicatorScale scale = indicatorScale
         scaleareatype = if areatype == "nz" then "reg" else areatype
     OMap.lookup (year, scaleareatype, feature) scale
-
--- IndicatorChart state
-makeIndicatorChartState
-  :: Reflex t
-  => State t -> IndicatorChartState t
-makeIndicatorChartState State{selectedAreaD,
-                              featureD,chartTypeD,transformD,yearD,
-                              areaTypeD,indicatorD,indicatorNumbersD,
-                              store, compareAreaD} =
-      IndicatorChartState
-         selectedAreaD
-         (toLoadable <$> chartTypeD)
-         (Loaded <$> featureD)
-         (toLoadable <$> transformD)
-         (toLoadable <$> yearD)
-         (toLoadable <$> areaTypeD)
-         (storeAreasD store)
-         compareAreaD
-         indicatorD
-         indicatorNumbersD
-
--- make IndicatorSummaryState
-makeIndicatorSummaryState
-  :: Reflex t
-  => State t -> IndicatorSummaryState t
-makeIndicatorSummaryState State{selectedAreaD,featureD,yearD,indicatorD,
-                                compareAreaD,indicatorNumbersD} =
-      IndicatorSummaryState
-         selectedAreaD
-         compareAreaD
-         featureD            -- feature
-         yearD
-         indicatorD          -- indicator
-         indicatorNumbersD   -- numbers
-
--- make IndicatorTableState
-makeIndicatorTableState
-  :: Reflex t
-  => State t -> IndicatorTableState t
-makeIndicatorTableState State{selectedAreaD,compareAreaD,featureD,yearD,indicatorD,indicatorNumbersD,adaptersD} =
-     IndicatorTableState
-         (hasAdapter ShowTable <$> adaptersD)
-         selectedAreaD
-         compareAreaD        -- compare area
-         featureD            -- feature
-         yearD
-         indicatorD          -- indicator
-         indicatorNumbersD   -- numbers
 
 
 findIndicator :: [Theme] -> IndicatorId -> Loadable Indicator

@@ -209,18 +209,12 @@ mainContent st@State{..} = do
   let leftZoomD = hasAdapter Mapzoom <$> adaptersD
       rightZoomD = hasAdapter RightZoom <$> adaptersD
       areaSummaryState = makeSummaryState st
-      indicatorSummaryState = makeIndicatorSummaryState st
-      indicatorChartState = makeIndicatorChartState st
   switchDynM $
      ffor isSummaryD $ \case
         True  -> summaryContent adaptersD
                                 (toMaybe <$> regionD)
                                 (toMaybe <$> areaD) st areaSummaryState
-        False -> indicatorContent leftZoomD rightZoomD (toMaybe <$> regionD)
-                                  st
-                                  indicatorChartState
-                                  indicatorSummaryState
-                                  (makeIndicatorTableState st)
+        False -> indicatorContent leftZoomD rightZoomD (toMaybe <$> regionD) st
 
 summaryContent
     :: ContentConstraints t m
@@ -249,15 +243,8 @@ indicatorContent
     -> Dynamic t Bool
     -> Dynamic t (Maybe Area)
     -> State t
-    -> IndicatorChartState t
-    -> IndicatorSummaryState t
-    -> IndicatorTableState t
     -> m (Event t Message)
-indicatorContent leftZoomD rightZoomD regionD
-    state
-    indicator_chart_state
-    indicator_summary_state
-    indicator_table_state = do
+indicatorContent leftZoomD rightZoomD regionD state = do
   contentE <- divClass "central-content indicator" $ do
     mapE <- divClass "indicator-map base-map" $
       divClass "map-wrapper" $ mdo
@@ -286,17 +273,16 @@ indicatorContent leftZoomD rightZoomD regionD
         mapClicks <- divClass "svg-wrapper" $ nzmap False state
         divClass "legend-wrapper" $ mapLegend state
         return $ leftmost [zoomClick, mapClicks]
-    chartE <- divClass "indicator-chart" $
-      indicatorChart indicator_chart_state rightZoomD
+    chartE <- divClass "indicator-chart" $ indicatorChart state rightZoomD
     return $ leftmost [ mapE, chartE ]
-  let caD = Bailiwick.View.IndicatorSummary.compareAreaD indicator_summary_state
+  let caD = Bailiwick.State.compareAreaD state
       indicatorSummaryCssD = ffor caD $ \case
         Loading   -> "indicator-summary hide-table no-compare"
         Loaded _  -> "indicator-summary hide-table compare"
         Missing   -> "indicator-summary hide-table no-compare"
   summaryE <- elDynClass "div" indicatorSummaryCssD $ do
-    indicatorSummary indicator_summary_state
-    indicatorTable indicator_table_state
+    indicatorSummary state
+    indicatorTable state
   return $ leftmost [contentE, summaryE]
 
 summaryText

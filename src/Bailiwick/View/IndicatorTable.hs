@@ -5,10 +5,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
-module Bailiwick.View.IndicatorTable
-  ( indicatorTable
-  , IndicatorTableState(..)
-  )
+{-# LANGUAGE NamedFieldPuns #-}
+module Bailiwick.View.IndicatorTable (indicatorTable)
 where
 
 import Control.Monad (void, join)
@@ -34,18 +32,10 @@ import Language.Javascript.JSaddle (obj, (<#), MonadJSM, liftJSM, toJSVal)
 import Bailiwick.View.Text
 import Bailiwick.Javascript (switchDynM, elDynHtmlAttr')
 import Bailiwick.Route
+import Bailiwick.State
+       (State(State, adaptersD, selectedAreaD, compareAreaD, featureD, yearD,
+              indicatorD, indicatorNumbersD))
 import Bailiwick.Types
-
-data IndicatorTableState t
-  = IndicatorTableState
-  { showTableD         :: Dynamic t Bool
-  , areaD              :: Dynamic t (Loadable Area)
-  , compareAreaD       :: Dynamic t (Loadable (Maybe Area))
-  , featureD           :: Dynamic t (Maybe FeatureId)
-  , yearD              :: Dynamic t (Maybe Year)
-  , indicatorD         :: Dynamic t (Loadable Indicator)
-  , indicatorNumbersD  :: Dynamic t (Loadable IndicatorNumbers)
-  }
 
 data Column
   = YearCol
@@ -181,14 +171,15 @@ indicatorTable
      , MonadJSM (Performable m)
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
-  => IndicatorTableState t
+  => State t
   -> m (Event t Message)
-indicatorTable its@IndicatorTableState{..} = do
+indicatorTable st@State{adaptersD,compareAreaD} = do
+  let showTableD = hasAdapter ShowTable <$> adaptersD
 
   clickCloseE <- switchDynM $ ffor (zipDyn showTableD compareAreaD) $ \case
-    (True, Loading)  -> tableView its
-    (True, Missing)  -> tableView its
-    (True, Loaded _) -> compareTableView its
+    (True, Loading)  -> tableView st showTableD
+    (True, Missing)  -> tableView st showTableD
+    (True, Loaded _) -> compareTableView st showTableD
     (False, _)       -> return never
 
   showTableE <- fmap (domEvent Click . fst) $
@@ -214,17 +205,20 @@ tableView
      , MonadHold t m
      , MonadJSM (Performable m)
      )
-  => IndicatorTableState t
+  => State t
+  -> Dynamic t Bool
   -> m (Event t ())
-tableView IndicatorTableState{..} = mdo
+tableView
+  State{selectedAreaD,compareAreaD,featureD,yearD,indicatorD,indicatorNumbersD}
+  showTableD = mdo
 
   sortOrderD :: Dynamic t SortOrder
     <- holdDyn (YearCol, Desc) sortOrderE
 
-  let tableD = shapeData <$> (toMaybe <$> areaD) <*> featureD <*> sortOrderD <*> indicatorNumbersD
+  let tableD = shapeData <$> (toMaybe <$> selectedAreaD) <*> featureD <*> sortOrderD <*> indicatorNumbersD
 
       subs = (textSubstitution
-                    <$> (toMaybe <$> areaD)
+                    <$> (toMaybe <$> selectedAreaD)
                     <*> (load Nothing id <$> compareAreaD)
                     <*> (toMaybe <$> indicatorD)
                     <*> featureD
@@ -363,21 +357,24 @@ compareTableView
      , MonadJSM (Performable m)
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
-  => IndicatorTableState t
+  => State t
+  -> Dynamic t Bool
   -> m (Event t ())
-compareTableView IndicatorTableState{..} = mdo
+compareTableView
+  State{selectedAreaD,compareAreaD,featureD,yearD,indicatorD,indicatorNumbersD}
+  showTableD = mdo
 
   sortOrderD :: Dynamic t CompareSortOrder
     <- holdDyn (CompYearCol, Desc) sortOrderE
 
-  let tableD = shapeCompareData <$> (toMaybe <$> areaD)
+  let tableD = shapeCompareData <$> (toMaybe <$> selectedAreaD)
                                 <*> (load Nothing id <$> compareAreaD)
                                 <*> featureD
                                 <*> sortOrderD
                                 <*> indicatorNumbersD
 
       subs = (textSubstitution
-                    <$> (toMaybe <$> areaD)
+                    <$> (toMaybe <$> selectedAreaD)
                     <*> (load Nothing id <$> compareAreaD)
                     <*> (toMaybe <$> indicatorD)
                     <*> featureD
@@ -426,7 +423,7 @@ compareTableView IndicatorTableState{..} = mdo
                   el "tr" $ do
                     elAttr "td" ("class" =: "button") $ do
                       let csvD = do
-                            areaname <- load "" areaName <$> areaD
+                            areaname <- load "" areaName <$> selectedAreaD
                             compname <- load "" (maybe "" areaName) <$> compareAreaD
                             headline <- subs (fromMaybe "Headline" <$> headlineLabelD)
                             national <- subs (fromMaybe "National" <$> nationalLabelD)
@@ -483,7 +480,7 @@ compareTableView IndicatorTableState{..} = mdo
                           text "Year"
                       originalAreaClickE <- fmap (domEvent Click . fst)  $
                         elDynAttr' "th" (tableSortAttrD "border-top" OriginalAreaCol) $
-                          dynText $ subs (load "" areaName <$> areaD)
+                          dynText $ subs (load "" areaName <$> selectedAreaD)
                       originalCompareClickE <- fmap (domEvent Click . fst)  $
                         elDynAttr' "th" (tableSortAttrD "border-top" OriginalCompCol) $
                           dynText $ subs (load "" (maybe "" areaName) <$> compareAreaD)
@@ -492,7 +489,7 @@ compareTableView IndicatorTableState{..} = mdo
                           text "Ratio"
                       nationalAreaClickE <- fmap (domEvent Click . fst)  $
                         elDynAttr' "th" (tableSortAttrD "border-top" NationalAreaCol) $
-                          dynText $ subs (load "" areaName <$> areaD)
+                          dynText $ subs (load "" areaName <$> selectedAreaD)
                       nationalCompareClickE <- fmap (domEvent Click . fst)  $
                         elDynAttr' "th" (tableSortAttrD "border-top" NationalCompCol) $
                           dynText $ subs (load "" (maybe "" areaName) <$> compareAreaD)
