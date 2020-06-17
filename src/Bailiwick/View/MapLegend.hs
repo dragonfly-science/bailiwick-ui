@@ -1,13 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-module Bailiwick.View.MapLegend
-  ( mapLegend
-  , MapLegendState(..)
-  )
+module Bailiwick.View.MapLegend ( mapLegend )
 where
 
 import Control.Monad.Fix
@@ -19,19 +17,12 @@ import Reflex
 import Reflex.Dom.Core
 
 import Bailiwick.Javascript
+import Bailiwick.State
+       (State(State, transformD, chartTypeD, indicatorD, featureD, yearD),
+        getScaleExtentD)
 import Bailiwick.Types
 import Bailiwick.View.IndicatorChart (textLabel)
 import Bailiwick.View.Text (textSubstitution)
-
-data MapLegendState t
-  = MapLegendState
-    { inputValuesD     :: Dynamic t (Maybe (Double, Double))
-    , yearD            :: Dynamic t (Maybe Year)
-    , featureD         :: Dynamic t (Maybe FeatureId)
-    , transformD       :: Dynamic t (Maybe TransformId)
-    , chartTypeD       :: Dynamic t (Maybe ChartId)
-    , indicatorD       :: Dynamic t (Loadable Indicator)
-    }
 
 mapLegend
   :: ( Monad m
@@ -45,14 +36,16 @@ mapLegend
      , DomBuilderSpace m ~ GhcjsDomSpace
      , MonadFix m
      )
-  => MapLegendState t
+  => State t
   -> m ()
-mapLegend MapLegendState{..} = do
+mapLegend state = do
   (e, _) <- elAttr' "div" ("class" =: "legend indicator-map-legend") $ return ()
 
   readyE <- getPostBuild
 
-  let jsargs = do
+  let inputValuesD = getScaleExtentD state
+      State{indicatorD,yearD,featureD,transformD,chartTypeD} = state
+      jsargs = do
         transform <- transformD
         chartType <- chartTypeD
         indicator <- indicatorD

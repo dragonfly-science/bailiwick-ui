@@ -208,8 +208,6 @@ mainContent
 mainContent st@State{..} = do
   let leftZoomD = hasAdapter Mapzoom <$> adaptersD
       rightZoomD = hasAdapter RightZoom <$> adaptersD
-      mapState = makeMapState st
-      mapLegendState = makeMapLegendState st
       areaSummaryState = makeSummaryState st
       indicatorSummaryState = makeIndicatorSummaryState st
       indicatorChartState = makeIndicatorChartState st
@@ -217,9 +215,9 @@ mainContent st@State{..} = do
      ffor isSummaryD $ \case
         True  -> summaryContent adaptersD
                                 (toMaybe <$> regionD)
-                                (toMaybe <$> areaD) mapState areaSummaryState
+                                (toMaybe <$> areaD) st areaSummaryState
         False -> indicatorContent leftZoomD rightZoomD (toMaybe <$> regionD)
-                                  mapState mapLegendState
+                                  st
                                   indicatorChartState
                                   indicatorSummaryState
                                   (makeIndicatorTableState st)
@@ -229,16 +227,16 @@ summaryContent
     => Dynamic t (Set Adapter)
     -> Dynamic t (Maybe Area)
     -> Dynamic t (Maybe Area)
-    -> MapState t
+    -> State t
     -> AreaSummaryState t
     -> m (Event t Message)
-summaryContent adaptersD regionD areaD map_state area_summary_state=
+summaryContent adaptersD regionD areaD state area_summary_state=
   divClass "central-content summary" $ do
     messagesE
      <-
        divClass "navigation-map base-map" $ do
          zoomClick <- summaryText adaptersD regionD areaD
-         mapClicks <- divClass "svg-wrapper" $ nzmap True map_state
+         mapClicks <- divClass "svg-wrapper" $ nzmap True state
          return $ leftmost [zoomClick, mapClicks]
 
     summaryMessagesE <- divClass "area-summary" $
@@ -250,15 +248,13 @@ indicatorContent
     => Dynamic t Bool
     -> Dynamic t Bool
     -> Dynamic t (Maybe Area)
-    -> MapState t
-    -> MapLegendState t
+    -> State t
     -> IndicatorChartState t
     -> IndicatorSummaryState t
     -> IndicatorTableState t
     -> m (Event t Message)
 indicatorContent leftZoomD rightZoomD regionD
-    map_state
-    map_legend_state
+    state
     indicator_chart_state
     indicator_summary_state
     indicator_table_state = do
@@ -287,8 +283,8 @@ indicatorContent leftZoomD rightZoomD regionD
                               , (ZoomIn Nothing) <$ domEvent Click eZoomIn
                               ]
 
-        mapClicks <- divClass "svg-wrapper" $ nzmap False map_state
-        divClass "legend-wrapper" $ mapLegend map_legend_state
+        mapClicks <- divClass "svg-wrapper" $ nzmap False state
+        divClass "legend-wrapper" $ mapLegend state
         return $ leftmost [zoomClick, mapClicks]
     chartE <- divClass "indicator-chart" $
       indicatorChart indicator_chart_state rightZoomD

@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RecursiveDo         #-}
@@ -14,10 +15,7 @@
 {-# LANGUAGE RankNTypes          #-}
 
 
-module Bailiwick.View.Map
-  ( nzmap
-  , MapState(..)
-  )
+module Bailiwick.View.Map ( nzmap )
 where
 
 import Control.Monad ((>=>), forever, void, when, join)
@@ -67,21 +65,12 @@ import Reflex.Dom.Core
 import Reflex.Dom.Builder.Immediate (wrapDomEvent)
 
 import Bailiwick.Route
+import Bailiwick.State
+       (State(State, adaptersD, areaTypeD, transformD, indicatorNumbersD,
+              featureD, yearD, areaD, store, regionD),
+        getScaleExtentD)
+import Bailiwick.Store (Store(storeAreasD))
 import Bailiwick.Types
-
-data MapState t
-  = MapState
-    { adaptersD          :: Dynamic t (Set Adapter)
-    , regionD            :: Dynamic t (Maybe Area)
-    , subareaD           :: Dynamic t (Maybe Area)
-    , areasD             :: Dynamic t (Maybe Areas)
-    , transformD         :: Dynamic t (Maybe TransformId)
-    , areaTypeD          :: Dynamic t (Maybe AreaType)
-    , featureD           :: Dynamic t (Maybe FeatureId)
-    , yearD              :: Dynamic t (Maybe Year)
-    , indicatorNumbersD  :: Dynamic t (Loadable IndicatorNumbers)
-    , inputValuesD       :: Dynamic t (Maybe (Double, Double))
-    }
 
 switchDynM
  :: (MonadHold t m, DomBuilder t m, PostBuild t m)
@@ -435,11 +424,16 @@ nzmap
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
     => Bool
-    -> MapState t
+    -> State t
     -> m (Event t Message)
-nzmap isSummary MapState{..} = mdo
+nzmap isSummary state = mdo
+  let State{adaptersD,transformD,areaTypeD,featureD,yearD,indicatorNumbersD,areaD,store,regionD} = state
+      mregionD = toMaybe <$> regionD
+      subareaD = toMaybe <$> areaD
+      areasD = toMaybe <$> (storeAreasD store)
+      subareaRegionD = zipDynWith (<|>) subareaD mregionD
+
   zoomD <- holdUniqDyn ( hasAdapter Mapzoom <$> adaptersD)
-  let areaD = zipDynWith (<|>) subareaD regionD
 
   -- Show the svg when it is loaded
   svgVisibilityD
@@ -467,7 +461,7 @@ nzmap isSummary MapState{..} = mdo
   frame <- animationFrame zoomAnimating
 
   let wideAndSummaryD = (&& isSummary) <$> wide
-  let zoomStateD = zoomState <$> wideAndSummaryD <*> zoomD <*> (maybe "nz" areaId <$> regionD)
+  let zoomStateD = zoomState <$> wideAndSummaryD <*> zoomD <*> (maybe "nz" areaId <$> mregionD)
   (zoomAnimating, zoomStateT) <- transitions frame duration zoomStateD
 
   let level2type a "reg" = (a, "region")
@@ -477,19 +471,19 @@ nzmap isSummary MapState{..} = mdo
       areaAreaTypes (Areas as) = [ level2type areaId areaLevel
                                  | Area{..} <- OM.elems as ]
   -- Unique dyns
-  mapregionidD    <- holdUniqDyn $ fmap areaId <$> regionD
+  mapregionidD    <- holdUniqDyn $ fmap areaId <$> mregionD
   mapsubareaidD   <- holdUniqDyn $ fmap areaId <$> subareaD
   mapareatypeD    <- holdUniqDyn $ areaTypeD
   mapfeatureD     <- holdUniqDyn $ featureD
   mapyearD        <- holdUniqDyn $ yearD
-  mapinputValuesD <- holdUniqDyn $ inputValuesD
+  mapinputValuesD <- holdUniqDyn $ getScaleExtentD state
   let mapD
         = Map <$> zoomD
               <*> zoomStateT
               <*> mouseOverD
               <*> mapregionidD
               <*> mapsubareaidD
-              <*> (maybe [] areaChildren <$> areaD)
+              <*> (maybe [] areaChildren <$> subareaRegionD)
               <*> (maybe [] areaAreaTypes <$> areasD)
               <*> mapareatypeD
               <*> mapfeatureD
@@ -614,7 +608,7 @@ nzmap isSummary MapState{..} = mdo
                 -> Nothing
 
       combinedD = do
-        region  <- regionD
+        region  <- mregionD
         subarea <- subareaD
         adapters <- adaptersD
         areatype <- mapareatypeD
