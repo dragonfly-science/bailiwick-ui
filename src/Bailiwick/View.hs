@@ -126,7 +126,7 @@ view st@State{..} = do
       elDynAttr "div" (("class" =: "content main-content" <>) .
              maybe mempty (("style" =:) . ("margin-top: " <>)) <$> marginTopD) $
         mainContent st
-    indicatorsE <- indicators (makeIndicatorState st)
+    indicatorsE <- indicators st
 
     -- We need to scroll up when these links are clicked (or you can't tell they do anything)
     performEvent_ $ ffor indicatorsE $ \case

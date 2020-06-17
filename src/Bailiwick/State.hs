@@ -16,7 +16,6 @@ import qualified Data.HashMap.Strict.InsOrd as OMap
 import Reflex.Dom.Core hiding (mapMaybe)
 import Language.Javascript.JSaddle.Types (MonadJSM)
 
-import Bailiwick.View.Indicators (IndicatorState(IndicatorState))
 import Bailiwick.View.ToolBar (ToolBarState(ToolBarState))
 import Bailiwick.View.AreaSummary (AreaSummaryState(AreaSummaryState))
 import Bailiwick.Route
@@ -251,18 +250,6 @@ getDataAreasD State{indicatorNumbersD} = do
     let IndicatorNumbers ns = numbers
     return $ Set.fromList $ fmap getAreaId $ OMap.keys ns
 
-
--- Indicator state
-makeIndicatorState
-  :: Reflex t
-  => State t -> IndicatorState t
-makeIndicatorState State{selectedAreaD,areaTypeD,yearD,indicatorD,themesD} =
-  IndicatorState
-        (toMaybe <$> selectedAreaD)
-        (toMaybe <$> indicatorD)
-        yearD
-        areaTypeD
-        (toMaybe <$> themesD)
 
 -- Valid area types for the selected indicator
 getAreaTypesD
