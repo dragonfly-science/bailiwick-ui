@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RecursiveDo         #-}
@@ -14,7 +15,6 @@ import Data.Maybe (fromMaybe, listToMaybe)
 
 import Data.Text (Text, isPrefixOf)
 import Data.Map (Map)
-import Data.Set (Set)
 import qualified Data.Map as Map
 import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as OMap
@@ -23,20 +23,11 @@ import Reflex.Dom.Core hiding (Home)
 import Bailiwick.View.Text
 import Bailiwick.View.Compare
 import Bailiwick.Route
+import Bailiwick.State
+       (State(State, isSummaryD, regionD, areaD, compareAreaD, yearD, featureD, areasD,
+              indicatorD),
+        getDataAreasD)
 import Bailiwick.Types
-
-data HeaderState t
-  = HeaderState
-  { isSummaryD          :: Dynamic t Bool
-  , areaD               :: Dynamic t (Maybe Area)
-  , subareaD            :: Dynamic t (Maybe Area)
-  , compareAreaD        :: Dynamic t (Maybe Area)
-  , yearD               :: Dynamic t (Maybe Year)
-  , featureD            :: Dynamic t (Maybe FeatureId)
-  , areasD              :: Dynamic t (Maybe Areas)
-  , indicatorD          :: Dynamic t (Maybe Indicator)
-  , indicatorDataAreasD :: Dynamic t (Maybe (Set AreaId))
-  }
 
 header
     :: ( MonadFix m
@@ -44,10 +35,16 @@ header
        , PostBuild t m
        , DomBuilder t m
        )
-    => HeaderState t -> m (Event t Message)
-header hs@HeaderState{..} = mdo
+    => State t -> m (Event t Message)
+header st@State{regionD,areaD,compareAreaD,featureD,areasD,indicatorD} = mdo
+  let mareaD = toMaybe <$> regionD
+      subareaD = toMaybe <$> areaD
+      mareasD = toMaybe <$> areasD
+      mindicatorD = toMaybe <$> indicatorD
+      indicatorDataAreasD = toMaybe <$> (getDataAreasD st)
+
   let background = do
-        area <- maybe "new-zealand" areaId <$> areaD
+        area <- maybe "new-zealand" areaId <$> mareaD
         return $ (  "class" =: "title" <> "data-region" =: area)
 
       showSubareaD = do
@@ -57,7 +54,7 @@ header hs@HeaderState{..} = mdo
             else return Visible
 
       showFeaturesD = do
-        mind <- indicatorD
+        mind <- mindicatorD
         return $ fromMaybe NotVisible $ do
             Indicator{..} <- mind
             if indicatorFeatures == []
@@ -65,7 +62,7 @@ header hs@HeaderState{..} = mdo
                 else return Inverted
 
       subAreaMessage = do
-        area <- fmap areaId <$> areaD
+        area <- fmap areaId <$> mareaD
         if area == Just "auckland"
             then return "Select a ward"
             else return "Select a territorial authority"
@@ -74,7 +71,7 @@ header hs@HeaderState{..} = mdo
         return "Select a feature"
 
       regionsD = do
-        mareas <- areasD
+        mareas <- mareasD
         let areas = maybe OMap.empty unAreas mareas
             regions = OMap.filter (\a -> areaLevel a == "reg") areas
             mnz = OMap.lookup "new-zealand" areas
@@ -83,8 +80,8 @@ header hs@HeaderState{..} = mdo
                     Nothing -> regions
 
       subareasD = do
-        area <- areaD
-        mareas <- areasD
+        area <- mareaD
+        mareas <- mareasD
         mdataareas <- indicatorDataAreasD
         return $
           fromMaybe OMap.empty $ do
@@ -98,7 +95,7 @@ header hs@HeaderState{..} = mdo
                      areas
 
       featuresD = do
-        mind <- indicatorD
+        mind <- mindicatorD
         return $
           fromMaybe OMap.empty $ do
             Indicator{..} <- mind
@@ -110,7 +107,7 @@ header hs@HeaderState{..} = mdo
     divClass "content" $ mdo
       backToSummaryE <-
         divClass "left" $ do
-          backToSummary hs
+          backToSummary st
       menuE <-
         divClass "right" $
           divClass "title-menus" $ do
@@ -118,7 +115,7 @@ header hs@HeaderState{..} = mdo
               dropdownMenu (constDyn "Select a region")
                            never
                            (constDyn Visible)
-                           (fmap areaId <$> areaD)
+                           (fmap areaId <$> mareaD)
                            (fmap areaName <$> regionsD)
             (subarea, _) <-
               dropdownMenu subAreaMessage
@@ -146,7 +143,7 @@ header hs@HeaderState{..} = mdo
                               , SetRegion <$> fmapMaybe id (updated uniqRegion)
                               , SetFeature . FeatureId <$> fmapMaybe id (updated uniqFeature)
                               ]
-      compareE <- compareMenu compareAreaD areasD
+      compareE <- compareMenu (load Nothing id <$> compareAreaD) mareasD
       return $ leftmost [backToSummaryE, menuE, compareE]
 
 backToSummary
@@ -155,8 +152,13 @@ backToSummary
        , PostBuild t m
        , DomBuilder t m
        )
-    => HeaderState t -> m (Event t Message)
-backToSummary HeaderState{..} = do
+    => State t -> m (Event t Message)
+backToSummary
+  State{isSummaryD,regionD,areaD,yearD,featureD,indicatorD} = do
+  let mareaD = toMaybe <$> regionD
+      subareaD = toMaybe <$> areaD
+      mindicatorD = toMaybe <$> indicatorD
+
   let displayNone = "style" =: "display: none;"
       disp boolD cssclass  = do
         bool <- boolD
@@ -167,9 +169,9 @@ backToSummary HeaderState{..} = do
       notSummaryD = not <$> isSummaryD
 
   let subs = (textSubstitution
-                <$> ((<|>) <$> subareaD <*> areaD)
+                <$> ((<|>) <$> subareaD <*> mareaD)
                 <*> (constDyn Nothing)
-                <*> (indicatorD)
+                <*> (mindicatorD)
                 <*> featureD
                 <*> (constDyn Nothing)
                 <*> yearD
@@ -182,11 +184,11 @@ backToSummary HeaderState{..} = do
         text " Back to summary page"
   elDynAttr "div" (disp notSummaryD "page-header indicator-page-header") $ do
     elAttr "div" ("id" =: "header-title") $ do
-      dynText $ fmap capitalize $ subs $ maybe "" indicatorHeaderTitle <$> indicatorD
+      dynText $ fmap capitalize $ subs $ maybe "" indicatorHeaderTitle <$> mindicatorD
   elDynAttr "span" (disp isSummaryD "block-label context-text") $ text "You're looking at"
   elDynAttr "div" (disp isSummaryD "page-header summary-page-header") $ do
     el "div" $ do
-      dynText $ maybe "" areaName <$> areaD
+      dynText $ maybe "" areaName <$> mareaD
       dynText $ maybe "" (const ":") <$> subareaD
     el "div" $ dynText $ maybe "" areaName <$> subareaD
   return $ GoTo Summary <$ domEvent Click e

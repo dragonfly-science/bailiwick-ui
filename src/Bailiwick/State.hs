@@ -16,7 +16,6 @@ import qualified Data.HashMap.Strict.InsOrd as OMap
 import Reflex.Dom.Core hiding (mapMaybe)
 import Language.Javascript.JSaddle.Types (MonadJSM)
 
-import Bailiwick.View.Header (HeaderState(HeaderState))
 import Bailiwick.View.Indicators (IndicatorState(IndicatorState))
 import Bailiwick.View.ToolBar (ToolBarState(ToolBarState))
 import Bailiwick.View.AreaSummary (AreaSummaryState(AreaSummaryState))
@@ -252,22 +251,6 @@ getDataAreasD State{indicatorNumbersD} = do
     let IndicatorNumbers ns = numbers
     return $ Set.fromList $ fmap getAreaId $ OMap.keys ns
 
-
--- Header state
-makeHeaderState
-  :: Reflex t
-  => State t -> HeaderState t
-makeHeaderState st@State{isSummaryD,areaD,regionD,yearD,featureD,indicatorD,compareAreaD,areasD} =
-  HeaderState
-        isSummaryD
-        (toMaybe <$> regionD)
-        (toMaybe <$> areaD)
-        (load Nothing id <$> compareAreaD)
-        yearD
-        featureD
-        (toMaybe <$> areasD)
-        (toMaybe <$> indicatorD)
-        (toMaybe <$> getDataAreasD st)
 
 -- Indicator state
 makeIndicatorState

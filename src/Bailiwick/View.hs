@@ -114,7 +114,7 @@ view st@State{..} = do
       <- divClass "main-header-area" $
             elDynClass "header" (mainHeaderClass <$> isOpen <*> isSummaryD) $ do
               (navBarE, modalE') <- navbar
-              headerE' <- header (makeHeaderState st)
+              headerE' <- header st
               (toolBarE, isOpen') <- mdo
                   eithersE <- toolBar isOpen (makeToolBarState st)
                   let (isOpenE, toolBarE) = fanEither eithersE
