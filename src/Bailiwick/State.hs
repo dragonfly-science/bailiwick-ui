@@ -239,20 +239,26 @@ run messageE = do
               , areasD             = areasD
               }
 
+-- Areas where there is data for the selected indicator
+getDataAreasD
+  :: Reflex t
+  => State t
+  -> Dynamic t (Loadable (Set AreaId))
+getDataAreasD State{indicatorNumbersD} = do
+  mnumbers <- indicatorNumbersD
+  return $ do
+    numbers <- mnumbers
+    let getAreaId (a, _, _) = a
+    let IndicatorNumbers ns = numbers
+    return $ Set.fromList $ fmap getAreaId $ OMap.keys ns
+
 
 -- Header state
 makeHeaderState
   :: Reflex t
   => State t -> HeaderState t
-makeHeaderState State{isSummaryD,areaD,regionD,yearD,featureD,indicatorD,indicatorNumbersD,compareAreaD,areasD} =
-  let indicatorDataAreasD = do
-        mnumbers <- indicatorNumbersD
-        return $ do
-          numbers <- mnumbers
-          let getAreaId (a, _, _) = a
-          let IndicatorNumbers ns = numbers
-          return $ Set.fromList $ fmap getAreaId $ OMap.keys ns
-  in  HeaderState
+makeHeaderState st@State{isSummaryD,areaD,regionD,yearD,featureD,indicatorD,compareAreaD,areasD} =
+  HeaderState
         isSummaryD
         (toMaybe <$> regionD)
         (toMaybe <$> areaD)
@@ -261,7 +267,7 @@ makeHeaderState State{isSummaryD,areaD,regionD,yearD,featureD,indicatorD,indicat
         featureD
         (toMaybe <$> areasD)
         (toMaybe <$> indicatorD)
-        (toMaybe <$> indicatorDataAreasD)
+        (toMaybe <$> getDataAreasD st)
 
 -- Indicator state
 makeIndicatorState
@@ -275,12 +281,12 @@ makeIndicatorState State{selectedAreaD,areaTypeD,yearD,indicatorD,themesD} =
         areaTypeD
         (toMaybe <$> themesD)
 
+-- Valid area types for the selected indicator
 getAreaTypesD
   :: Reflex t
-  => Dynamic t (Loadable Indicator)
-  -> Store t
+  => State t
   -> Dynamic t (Maybe (Set AreaType))
-getAreaTypesD indicatorD store = do
+getAreaTypesD State{indicatorD,store} = do
   mindicator <- (toMaybe <$> indicatorD)
   indicatorsData <- storeIndicatorsDataD store
   let getAreaType (_, a, _) = a
@@ -296,32 +302,42 @@ getAreaTypesD indicatorD store = do
 makeToolBarState
   :: Reflex t
   => State t -> ToolBarState t
-makeToolBarState State{chartTypeD,transformD,yearD,areaTypeD,indicatorD,store} =
+makeToolBarState st@State{chartTypeD,transformD,yearD,areaTypeD,indicatorD} =
   ToolBarState
      (toMaybe <$> indicatorD)
      areaTypeD
      transformD
      chartTypeD
      yearD
-     (getAreaTypesD indicatorD store)
+     (getAreaTypesD st)
+
+getSummariesD
+  :: Reflex t
+  => State t
+  -> Dynamic t AreaSummaries
+getSummariesD State{store} = fromLoadable OMap.empty <$> storeSummariesD store
+
+getIndicatorsD
+  :: Reflex t
+  => State t
+  -> Dynamic t Indicators
+getIndicatorsD State{themesD} = do -- Dynamic t
+  lthemes <- themesD
+  return $ fromLoadable OMap.empty $ do -- Loadable
+     themes <- lthemes
+     return $ OMap.fromList $ [ (indicatorId i, i)
+                              | i <- concat [ themeIndicators t
+                                            | t <- themes]]
 
 -- Area Summary state
 makeSummaryState
   :: Reflex t
   => State t -> AreaSummaryState t
-makeSummaryState State{selectedAreaD,store,themesD} =
-  let summariesD = fromLoadable OMap.empty <$> storeSummariesD store
-      indicatorsD = do -- Dynamic t
-        lthemes <- themesD
-        return $ fromLoadable OMap.empty $ do -- Loadable
-           themes <- lthemes
-           return $ OMap.fromList $ [ (indicatorId i, i)
-                                    | i <- concat [ themeIndicators t
-                                                  | t <- themes]]
-  in  AreaSummaryState
+makeSummaryState st@State{selectedAreaD} =
+  AreaSummaryState
         (toMaybe <$> selectedAreaD)
-        summariesD
-        indicatorsD
+        (getSummariesD st)
+        (getIndicatorsD st)
 
 getScaleExtentD
   :: Reflex t
