@@ -28,8 +28,7 @@ import Bailiwick.Javascript
 import Bailiwick.Route
 import Bailiwick.State
        (State(State, selectedAreaD, featureD, chartTypeD, transformD, yearD, areaTypeD,
-              indicatorD, indicatorNumbersD, store, compareAreaD))
-import Bailiwick.Store (Store(storeAreasD))
+              indicatorD, indicatorNumbersD, compareAreaD, areasD))
 import Bailiwick.Types
 import Bailiwick.View.Text (textSubstitution)
 
@@ -135,7 +134,7 @@ indicatorChart
   -> m (Event t Message)
 indicatorChart
   State{selectedAreaD,featureD,chartTypeD,transformD,yearD,areaTypeD,indicatorD,
-        indicatorNumbersD,store,compareAreaD}
+        indicatorNumbersD,compareAreaD,areasD}
   zoomD = do
 
   (e, rightZoomE) <- divClass "chart-wrapper" $ do
@@ -165,8 +164,6 @@ indicatorChart
         return (e, rightZoomE)
 
   readyE <- getPostBuild
-
-  let areasD = storeAreasD store
 
   let shapedDataD = do
         areas <- areasD

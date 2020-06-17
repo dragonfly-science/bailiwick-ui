@@ -67,9 +67,8 @@ import Reflex.Dom.Builder.Immediate (wrapDomEvent)
 import Bailiwick.Route
 import Bailiwick.State
        (State(State, adaptersD, areaTypeD, transformD, indicatorNumbersD,
-              featureD, yearD, areaD, store, regionD),
+              featureD, yearD, areaD, areasD, regionD),
         getScaleExtentD)
-import Bailiwick.Store (Store(storeAreasD))
 import Bailiwick.Types
 
 switchDynM
@@ -427,10 +426,11 @@ nzmap
     -> State t
     -> m (Event t Message)
 nzmap isSummary state = mdo
-  let State{adaptersD,transformD,areaTypeD,featureD,yearD,indicatorNumbersD,areaD,store,regionD} = state
+  let State{adaptersD,transformD,areaTypeD,featureD,yearD,indicatorNumbersD,areaD,areasD,
+            regionD} = state
       mregionD = toMaybe <$> regionD
       subareaD = toMaybe <$> areaD
-      areasD = toMaybe <$> (storeAreasD store)
+      mareasD = toMaybe <$> areasD
       subareaRegionD = zipDynWith (<|>) subareaD mregionD
 
   zoomD <- holdUniqDyn ( hasAdapter Mapzoom <$> adaptersD)
@@ -484,7 +484,7 @@ nzmap isSummary state = mdo
               <*> mapregionidD
               <*> mapsubareaidD
               <*> (maybe [] areaChildren <$> subareaRegionD)
-              <*> (maybe [] areaAreaTypes <$> areasD)
+              <*> (maybe [] areaAreaTypes <$> mareasD)
               <*> mapareatypeD
               <*> mapfeatureD
               <*> mapyearD
@@ -518,7 +518,7 @@ nzmap isSummary state = mdo
                 _               -> areaRegion ai
         in ((ai, xy),) <$> (((`OM.lookup` (unAreas areas)) . slugify) =<< maybeAreaId)
       tooltipAreaD :: Dynamic t (Maybe ((AreaInfo, (Int, Int)), Area))
-      tooltipAreaD = tooltipArea <$> areasD <*> areaTypeD <*> adaptersD <*> mouseOverFullD
+      tooltipAreaD = tooltipArea <$> mareasD <*> areaTypeD <*> adaptersD <*> mouseOverFullD
       showStyle Nothing = "visibility:hidden;"
       showStyle (Just ((_, (x,y)), _)) = Text.pack $
           "visibility:visible; left:" <> show (x + 8) <> "px; top:" <> show (y + 8) <> "px;"

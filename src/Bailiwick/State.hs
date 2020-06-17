@@ -40,6 +40,8 @@ data State t
     , transformD         :: Dynamic t (Maybe TransformId)
     , areaTypeD          :: Dynamic t (Maybe AreaType)
     , compareAreaD       :: Dynamic t (Loadable (Maybe Area))
+    , themesD            :: Dynamic t (Loadable [Theme])
+    , areasD             :: Dynamic t (Loadable Areas)
     }
 
 route
@@ -170,9 +172,11 @@ run messageE = do
       GoToHomePage                        -> Just (Loaded "new-zealand")
       _                                   -> Nothing
 
-  let indicatorD = do -- Dynamic t
+  let themesD = storeThemesD store
+
+      indicatorD = do -- Dynamic t
         lIndicatorId <- indicatorIdD
-        lthemes <- storeThemesD store
+        lthemes <- themesD
         return $ do -- Loadable
           themes <- lthemes
           indicatorId <- lIndicatorId
@@ -187,8 +191,10 @@ run messageE = do
           IndicatorData{indicatorNumbers} <- indicatorData
           return indicatorNumbers
 
+      areasD = storeAreasD store
+
       regtaD = do
-          lareas <- storeAreasD store
+          lareas <- areasD
           larea_id <- areaIdD
           case (lareas, larea_id) of
             (Loaded as@(Areas areas), Loaded route_area) -> do
@@ -205,7 +211,7 @@ run messageE = do
       selectedAreaD = zipDynWith (<|>) areaD regionD
 
       compareAreaD = do
-          lareas <- storeAreasD store
+          lareas <- areasD
           lmarea_id <- compareAreaIdD
           return $ do
             Areas areas <- lareas
@@ -229,6 +235,8 @@ run messageE = do
               , transformD         = transformD
               , areaTypeD          = areaTypeD
               , compareAreaD       = compareAreaD
+              , themesD            = themesD
+              , areasD             = areasD
               }
 
 
@@ -236,9 +244,8 @@ run messageE = do
 makeHeaderState
   :: Reflex t
   => State t -> HeaderState t
-makeHeaderState State{isSummaryD,areaD,regionD,yearD,featureD,indicatorD,indicatorNumbersD,compareAreaD,store} =
-  let areasD = storeAreasD store
-      indicatorDataAreasD = do
+makeHeaderState State{isSummaryD,areaD,regionD,yearD,featureD,indicatorD,indicatorNumbersD,compareAreaD,areasD} =
+  let indicatorDataAreasD = do
         mnumbers <- indicatorNumbersD
         return $ do
           numbers <- mnumbers
@@ -260,9 +267,8 @@ makeHeaderState State{isSummaryD,areaD,regionD,yearD,featureD,indicatorD,indicat
 makeIndicatorState
   :: Reflex t
   => State t -> IndicatorState t
-makeIndicatorState State{selectedAreaD,areaTypeD,yearD,indicatorD,store} =
-  let themesD = storeThemesD store
-  in  IndicatorState
+makeIndicatorState State{selectedAreaD,areaTypeD,yearD,indicatorD,themesD} =
+  IndicatorState
         (toMaybe <$> selectedAreaD)
         (toMaybe <$> indicatorD)
         yearD
@@ -303,10 +309,10 @@ makeToolBarState State{chartTypeD,transformD,yearD,areaTypeD,indicatorD,store} =
 makeSummaryState
   :: Reflex t
   => State t -> AreaSummaryState t
-makeSummaryState State{selectedAreaD,store} =
+makeSummaryState State{selectedAreaD,store,themesD} =
   let summariesD = fromLoadable OMap.empty <$> storeSummariesD store
       indicatorsD = do -- Dynamic t
-        lthemes <- storeThemesD $ store
+        lthemes <- themesD
         return $ fromLoadable OMap.empty $ do -- Loadable
            themes <- lthemes
            return $ OMap.fromList $ [ (indicatorId i, i)
