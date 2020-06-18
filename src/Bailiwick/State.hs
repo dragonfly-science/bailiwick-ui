@@ -16,7 +16,6 @@ import qualified Data.HashMap.Strict.InsOrd as OMap
 import Reflex.Dom.Core hiding (mapMaybe)
 import Language.Javascript.JSaddle.Types (MonadJSM)
 
-import Bailiwick.View.AreaSummary (AreaSummaryState(AreaSummaryState))
 import Bailiwick.Route
 import Bailiwick.Store as Store
 import Bailiwick.Types
@@ -284,16 +283,6 @@ getIndicatorsD State{themesD} = do -- Dynamic t
      return $ OMap.fromList $ [ (indicatorId i, i)
                               | i <- concat [ themeIndicators t
                                             | t <- themes]]
-
--- Area Summary state
-makeSummaryState
-  :: Reflex t
-  => State t -> AreaSummaryState t
-makeSummaryState st@State{selectedAreaD} =
-  AreaSummaryState
-        (toMaybe <$> selectedAreaD)
-        (getSummariesD st)
-        (getIndicatorsD st)
 
 getScaleExtentD
   :: Reflex t

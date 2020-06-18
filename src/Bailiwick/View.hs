@@ -35,7 +35,7 @@ import Bailiwick.View.Header (header)
 import Bailiwick.View.ExportMenu (exportMenu)
 import Bailiwick.View.Map
 import Bailiwick.View.MapLegend
-import Bailiwick.View.AreaSummary (areaSummary, AreaSummaryState)
+import Bailiwick.View.AreaSummary (areaSummary)
 import Bailiwick.View.Indicators (indicators)
 import Bailiwick.View.IndicatorChart
 import Bailiwick.View.IndicatorSummary
@@ -208,12 +208,9 @@ mainContent
 mainContent st@State{..} = do
   let leftZoomD = hasAdapter Mapzoom <$> adaptersD
       rightZoomD = hasAdapter RightZoom <$> adaptersD
-      areaSummaryState = makeSummaryState st
   switchDynM $
      ffor isSummaryD $ \case
-        True  -> summaryContent adaptersD
-                                (toMaybe <$> regionD)
-                                (toMaybe <$> areaD) st areaSummaryState
+        True  -> summaryContent adaptersD (toMaybe <$> regionD) (toMaybe <$> areaD) st
         False -> indicatorContent leftZoomD rightZoomD (toMaybe <$> regionD) st
 
 summaryContent
@@ -222,9 +219,8 @@ summaryContent
     -> Dynamic t (Maybe Area)
     -> Dynamic t (Maybe Area)
     -> State t
-    -> AreaSummaryState t
     -> m (Event t Message)
-summaryContent adaptersD regionD areaD state area_summary_state=
+summaryContent adaptersD regionD areaD state =
   divClass "central-content summary" $ do
     messagesE
      <-
@@ -233,8 +229,7 @@ summaryContent adaptersD regionD areaD state area_summary_state=
          mapClicks <- divClass "svg-wrapper" $ nzmap True state
          return $ leftmost [zoomClick, mapClicks]
 
-    summaryMessagesE <- divClass "area-summary" $
-        areaSummary area_summary_state
+    summaryMessagesE <- divClass "area-summary" $ areaSummary state
     return $ leftmost [messagesE, summaryMessagesE]
 
 indicatorContent

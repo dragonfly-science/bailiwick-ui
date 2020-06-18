@@ -5,10 +5,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE LambdaCase #-}
-module Bailiwick.View.AreaSummary (
-    areaSummary
-  , AreaSummaryState(..)
-) where
+module Bailiwick.View.AreaSummary (areaSummary) where
 
 import Control.Monad.Fix (MonadFix)
 import Control.Monad (void, join)
@@ -23,14 +20,8 @@ import Reflex
 import Reflex.Dom.Core
 
 import Bailiwick.Types
+import Bailiwick.State (State(selectedAreaD), getSummariesD, getIndicatorsD)
 import Bailiwick.Route
-
-data AreaSummaryState t
-  = AreaSummaryState
-  { area       :: Dynamic t (Maybe Area)
-  , summaries  :: Dynamic t AreaSummaries
-  , indicators :: Dynamic t Indicators
-  }
 
 areaSummary
   :: forall m t.
@@ -44,11 +35,12 @@ areaSummary
      , MonadFix m
      , DomBuilderSpace m ~ GhcjsDomSpace
      )
-  => AreaSummaryState t
+  => State t
   -> m (Event t Message)
-areaSummary AreaSummaryState{..} = do
-  let lookupIndicatorById i = OM.lookup (IndicatorId i) <$> indicators
-      lookupAreaSummary i   = OM.lookup (IndicatorId i) <$> summaries
+areaSummary st = do
+  let area = toMaybe <$> (selectedAreaD st)
+      lookupIndicatorById i = OM.lookup (IndicatorId i) <$> (getIndicatorsD st)
+      lookupAreaSummary i   = OM.lookup (IndicatorId i) <$> (getSummariesD st)
       areaIdD = maybe "" areaId <$> area
       areaTypeD = maybe "reg" areaLevel <$> area
       indicatorAreaType "nz" = "reg"
