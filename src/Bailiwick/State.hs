@@ -16,7 +16,6 @@ import qualified Data.HashMap.Strict.InsOrd as OMap
 import Reflex.Dom.Core hiding (mapMaybe)
 import Language.Javascript.JSaddle.Types (MonadJSM)
 
-import Bailiwick.View.ToolBar (ToolBarState(ToolBarState))
 import Bailiwick.View.AreaSummary (AreaSummaryState(AreaSummaryState))
 import Bailiwick.Route
 import Bailiwick.Store as Store
@@ -267,19 +266,6 @@ getAreaTypesD State{indicatorD,store} = do
     let IndicatorScale scale = indicatorScale
         areaTypes = getAreaType <$> (OMap.keys scale)
     return $ Set.fromList areaTypes
-
--- ToolBar State
-makeToolBarState
-  :: Reflex t
-  => State t -> ToolBarState t
-makeToolBarState st@State{chartTypeD,transformD,yearD,areaTypeD,indicatorD} =
-  ToolBarState
-     (toMaybe <$> indicatorD)
-     areaTypeD
-     transformD
-     chartTypeD
-     yearD
-     (getAreaTypesD st)
 
 getSummariesD
   :: Reflex t

@@ -116,7 +116,7 @@ view st@State{..} = do
               (navBarE, modalE') <- navbar
               headerE' <- header st
               (toolBarE, isOpen') <- mdo
-                  eithersE <- toolBar isOpen (makeToolBarState st)
+                  eithersE <- toolBar isOpen st
                   let (isOpenE, toolBarE) = fanEither eithersE
                   isOpen <- foldDyn (const not) False $ isOpenE
                   return (toolBarE, isOpen)

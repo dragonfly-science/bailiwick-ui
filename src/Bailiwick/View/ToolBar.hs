@@ -1,13 +1,11 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE RecursiveDo         #-}
 {-# LANGUAGE RecordWildCards     #-}
-module Bailiwick.View.ToolBar (
-    toolBar
-  , ToolBarState(..)
-) where
+module Bailiwick.View.ToolBar (toolBar) where
 
 import Control.Monad (join)
 import Control.Monad.Fix (MonadFix)
@@ -36,17 +34,10 @@ import Reflex.Dom.Core
 import Reflex.PerformEvent.Class (PerformEvent(..))
 
 import Bailiwick.Route
+import Bailiwick.State
+       (State(State, indicatorD, areaTypeD, transformD, chartTypeD, yearD),
+        getAreaTypesD)
 import Bailiwick.Types
-
-data ToolBarState t
-  = ToolBarState
-  { indicatorD          :: Dynamic t (Maybe Indicator)
-  , areaTypeD           :: Dynamic t (Maybe AreaType)
-  , transformD          :: Dynamic t (Maybe TransformId)
-  , chartTypeD          :: Dynamic t (Maybe ChartId)
-  , yearD               :: Dynamic t (Maybe Year)
-  , indicatorAreaTypesD :: Dynamic t (Maybe (Set AreaType))
-  }
 
 toolBar
     :: ( MonadFix m
@@ -59,10 +50,12 @@ toolBar
        , DomBuilderSpace m ~ GhcjsDomSpace
        )
     => Dynamic t Bool
-    -> ToolBarState t
+    -> State t
     -> m (Event t (Either () Message))
-toolBar isOpenD ToolBarState{..} = do
-  let allAreaTypes = [ ("nz", "New Zealand")
+toolBar isOpenD st@State{indicatorD,areaTypeD,transformD,chartTypeD,yearD} = do
+  let mindicatorD = toMaybe <$> indicatorD
+      indicatorAreaTypesD = getAreaTypesD st
+      allAreaTypes = [ ("nz", "New Zealand")
                      , ("reg", "Regional Council")
                      , ("ta", "Territorial Authority")
                      , ("ward", "Auckland wards")]
@@ -76,20 +69,20 @@ toolBar isOpenD ToolBarState{..} = do
         return $ getAreaTypes indAreaTypes
 
       absoluteLabel = do
-        ind <- indicatorD
+        ind <- mindicatorD
         return (join $ fmap indicatorAbsoluteLabel ind)
       transforms = (\n -> OM.fromList [ ("indexed", "indexed")
                                       , ("absolute", fromMaybe "absolute" n)]
                    ) <$> absoluteLabel
       yearsD = do
-        ind <- indicatorD
+        ind <- mindicatorD
         return $ OM.fromList [(T.pack $ show y, T.pack $ show y)
                              | y <- reverse (maybe ([]) indicatorYears ind)]
 
       textYearD = fmap (T.pack . show) <$> yearD
 
       chartsD = do
-        ind <- indicatorD
+        ind <- mindicatorD
         return $ M.fromList $ filter (\(k, _) -> unChartId k /= "map") $
                  maybe [] OM.toList (ind >>= indicatorCharts)
 
