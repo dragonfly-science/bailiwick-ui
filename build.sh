@@ -3,7 +3,7 @@
 set -ex
 
 ## Make the d3, non-reflex javascript
-nix-shell javascript.nix -A shell --command 'ln -sf $NODE_PATH; npm run build'
+nix-shell -I nixpkgs=https://github.com/NixOS/nixpkgs-channels/archive/nixos-19.03.tar.gz javascript.nix -A shell --command 'ln -sf $NODE_PATH; npm run build'
 
 ## make the javascript executible
 nix-build deploy.nix
