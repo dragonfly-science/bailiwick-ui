@@ -50,7 +50,6 @@ validate dir = do
 
 validateFile :: FromJSON a => FilePath -> IO a
 validateFile file = do
-  putStrLn $ "Validating " ++ file
   result <- eitherDecodeFileStrict' file
   case result of
     Left err -> do
