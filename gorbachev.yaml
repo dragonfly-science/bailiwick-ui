@@ -1,2 +1,2 @@
 docker: dragonflyscience/bailiwick-ui-nix-build:v11
-memory: 4
+memory: 8
