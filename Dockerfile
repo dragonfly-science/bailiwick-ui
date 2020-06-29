@@ -1,4 +1,4 @@
-FROM lnl7/nix:2.1.2
+FROM lnl7/nix:2.3.3
 
 RUN nix-env -i bash
 RUN nix-env -i zip
@@ -31,7 +31,7 @@ COPY node-env.nix /setup/
 COPY node-packages.nix /setup/
 COPY package.json /setup/
 COPY package-lock.json /setup/
-RUN cd /setup/ && nix-shell javascript.nix -j6 -A shell --run 'ln -s $NODE_PATH'
+RUN cd /setup/ && nix-shell -I nixpkgs=https://github.com/NixOS/nixpkgs-channels/archive/nixos-19.03.tar.gz javascript.nix -j6 -A shell --run 'ln -s $NODE_PATH'
 
 ## return to nix conf that will work on gorby
 COPY nix-gorbachev.conf /etc/nix/nix.conf

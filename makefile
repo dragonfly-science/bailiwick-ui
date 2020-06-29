@@ -1,4 +1,4 @@
-IMAGE := docker.dragonfly.co.nz/bailiwick-ui/nix-build:v10
+IMAGE := docker.dragonfly.co.nz/bailiwick-ui/nix-build:v11
 
 static/map.css: static/map.css.tmpl static/data/areas-1b7549470.json
 	cabal run -v0 make-map-css -- $^ > $@

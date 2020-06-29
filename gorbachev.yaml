@@ -1,2 +1,2 @@
-docker: docker.dragonfly.co.nz/bailiwick-ui/nix-build:v10
+docker: docker.dragonfly.co.nz/bailiwick-ui/nix-build:v11
 memory: 4
