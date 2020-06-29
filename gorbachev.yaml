@@ -1,2 +1,2 @@
-docker: docker.dragonfly.co.nz/bailiwick-ui/nix-build:v11
+docker: 121565642659.dkr.ecr.us-east-1.amazonaws.com/bailiwick-ui/nix-build:v11
 memory: 4
