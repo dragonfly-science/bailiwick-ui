@@ -7,10 +7,6 @@ import { format, getFormatter } from '../utils/formatting'
 import { computeTicks, getColours } from '../utils/utils'
 
 let positiveScale = function(min, max) {
-    if (min == 0 && max == 0) {
-        return null;
-    }
-
     let colours = getColours();
 
     if (_.isEmpty(colours)) {
