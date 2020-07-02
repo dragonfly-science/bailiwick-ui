@@ -498,6 +498,9 @@ export default function (element, params) {
         });
     }
 
+    var currentArea = svg.attr('data-area'),
+        currentCompareArea = svg.attr('data-comparearea');
+
     // update data attributes.
     svg
       .attr('data-year', year)
@@ -507,14 +510,9 @@ export default function (element, params) {
       .attr('data-level', areaLevel)
       .attr('data-indicator', indicator);
 
-
-
     // ----
     // Only update the legend if the area has changed.
     // ----
-
-    var currentArea = svg.attr('data-area'),
-        currentCompareArea = svg.attr('data-comparearea');
 
     if (currentArea === area && currentCompareArea === compareArea) {
         base.classed('svg-loading', false);
