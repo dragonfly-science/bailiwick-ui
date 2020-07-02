@@ -112,10 +112,10 @@ run messageE = do
       _                                   -> Nothing
 
   featureD <-
-    holdDyn Nothing $ fmap Just $ fforMaybe messageE $ \case
-      Ready (Route (ThemePage tba) _ _ _) -> themePageFeatureId tba
-      GoTo (ThemePage tba)                -> themePageFeatureId tba
-      SetFeature featureId                -> Just featureId
+    holdDyn Nothing $ fforMaybe messageE $ \case
+      Ready (Route (ThemePage tba) _ _ _) -> Just $ themePageFeatureId tba
+      GoTo (ThemePage tba)                -> Just $ themePageFeatureId tba
+      SetFeature featureId                -> Just $ Just featureId
       _                                   -> Nothing
 
   chartTypeD <-
