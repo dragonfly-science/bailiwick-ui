@@ -6,7 +6,7 @@ import chartSetup from '../utils/chart-setup';
 import { format } from '../utils/formatting';
 
 function setCaptionSize(element, margin) {
-    var base = d3.select(".basic-barchart .d3-attach");
+    var base = d3.select(element.parentNode);
     var svg = d3.select(element);
     var xSelCaption = svg.selectAll("text.caption");
     xSelCaption.attr(
