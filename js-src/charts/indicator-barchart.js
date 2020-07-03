@@ -289,6 +289,8 @@ export default function (element, params) {
         ".main-content",
         function(element) { setCaptionSize(element, margin); });
 
+    svg.attr("data-bailiwick-areatype", areaLevel);
+
     var bar = g.selectAll(".bar").data(data),
         barEnter = bar.enter().append("rect")
             .attr("class", "bar")

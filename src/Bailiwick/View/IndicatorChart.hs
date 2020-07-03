@@ -278,7 +278,12 @@ indicatorChart
                 then return (SetFeature <$> feature)
                 else if Just True == (isPrefixOf "auckland"  <$> area)
                   then return (SetSubArea "ward" <$> area)
-                  else return (SetSubArea "ta" <$> area)
+                  else do
+                    Just svgElem <- DOM.closest svg ("svg"::Text)
+                    areatype::(Maybe Text) <- DOM.getAttribute svgElem ("data-bailiwick-areatype"::Text)
+                    case areatype of
+                      Just "reg" -> return (SetRegion <$> area)
+                      _          -> return (SetSubArea "ta" <$> area)
            "text" -> do
               yeart <- DOM.getAttribute svg ("data-bailiwick-year"::Text)
               let year = read <$> yeart
