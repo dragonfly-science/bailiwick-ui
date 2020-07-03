@@ -279,7 +279,7 @@ indicatorChart
               feature <- DOM.getAttribute svg ("data-bailiwick-feature"::Text)
               if isJust feature && feature /= Just ""
                 then return (SetFeature <$> feature)
-                else if Just True == (isPrefixOf "auckland"  <$> area)
+                else if Just True == (isPrefixOf "auckland--"  <$> area)
                   then return (SetSubArea "ward" <$> area)
                   else do
                     Just svgElem <- DOM.closest svg ("svg"::Text)
