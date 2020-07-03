@@ -27,7 +27,7 @@ import Reflex.Dom.Core
 import Bailiwick.Javascript
 import Bailiwick.Route
 import Bailiwick.State
-       (State(State, selectedAreaD, featureD, chartTypeD, transformD, yearD, areaTypeD,
+       (State(State, selectedAreaD, featureD, chartTypeD, transformD, yearD, areaTypeD, regionD,
               indicatorD, indicatorNumbersD, compareAreaD, areasD))
 import Bailiwick.Types
 import Bailiwick.View.Text (textSubstitution)
@@ -85,6 +85,7 @@ data ChartArgs
     , chartArgsTransform      :: Text
     , chartArgsAreaname       :: AreaId
     , chartArgsAreatype       :: AreaType
+    , chartArgsRegion         :: AreaId
     , chartArgsFeatureId      :: Maybe Text
     , chartArgsZoom           :: Bool
     , chartArgsChartData      :: Chart
@@ -107,6 +108,7 @@ instance ToJSVal ChartArgs where
     set "transform"     chartArgsTransform
     set "areaname"      chartArgsAreaname
     set "areatype"      chartArgsAreatype
+    set "region"        chartArgsRegion
     set "featureId"     chartArgsFeatureId
     set "zoom"          chartArgsZoom
     set "chartData"     chartArgsChartData
@@ -133,7 +135,7 @@ indicatorChart
   -> Dynamic t Bool
   -> m (Event t Message)
 indicatorChart
-  State{selectedAreaD,featureD,chartTypeD,transformD,yearD,areaTypeD,indicatorD,
+  State{selectedAreaD,featureD,chartTypeD,transformD,yearD,areaTypeD,regionD,indicatorD,
         indicatorNumbersD,compareAreaD,areasD}
   zoomD = do
 
@@ -223,6 +225,7 @@ indicatorChart
           <*> Compose ltransformD
           <*> Compose (fmap areaName <$> selectedAreaD)
           <*> Compose lareaTypeD
+          <*> Compose (fmap areaName <$> regionD)
           <*> Compose (fmap (fmap featureIdText) <$> lfeatureD)
           <*> Compose (Loaded <$> zoomD)
           <*> Compose chartD

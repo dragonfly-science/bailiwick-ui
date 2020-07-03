@@ -69,6 +69,7 @@ export default function(element, params, margin, chartType) {
     var transform = params[1].transform;
     var area = params[1].areaname;
     var areaLevel = params[1].areatype;
+    var region = params[1].region;
     var feature = params[1].featureId;
     var zoom = params[1].zoom;
     var features = params[1].features;

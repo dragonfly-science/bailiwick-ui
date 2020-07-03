@@ -41,6 +41,7 @@ export default function (element, params) {
         transform = setup.transform,
         area = setup.area,
         areaLevel = setup.areaLevel,
+        region = setup.region,
         feature = setup.feature,
         features = setup.features,
         chartData = setup.chartData,
@@ -289,7 +290,15 @@ export default function (element, params) {
         ".main-content",
         function(element) { setCaptionSize(element, margin); });
 
+    var currentAreaLevel = svg.attr('data-bailiwick-areatype'),
+        currentRegion = svg.attr('data-bailiwick-region');
+
+    if (currentAreaLevel !== areaLevel || (areaLevel != "reg" && currentRegion !== region)) {
+        g.selectAll(".bar").remove();
+    }
+
     svg.attr("data-bailiwick-areatype", areaLevel);
+    svg.attr("data-bailiwick-region", region);
 
     var bar = g.selectAll(".bar").data(data),
         barEnter = bar.enter().append("rect")
