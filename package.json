@@ -21,13 +21,13 @@
   "devDependencies": {
     "@babel/core": "^7.4.5",
     "@babel/preset-env": "^7.4.5",
-    "babel-loader": "^8.0.6",
+    "babel-loader": "^8.3.0",
     "cache": "^2.1.0",
     "chroma-js": "^2.0.3",
     "d3": "^3.5.12",
     "lodash": "^4.17.14",
     "rgb-hex": "^3.0.0",
-    "webpack": "^4.33.0",
-    "webpack-cli": "^3.3.3"
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1"
   }
 }
